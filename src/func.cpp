@@ -6,7 +6,6 @@
 #include "common.h"
 #include "bfunc.h"
 #include "settings.h"
-#include "logic.h"
 #include "udf.h"
 
 using namespace std;
@@ -54,12 +53,12 @@ string Function::do_substitutions(const string &rhs)
     return strip_string(def);
 }
 
-Function::Function (const Ftk* F,
-                    const string &name,
-                    const Tplate::Ptr tp,
-                    const vector<string> &vars)
+Function::Function(const Settings* settings,
+                   const string &name,
+                   const Tplate::Ptr tp,
+                   const vector<string> &vars)
     : VariableUser(name, "%", vars),
-      F_(F),
+      settings_(settings),
       tp_(tp),
       av_(vars.size())
 {
@@ -73,7 +72,7 @@ void Function::init()
            + S(tp_->fargs.size()) + " argument(s), got " + S(av_.size()) + ".");
 }
 
-Function* Function::factory(const Ftk* F,
+Function* Function::factory(const Settings* settings,
                             const string &name, const Tplate::Ptr tp,
                             const vector<string> &vars)
 {
@@ -81,7 +80,7 @@ Function* Function::factory(const Ftk* F,
 
 #define FACTORY_FUNC(NAME) \
     else if (tp->name == #NAME) \
-        return new Func##NAME(F, name, tp, vars);
+        return new Func##NAME(settings, name, tp, vars);
 
     FACTORY_FUNC(Constant)
     FACTORY_FUNC(Linear)
@@ -133,7 +132,7 @@ void Function::erased_parameter(int k)
 void Function::calculate_value(const vector<fp> &x, vector<fp> &y) const
 {
     fp left, right;
-    double cut_level = F_->get_settings()->cut_function_level;
+    double cut_level = settings_->cut_function_level;
     bool r = get_nonzero_range(cut_level, left, right);
     if (r) {
         int first = lower_bound(x.begin(), x.end(), left) - x.begin();
@@ -158,7 +157,7 @@ void Function::calculate_value_deriv(const vector<fp> &x,
                                      bool in_dx) const
 {
     fp left, right;
-    double cut_level = F_->get_settings()->cut_function_level;
+    double cut_level = settings_->cut_function_level;
     bool r = get_nonzero_range(cut_level, left, right);
     if (r) {
         int first = lower_bound(x.begin(), x.end(), left) - x.begin();

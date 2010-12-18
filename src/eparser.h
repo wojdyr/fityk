@@ -55,7 +55,8 @@ public:
     /// parse expression
     void parse_expr(Lexer& lex, int default_ds,
                     const std::vector<std::string> *custom_vars=NULL,
-                    std::vector<std::string> *new_vars=NULL);
+                    std::vector<std::string> *new_vars=NULL,
+                    bool ast_mode=false);
 
     // does not throw; returns true if all string is parsed
     bool parse_full(Lexer& lex, int default_ds,
@@ -90,13 +91,13 @@ private:
     void put_ag_function(Lexer& lex, int ds, AggregFunc& ag);
     void put_value_from_curly(Lexer& lex, int ds);
     void put_array_var(bool has_index, Op op);
-    void put_var(Op op);
     void put_name(Lexer& lex, const std::string& word,
                   const std::vector<std::string>* custom_vars,
-                  std::vector<std::string>* new_vars);
-    void put_variable_sth(Lexer& lex, const std::string& name);
-    void put_func_sth(Lexer& lex, const std::string& name);
-    void put_fz_sth(Lexer& lex, char fz, int ds);
+                  std::vector<std::string>* new_vars,
+                  bool ast_mode);
+    void put_variable_sth(Lexer& lex, const std::string& name, bool ast_mode);
+    void put_func_sth(Lexer& lex, const std::string& name, bool ast_mode);
+    void put_fz_sth(Lexer& lex, char fz, int ds, bool ast_mode);
 
     void pop_onto_que();
     void pop_until_bracket();

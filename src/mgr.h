@@ -13,6 +13,7 @@ class Function;
 class Ftk;
 class Model;
 struct FunctionSum;
+struct Token;
 
 /// keeps all functions and variables
 class VariableManager
@@ -25,12 +26,14 @@ public:
     void register_model(Model *m) { models_.push_back(m); }
     void unregister_model(const Model *m);
 
-    int assign_variable(const std::string &name, const std::string &rhs);
+    //int assign_variable(const std::string &name, const std::string &rhs);
+    int make_variable(const std::string &name, VMData* vd);
+    int add_variable(Variable* new_var);
 
     void sort_variables();
 
-    void assign_variable_copy(const std::string & name, const Variable* orig,
-                              const std::map<int,std::string>& varmap);
+    std::string assign_variable_copy(const Variable* orig,
+                                     const std::map<int,std::string>& varmap);
 
     void delete_variables(const std::vector<std::string> &name);
 
@@ -51,7 +54,6 @@ public:
     void auto_remove_functions();
     bool is_function_referred(int n) const;
 
-    std::string get_variable_info(const Variable* v) const;
     const std::vector<fp>& parameters() const { return parameters_; }
     const std::vector<Variable*>& variables() const { return variables_; }
     const Variable* get_variable(int n) const { return variables_[n]; }
@@ -59,12 +61,12 @@ public:
 
     /// returns index of the new function in functions_
     int assign_func(const std::string &name, Tplate::Ptr tp,
-                    const std::vector<std::string> &vars);
+                    std::vector<VMData*> &args);
     /// returns index of the new function in functions_
     int assign_func_copy(const std::string &name, const std::string &orig);
     void substitute_func_param(const std::string &name,
                                const std::string &param,
-                               const std::string &var);
+                               VMData* vd);
     void delete_funcs(const std::vector<std::string> &names);
     ///returns -1 if not found or idx in variables if found
     int find_function_nr(const std::string &name) const;
@@ -98,15 +100,18 @@ private:
     int var_autoname_counter_; ///for names for "anonymous" variables
     int func_autoname_counter_; ///for names for "anonymous" functions
 
-    int add_variable(Variable* new_var);
     int add_func(Function* func);
-    Variable *create_variable(const std::string &name, const std::string &rhs);
-    std::string get_or_make_variable(const std::string& func);
+    //Variable *create_variable(const std::string &name, const std::string &rhs);
+    //std::string get_or_make_variable(const std::string& func);
     bool is_variable_referred(int i, std::string *first_referrer = NULL);
     void reindex_all();
-    std::string make_var_copy_name(const Variable* v);
+    std::string name_var_copy(const Variable* v);
     void update_indices(FunctionSum& sum);
 
 };
+
+// used in mgr.cpp and udf.cpp
+Variable* make_compound_variable(const std::string &name, VMData* vd,
+                                 const std::vector<Variable*> all_variables);
 
 #endif

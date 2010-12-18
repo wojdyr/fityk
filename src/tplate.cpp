@@ -14,23 +14,6 @@
 
 using namespace std;
 
-vector<OpTree*> make_op_trees(const Tplate* tp)
-{
-    string rhs = tp->rhs;
-    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG >> end_p, space_p);
-    assert(info.full);
-    vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
-    vector<string> lhs_vars = tp->fargs;
-    lhs_vars.push_back("x");
-    v_foreach (string, i, vars)
-        if (find(lhs_vars.begin(), lhs_vars.end(), *i) == lhs_vars.end())
-            throw ExecuteError("variable `" + *i
-                                           + "' only at the right hand side.");
-    vector<OpTree*> op_trees = calculate_deriv(info.trees.begin(), lhs_vars);
-    return op_trees;
-}
-
-
 string Tplate::as_formula() const
 {
     string r = name + "(";
@@ -46,9 +29,9 @@ string Tplate::as_formula() const
 }
 
 #define FACTORY_FUNC(NAME) \
-Function* create_##NAME(const Ftk* F, const std::string& name, \
+Function* create_##NAME(const Settings* settings, const std::string& name, \
                       Tplate::Ptr tp, const std::vector<std::string>& vars) \
-{ return new NAME(F, name, tp, vars); }
+{ return new NAME(settings, name, tp, vars); }
 
 FACTORY_FUNC(FuncConstant)
 FACTORY_FUNC(FuncLinear)
@@ -85,22 +68,21 @@ void TplateMgr::add(const char* name,
                Tplate::create_type create,
                Parser* parser)
 {
-    Tplate* t = new Tplate;
-    t->name = name;
-    t->fargs = split_string(cs_fargs, ',');
-    t->defvals = split_string(cs_dv, ',');
-    t->rhs = rhs;
-    t->linear_d = linear_d;
-    t->peak_d = peak_d;
-    t->create = create;
-    assert(t->fargs.size() == t->defvals.size());
-    tpvec_.push_back(Tplate::Ptr(t));
+    Tplate* tp = new Tplate;
+    tp->name = name;
+    tp->fargs = split_string(cs_fargs, ',');
+    tp->defvals = split_string(cs_dv, ',');
+    tp->rhs = rhs;
+    tp->linear_d = linear_d;
+    tp->peak_d = peak_d;
+    tp->create = create;
+    assert(tp->fargs.size() == tp->defvals.size());
+    tpvec_.push_back(Tplate::Ptr(tp));
 
     if (parser) {
         Lexer lex(rhs);
-        parser->parse_define_rhs(lex, t);
-        if (create == &create_CustomFunction)
-            t->op_trees = make_op_trees(t);
+        parser->parse_define_rhs(lex, tp);
+        prepare_op_trees(tp);
     }
 }
 
@@ -218,6 +200,8 @@ void TplateMgr::add_builtin_types(Parser* p)
     add("LorentzianA", "area,center,hwhm", ",,",
         "Lorentzian(area/hwhm/pi, center, hwhm)",
         /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction, p);
+    assert(tpvec_.back()->components[0].cargs.size() == 3);
+    assert(tpvec_.back()->components[0].cargs[1].code().size() == 2);
 
     add("Pearson7A", "area,center,hwhm,shape", ",,,2",
         "Pearson7(area/(hwhm*exp(lgamma(shape-0.5)-lgamma(shape))"
@@ -287,12 +271,12 @@ Tplate::Ptr TplateMgr::get_shared_tp(string const &type) const
     return Tplate::Ptr();
 }
 
-vector<string> reorder_args(Tplate::Ptr tp, const vector<string> &keys,
-                                            const vector<string> &values)
+vector<VMData*> reorder_args(Tplate::Ptr tp, const vector<string> &keys,
+                                             const vector<VMData*> &values)
 {
     assert (keys.size() == values.size());
     int n = tp->fargs.size();
-    vector<string> vv(n);
+    vector<VMData*> vv(n, NULL);
     for (int i = 0; i < n; ++i) {
         int idx = index_of_element(keys, tp->fargs[i]);
         if (idx != -1)

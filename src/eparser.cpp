@@ -337,7 +337,8 @@ void ExpressionParser::put_array_var(bool has_index, Op op)
     }
 }
 
-void ExpressionParser::put_variable_sth(Lexer& lex, const string& name)
+void ExpressionParser::put_variable_sth(Lexer& lex, const string& name,
+                                        bool ast_mode)
 {
     if (F_ == NULL)
         lex.throw_syntax_error("$variables can not be used here");
@@ -351,11 +352,20 @@ void ExpressionParser::put_variable_sth(Lexer& lex, const string& name)
                                   + "; it is not simple variable");
         put_number(e);
     }
-    else
-        put_number(v->get_value());
+    else {
+        if (ast_mode) {
+            int n = F_->find_variable_nr(name);
+            vm_.append_code(OP_SYMBOL);
+            vm_.append_code(n);
+            expected_ = kOperator;
+        }
+        else
+            put_number(v->get_value());
+    }
 }
 
-void ExpressionParser::put_func_sth(Lexer& lex, const string& name)
+void ExpressionParser::put_func_sth(Lexer& lex, const string& name,
+                                    bool ast_mode)
 {
     if (F_ == NULL)
         lex.throw_syntax_error("%functions can not be used here");
@@ -389,14 +399,14 @@ void ExpressionParser::put_func_sth(Lexer& lex, const string& name)
         else { // property of %function (= $variable)
             const Function *f = F_->find_function(name);
             string v = f->get_var_name(f->get_param_nr(word));
-            put_variable_sth(lex, v);
+            put_variable_sth(lex, v, ast_mode);
         }
     }
     else
         lex.throw_syntax_error("expected '.' or '(' after %function");
 }
 
-void ExpressionParser::put_fz_sth(Lexer& lex, char fz, int ds)
+void ExpressionParser::put_fz_sth(Lexer& lex, char fz, int ds, bool ast_mode)
 {
     if (F_ == NULL || ds < 0)
         lex.throw_syntax_error("F/Z can not be used here");
@@ -407,7 +417,7 @@ void ExpressionParser::put_fz_sth(Lexer& lex, char fz, int ds)
         lex.get_expected_token(kTokenRSquare); // discard ']'
         int idx = iround(ep.calculate());
         const string& name = F_->get_model(ds)->get_func_name(fz, idx);
-        put_func_sth(lex, name);
+        put_func_sth(lex, name, ast_mode);
     }
     else if (lex.peek_token().type == kTokenOpen) {
         opstack_.push_back(ds); // we will put ds into code when handling ')'
@@ -435,60 +445,73 @@ void ExpressionParser::put_fz_sth(Lexer& lex, char fz, int ds)
     }
 }
 
-void ExpressionParser::put_var(Op op)
-{
-    vm_.append_code(op);
-    expected_ = kOperator;
-}
-
 void ExpressionParser::put_name(Lexer& lex,
                                 const string& word,
                                 const vector<string>* custom_vars,
-                                vector<string>* new_vars)
+                                vector<string>* new_vars,
+                                bool ast_mode)
 {
-    if (word == "pi")
+    if (word == "pi") {
         put_number(M_PI);
-    else if (word == "true")
+        return;
+    }
+    if (word == "true") {
         put_number(1.);
-    else if (word == "false")
+        return;
+    }
+    if (word == "false") {
         put_number(0.);
-    else {
-        if (custom_vars == NULL) { // data points
-            bool has_index = (lex.peek_token().type == kTokenLSquare);
-            if (word == "x")
-                put_array_var(has_index, OP_Px);
-            else if (word == "y")
-                put_array_var(has_index, OP_Py);
-            else if (word == "s")
-                put_array_var(has_index, OP_Ps);
-            else if (word == "a")
-                put_array_var(has_index, OP_Pa);
-            else if (word == "n")
-                put_var(OP_Pn);
-            else
-                lex.throw_syntax_error("unknown name: " + word);
+        return;
+    }
+
+    if (ast_mode && word == "x") {
+        vm_.append_code(OP_X);
+        expected_ = kOperator;
+        return;
+    }
+
+    if (custom_vars != NULL) {
+        int idx = index_of_element(*custom_vars, word);
+        if (idx != -1) {
+            vm_.append_code(OP_SYMBOL);
+            vm_.append_code(idx);
+            expected_ = kOperator;
+            return;
         }
-        else {
-            int idx = index_of_element(*custom_vars, word);
-            if (idx != -1) {
-                vm_.append_code(OP_SYMBOL);
-                vm_.append_code(idx);
-            }
-            else if (new_vars != NULL) {
-                int idx2 = index_of_element(*new_vars, word);
-                if (idx2 == -1) {
-                    idx2 = new_vars->size();
-                    new_vars->push_back(word);
-                }
-                vm_.append_code(OP_SYMBOL);
-                // new_vars is to be appended to custom_vars later
-                vm_.append_code(custom_vars->size() + idx2);
-            }
-            else
-                lex.throw_syntax_error("unknown name: " + word);
+    }
+
+    if (new_vars != NULL) {
+        int idx = index_of_element(*new_vars, word);
+        if (idx == -1) {
+            idx = new_vars->size();
+            new_vars->push_back(word);
+        }
+        vm_.append_code(OP_SYMBOL);
+        // new_vars is to be appended to custom_vars later
+        int cv_len = custom_vars != NULL ? (int) custom_vars->size() : 0;
+        vm_.append_code(cv_len + idx);
+        expected_ = kOperator;
+        return;
+    }
+
+
+    if (custom_vars == NULL && new_vars == NULL && !ast_mode) { // data points
+        bool has_index = (lex.peek_token().type == kTokenLSquare);
+        if (word == "x")
+            put_array_var(has_index, OP_Px);
+        else if (word == "y")
+            put_array_var(has_index, OP_Py);
+        else if (word == "s")
+            put_array_var(has_index, OP_Ps);
+        else if (word == "a")
+            put_array_var(has_index, OP_Pa);
+        else if (word == "n") {
+            vm_.append_code(OP_Pn);
             expected_ = kOperator;
         }
     }
+
+    lex.throw_syntax_error("unknown name: " + word);
 }
 
 void ExpressionParser::pop_until_bracket()
@@ -517,7 +540,8 @@ bool ExpressionParser::parse_full(Lexer& lex, int default_ds,
 // implementation of the shunting-yard algorithm
 void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                                   const vector<string> *custom_vars,
-                                  vector<string> *new_vars)
+                                  vector<string> *new_vars,
+                                  bool ast_mode)
 {
     opstack_.clear();
     arg_cnt_.clear();
@@ -646,7 +670,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                         finished_ = true;
                         break;
                     }
-                    put_name(lex, word, custom_vars, new_vars);
+                    put_name(lex, word, custom_vars, new_vars, ast_mode);
                 }
                 break;
             }
@@ -664,10 +688,12 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                     put_array_var(has_index, OP_PS);
                 else if (*token.str == 'A')
                     put_array_var(has_index, OP_PA);
-                else if (*token.str == 'M')
-                    put_var(OP_PM);
+                else if (*token.str == 'M') {
+                    vm_.append_code(OP_PM);
+                    expected_ = kOperator;
+                }
                 else if (*token.str == 'F' || *token.str == 'Z') {
-                    put_fz_sth(lex, *token.str, default_ds);
+                    put_fz_sth(lex, *token.str, default_ds, ast_mode);
                 }
                 else
                     lex.throw_syntax_error("unknown name: "+ token.as_string());
@@ -681,7 +707,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                 lex.get_expected_token(kTokenDot); // discard '.'
                 Token t = lex.get_expected_token(kTokenUletter);
                 if (*t.str == 'F' || *t.str == 'Z') {
-                    put_fz_sth(lex, *t.str, token.value.i);
+                    put_fz_sth(lex, *t.str, token.value.i, ast_mode);
                 }
                 else
                     lex.throw_syntax_error("unknown name: "+ token.as_string());
@@ -850,14 +876,16 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                     put_binary_op(OP_AFTER_TERNARY);
                 break;
             case kTokenVarname:
-                put_variable_sth(lex, Lexer::get_string(token));
+                put_variable_sth(lex, Lexer::get_string(token), ast_mode);
                 break;
             case kTokenFuncname:
-                put_func_sth(lex, Lexer::get_string(token));
+                put_func_sth(lex, Lexer::get_string(token), ast_mode);
                 break;
 
-
-            case kTokenTilde: // TODO: only in var_rhs
+            case kTokenTilde:
+                if (expected_ == kOperator)
+                    lex.throw_syntax_error("unexpected `~'");
+                vm_.append_code(OP_TILDE);
                 break;
 
             case kTokenLCurly:
@@ -882,6 +910,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
             // these are never return by get_token()
             case kTokenFilename:
             case kTokenExpr:
+            case kTokenEVar:
             case kTokenRest:
                 assert(0);
                 break;
@@ -913,3 +942,41 @@ void ExpressionParser::push_assign_lhs(const Token& t)
     vm_.append_code(op);
 }
 
+#if 0
+    if (parse(func.c_str(), lexeme_d["$" >> +(alnum_p | '_')]).full) // $foo
+        ret = string(func, 1);
+    else if (parse(func.c_str(),
+                   ( lexeme_d["%" >> +(alnum_p | '_')]
+                   | !lexeme_d['@' >> uint_p >> '.']
+                     >> (str_p("F[")|"Z[") >> int_p >> ch_p(']')
+                   ) [assign_a(tmp1)]
+                   >> '.' >>
+                   lexeme_d[alpha_p >> *(alnum_p|'_')][assign_a(tmp2)]
+                  ).full) {                     // %bar.bleh
+        string name = parse_and_find_fz_idx(F_, tmp1);
+        const Function* f = F_->find_function(name);
+        ret = f->get_var_name(f->get_param_nr(tmp2));
+    }
+    else {                                     // anything else
+        ret = next_var_name();
+        assign_variable(ret, func);
+    }
+
+static
+string parse_and_find_fz_idx(const Ftk* F, string const &fstr)
+{
+    int pos = 0;
+    int pref = -1;
+    if (fstr[0] == '@') {
+        pos = fstr.find(".") + 1;
+        pref = strtol(fstr.c_str()+1, 0, 10);
+    }
+    vector<string> const &names = F->get_model(pref)->get_fz(fstr[pos]).names;
+    int idx_ = strtol(fstr.c_str()+pos+2, 0, 10);
+    int idx = (idx_ >= 0 ? idx_ : idx_ + names.size());
+    if (!is_index(idx, names))
+        throw ExecuteError("There is no item with index " + S(idx_));
+    return names[idx];
+}
+
+#endif

@@ -34,7 +34,7 @@ protected:
     mutable std::vector<fp> &derivatives_;
 
     std::vector<OpTree*> op_trees_;
-    VirtualMachineData vm_;
+    VMData vm_;
 
     void exec_vm_op_action(const std::vector<double>& numbers,
                            std::vector<int>::const_iterator &i,
@@ -48,15 +48,16 @@ public:
     AnyFormulaO(std::vector<OpTree*> const &op_trees_,
                 fp &value, std::vector<fp>& derivatives)
         : AnyFormula(op_trees_, value, derivatives) {}
-    void tree_to_bytecode(size_t var_idx_size);
+    void treex_to_bytecode(size_t var_idx_size);
     void prepare_optimized_codes(std::vector<fp> const& vv);
     fp run_vm_val(fp x) const;
     void run_vm_der(fp x) const;
     std::string get_vmcode_info() const;
 private:
     std::vector<int> vmcode_val_;
-    VirtualMachineData vm_der_;
+    VMData vm_der_;
     void run_vm(); //disable
+    void tree_to_bytecode(size_t var_idx_size); // disable
 };
 
 #endif

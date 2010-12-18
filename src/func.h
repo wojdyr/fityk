@@ -10,7 +10,7 @@
 #include "tplate.h"
 #include "var.h"
 
-class Ftk;
+class Settings;
 class VariableManager;
 
 class Function : public VariableUser
@@ -24,11 +24,11 @@ public:
             : p(pm.p), n(n_), mult(pm.mult) {}
     };
 
-    Function(const Ftk* F, const std::string &name,
+    Function(const Settings* settings, const std::string &name,
              const Tplate::Ptr tp, const std::vector<std::string> &vars);
     virtual void init();
 
-    static Function* factory(const Ftk* F, const std::string &name,
+    static Function* factory(const Settings* settings, const std::string &name,
                              const Tplate::Ptr tp,
                              const std::vector<std::string> &vars);
 
@@ -96,7 +96,7 @@ public:
 
     virtual std::string get_bytecode() const { return "No bytecode"; }
 protected:
-    const Ftk* F_;
+    const Settings* settings_;
     Tplate::Ptr tp_;
     /// current values of arguments,
     /// the vector can be extended by derived classes to store temporary values

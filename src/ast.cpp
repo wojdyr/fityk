@@ -4,8 +4,6 @@
 
 //  Based on ast_calc example from Boost::Spirit by Daniel Nuffer
 
-#include <boost/spirit/include/classic_core.hpp>
-#include <boost/spirit/include/classic_ast.hpp>
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/digamma.hpp>
 
@@ -23,15 +21,11 @@
 #include "logic.h"
 #include "numfuncs.h"
 #include "voigt.h"
+#include "lexer.h"
+#include "eparser.h"
 
 using namespace std;
-using namespace boost::spirit::classic;
 
-
-OpTree::OpTree(int n, OpTree *arg1) : op(n), c1(arg1), c2(0), val(0.)
-                              { assert(n >= OP_ONE_ARG && n < OP_TWO_ARG); }
-OpTree::OpTree(int n, OpTree *arg1, OpTree *arg2)
-    : op(n), c1(arg1), c2(arg2), val(0.)   { assert(n >= OP_TWO_ARG); }
 
 string OpTree::str(const vector<string> *vars)
 {
@@ -40,7 +34,7 @@ string OpTree::str(const vector<string> *vars)
         return vars == NULL || vars->empty() ? "var"+S(v_nr) : (*vars)[v_nr];
     }
     switch (op) {
-        case 0:       return S(val);
+        case OP_NUMBER: return S(val); // OP_NUMBER == 0
         case OP_NEG:  return "-" + c1->str_b(c1->op >= OP_POW, vars);
         case OP_EXP:  return "exp(" + c1->str(vars) + ")";
         case OP_ERFC: return "erfc(" + c1->str(vars) + ")";
@@ -78,86 +72,17 @@ string OpTree::str(const vector<string> *vars)
     }
 }
 
-string OpTree::ascii_tree(int width, int start, const vector<string> *vars)
-{
-    string node = "???";
-    if (op < 0) {
-        int v_nr = -op-1;
-        node = vars->empty() ? "var"+S(v_nr) : (*vars)[v_nr];
-    }
-    else
-        switch (op) {
-            case 0:       node = S(val); break;
-            case OP_NEG:  node = "NEG";  break;
-            case OP_EXP:  node = "EXP";  break;
-            case OP_ERFC: node = "ERFC"; break;
-            case OP_ERF:  node = "ERF";  break;
-            case OP_SINH: node = "SINH"; break;
-            case OP_COSH: node = "COSH"; break;
-            case OP_TANH: node = "TANH"; break;
-            case OP_SIN:  node = "SIN";  break;
-            case OP_COS:  node = "COS";  break;
-            case OP_TAN:  node = "TAN";  break;
-            case OP_ASIN: node = "ASIN"; break;
-            case OP_ACOS: node = "ACOS"; break;
-            case OP_ATAN: node = "ATAN"; break;
-            case OP_LOG10:node = "LOG";  break;
-            case OP_LN:   node = "LN";   break;
-            case OP_SQRT: node = "SQRT"; break;
-            case OP_POW:  node = "POW";  break;
-            case OP_ADD:  node = "ADD";  break;
-            case OP_SUB:  node = "SUB";  break;
-            case OP_MUL:  node = "MUL";  break;
-            case OP_DIV:  node = "DIV";  break;
-        }
-    int n = (int(node.size()) < width ? start + (width-node.size())/2
-                                 : start);
-    node = string(n, ' ') + node + "\n";
-    if (c1)
-        node += c1->ascii_tree(width/2, start, vars);
-    if (c2)
-        node += c2->ascii_tree(width/2, start+width/2, vars);
-    return node;
-}
 
-OpTree* OpTree::copy() const
+OpTree* OpTree::clone() const
 {
     OpTree *t = new OpTree(*this);
-    if (c1) t->c1 = c1->copy();
-    if (c2) t->c2 = c2->copy();
+    if (c1) t->c1 = c1->clone();
+    if (c2) t->c2 = c2->clone();
     return t;
 }
 
 ////////////////////////////////////////////////////////////////////////////
 
-namespace {
-void do_find_tokens(int tokenID, const_tm_iter_t const &i, vector<string> &vars)
-{
-    for (const_tm_iter_t j = i->children.begin(); j != i->children.end(); ++j) {
-        if (j->value.id() == tokenID) {
-            string v(j->value.begin(), j->value.end());
-            if (find(vars.begin(), vars.end(), v) == vars.end())
-                vars.push_back(v);
-        }
-        else
-            do_find_tokens(tokenID, j, vars);
-    }
-}
-} // anonymous namespace
-
-vector<string> find_tokens_in_ptree(int tokenID, const tree_parse_info<> &info)
-{
-    vector<string> vars;
-    const_tm_iter_t const &root = info.trees.begin();
-    if (root->value.id() == tokenID)
-        vars.push_back(string(root->value.begin(), root->value.end()));
-    else
-        do_find_tokens(tokenID, root, vars);
-    return vars;
-}
-
-
-////////////////////////////////////////////////////////////////////////////
 OpTree* simplify_terms(OpTree *a);
 OpTree* do_multiply(OpTree *a, OpTree *b);
 
@@ -169,7 +94,7 @@ OpTree* do_neg(OpTree *a)
         return new OpTree(val);
     }
     else if (a->op == OP_NEG) {
-        OpTree *t = a->c1->copy();
+        OpTree *t = a->c1->clone();
         delete a;
         return t;
     }
@@ -298,8 +223,8 @@ OpTree* do_divide(OpTree *a, OpTree *b)
 
 OpTree *do_sqr(OpTree *a)
 {
-    return do_multiply(a, a->copy());
-    //return new OpTree(OP_MUL, a, a->copy());
+    return do_multiply(a, a->clone());
+    //return new OpTree(OP_MUL, a, a->clone());
 }
 
 OpTree *do_oneover(OpTree *a)
@@ -611,7 +536,7 @@ void get_factors(OpTree *a, OpTree *expo,
     }
     else if (a->op == OP_DIV) {
         get_factors(a->c1, expo, constant, v);
-        OpTree *expo2 = do_neg(expo->copy());
+        OpTree *expo2 = do_neg(expo->clone());
         get_factors(a->c2, expo2, constant, v);
         delete expo2;
     }
@@ -620,12 +545,12 @@ void get_factors(OpTree *a, OpTree *expo,
         get_factors(new OpTree(-1.), expo, constant, v);
     }
     else if (a->op == OP_SQRT) {
-        OpTree *expo2 = do_multiply(new OpTree(0.5), expo->copy());
+        OpTree *expo2 = do_multiply(new OpTree(0.5), expo->clone());
         get_factors(a->c1, expo2, constant, v);
         delete expo2;
     }
     else if (a->op == OP_POW) {
-        OpTree *expo2 = do_multiply(a->remove_c2(), expo->copy());
+        OpTree *expo2 = do_multiply(a->remove_c2(), expo->clone());
         get_factors(a->c1, expo2, constant, v);
         delete expo2;
     }
@@ -633,12 +558,12 @@ void get_factors(OpTree *a, OpTree *expo,
         bool found = false;
         for (vector<MultFactor>::iterator i = v.begin(); i != v.end(); ++i)
             if (*i->t == *a) {
-                i->e = do_add(i->e, expo->copy());
+                i->e = do_add(i->e, expo->clone());
                 found = true;
                 break;
             }
             if (!found) {
-                v.push_back(MultFactor(a, expo->copy()));
+                v.push_back(MultFactor(a, expo->clone()));
                 return; //don't delete a
             }
     }
@@ -856,190 +781,241 @@ OpTree* simplify_terms(OpTree *a)
 
 ////////////////////////////////////////////////////////////////////////////
 
-fp get_constant_value(string const &s)
+
+// called after the Tplate is defined
+void prepare_op_trees(Tplate* tp)
 {
-    if (s == "pi")
-        return M_PI;
-    /*
-     * TODO: replace get_transform_expression_value()
-    else if (s[0] == '{') {
-        assert(*(s.end()-1) == '}');
-        string expr(s.begin()+1, s.end()-1);
-        Data const* data = 0;
-        string::size_type in_pos = expr.find(" in ");
-        if (in_pos != string::npos && in_pos+4 < expr.size()) {
-            string in_expr(expr, in_pos+4);
-            int n;
-            if (parse(in_expr.c_str(),
-                      !space_p >> '@' >> uint_p[assign_a(n)] >> !space_p
-                     ).full) {
-                data = AL->get_data(n);
-                expr.resize(in_pos);
-            }
-            else
-                throw ExecuteError("Syntax error near: `" + in_expr + "'");
-        }
-        else if (AL->get_dm_count() == 1)
-            data = AL->get_data(0);
-        return get_transform_expression_value(expr, data);
+    if (tp->create != &create_CustomFunction)
+        return;
+    Lexer lex(tp->rhs.c_str());
+    ExpressionParser ep(NULL);
+    ep.parse_expr(lex, -1, &tp->fargs, NULL, true);
+    tp->op_trees = prepare_ast_with_der(ep.vm(), tp->fargs.size() + 1);
+}
+
+
+/// simplify exportable formula, i.e. mathematical function f(x),
+/// without variables other than x
+string simplify_formula(string const &formula)
+{
+    Lexer lex(formula.c_str());
+    ExpressionParser ep(NULL);
+    // if the formula has not-expanded-functions, like Voigt(2,3,4,5),
+    // it throws SyntaxError
+    try {
+        ep.parse_expr(lex, -1, NULL, NULL, true);
     }
-    */
-    else {
-        fp val = strtod(s.c_str(), 0);
-        //if (val != 0. && fabs(val) < epsilon)
-        //    AL->warn("Warning: Numeric literal 0 < |" + s + "| < epsilon="
-        //            + S(epsilon) + ".");
-        return val;
+    catch (fityk::SyntaxError&) {
+        return formula;
     }
+    // derivatives are calculated only as a side effect
+    vector<OpTree*> trees = prepare_ast_with_der(ep.vm(), 1);
+    vector<string> vars(1, "x");
+    string simplified = trees.back()->str(&vars);
+    purge_all_elements(trees);
+    return simplified;
+}
+
+/// debug utility, shows symbolic derivatives of given formula
+void get_derivatives_str(const char* formula, string& result)
+{
+    Lexer lex(formula);
+    ExpressionParser ep(NULL);
+    vector<string> vars;
+    ep.parse_expr(lex, -1, NULL, &vars);
+    vector<OpTree*> trees = prepare_ast_with_der(ep.vm(), vars.size());
+
+    result += "f(" + join_vector(vars,", ") + ") = " + trees.back()->str(&vars);
+    for (size_t i = 0; i != vars.size(); ++i)
+        result += "\ndf / d " + vars[i] + " = " + trees[i]->str(&vars);
+    purge_all_elements(trees);
 }
 
 /// returns array of trees,
 /// first n=vars.size() derivatives and the last tree for value
-vector<OpTree*> calculate_deriv(const_tm_iter_t const &i,
-                                vector<string> const &vars)
+static
+vector<OpTree*> calculate_deriv(vector<int>::const_iterator &i, int len,
+                                const VMData& vm)
 {
-    int len = vars.size();
-    vector<OpTree*> results(len + 1);
-    string s(i->value.begin(), i->value.end());
+  vector<OpTree*> results(len + 1, NULL);
+  --i;
+  assert(i >= vm.code().begin());
 
-    if (i->value.id() == FuncGrammar::real_constID)
-    {
-        assert(s.size() > 0);
+  if (*i < 0) {
+      --i;
+      assert(i >= vm.code().begin());
+      assert(*i == OP_NUMBER || *i == OP_SYMBOL);
+  }
+
+  switch (*i) {
+
+    case OP_NUMBER: {
         for (int k = 0; k < len; ++k)
             results[k] = new OpTree(0.);
-        double v = get_constant_value(s);
-        results[len] = new OpTree(v);
+        int negative_idx = *(i+1);
+        int idx = -1 - negative_idx;
+        assert(is_index(idx, vm.numbers()));
+        double value = vm.numbers()[idx];
+        results[len] = new OpTree(value);
+        break;
     }
 
-    else if (i->value.id() == FuncGrammar::variableID)
-    {
-        for (int k = 0; k < len; ++k)
-            if (s == vars[k]) {
-                results[k] = new OpTree(1.);
-                results[len] = new OpTree(k, s);
-            }
-            else
-                results[k] = new OpTree(0.);
-    }
-
-    else if (i->value.id() == FuncGrammar::exptokenID)
-    {
-        if (i->children.size() == 1) {
-            vector<OpTree*> arg = calculate_deriv(i->children.begin(), vars);
-            OpTree* (* do_op)(OpTree *) = 0;
-            OpTree* der = 0;
-            OpTree* larg = arg.back()->copy();
-            if (s == "sqrt") {
-                der = do_divide(new OpTree(0.5), do_sqrt(larg));
-                do_op = do_sqrt;
-            }
-            else if (s == "exp") {
-                der = do_exp(larg);
-                do_op = do_exp;
-            }
-            else if (s == "erfc") {
-                // d/dz erfc(z) = -2/sqrt(pi) * exp(-z^2)
-                der = do_multiply(do_exp(do_neg(do_sqr(larg))),
-                                  new OpTree(-2/sqrt(M_PI)));
-                do_op = do_erfc;
-            }
-            else if (s == "erf") {
-                // d/dz erf(z) =  2/sqrt(pi) * exp(-z^2)
-                der = do_multiply(do_exp(do_neg(do_sqr(larg))),
-                                  new OpTree(2/sqrt(M_PI)));
-                do_op = do_erf;
-            }
-            else if (s == "log10") {
-                OpTree *ln_10 = do_ln(new OpTree(10.));
-                der = do_oneover(do_multiply(larg, ln_10));
-                do_op = do_log10;
-            }
-            else if (s == "ln") {
-                der = do_oneover(larg);
-                do_op = do_ln;
-            }
-            else if (s == "sinh") {
-                der = do_cosh(larg);
-                do_op = do_sinh;
-            }
-            else if (s == "cosh") {
-                der = do_sinh(larg);
-                do_op = do_cosh;
-            }
-            else if (s == "tanh") {
-                der = do_oneover(do_sqr(do_cosh(larg)));
-                do_op = do_tanh;
-            }
-            else if (s == "sin") {
-                der = do_cos(larg);
-                do_op = do_sin;
-            }
-            else if (s == "cos") {
-                der = do_neg(do_sin(larg));
-                do_op = do_cos;
-            }
-            else if (s == "tan") {
-                der = do_oneover(do_sqr(do_cos(larg)));
-                do_op = do_tan;
-            }
-            else if (s == "atan") {
-                der = do_oneover(do_add(new OpTree(1.), do_sqr(larg)));
-                do_op = do_atan;
-            }
-            else if (s == "asin") {
-                OpTree *root_arg = do_sub(new OpTree(1.), do_sqr(larg));
-                der = do_oneover(do_sqrt(root_arg));
-                do_op = do_asin;
-            }
-            else if (s == "acos") {
-                OpTree *root_arg = do_sub(new OpTree(1.), do_sqr(larg));
-                der = do_divide(new OpTree(-1.), do_sqrt(root_arg));
-                do_op = do_acos;
-            }
-            else if (s == "lgamma") {
-                der = do_digamma(larg);
-                do_op = do_lgamma;
-            }
-            else if (s == "abs") {
-                der = do_divide(do_abs(larg), larg->copy());
-                do_op = do_abs;
-            }
-            else
-                assert(0);
-            for (int k = 0; k < len; ++k)
-                results[k] = do_multiply(der->copy(), arg[k]);
-            delete der;
-            results[len] = (*do_op)(arg[len]);
+    case OP_SYMBOL: {
+        int negative_idx = *(i+1);
+        int idx = -1 - negative_idx;
+        assert(idx <= len);
+        for (int k = 0; k < len; ++k) {
+            double der_value = (k == idx ? 1. : 0.);
+            results[k] = new OpTree(der_value);
         }
-        else if (i->children.size() == 2) {
-            vector<OpTree*>
-                left = calculate_deriv(i->children.begin(), vars),
-                right = calculate_deriv(i->children.begin() + 1, vars);
-            OpTree *d1=0, *d2=0;
-            if (s == "voigt") {
-                d1 = do_dvoigt_dx(left[len]->copy(), right[len]->copy());
-                d2 = do_dvoigt_dy(left[len]->copy(), right[len]->copy());
-                for (int k = 0; k < len; ++k) {
-                    results[k] = do_add(do_multiply(d1->copy(), left[k]),
-                                        do_multiply(d2->copy(), right[k]));
-                }
-                results[len] = do_voigt(left[len], right[len]);
-            }
-            else
-                assert(0);
-            delete d1;
-            delete d2;
+        results[len] = new OpTree(NULL, idx);
+        break;
+    }
+
+    case OP_X: {
+        int n = len - 1;
+        // the rest is the same as in OP_SYMBOL
+        for (int k = 0; k < len; ++k) {
+            double der_value = (k == n ? 1. : 0.);
+            results[k] = new OpTree(der_value);
+        }
+        results[len] = new OpTree(NULL, n);
+        break;
+    }
+
+
+    case OP_SQRT:
+    case OP_EXP:
+    case OP_ERFC:
+    case OP_ERF:
+    case OP_LOG10:
+    case OP_LN:
+    case OP_SINH:
+    case OP_COSH:
+    case OP_TANH:
+    case OP_SIN:
+    case OP_COS:
+    case OP_TAN:
+    case OP_ASIN:
+    case OP_ACOS:
+    case OP_ATAN:
+    case OP_LGAMMA:
+    case OP_ABS:
+    {
+        int op = *i;
+        vector<OpTree*> arg = calculate_deriv(i, len, vm);
+        OpTree* (* do_op)(OpTree *) = NULL;
+        OpTree* der = 0;
+        OpTree* larg = arg.back()->clone();
+        if (op == OP_SQRT) {
+            der = do_divide(new OpTree(0.5), do_sqrt(larg));
+            do_op = do_sqrt;
+        }
+        else if (op == OP_EXP) {
+            der = do_exp(larg);
+            do_op = do_exp;
+        }
+        else if (op == OP_ERFC) {
+            // d/dz erfc(z) = -2/sqrt(pi) * exp(-z^2)
+            der = do_multiply(do_exp(do_neg(do_sqr(larg))),
+                              new OpTree(-2/sqrt(M_PI)));
+            do_op = do_erfc;
+        }
+        else if (op == OP_ERF) {
+            // d/dz erf(z) =  2/sqrt(pi) * exp(-z^2)
+            der = do_multiply(do_exp(do_neg(do_sqr(larg))),
+                              new OpTree(2/sqrt(M_PI)));
+            do_op = do_erf;
+        }
+        else if (op == OP_LOG10) {
+            OpTree *ln_10 = do_ln(new OpTree(10.));
+            der = do_oneover(do_multiply(larg, ln_10));
+            do_op = do_log10;
+        }
+        else if (op == OP_LN) {
+            der = do_oneover(larg);
+            do_op = do_ln;
+        }
+        else if (op == OP_SINH) {
+            der = do_cosh(larg);
+            do_op = do_sinh;
+        }
+        else if (op == OP_COSH) {
+            der = do_sinh(larg);
+            do_op = do_cosh;
+        }
+        else if (op == OP_TANH) {
+            der = do_oneover(do_sqr(do_cosh(larg)));
+            do_op = do_tanh;
+        }
+        else if (op == OP_SIN) {
+            der = do_cos(larg);
+            do_op = do_sin;
+        }
+        else if (op == OP_COS) {
+            der = do_neg(do_sin(larg));
+            do_op = do_cos;
+        }
+        else if (op == OP_TAN) {
+            der = do_oneover(do_sqr(do_cos(larg)));
+            do_op = do_tan;
+        }
+        else if (op == OP_ASIN) {
+            OpTree *root_arg = do_sub(new OpTree(1.), do_sqr(larg));
+            der = do_oneover(do_sqrt(root_arg));
+            do_op = do_asin;
+        }
+        else if (op == OP_ACOS) {
+            OpTree *root_arg = do_sub(new OpTree(1.), do_sqr(larg));
+            der = do_divide(new OpTree(-1.), do_sqrt(root_arg));
+            do_op = do_acos;
+        }
+        else if (op == OP_ATAN) {
+            der = do_oneover(do_add(new OpTree(1.), do_sqr(larg)));
+            do_op = do_atan;
+        }
+        else if (op == OP_LGAMMA) {
+            der = do_digamma(larg);
+            do_op = do_lgamma;
+        }
+        else if (op == OP_ABS) {
+            der = do_divide(do_abs(larg), larg->clone());
+            do_op = do_abs;
         }
         else
             assert(0);
+        for (int k = 0; k < len; ++k)
+            results[k] = do_multiply(der->clone(), arg[k]);
+        delete der;
+        results[len] = (*do_op)(arg[len]);
+        break;
     }
 
-    else if (i->value.id() == FuncGrammar::signargID)
+    case OP_VOIGT:
     {
-        assert(s == "^");
-        assert(i->children.size() == 2);
-        vector<OpTree*> left = calculate_deriv(i->children.begin(), vars);
-        vector<OpTree*> right = calculate_deriv(i->children.begin() + 1, vars);
+        int op = *i;
+        vector<OpTree*> right = calculate_deriv(i, len, vm);
+        vector<OpTree*> left = calculate_deriv(i, len, vm);
+        OpTree *d1, *d2;
+        if (op == OP_VOIGT) {
+            d1 = do_dvoigt_dx(left[len]->clone(), right[len]->clone());
+            d2 = do_dvoigt_dy(left[len]->clone(), right[len]->clone());
+            for (int k = 0; k < len; ++k) {
+                results[k] = do_add(do_multiply(d1->clone(), left[k]),
+                                    do_multiply(d2->clone(), right[k]));
+            }
+            results[len] = do_voigt(left[len], right[len]);
+        }
+        else
+            assert(0);
+        delete d1;
+        delete d2;
+        break;
+    }
+
+    case OP_POW: {
+        vector<OpTree*> right = calculate_deriv(i, len, vm);
+        vector<OpTree*> left = calculate_deriv(i, len, vm);
         // this special case is needed, because in cases like -2^4
         // there was a problem with logarithm in formula below
         if (left[len]->op == 0 && right[len]->op == 0) {
@@ -1062,84 +1038,95 @@ vector<OpTree*> calculate_deriv(const_tm_iter_t const &i,
                 //        b(x)            b(x)  b(x) a'(x)
                 //    (a(x)   )'    = a(x)     (---------- + ln(a(x)) b'(x))
                 //                                 a(x)
-                OpTree *pow_a_b = do_pow(a->copy(), b->copy());
-                OpTree *term1 = do_divide(do_multiply(b->copy(),ap), a->copy());
-                OpTree *term2 = do_multiply(do_ln(a->copy()), bp);
+                OpTree *pow_a_b = do_pow(a->clone(), b->clone());
+                OpTree *term1 = do_divide(do_multiply(b->clone(), ap),
+                                          a->clone());
+                OpTree *term2 = do_multiply(do_ln(a->clone()), bp);
                 results[k] = do_multiply(pow_a_b, do_add(term1, term2));
             }
             results[len] = do_pow(left[len], right[len]);
         }
+        break;
     }
 
-    else if (i->value.id() == FuncGrammar::factorID)
-    {
-        assert (s == "-");
-        vector<OpTree*> arg = calculate_deriv(i->children.begin(), vars);
+    case OP_NEG: {
+        vector<OpTree*> arg = calculate_deriv(i, len, vm);
         for (int k = 0; k < len+1; ++k)
             results[k] = do_neg(arg[k]);
+        break;
     }
 
-    else if (i->value.id() == FuncGrammar::termID)
-    {
-        assert(s == "*" || s == "/");
-        assert(i->children.size() == 2);
-        int op = (s == "*" ? OP_MUL : OP_DIV);
-        vector<OpTree*> left = calculate_deriv(i->children.begin(), vars);
-        vector<OpTree*> right = calculate_deriv(i->children.begin() + 1, vars);
+    case OP_MUL: {
+        vector<OpTree*> right = calculate_deriv(i, len, vm);
+        vector<OpTree*> left = calculate_deriv(i, len, vm);
         for (int k = 0; k < len; ++k) {
+            // a*b' + a'*b
             OpTree *a = left[len],
                    *b = right[len],
                    *ap = left[k],
                    *bp = right[k];
-            if (op == OP_MUL) { // a*b' + a'*b
-                results[k] = do_add(do_multiply(a->copy(), bp),
-                                    do_multiply(ap,  b->copy()));
-            }
-            else { //OP_DIV    (a'*b - b'*a) / (b*b)
-                OpTree *upper = do_sub(do_multiply(ap, b->copy()),
-                                       do_multiply(bp, a->copy()));
-                results[k] = do_divide(upper, do_sqr(b->copy()));
-            }
+            results[k] = do_add(do_multiply(a->clone(), bp),
+                                do_multiply(ap, b->clone()));
         }
-        results[len] = (op == OP_MUL ? do_multiply(left[len], right[len])
-                                     : do_divide(left[len], right[len]));
+        results[len] = do_multiply(left[len], right[len]);
+        break;
     }
 
-    else if (i->value.id() == FuncGrammar::expressionID)
-    {
-        assert(s == "+" || s == "-");
-        assert(i->children.size() == 2);
-        vector<OpTree*> left = calculate_deriv(i->children.begin(), vars);
-        vector<OpTree*> right = calculate_deriv(i->children.begin() + 1, vars);
+    case OP_DIV: {
+        vector<OpTree*> right = calculate_deriv(i, len, vm);
+        vector<OpTree*> left = calculate_deriv(i, len, vm);
+        for (int k = 0; k < len; ++k) {
+            // (a'*b - b'*a) / (b*b)
+            OpTree *a = left[len],
+                   *b = right[len],
+                   *ap = left[k],
+                   *bp = right[k];
+            OpTree *upper = do_sub(do_multiply(ap, b->clone()),
+                                   do_multiply(bp, a->clone()));
+            results[k] = do_divide(upper, do_sqr(b->clone()));
+        }
+        results[len] = do_divide(left[len], right[len]);
+        break;
+    }
+
+    case OP_ADD: {
+        vector<OpTree*> right = calculate_deriv(i, len, vm);
+        vector<OpTree*> left = calculate_deriv(i, len, vm);
         for (int k = 0; k < len+1; ++k)
-            results[k] = (s == "+" ? do_add(left[k], right[k])
-                                   : do_sub(left[k], right[k]));
+            results[k] = do_add(left[k], right[k]);
+        break;
     }
 
-    else
+    case OP_SUB: {
+        vector<OpTree*> right = calculate_deriv(i, len, vm);
+        vector<OpTree*> left = calculate_deriv(i, len, vm);
+        for (int k = 0; k < len+1; ++k)
+            results[k] = do_sub(left[k], right[k]);
+        break;
+    }
+
+    default:
         assert(0); // error
+    }
+  assert(results[0] != NULL);
+  assert(results[len] != NULL);
 
-    for (int k = 0; k < len+1; ++k)
-        results[k] = simplify_terms(results[k]);
+  for (int k = 0; k < len+1; ++k)
+      results[k] = simplify_terms(results[k]);
 
-    return results;
+  //XXX
+  printf("%s\n", results[len]->str().c_str());
+  return results;
 }
 
-
-/// debug utility, shows symbolic derivatives of given formula
-size_t get_derivatives_str(const char* formula, string& result)
+vector<OpTree*> prepare_ast_with_der(const VMData& vm, int len)
 {
-    tree_parse_info<> info = ast_parse(formula, FuncG, space_p);
-    if (!info.match)
-        throw ExecuteError("Can't parse formula: " + string(formula));
-    const_tm_iter_t const &root = info.trees.begin();
-    vector<string> vars = find_tokens_in_ptree(FuncGrammar::variableID, info);
-    vector<OpTree*> trees = calculate_deriv(root, vars);
-    result += "f(" + join_vector(vars, ", ") + ") = "
-              + trees.back()->str(&vars);
-    for (size_t i = 0; i != vars.size(); ++i)
-        result += "\ndf / d " + vars[i] + " = " + trees[i]->str(&vars);
-    purge_all_elements(trees);
-    return info.length;
+    assert(!vm.code().empty());
+    const_cast<VMData&>(vm).flip_indices();
+    vector<int>::const_iterator iter = vm.code().end();
+    vector<OpTree*> r = calculate_deriv(iter, len, vm);
+    assert (iter == vm.code().begin());
+    const_cast<VMData&>(vm).flip_indices();
+    return r;
 }
 

@@ -11,7 +11,7 @@
 #include "func.h"
 #include "model.h"
 #include "settings.h"
-#include "logic.h" //VariableManager::get_or_make_variable() handles @0.F[1].a
+#include "logic.h"
 #include "lexer.h"
 #include "eparser.h"
 
@@ -63,112 +63,89 @@ void VariableManager::sort_variables()
     }
 }
 
-static
-string parse_and_find_fz_idx(const Ftk* F, string const &fstr)
+/*
+/// takes expression string and:
+///  if the string refers to existing variable -- returns its name
+///  otherwise -- creates a new variable and returns its name
+string VariableManager::get_or_make_variable(const VMData* vd)
 {
-    int pos = 0;
-    int pref = -1;
-    if (fstr[0] == '@') {
-        pos = fstr.find(".") + 1;
-        pref = strtol(fstr.c_str()+1, 0, 10);
+    int ret;
+    if (vd->index != -1) {
+        ret = vd->index;
     }
-    vector<string> const &names = F->get_model(pref)->get_fz(fstr[pos]).names;
-    int idx_ = strtol(fstr.c_str()+pos+2, 0, 10);
-    int idx = (idx_ >= 0 ? idx_ : idx_ + names.size());
-    if (!is_index(idx, names))
-        throw ExecuteError("There is no item with index " + S(idx_));
-    return names[idx];
-}
-
-/// takes string parsable by FuncGrammar and:
-///  if the string refers to one variable -- returns its name
-///  else makes variable and returns its name
-string VariableManager::get_or_make_variable(const string& func)
-{
-    string ret;
-    assert(!func.empty());
-    string tmp1, tmp2;
-    if (parse(func.c_str(), lexeme_d["$" >> +(alnum_p | '_')]).full) // $foo
-        ret = string(func, 1);
-    else if (parse(func.c_str(),
-                   ( lexeme_d["%" >> +(alnum_p | '_')]
-                   | !lexeme_d['@' >> uint_p >> '.']
-                     >> (str_p("F[")|"Z[") >> int_p >> ch_p(']')
-                   ) [assign_a(tmp1)]
-                   >> '.' >>
-                   lexeme_d[alpha_p >> *(alnum_p|'_')][assign_a(tmp2)]
-                  ).full) {                     // %bar.bleh
-        string name = parse_and_find_fz_idx(F_, tmp1);
-        const Function* f = F_->find_function(name);
-        ret = f->get_var_name(f->get_param_nr(tmp2));
-    }
-    else {                                     // anything else
+    else {
         ret = next_var_name();
         assign_variable(ret, func);
     }
+    assert(is_index(ret, variables_));
     return ret;
 }
+*/
 
-
-int VariableManager::assign_variable(const string &name, const string &rhs)
+Variable* make_compound_variable(const string &name, VMData* vd,
+                                 const vector<Variable*> all_variables)
 {
-    Variable *var = 0;
-    assert(!name.empty());
+    if (vd->has_op(OP_X))
+        throw ExecuteError("variable can't depend on x.");
 
-    if (rhs.empty()) {// mirror-variable
-        var = new Variable(name, -2);
-        return add_variable(var);
+    vector<string> symbols(all_variables.size());
+    for (size_t i = 0; i != all_variables.size(); ++i)
+        symbols[i] = all_variables[i]->name;
+    //printf("make_compound_variable: %s\n", vm2str(*vd).c_str());
+
+    vector<string> used_vars;
+    //TODO get rid of const_cast
+    vm_foreach (int, i, const_cast<vector<int>&>(vd->code())) {
+        if (*i == OP_SYMBOL) {
+            ++i;
+            const string& name = all_variables[*i]->name;
+            int idx = index_of_element(used_vars, name);
+            if (idx == -1) {
+                idx = used_vars.size();
+                used_vars.push_back(name);
+            }
+            *i = idx;
+        }
+        else if (*i == OP_NUMBER) // has_idx
+            ++i;
     }
 
-    tree_parse_info<> info = ast_parse(rhs.c_str(), FuncG >> end_p, space_p);
-    assert(info.full);
-    const_tm_iter_t const &root = info.trees.begin();
-    if (root->value.id() == FuncGrammar::variableID
-            && *root->value.begin() == '~') { //simple variable
-        string val_str = string(root->value.begin()+1, root->value.end());
-        /*
-        string domain_str;
-        string::size_type pos = skip_variable_value(val_str, 0);
-        if (pos < val_str.size() && val_str[pos] == '[') {
-            domain_str = string(val_str, pos);
-            val_str.erase(pos);
-        }
-        */
-        fp val = get_constant_value(val_str);
-        int nr;
+    vector<OpTree*> op_trees = prepare_ast_with_der(*vd, used_vars.size());
+    return new Variable(name, used_vars, op_trees);
+}
 
-        // avoid changing order of parameters in case of "$_1 = ~1.23"
+int VariableManager::make_variable(const string &name, VMData* vd)
+{
+    Variable *var;
+    assert(!name.empty());
+    const std::vector<int>& code = vd->code();
+
+    // simple variable [OP_TILDE OP_NUMBER idx]
+    if (code.size() == 3 && code[0] == OP_TILDE && code[1] == OP_NUMBER) {
+        fp val = vd->numbers()[code[2]];
+        // avoid changing order of parameters in case of "$var = ~1.23"
         int old_pos = find_variable_nr(name);
         if (old_pos != -1 && variables_[old_pos]->is_simple()) {
-            nr = variables_[old_pos]->get_nr();
-            parameters_[nr] = val; //variable at old_pos will be deleted soon
+            int nr = variables_[old_pos]->get_nr();
+            parameters_[nr] = val; // variable at old_pos will be deleted soon
+            return old_pos;
         }
-        else {
-            nr = parameters_.size();
-            parameters_.push_back(val);
-        }
+
+        parameters_.push_back(val);
+        int nr = parameters_.size() - 1;
         var = new Variable(name, nr);
         /*
         if (!domain_str.empty())
             parse_and_set_domain(var, domain_str);
         */
     }
+
+    // compound variable
     else {
-        vector<string> vars=find_tokens_in_ptree(FuncGrammar::variableID, info);
-        if (contains_element(vars, "x"))
-            throw ExecuteError("variable can't depend on x.");
-        v_foreach (string, i, vars)
-            if ((*i)[0]!='~' && (*i)[0]!='{' && (*i)[0]!='$' && (*i)[0]!='%'
-                && (*i)[0]!='@'
-                && (((*i)[0]!='F' && (*i)[0]!='Z')
-                                        || i->size() < 2 || (*i)[1]!='['))
-                throw ExecuteError("`" + *i + "' can't be used as variable.");
-        vector<OpTree*> op_trees = calculate_deriv(root, vars);
-        // ~14.3 -> $var4
-        for (vector<string>::iterator i = vars.begin(); i != vars.end(); ++i) {
-            *i = get_or_make_variable(*i);
-        }
-        var = new Variable(name, vars, op_trees);
+        //TODO: OP_TILDE -> variables
+        // sub-variables, e.g. ~14.3 -> $var4
+
+        var = make_compound_variable(name, vd, variables_);
     }
     return add_variable(var);
 }
@@ -256,17 +233,6 @@ void VariableManager::remove_unreferred()
     }
 }
 
-string VariableManager::get_variable_info(const Variable* v) const
-{
-    string s = v->xname + " = " + v->get_formula(parameters_) + " = "
-               + F_->settings_mgr()->format_double(v->get_value());
-    if (v->domain.is_set())
-        s += "  " + v->domain.str();
-    if (v->is_auto_delete())
-        s += "  [auto]";
-    return s;
-}
-
 /// puts Variable into `variables_' vector, checking dependencies
 int VariableManager::add_variable(Variable* new_var)
 {
@@ -290,12 +256,11 @@ int VariableManager::add_variable(Variable* new_var)
     return pos;
 }
 
-void VariableManager::assign_variable_copy(const string& name,
-                                           const Variable* orig,
-                                           const map<int,string>& varmap)
+string VariableManager::assign_variable_copy(const Variable* orig,
+                                             const map<int,string>& varmap)
 {
-    Variable *var=0;
-    assert(!name.empty());
+    string name = name_var_copy(orig);
+    Variable *var;
     if (orig->is_simple()) {
         fp val = orig->get_value();
         parameters_.push_back(val);
@@ -305,15 +270,17 @@ void VariableManager::assign_variable_copy(const string& name,
     else {
         vector<string> vars;
         for (int i = 0; i != orig->get_vars_count(); ++i) {
-            assert(varmap.count(orig->get_var_idx(i)));
-            vars.push_back(varmap.find(orig->get_var_idx(i))->second);
+            int v_idx = orig->get_var_idx(i);
+            assert(varmap.count(v_idx));
+            vars.push_back(varmap.find(v_idx)->second);
         }
         vector<OpTree*> new_op_trees;
         v_foreach (OpTree*, i, orig->get_op_trees())
-            new_op_trees.push_back((*i)->copy());
+            new_op_trees.push_back((*i)->clone());
         var = new Variable(name, vars, new_op_trees);
     }
     add_variable(var);
+    return name;
 }
 
 // names can contains '*' wildcards
@@ -484,14 +451,40 @@ void VariableManager::put_new_parameters(const vector<fp> &aa)
 }
 
 int VariableManager::assign_func(const string &name, Tplate::Ptr tp,
-                                 const vector<string> &args)
+                                 vector<VMData*> &args)
 {
-    Function *func = 0;
     assert(tp);
     vector<string> varnames;
-    v_foreach (string, j, args)
-        varnames.push_back(get_or_make_variable(*j));
-    func = (*tp->create)(F_, name, tp, varnames);
+    vm_foreach (VMData*, j, args) {
+        int idx = (*j)->single_symbol() ? (*j)->code()[1]
+                                        : make_variable(next_var_name(), *j);
+        varnames.push_back(variables_[idx]->name);
+    }
+    Function *func = (*tp->create)(F_->get_settings(), name, tp, varnames);
+    func->init();
+    return add_func(func);
+}
+
+int VariableManager::assign_func_copy(const string &name, const string &orig)
+{
+    assert(!name.empty());
+    const Function* of = find_function(orig);
+    map<int,string> var_copies;
+    for (int i = 0; i < size(variables_); ++i) {
+        if (!of->is_dependent_on(i, variables_)) {
+            const Variable* var_orig = variables_[i];
+            var_copies[i] = assign_variable_copy(var_orig, var_copies);
+        }
+    }
+    vector<string> varnames;
+    for (int i = 0; i != of->get_vars_count(); ++i) {
+        int v_idx = of->get_var_idx(i);
+        assert(var_copies.count(v_idx));
+        varnames.push_back(var_copies[v_idx]);
+    }
+
+    Tplate::Ptr tp = of->tp();
+    Function* func = (*tp->create)(F_->get_settings(), name, tp, varnames);
     func->init();
     return add_func(func);
 }
@@ -517,7 +510,7 @@ int VariableManager::add_func(Function* func)
     return nr;
 }
 
-string VariableManager::make_var_copy_name(const Variable* v)
+string VariableManager::name_var_copy(const Variable* v)
 {
     if (v->name[0] == '_')
         return next_var_name();
@@ -538,40 +531,18 @@ string VariableManager::make_var_copy_name(const Variable* v)
     }
 }
 
-int VariableManager::assign_func_copy(const string &name, const string &orig)
-{
-    assert(!name.empty());
-    const Function* of = find_function(orig);
-    map<int,string> varmap;
-    for (int i = 0; i < size(variables_); ++i) {
-        if (!of->is_dependent_on(i, variables_))
-            continue;
-        const Variable* var_orig = variables_[i];
-        string new_varname = make_var_copy_name(var_orig);
-        assign_variable_copy(new_varname, var_orig, varmap);
-        varmap[i] = new_varname;
-    }
-    vector<string> varnames;
-    for (int i = 0; i != of->get_vars_count(); ++i) {
-        assert(varmap.count(of->get_var_idx(i)));
-        varnames.push_back(varmap[of->get_var_idx(i)]);
-    }
-
-    Tplate::Ptr tp = of->tp();
-    Function* func = (*tp->create)(F_, name, tp, varnames);
-    func->init();
-    return add_func(func);
-}
-
 void VariableManager::substitute_func_param(const string &name,
                                             const string &param,
-                                            const string &var)
+                                            VMData* vd)
 {
     int nr = find_function_nr(name);
     if (nr == -1)
         throw ExecuteError("undefined function: %" + name);
     Function* k = functions_[nr];
-    k->substitute_param(k->get_param_nr(param), get_or_make_variable(var));
+    string new_param;
+    int v_idx = vd->single_symbol() ? vd->code()[1]
+                                    : make_variable(next_var_name(), vd);
+    k->substitute_param(k->get_param_nr(param), variables_[v_idx]->name);
     k->set_var_idx(variables_);
     remove_unreferred();
 }

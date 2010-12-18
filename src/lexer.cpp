@@ -47,6 +47,7 @@ const char* tokentype2str(TokenType tt)
         case kTokenDataset: return "@dataset";
         case kTokenFilename: return "filename";
         case kTokenExpr: return "expr";
+        case kTokenEVar: return "var-expr";
         case kTokenRest: return "rest-of-line";
 
         case kTokenLE: return "<=";
@@ -101,6 +102,8 @@ string token2str(const Token& token)
             return s + " \"" + token.as_string() + "\"";
         case kTokenExpr:
             return s + " \"" + token.as_string() + "\" ("+S(token.value.d)+")";
+        case kTokenEVar:
+            return s + " \"" + token.as_string() + "\"";
         case kTokenNumber:
             return s + " " + S(token.value.d);
         case kTokenDataset:

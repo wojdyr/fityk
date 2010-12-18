@@ -13,8 +13,8 @@
 #include "func.h"
 #include "var.h"
 #include "mgr.h"
-//#include "guess.h" //estimate_peak_parameters() in guess_f()
 #include "logic.h"
+#include "ast.h"
 
 using namespace std;
 

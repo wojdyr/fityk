@@ -93,6 +93,18 @@ string info_compiler()
         + "\nxylib version: " + xylib_get_version();
 }
 
+string get_variable_info(const Ftk* F, const Variable* v)
+{
+    string s = v->xname + " = " + v->get_formula(F->parameters()) + " = "
+               + F->settings_mgr()->format_double(v->get_value());
+    if (v->domain.is_set())
+        s += "  " + v->domain.str();
+    if (v->is_auto_delete())
+        s += "  [auto]";
+    return s;
+}
+
+
 void info_functions(const Ftk* F, const string& name, string& result)
 {
     if (!contains_element(name, '*')) {
@@ -111,13 +123,13 @@ void info_variables(const Ftk* F, const string& name, string& result)
 {
     if (!contains_element(name, '*')) {
         const Variable* var = F->find_variable(name);
-        result += F->get_variable_info(var);
+        result += get_variable_info(F, var);
     }
     else {
         v_foreach (Variable*, i, F->variables())
             if (match_glob((*i)->name.c_str(), name.c_str()))
                 result += (result.empty() ? "" : "\n")
-                          + F->get_variable_info(*i);
+                          + get_variable_info(F, *i);
     }
 }
 
@@ -139,7 +151,7 @@ string info_func_props(const Ftk* F, const string& name)
     string s = f->tp()->as_formula();
     for (int i = 0; i < f->get_vars_count(); ++i) {
         Variable const* v = F->get_variable(f->get_var_idx(i));
-        s += "\n" + f->get_param(i) + " = " + F->get_variable_info(v);
+        s += "\n" + f->get_param(i) + " = " + get_variable_info(F, v);
     }
     fp a;
     const vector<string>& fargs = f->tp()->fargs;;
@@ -612,7 +624,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
         try {
             ExpressionParser parser(F);
             parser.parse_expr(lex, -1);
-            r += vm2str(parser.vm().code(), parser.vm().numbers());
+            r += vm2str(parser.vm());
         }
         catch (fityk::SyntaxError& e) {
             r += "ERROR at " + S(lex.scanned_chars()) + ": " + e.what();

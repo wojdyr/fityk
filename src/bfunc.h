@@ -13,11 +13,11 @@
 private:\
     DISALLOW_COPY_AND_ASSIGN(Func##NAME); \
 public:\
-    Func##NAME (Ftk const* F, \
-                std::string const &name, \
+    Func##NAME (const Settings* settings, \
+                const std::string &name, \
                 Tplate::Ptr tp, \
                 std::vector<std::string> const &vars) \
-        : PARENT(F, name, tp, vars) {} \
+        : PARENT(settings, name, tp, vars) {} \
     void calculate_value_in_range(std::vector<fp> const &xx, \
                                   std::vector<fp> &yy, \
                                   int first, int last) const;\
@@ -191,11 +191,11 @@ class FuncLogNormal : public Function
 class VarArgFunction : public Function
 {
 protected:
-    VarArgFunction(const Ftk* F,
+    VarArgFunction(const Settings* settings,
                    const std::string &name,
                    Tplate::Ptr tp,
                    const std::vector<std::string> &vars)
-        : Function(F, name, tp, vars) {}
+        : Function(settings, name, tp, vars) {}
     virtual void init() { center_idx_ = -1; }
 
     // so far all the va functions have parameters x1,y1,x2,y2,...

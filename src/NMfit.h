@@ -16,9 +16,9 @@ struct Vertex
     bool computed;
     fp wssr;
 
-    Vertex() : a(0), computed(false) {}
-    Vertex(int n) : a(n), computed(false) {}
-    Vertex (std::vector<fp>& a_) : a(a_), computed(false) {}
+    Vertex() : a(0), computed(false), wssr(0.) {}
+    Vertex(int n) : a(n), computed(false), wssr(0.) {}
+    Vertex (std::vector<fp>& a_) : a(a_), computed(false), wssr(0.) {}
 };
 
 ///              Nelder-Mead simplex method

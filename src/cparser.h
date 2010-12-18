@@ -59,6 +59,7 @@ struct Statement
     std::vector<int> datasets;
     std::vector<Token> with_args;
     std::vector<Command> commands;
+    std::vector<VMData> vdlist;
 };
 
 // NULL-terminated tables, used for tab-expansion.
@@ -78,7 +79,7 @@ public:
     // Returns false if no tokens are left.
     bool parse_statement(Lexer& lex);
 
-    Statement& get_statement() { return *st_; }
+    Statement& statement() { return st_; }
 
     // Returns true on success.
     bool check_syntax(const std::string& str);
@@ -94,7 +95,7 @@ public:
 private:
     const Ftk* F_;
     ExpressionParser ep_;
-    Statement *st_;
+    Statement st_;
 
     Token read_expr(Lexer& lex);
     Token read_and_calc_expr(Lexer& lex);

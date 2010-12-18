@@ -29,7 +29,6 @@ struct Settings
     bool can_cancel_guess;
     double height_correction;
     double width_correction;
-    double guess_at_center_pm;
 
     // fitting
     const char* fitting_method;

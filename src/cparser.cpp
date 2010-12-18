@@ -16,14 +16,9 @@
 #include "logic.h"
 #include "data.h"
 #include "guess.h" // peak_traits, linear_traits
+#include "ast.h" // prepare_op_trees()
+#include "tplate.h"
 
-// create_* functions defined in tplate.cpp
-Function* create_CompoundFunction(const Ftk* F, const std::string& name,
-                        Tplate::Ptr tp, const std::vector<std::string>& vars);
-Function* create_SplitFunction(const Ftk* F, const std::string& name,
-                        Tplate::Ptr tp, const std::vector<std::string>& vars);
-Function* create_CustomFunction(const Ftk* F, const std::string& name,
-                        Tplate::Ptr tp, const std::vector<std::string>& vars);
 
 using namespace std;
 using fityk::SyntaxError;
@@ -110,13 +105,12 @@ bool is_command(const Token& token, const char* cmd_base,
 
 
 Parser::Parser(const Ftk* F)
-    : F_(F), ep_(F), st_(new Statement)
+    : F_(F), ep_(F)
 {
 }
 
 Parser::~Parser()
 {
-    delete st_;
 }
 
 Token Parser::read_expr(Lexer& lex)
@@ -125,8 +119,8 @@ Token Parser::read_expr(Lexer& lex)
     t.type = kTokenExpr;
     t.str = lex.pchar();
     ep_.clear_vm();
-    assert(!st_->datasets.empty());
-    int ds = st_->datasets[0];
+    assert(!st_.datasets.empty());
+    int ds = st_.datasets[0];
     ep_.parse_expr(lex, ds);
     t.length = lex.pchar() - t.str;
     t.value.d = 0.;
@@ -136,24 +130,24 @@ Token Parser::read_expr(Lexer& lex)
 Token Parser::read_and_calc_expr(Lexer& lex)
 {
     Token t = read_expr(lex);
-    int ds = st_->datasets[0];
+    int ds = st_.datasets[0];
     const vector<Point>& points = F_->get_data(ds)->points();
     t.value.d = ep_.calculate(0, points);
     return t;
 }
 
 
-//TODO
-// This is temporary: the variable is read with ExpressionParser, and then
-// the old Spirit-based parser is used to parse it again.
 Token Parser::read_var(Lexer& lex)
 {
     Token t;
-    t.type = kTokenExpr;
+    t.type = kTokenEVar;
     t.str = lex.pchar();
-    ep_.parse_expr(lex, -1);
+    int ds = st_.datasets[0];
+    ep_.clear_vm();
+    ep_.parse_expr(lex, ds, NULL, NULL, true);
+    t.value.i = st_.vdlist.size();
+    st_.vdlist.push_back(ep_.vm());
     t.length = lex.pchar() - t.str;
-    t.value.d = 0.;
     return t;
 }
 
@@ -164,6 +158,7 @@ Token Parser::read_define_arg(Lexer& lex, const vector<string>& allowed_names,
     Token t;
     t.type = kTokenExpr;
     t.str = lex.pchar();
+    ep_.clear_vm();
     ep_.parse_expr(lex, -1, &allowed_names, new_names);
     t.length = lex.pchar() - t.str;
     t.value.d = 0.;
@@ -288,11 +283,11 @@ void Parser::parse_component(Lexer& lex, const vector<string>& lhs_vars,
 {
     Token name = lex.get_expected_token(kTokenCname);
     c->p = F_->get_tpm()->get_shared_tp(name.as_string());
-    c->values.clear();
+    c->cargs.clear();
     ArgReader ar(lex);
     while (ar.next_arg()) {
-        Token t = read_define_arg(lex, lhs_vars, NULL);
-        c->values.push_back(t.as_string());
+        read_define_arg(lex, lhs_vars, NULL);
+        c->cargs.push_back(ep_.vm());
     }
 }
 
@@ -313,8 +308,8 @@ void Parser::parse_define_rhs(Lexer& lex, Tplate *tp)
     // SplitFunction, RHS: "x" "<" Arg ? Component : Component 
     else if (t.as_string() == "x" && lex.discard_token_if(kTokenLT)) {
         tp->components.resize(3);
-        string split_point = read_define_arg(lex, tp->fargs, NULL).as_string();
-        tp->components[0].values.push_back(split_point);
+        read_define_arg(lex, tp->fargs, NULL);
+        tp->components[0].cargs.push_back(ep_.vm());
         lex.get_expected_token(kTokenQMark); // discard '?'
         parse_component(lex, tp->fargs, &tp->components[1]);
         lex.get_expected_token(kTokenColon); // discard ':'
@@ -344,9 +339,12 @@ void Parser::parse_define_rhs(Lexer& lex, Tplate *tp)
             if (*i != "x")
                 lex.throw_syntax_error("unknown argument: " + *i);
         }
+        //TODO
+        /*
         Tplate::Component c;
-        c.values.push_back(rhs);
+        c.cargs.push_back(rhs);
         tp->components.push_back(c);
+        */
         tp->create = &create_CustomFunction;
     }
 }
@@ -397,8 +395,7 @@ Tplate::Ptr Parser::parse_define_args(Lexer& lex)
     const char* start_rhs = lex.pchar();
     parse_define_rhs(lex, tp.get());
     tp->rhs = string(start_rhs, lex.pchar());
-    if (tp->create == &create_CustomFunction)
-        tp->op_trees = make_op_trees(tp.get());
+    prepare_op_trees(tp.get());
     return tp;
 }
 
@@ -747,10 +744,11 @@ void Parser::parse_fz(Lexer& lex, Command &cmd)
 
 bool Parser::parse_statement(Lexer& lex)
 {
-    st_->datasets.clear();
-    st_->with_args.clear();
-    st_->commands.resize(1);
-    st_->commands[0].args.clear();
+    st_.datasets.clear();
+    st_.with_args.clear();
+    st_.vdlist.clear();
+    st_.commands.resize(1);
+    st_.commands[0].args.clear();
 
     Token first = lex.peek_token();
 
@@ -761,9 +759,9 @@ bool Parser::parse_statement(Lexer& lex)
         lex.get_token();
         Token t = lex.get_token();
         if (t.type == kTokenDataset || t.type == kTokenColon) {
-            st_->datasets.push_back(first.value.i);
+            st_.datasets.push_back(first.value.i);
             while (t.type == kTokenDataset) {
-                st_->datasets.push_back(t.value.i);
+                st_.datasets.push_back(t.value.i);
                 t = lex.get_expected_token(kTokenDataset, kTokenColon);
             }
         }
@@ -771,17 +769,17 @@ bool Parser::parse_statement(Lexer& lex)
             lex.go_back(first);
         }
     }
-    expand_dataset_glob(F_, st_->datasets, F_->default_dm());
+    expand_dataset_glob(F_, st_.datasets, F_->default_dm());
 
     if (first.type == kTokenLname && is_command(first, "w","ith")) {
         lex.get_token(); // discard "with"
-        parse_set_args(lex, st_->with_args);
+        parse_set_args(lex, st_.with_args);
     }
 
-    parse_command(lex, st_->commands[0]);
+    parse_command(lex, st_.commands[0]);
     while (lex.discard_token_if(kTokenSemicolon)) {
-        st_->commands.resize(st_->commands.size() + 1);
-        parse_command(lex, st_->commands.back());
+        st_.commands.resize(st_.commands.size() + 1);
+        parse_command(lex, st_.commands.back());
     }
 
     if (lex.peek_token().type != kTokenNop)
@@ -975,13 +973,13 @@ bool Parser::check_syntax(const string& str)
 
 string Parser::get_statements_repr() const
 {
-    string r = "datasets: " + join_vector(st_->datasets, " ");
-    if (!st_->with_args.empty()) {
+    string r = "datasets: " + join_vector(st_.datasets, " ");
+    if (!st_.with_args.empty()) {
         r += "\nWith:";
-        v_foreach (Token, i, st_->with_args)
+        v_foreach (Token, i, st_.with_args)
             r += "\n\t" + token2str(*i);
     }
-    v_foreach (Command, i, st_->commands) {
+    v_foreach (Command, i, st_.commands) {
         r += S("\n") + commandtype2str(i->type);
         v_foreach (Token, j, i->args)
             r += "\n\t" + token2str(*j);

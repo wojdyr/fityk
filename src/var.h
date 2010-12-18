@@ -5,21 +5,14 @@
 #ifndef FITYK__VAR__H__
 #define FITYK__VAR__H__
 
-#include <boost/spirit/include/classic_core.hpp>
-#include <boost/spirit/include/classic_ast.hpp>
-using namespace boost::spirit::classic;
-
 #include "common.h"
 #include "calc.h"
 
 
 struct OpTree;
-
 class Variable;
 class Function;
 class Sum;
-
-std::string simplify_formula(std::string const &formula);
 
 class VariableUser
 {
@@ -135,37 +128,5 @@ private:
     AnyFormula af_; //TODO use scoped_ptr<AnyFormula>
     Variable const* original_;
 };
-
-
-/// grammar for parsing mathematic expressions (eg. variable right hand side)
-struct FuncGrammar : public grammar<FuncGrammar>
-{
-    static const int real_constID = 1;
-    static const int variableID = 2;
-    static const int exptokenID = 3;
-    static const int factorID = 4;
-    static const int signargID = 5;
-    static const int termID = 6;
-    static const int expressionID = 7;
-
-    template <typename ScannerT>
-    struct definition
-    {
-        definition(FuncGrammar const& /*self*/);
-
-        rule<ScannerT, parser_context<>, parser_tag<expressionID> > expression;
-        rule<ScannerT, parser_context<>, parser_tag<termID> >       term;
-        rule<ScannerT, parser_context<>, parser_tag<factorID> >     factor;
-        rule<ScannerT, parser_context<>, parser_tag<signargID> >    signarg;
-        rule<ScannerT, parser_context<>, parser_tag<exptokenID> >   exptoken;
-        rule<ScannerT, parser_context<>, parser_tag<variableID> >   variable;
-        rule<ScannerT, parser_context<>, parser_tag<real_constID> > real_const;
-
-        rule<ScannerT, parser_context<>, parser_tag<expressionID> > const&
-        start() const { return expression; }
-    };
-};
-
-extern FuncGrammar FuncG;
 
 #endif

@@ -5,35 +5,40 @@
 #ifndef FITYK__AST__H__
 #define FITYK__AST__H__
 
-#include <boost/spirit/include/classic_core.hpp>
-#include <boost/spirit/include/classic_ast.hpp>
-using namespace boost::spirit::classic;
-
+#include <assert.h>
 #include "vm.h" // opcodes
+
+struct Tplate;
 
 /// Node in abstract syntax tree (AST)
 struct OpTree
 {
-    int op;   /// op < 0: variable (n=-op-1)
-              /// op == 0: constant
-              /// op > 0: operator
+    /// op < 0: variable (n=-op-1)
+    /// op == 0 (== OP_NUMBER): constant
+    /// op > 0: operator
+    /// There is no OP_X in OpTree, x (if there is x) is the last variable
+    int op;
     OpTree *c1,
            *c2;
     fp val;
 
     explicit OpTree(fp v) : op(0), c1(0), c2(0), val(v) {}
-    explicit OpTree(int n, const std::string &/*s*/)
-                            : op(-n-1), c1(0), c2(0), val(0.) {}
-    explicit OpTree(int n, OpTree *arg1);
-    explicit OpTree(int n, OpTree *arg1, OpTree *arg2);
+
+    explicit OpTree(void*, int n) : op(-1-n), c1(0), c2(0), val(0.) {}
+
+    explicit OpTree(int n, OpTree *arg1) : op(n), c1(arg1), c2(0), val(0.)
+                              { assert(n >= OP_ONE_ARG && n < OP_TWO_ARG); }
+
+    explicit OpTree(int n, OpTree *arg1, OpTree *arg2)
+        : op(n), c1(arg1), c2(arg2), val(0.)   { assert(n >= OP_TWO_ARG); }
 
     ~OpTree() { delete c1; delete c2; }
+
     std::string str(const std::vector<std::string> *vars=NULL);
+
     std::string str_b(bool b, const std::vector<std::string> *vars)
                             { return b ? "(" + str(vars) + ")" : str(vars); }
-    std::string ascii_tree(int width=64, int start=0,
-                           const std::vector<std::string> *vars=NULL);
-    OpTree* copy() const;
+    OpTree* clone() const;
     //void swap_args() { assert(c1 && c2); OpTree *t=c1; c1=c2; c2=t; }
     OpTree* remove_c1() { OpTree *t=c1; c1=0; return t; }
     OpTree* remove_c2() { OpTree *t=c2; c2=0; return t; }
@@ -45,14 +50,10 @@ struct OpTree
     }
 };
 
-std::vector<std::string>
-find_tokens_in_ptree(int tokenID, const tree_parse_info<> &info);
-
-typedef tree_match<char const*>::const_tree_iterator const_tm_iter_t;
-std::vector<OpTree*> calculate_deriv(const_tm_iter_t const &i,
-                                     std::vector<std::string> const &vars);
-fp get_constant_value(std::string const &s);
-size_t get_derivatives_str(const char* formula, std::string& result);
+std::vector<OpTree*> prepare_ast_with_der(const VMData& vm, int len);
+void prepare_op_trees(Tplate* tp);
+std::string simplify_formula(const std::string &formula);
+void get_derivatives_str(const char* formula, std::string& result);
 
 #endif
 

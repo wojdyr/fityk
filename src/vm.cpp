@@ -109,6 +109,7 @@ string op2str(int op)
         OP_(ASSIGN_X) OP_(ASSIGN_Y) OP_(ASSIGN_S) OP_(ASSIGN_A)
         OP_(FUNC) OP_(SUM_F) OP_(SUM_Z)
         OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
+        OP_(TILDE)
         OP_(OPEN_ROUND)  OP_(OPEN_SQUARE)
     }
     return S(op);
@@ -139,7 +140,7 @@ string vm2str(vector<int> const& code, vector<double> const& data)
 }
 
 
-void VirtualMachineData::append_number(double d)
+void VMData::append_number(double d)
 {
     append_code(OP_NUMBER);
     int number_pos = numbers_.size();
@@ -147,7 +148,7 @@ void VirtualMachineData::append_number(double d)
     numbers_.push_back(d);
 }
 
-void VirtualMachineData::replace_symbols(const vector<double>& vv)
+void VMData::replace_symbols(const vector<double>& vv)
 {
     vm_foreach (int, op, code_) {
         if (*op == OP_SYMBOL) {
@@ -168,6 +169,28 @@ void VirtualMachineData::replace_symbols(const vector<double>& vv)
     }
 }
 
+/// switches between non-negative and negative indices (a -> -1-a),
+/// the point of having negative indices is to avoid conflicts with opcodes.
+/// The same transformation is used in OpTree. 
+void VMData::flip_indices()
+{
+    vm_foreach (int, i, code_)
+        if (has_idx(*i)) {
+            ++i;
+            *i = -1 - *i;
+        }
+}
+
+bool VMData::has_op(int op) const
+{
+    v_foreach (int, i, code_) {
+        if (*i == op)
+            return true;
+        if (has_idx(*i))
+            ++i;
+    }
+    return false;
+}
 
 #define STACK_OFFSET_CHANGE(ch) stackPtr+=(ch)
 
@@ -467,6 +490,7 @@ void run_const_op(const Ftk* F, const std::vector<double>& numbers,
         case OP_AFTER_AND: //do nothing
         case OP_AFTER_OR:
         case OP_AFTER_TERNARY:
+        case OP_TILDE:
             break;
 
         default:

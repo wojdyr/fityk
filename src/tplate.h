@@ -9,10 +9,12 @@
 #include <boost/shared_ptr.hpp>
 
 #include "common.h" // DISALLOW_COPY_AND_ASSIGN
+#include "vm.h" // VMData
 
-class Ftk;
+class Settings;
 class Function;
 class Parser;
+//class VMData;
 struct OpTree;
 
 /// template -- function type, like Gaussian(height, center, hwhm) = ...,
@@ -21,7 +23,7 @@ struct OpTree;
 struct Tplate
 {
     typedef boost::shared_ptr<const Tplate> Ptr;
-    typedef Function* (*create_type)(const Ftk*, const std::string&,
+    typedef Function* (*create_type)(const Settings*, const std::string&,
                                      Ptr, const std::vector<std::string>&);
 
     //enum HowDefined { kCoded, kSum, kSplit, kCustom };
@@ -29,7 +31,7 @@ struct Tplate
     struct Component
     {
         Ptr p;
-        std::vector<std::string> values;
+        std::vector<VMData> cargs;
     };
 
     std::string name;
@@ -53,11 +55,9 @@ private:
 // takes keyword args and returns positional args for given function.
 // Used when we get Gaussian(center=1,whatever=2,height=3,hwhm=4)
 // instead of Gaussian(3,1,4)
-std::vector<std::string> reorder_args(Tplate::Ptr,
-                                      const std::vector<std::string> &keys,
-                                      const std::vector<std::string> &values);
-
-std::vector<OpTree*> make_op_trees(const Tplate* tp);
+std::vector<VMData*> reorder_args(Tplate::Ptr,
+                                  const std::vector<std::string> &keys,
+                                  const std::vector<VMData*> &values);
 
 /// template manager
 class TplateMgr
@@ -88,5 +88,14 @@ private:
 
     DISALLOW_COPY_AND_ASSIGN(TplateMgr);
 };
+
+// create_* functions defined by macro in tplate.cpp, also used in cparser.cpp
+Function* create_CompoundFunction(const Settings* s, const std::string& name,
+                        Tplate::Ptr tp, const std::vector<std::string>& vars);
+Function* create_SplitFunction(const Settings* s, const std::string& name,
+                        Tplate::Ptr tp, const std::vector<std::string>& vars);
+Function* create_CustomFunction(const Settings* s, const std::string& name,
+                        Tplate::Ptr tp, const std::vector<std::string>& vars);
+
 
 #endif // FITYK_TPLATE_H_

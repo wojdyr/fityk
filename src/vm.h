@@ -95,13 +95,15 @@ enum Op
     // (model, R, ...) -> R
     OP_NUMAREA, OP_FINDX, OP_FIND_EXTR,
 
+    OP_TILDE, // ...
+
     // these two are not VM operators, but are handy to have here,
     // they and are used in implementation of shunting yard algorithm
     OP_OPEN_ROUND, OP_OPEN_SQUARE
 };
 
-/// handles VM data and provides low-level access to it
-class VirtualMachineData
+/// handles VM (virtual machine) data and provides low-level access to it
+class VMData
 {
 public:
     const std::vector<int>& code() const { return code_; }
@@ -111,6 +113,10 @@ public:
     void append_number(double d);
     void clear_data() { code_.clear(); numbers_.clear(); }
     void replace_symbols(const std::vector<double>& vv);
+    void flip_indices();
+    bool single_symbol() const {return code_.size()==2 && code_[0]==OP_SYMBOL;}
+    bool has_op(int op) const;
+
 private:
     std::vector<int> code_;    //  VM code
     std::vector<double> numbers_;  //  VM data (numeric values)
@@ -118,6 +124,8 @@ private:
 
 std::string vm2str(const std::vector<int>& code,
                    const std::vector<double>& data);
+inline
+std::string vm2str(const VMData& vm) { return vm2str(vm.code(), vm.numbers()); }
 
 
 class ExprCalculator
@@ -138,11 +146,11 @@ public:
     /// transform data (X=..., Y=..., S=..., A=...)
     void transform_data(std::vector<Point>& points);
 
-    const VirtualMachineData& vm() const { return vm_; }
+    const VMData& vm() const { return vm_; }
 
 protected:
     const Ftk* F_;
-    VirtualMachineData vm_;
+    VMData vm_;
 };
 
 #endif // FITYK_VM_H_

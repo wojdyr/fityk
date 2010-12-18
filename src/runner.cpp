@@ -30,6 +30,12 @@ RealRange args2range(const Token& t1, const Token& t2)
     return range;
 }
 
+VMData* Runner::get_vm_from_token(const Token& t) const
+{
+    assert (t.type == kTokenEVar);
+    return &(*vdlist_)[t.value.i];
+}
+
 void Runner::command_set(const vector<Token>& args)
 {
     SettingsMgr *sm = F_->settings_mgr();
@@ -196,7 +202,6 @@ void Runner::command_guess(const vector<Token>& args, int ds)
     else
         name = F_->next_func_name();
 
-
     // function type
     assert (args[1].type == kTokenCname);
     string ftype = args[1].as_string();
@@ -204,35 +209,20 @@ void Runner::command_guess(const vector<Token>& args, int ds)
     if (!tp)
         throw ExecuteError("undefined function type: " + ftype);
 
-
     // kwargs
     vector<string> par_names;
-    vector<string> par_values;
+    vector<VMData*> par_values;
     for (size_t n = 2; n < args.size() - 3; n += 2) {
         assert (args[n].type == kTokenLname);
         par_names.push_back(args[n].as_string());
-        par_values.push_back(args[n+1].as_string());
+        par_values.push_back(get_vm_from_token(args[n+1]));
     }
-    vector<string> func_args = reorder_args(tp, par_names, par_values);
+    vector<VMData*> func_args = reorder_args(tp, par_names, par_values);
 
     // range
     RealRange range = args2range(*(args.end()-2), *(args.end()-1));
     if (range.from >= range.to)
         throw ExecuteError("invalid range");
-    // handle a special case: guess Gaussian(center=$peak_center)
-    if (range.from_inf() && range.to_inf()) {
-        int ctr_pos = index_of_element(par_names, "center");
-        if (ctr_pos != -1) {
-            string ctr_str = par_values[ctr_pos];
-            Lexer lex(ctr_str.c_str());
-            ep_.clear_vm();
-            ep_.parse_expr(lex, ds);
-            fp center = ep_.calculate();
-            fp delta = fabs(F_->get_settings()->guess_at_center_pm);
-            range.from = center - delta;
-            range.to = center + delta;
-        }
-    }
 
     // initialize guess
     int lb = data->get_lower_bound_ac(range.from);
@@ -258,8 +248,9 @@ void Runner::command_guess(const vector<Token>& args, int ds)
 
     // calculate default values
     const vector<string> empty;
+    vector<VMData> vds(tp->fargs.size());
     for (size_t i = 0; i < tp->fargs.size(); ++i) {
-        if (!func_args[i].empty())
+        if (func_args[i] != NULL)
             continue;
         string dv = tp->defvals[i].empty() ? tp->fargs[i] : tp->defvals[i];
         ep_.clear_vm();
@@ -268,8 +259,9 @@ void Runner::command_guess(const vector<Token>& args, int ds)
         if (!r)
             throw ExecuteError("Cannot guess `" + dv + "' in " + tp->name);
         double value = ep_.calculate_custom(gvals);
-        // TODO refactor assign_func()/get_or_make_variable()
-        func_args[i] = "~" + eS(value); // for now, pass the value as string
+        vds[i].append_code(OP_TILDE);
+        vds[i].append_number(value);
+        func_args[i] = &vds[i];
     }
 
     // add function
@@ -313,31 +305,30 @@ void Runner::command_dataset_tr(const vector<Token>& args)
 }
 
 // returns the number of given args
-static
-int make_func_from_template(Ftk *F, const string& name,
-                            const vector<Token>& args, int pos)
+int Runner::make_func_from_template(const string& name,
+                                    const vector<Token>& args, int pos)
 {
     string ftype = args[pos].as_string();
     vector<string> par_names;
-    vector<string> par_values;
+    vector<VMData*> par_values;
     for (size_t n = pos+1; n < args.size(); n += 2) {
         if (args[n].type != kTokenLname && args[n].type != kTokenNop)
             break;
         if (args[n].type == kTokenLname)
             par_names.push_back(args[n].as_string());
-        par_values.push_back(args[n+1].as_string());
+        par_values.push_back(get_vm_from_token(args[n+1]));
     }
     if (!par_names.empty() && par_names.size() != par_values.size())
         throw ExecuteError("mixed keyword and non-keyword args");
-    Tplate::Ptr tp = F->get_tpm()->get_shared_tp(ftype);
+    Tplate::Ptr tp = F_->get_tpm()->get_shared_tp(ftype);
     if (!tp)
         throw ExecuteError("Undefined type of function: " + ftype);
-    vector<string> func_args;
+    vector<VMData*> func_args;
     if (par_names.empty())
         func_args = par_values;
     else
         func_args = reorder_args(tp, par_names, par_values);
-    F->assign_func(name, tp, func_args);
+    F_->assign_func(name, tp, func_args);
     return par_values.size();
 }
 
@@ -348,7 +339,7 @@ void Runner::command_name_func(const vector<Token>& args)
     if (args[1].as_string() == "copy") // copy(%f)
         F_->assign_func_copy(name, Lexer::get_string(args[2]));
     else                               // Foo(...)
-        make_func_from_template(F_, name, args, 1);
+        make_func_from_template(name, args, 1);
     F_->use_parameters();
     F_->outdated_plot(); //TODO only if function in @active
 }
@@ -373,12 +364,12 @@ string get_func(const Ftk *F, int ds, vector<Token>::const_iterator a)
 
 void Runner::command_assign_param(const vector<Token>& args, int ds)
 {
-    // args: Funcname Lname Expr
-    // args: (Dataset|Nop) (F|Z) Expr Lname Expr
+    // args: Funcname Lname EVar
+    // args: (Dataset|Nop) (F|Z) Expr Lname EVar
     string name = get_func(F_, ds, args.begin());
     string param = (args.end()-2)->as_string();
-    string var = (args.end()-1)->as_string();
-    F_->substitute_func_param(name, param, var);
+    const Token& var = *(args.end()-1);
+    F_->substitute_func_param(name, param, get_vm_from_token(var));
     F_->use_parameters();
     F_->outdated_plot();
 }
@@ -389,29 +380,29 @@ void Runner::command_assign_all(const vector<Token>& args, int ds)
     assert(args[0].type == kTokenDataset || args[0].type == kTokenNop);
     assert(args[1].type == kTokenUletter);
     assert(args[2].type == kTokenLname);
-    assert(args[3].type == kTokenExpr);
+    assert(args[3].type == kTokenEVar);
     if (args[0].type == kTokenDataset)
         ds = args[0].value.i;
     char c = *args[1].str;
     string param = args[2].as_string();
-    string var = args[3].as_string();
+    VMData* vd = get_vm_from_token(args[3]);
     const FunctionSum& fz = F_->get_model(ds)->get_fz(c);
     v_foreach (string, i, fz.names) {
         if (F_->find_function(*i)->get_param_nr_nothrow(param) != -1)
-            F_->substitute_func_param(*i, param, var);
+            F_->substitute_func_param(*i, param, vd);
     }
     F_->use_parameters();
     F_->outdated_plot();
 }
 
-void Runner::command_name_var(const vector<Token>& args, int /*ds*/)
+void Runner::command_name_var(const vector<Token>& args)
 {
     assert(args.size() == 4);
     assert(args[0].type == kTokenVarname);
     string name = Lexer::get_string(args[0]);
-    string rhs = args[1].as_string();
+    VMData* vd = get_vm_from_token(args[1]);
     //TODO domain (args[2], args[3])
-    F_->assign_variable(name, rhs);
+    F_->make_variable(name, vd);
     F_->use_parameters();
     F_->outdated_plot(); // TODO: only for replacing old variable
 }
@@ -499,7 +490,7 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
         }
         else if (args[i].type == kTokenCname) { // Foo(1,2)
             string name = F_->next_func_name();
-            int n_args = make_func_from_template(F_, name, args, i);
+            int n_args = make_func_from_template(name, args, i);
             F_->use_parameters();
             new_names.push_back(name);
             i += 2 * n_args;
@@ -675,7 +666,7 @@ void Runner::execute_command(Command& c, int ds)
             command_assign_all(c.args, ds);
             break;
         case kCmdNameVar:
-            command_name_var(c.args, ds);
+            command_name_var(c.args);
             break;
         case kCmdChangeModel:
             command_change_model(c.args, ds);
@@ -709,6 +700,7 @@ void Runner::recalculate_args(vector<Command>& cmds, int ds)
 void Runner::execute_statement(Statement& st)
 {
     boost::scoped_ptr<Settings> s_orig;
+    vdlist_ = &st.vdlist;
     try {
         if (!st.with_args.empty()) {
             s_orig.reset(new Settings(*F_->get_settings()));

@@ -21,16 +21,17 @@ vector<double> stack(stack_size);
 
 
 void add_calc_bytecode(const OpTree* tree, const vector<int> &vmvar_idx,
-                       VirtualMachineData& vm)
+                       VMData& vm)
 {
     int op = tree->op;
     if (op < 0) {
-        size_t ii = -op-1;
-        if (ii == vmvar_idx.size()) {
+        size_t n = -op-1;
+        if (n == vmvar_idx.size()) {
             vm.append_code(OP_X);
         }
         else {
-            int var_idx = vmvar_idx[ii];
+            assert(is_index(n, vmvar_idx));
+            int var_idx = vmvar_idx[n];
             vm.append_code(OP_SYMBOL);
             vm.append_code(var_idx);
         }
@@ -208,6 +209,9 @@ void AnyFormula::tree_to_bytecode(vector<int> const& var_idx)
         vm_.append_code(OP_PUT_DERIV);
         vm_.append_code(i);
     }
+    // XXX
+    printf("tree_to_bytecode: var_idx %d\n", (int) var_idx.size());
+    printf("tree_to_bytecode: %s\n", vm2str(vm_).c_str());
 }
 
 bool AnyFormula::is_constant() const
@@ -217,7 +221,7 @@ bool AnyFormula::is_constant() const
 
 ////////////////////////////////////////////////////////////////////////////
 
-void AnyFormulaO::tree_to_bytecode(size_t var_idx_size)
+void AnyFormulaO::treex_to_bytecode(size_t var_idx_size)
 {
     assert(var_idx_size + 2 == op_trees_.size());
     // we put function's parameter index rather than variable index after
@@ -275,8 +279,8 @@ fp AnyFormulaO::run_vm_val(fp x) const
 
 string AnyFormulaO::get_vmcode_info() const
 {
-    return "not optimized code: " + vm2str(vm_.code(), vm_.numbers())
-        + "\noptimized code: " + vm2str(vm_der_.code(), vm_der_.numbers())
+    return "not optimized code: " + vm2str(vm_)
+        + "\noptimized code: " + vm2str(vm_der_)
         + "\nonly-value code: " + vm2str(vmcode_val_, vm_der_.numbers());
 }
 

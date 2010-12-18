@@ -197,7 +197,7 @@ Commands::Status UserInterface::execute_line(const string& str)
     try {
         Lexer lex(str.c_str());
         while (parser_->parse_statement(lex))
-            runner_->execute_statement(parser_->get_statement());
+            runner_->execute_statement(parser_->statement());
     }
     catch (fityk::SyntaxError &e) {
         F_->warn(string("Syntax error: ") + e.what());

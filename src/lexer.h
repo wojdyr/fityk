@@ -11,6 +11,8 @@
 
 #include <string>
 
+class VMData;
+
 enum TokenType
 {
     // textual tokens
@@ -21,10 +23,15 @@ enum TokenType
     kTokenVarname, // $variable
     kTokenFuncname, // %function
 
-    // special one, returned only by get_filename_token(), not by get_token()
+    // special tokens:
+
+    // returned only by get_filename_token(), not by get_token()
     kTokenFilename,
-    // it can be returned by get_filename_token() or read_expr()
+    // expression as string, never returned by Lexer, used only in Parser
     kTokenExpr,
+    // variable or expression meant to create a new variable,
+    // never returned by Lexer, used only in Parser
+    kTokenEVar,
     // it can be returned by get_rest_of_line()
     kTokenRest,
 

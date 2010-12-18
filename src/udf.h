@@ -11,7 +11,7 @@
 class CompoundFunction: public Function
 {
 public:
-    CompoundFunction(const Ftk* F,
+    CompoundFunction(const Settings* settings,
                      const std::string &name,
                      Tplate::Ptr tp,
                      const std::vector<std::string> &vars);
@@ -34,9 +34,9 @@ public:
     void set_var_idx(const std::vector<Variable*>& variables);
 
 protected:
-    //std::vector<Variable*> intern_variables_;
-    //std::vector<Function*> intern_functions_;
-    VariableManager vmgr_;
+    std::vector<Variable*> intern_variables_;
+    std::vector<Function*> intern_functions_;
+    //VariableManager vmgr_;
 
     void init_components();
 
@@ -51,7 +51,7 @@ private:
 class CustomFunction: public Function
 {
 public:
-    CustomFunction(const Ftk* F,
+    CustomFunction(const Settings* settings,
                    const std::string &name,
                    const Tplate::Ptr tp,
                    const std::vector<std::string> &vars);
@@ -77,11 +77,11 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-/// split function, defined using "if x < ... then ... else ..."
-class SplitFunction: public CompoundFunction
+/// split function, defined using "x < expr ? Func(...) : FuncType(...)
+class SplitFunction: public Function
 {
 public:
-    SplitFunction(const Ftk* F,
+    SplitFunction(const Settings* settings,
                   const std::string &name,
                   Tplate::Ptr tp,
                   const std::vector<std::string> &vars);
