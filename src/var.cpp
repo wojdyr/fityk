@@ -4,7 +4,6 @@
 
 #include "var.h"
 #include "common.h"
-#include "calc.h"
 #include "ast.h"
 
 #include <stdlib.h>
@@ -60,11 +59,10 @@ std::string VariableUser::get_debug_idx_info() const
 
 ////////////////////////////////////////////////////////////////////////////
 
-
 // ctor for simple variables and mirror variables
 Variable::Variable(string const &name, int nr)
     : VariableUser(name, "$"),
-      nr_(nr), af_(value_, derivatives_), original_(NULL)
+      nr_(nr), original_(NULL)
 {
     assert(!name.empty());
     if (nr_ != -2) {
@@ -76,20 +74,30 @@ Variable::Variable(string const &name, int nr)
 }
 
 // ctor for compound variables
-Variable::Variable(string const &name_, vector<string> const &vars_,
-                   vector<OpTree*> const &op_trees_)
-    : VariableUser(name_, "$", vars_),
-      nr_(-1), derivatives_(vars_.size()),
-      af_(op_trees_, value_, derivatives_), original_(NULL)
+Variable::Variable(string const &name, vector<string> const &vars,
+                   vector<OpTree*> const &op_trees)
+    : VariableUser(name, "$", vars),
+      nr_(-1), derivatives_(vars.size()), op_trees_(op_trees), original_(NULL)
 {
-    assert(!name_.empty());
+    assert(!name.empty());
 }
 
 void Variable::set_var_idx(vector<Variable*> const& variables)
 {
     VariableUser::set_var_idx(variables);
-    if (nr_ == -1)
-        af_.tree_to_bytecode(var_idx);
+    if (nr_ == -1) {
+        /// (re-)create bytecode, required after ::set_var_idx()
+        assert(var_idx.size() + 1 == op_trees_.size());
+        vm_.clear_data();
+        int n = op_trees_.size() - 1;
+        for (int i = 0; i < n; ++i) {
+            add_bytecode_from_tree(op_trees_[i], var_idx, vm_);
+            vm_.append_code(OP_PUT_DERIV);
+            vm_.append_code(i);
+        }
+        add_bytecode_from_tree(op_trees_.back(), var_idx, vm_);
+        //printf("Variable::set_var_idx: %s\n", vm2str(vm_).c_str());
+    }
 }
 
 string Variable::get_formula(vector<fp> const &parameters) const
@@ -111,7 +119,7 @@ void Variable::recalculate(vector<Variable*> const &variables,
         assert(derivatives_.empty());
     }
     else if (nr_ == -1) {
-        af_.run_vm(variables);
+        value_ = run_code_for_variable(vm_, variables, derivatives_);
         recursive_derivatives_.clear();
         for (int i = 0; i < size(derivatives_); ++i) {
             Variable *v = variables[var_idx[i]];
@@ -139,5 +147,10 @@ void Variable::erased_parameter(int k)
                                         i != recursive_derivatives_.end(); ++i)
         if (i->p > k)
             -- i->p;
+}
+
+bool Variable::is_constant() const
+{
+    return nr_ == -1 && op_trees_.back()->op == 0;
 }
 

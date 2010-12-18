@@ -11,6 +11,7 @@
 using fityk::Point;
 
 class Ftk;
+class Variable;
 
 /// operators used in VM code
 enum Op
@@ -24,7 +25,6 @@ enum Op
 
     // ops used only in calc.cpp
     OP_X,
-    OP_PUT_VAL,
     OP_PUT_DERIV,
 
     // functions R -> R
@@ -152,6 +152,14 @@ protected:
     const Ftk* F_;
     VMData vm_;
 };
+
+double run_code_for_variable(const VMData& vm,
+                             const std::vector<Variable*> &variables,
+                             std::vector<double> &derivatives);
+double run_code_for_custom_func(const VMData& vm, double x,
+                                std::vector<double> &derivatives);
+double run_code_for_custom_func_value(const VMData& vm, double x,
+                                      int code_offset);
 
 #endif // FITYK_VM_H_
 

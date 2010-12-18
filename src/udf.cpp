@@ -181,31 +181,42 @@ CustomFunction::CustomFunction(const Settings* settings,
                                const vector<string> &vars)
     : Function(settings, name, tp, vars),
       // don't use nv() here, it's not set until init()
-      derivatives_(vars.size()+1),
-      afo_(tp->op_trees, value_, derivatives_)
+      derivatives_(vars.size()+1), op_trees_(tp->op_trees)
 {
 }
-
 
 void CustomFunction::set_var_idx(const vector<Variable*>& variables)
 {
     VariableUser::set_var_idx(variables);
-    afo_.treex_to_bytecode(var_idx.size());
-}
 
+    assert(var_idx.size() + 2 == op_trees_.size());
+    // we put function's parameter index rather than variable index after
+    //  OP_SYMBOL, it is handled in this way in more_precomputations()
+    vector<int> symbol_map = range_vector(0, var_idx.size());
+    vm_.clear_data();
+    int n = op_trees_.size() - 1;
+    for (int i = 0; i < n; ++i) {
+        add_bytecode_from_tree(op_trees_[i], symbol_map, vm_);
+        vm_.append_code(OP_PUT_DERIV);
+        vm_.append_code(i);
+    }
+    value_offset_ = vm_.code().size();
+    add_bytecode_from_tree(op_trees_.back(), symbol_map, vm_);
+}
 
 void CustomFunction::more_precomputations()
 {
-    afo_.prepare_optimized_codes(av_);
+    substituted_vm_ = vm_;
+    substituted_vm_.replace_symbols(av_);
 }
 
 void CustomFunction::calculate_value_in_range(const vector<fp> &xx,
                                               vector<fp> &yy,
                                               int first, int last) const
 {
-    for (int i = first; i < last; ++i) {
-        yy[i] += afo_.run_vm_val(xx[i]);
-    }
+    for (int i = first; i < last; ++i)
+        yy[i] += run_code_for_custom_func_value(substituted_vm_, xx[i],
+                                                value_offset_);
 }
 
 void CustomFunction::calculate_value_deriv_in_range(
@@ -216,7 +227,7 @@ void CustomFunction::calculate_value_deriv_in_range(
 {
     int dyn = dy_da.size() / xx.size();
     for (int i = first; i < last; ++i) {
-        afo_.run_vm_der(xx[i]);
+        run_code_for_custom_func(substituted_vm_, xx[i], derivatives_);
 
         if (!in_dx) {
             yy[i] += value_;
@@ -230,6 +241,16 @@ void CustomFunction::calculate_value_deriv_in_range(
                                        * derivatives_[j->n] * j->mult;
         }
     }
+}
+
+string CustomFunction::get_bytecode() const
+{
+    const VMData& s = substituted_vm_;
+    vector<int> der_code(s.code().begin(), s.code().begin() + value_offset_);
+    vector<int> val_code(s.code().begin() + value_offset_, s.code().end());
+    return "code with symbols: " + vm2str(vm_)
+        + "\nderivatives: " + vm2str(der_code, s.numbers())
+        + "\nvalue: " + vm2str(val_code, s.numbers());
 }
 
 ///////////////////////////////////////////////////////////////////////

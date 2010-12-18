@@ -1117,3 +1117,32 @@ vector<OpTree*> prepare_ast_with_der(const VMData& vm, int len)
     return r;
 }
 
+void add_bytecode_from_tree(const OpTree* tree, const vector<int> &symbol_map,
+                            VMData& vm)
+{
+    int op = tree->op;
+    if (op < 0) {
+        size_t n = -op-1;
+        if (n == symbol_map.size()) {
+            vm.append_code(OP_X);
+        }
+        else {
+            assert(is_index(n, symbol_map));
+            vm.append_code(OP_SYMBOL);
+            vm.append_code(symbol_map[n]);
+        }
+    }
+    else if (op == 0) {
+        vm.append_number(tree->val);
+    }
+    else if (op >= OP_ONE_ARG && op < OP_TWO_ARG) { //one argument
+        add_bytecode_from_tree(tree->c1, symbol_map, vm);
+        vm.append_code(op);
+    }
+    else if (op >= OP_TWO_ARG) { //two arguments
+        add_bytecode_from_tree(tree->c1, symbol_map, vm);
+        add_bytecode_from_tree(tree->c2, symbol_map, vm);
+        vm.append_code(op);
+    }
+}
+

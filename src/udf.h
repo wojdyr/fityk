@@ -63,12 +63,17 @@ public:
                                         bool in_dx,
                                         int first, int last) const;
     void set_var_idx(std::vector<Variable*> const& variables);
-    std::string get_bytecode() const { return afo_.get_vmcode_info(); }
+    std::string get_bytecode() const;
+
 
 private:
-    fp value_;
-    std::vector<fp> derivatives_;
-    AnyFormulaO afo_;
+    mutable fp value_;
+    mutable std::vector<fp> derivatives_;
+
+    std::vector<OpTree*> op_trees_;
+    VMData vm_;
+    VMData substituted_vm_; // made by substituting symbols with numbers in vm_
+    int value_offset_;
 
     DISALLOW_COPY_AND_ASSIGN(CustomFunction);
 };

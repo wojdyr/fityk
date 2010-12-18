@@ -6,8 +6,7 @@
 #define FITYK__VAR__H__
 
 #include "common.h"
-#include "calc.h"
-
+#include "vm.h"
 
 struct OpTree;
 class Variable;
@@ -88,10 +87,9 @@ public:
 ///  1  set_var_idx() finds indices of variables in variables vector
 ///      (references to variables are kept using names of the variables
 ///       is has to be called when indices of referred variables change
-///  1a. tree_to_bytecode() called from Variable::set_var_idx
-///       takes trees and var_idx and results in bytecode
-///  3. recalculate() calculates (using run_vm()) value and derivatives
-///     for current parameter value
+///     and prepares bytecode from trees and var_idx
+///  3. recalculate() calculates (using run_code_for_variable()) value
+///     and derivatives for current parameter value
 class Variable : public VariableUser
 {
 public:
@@ -113,9 +111,9 @@ public:
     std::vector<ParMult> const& recursive_derivatives() const
                                             { return recursive_derivatives_; }
     bool is_simple() const { return nr_ != -1; }
-    bool is_constant() const { return nr_ == -1 && af_.is_constant(); }
-    std::vector<OpTree*> const& get_op_trees() const
-                                                { return af_.get_op_trees(); }
+    bool is_constant() const;
+
+    std::vector<OpTree*> const& get_op_trees() const { return op_trees_; }
     void set_original(Variable const* orig) { assert(nr_==-2); original_=orig; }
     fp get_derivative(int n) const { return derivatives_[n]; }
 
@@ -124,7 +122,8 @@ private:
     fp value_;
     std::vector<fp> derivatives_;
     std::vector<ParMult> recursive_derivatives_;
-    AnyFormula af_; //TODO use scoped_ptr<AnyFormula>
+    std::vector<OpTree*> op_trees_;
+    VMData vm_;
     Variable const* original_;
 };
 

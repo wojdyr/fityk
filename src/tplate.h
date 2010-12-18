@@ -97,5 +97,4 @@ Function* create_SplitFunction(const Settings* s, const std::string& name,
 Function* create_CustomFunction(const Settings* s, const std::string& name,
                         Tplate::Ptr tp, const std::vector<std::string>& vars);
 
-
 #endif // FITYK_TPLATE_H_

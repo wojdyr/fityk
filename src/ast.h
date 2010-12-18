@@ -53,6 +53,8 @@ struct OpTree
 std::vector<OpTree*> prepare_ast_with_der(const VMData& vm, int len);
 std::string simplify_formula(const std::string &formula);
 void get_derivatives_str(const char* formula, std::string& result);
+void add_bytecode_from_tree(const OpTree* tree,
+                            const std::vector<int> &symbol_map, VMData& vm);
 
 #endif
 

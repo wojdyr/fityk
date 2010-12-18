@@ -89,7 +89,7 @@ string op2str(int op)
 {
     switch (static_cast<Op>(op)) {
         OP_(NUMBER) OP_(SYMBOL)
-        OP_(X) OP_(PUT_VAL) OP_(PUT_DERIV)
+        OP_(X) OP_(PUT_DERIV)
         OP_(NEG)   OP_(EXP)  OP_(ERFC)  OP_(ERF)
         OP_(SIN)   OP_(COS)  OP_(TAN)  OP_(SINH) OP_(COSH)  OP_(TANH)
         OP_(ABS)  OP_(ROUND)
@@ -531,6 +531,118 @@ void run_mutab_op(const Ftk* F, const std::vector<double>& numbers,
     }
 }
 
+inline
+void run_func_op(const vector<double>& numbers, vector<int>::const_iterator &i,
+                 double*& stackPtr)
+{
+    switch (*i) {
+        //unary operators
+        case OP_NEG:
+            *stackPtr = - *stackPtr;
+            break;
+        case OP_SQRT:
+            *stackPtr = sqrt(*stackPtr);
+            break;
+        case OP_EXP:
+            *stackPtr = exp(*stackPtr);
+            break;
+        case OP_ERFC:
+            *stackPtr = erfc(*stackPtr);
+            break;
+        case OP_ERF:
+            *stackPtr = erf(*stackPtr);
+            break;
+        case OP_LOG10:
+            *stackPtr = log10(*stackPtr);
+            break;
+        case OP_LN:
+            *stackPtr = log(*stackPtr);
+            break;
+        case OP_SINH:
+            *stackPtr = sinh(*stackPtr);
+            break;
+        case OP_COSH:
+            *stackPtr = cosh(*stackPtr);
+            break;
+        case OP_TANH:
+            *stackPtr = tanh(*stackPtr);
+            break;
+        case OP_SIN:
+            *stackPtr = sin(*stackPtr);
+            break;
+        case OP_COS:
+            *stackPtr = cos(*stackPtr);
+            break;
+        case OP_TAN:
+            *stackPtr = tan(*stackPtr);
+            break;
+        case OP_ATAN:
+            *stackPtr = atan(*stackPtr);
+            break;
+        case OP_ASIN:
+            *stackPtr = asin(*stackPtr);
+            break;
+        case OP_ACOS:
+            *stackPtr = acos(*stackPtr);
+            break;
+        case OP_LGAMMA:
+            *stackPtr = boost::math::lgamma(*stackPtr);
+            break;
+        case OP_DIGAMMA:
+            *stackPtr = boost::math::digamma(*stackPtr);
+            break;
+        case OP_ABS:
+            *stackPtr = fabs(*stackPtr);
+            break;
+
+        //binary operators
+        case OP_ADD:
+            STACK_OFFSET_CHANGE(-1);
+            *stackPtr += *(stackPtr+1);
+            break;
+        case OP_SUB:
+            STACK_OFFSET_CHANGE(-1);
+            *stackPtr -= *(stackPtr+1);
+            break;
+        case OP_MUL:
+            STACK_OFFSET_CHANGE(-1);
+            *stackPtr *= *(stackPtr+1);
+            break;
+        case OP_DIV:
+            STACK_OFFSET_CHANGE(-1);
+            *stackPtr /= *(stackPtr+1);
+            break;
+        case OP_POW:
+            STACK_OFFSET_CHANGE(-1);
+            *stackPtr = pow(*stackPtr, *(stackPtr+1));
+            break;
+        case OP_VOIGT:
+            STACK_OFFSET_CHANGE(-1);
+            *stackPtr = humlik(*stackPtr, *(stackPtr+1)) / sqrt(M_PI);
+            break;
+        case OP_DVOIGT_DX:
+            STACK_OFFSET_CHANGE(-1);
+            *stackPtr = humdev_dkdx(*stackPtr, *(stackPtr+1)) / sqrt(M_PI);
+            break;
+        case OP_DVOIGT_DY:
+            STACK_OFFSET_CHANGE(-1);
+            *stackPtr = humdev_dkdy(*stackPtr, *(stackPtr+1)) / sqrt(M_PI);
+            break;
+
+        // putting-number-to-stack-operators
+        // stack overflow not checked
+        case OP_NUMBER:
+            STACK_OFFSET_CHANGE(+1);
+            i++; // OP_NUMBER opcode is always followed by index
+            *stackPtr = numbers[*i];
+            break;
+        default:
+            printf("op:%d\n", *i);
+            assert(0);
+    }
+}
+
+
 void ExprCalculator::transform_data(vector<Point>& points)
 {
     if (points.empty())
@@ -590,6 +702,78 @@ double ExprCalculator::calculate_custom(const vector<double>& custom_val) const
             throw ExecuteError("stack overflow");
     }
     assert(stackPtr == stack); // no ASSIGN_ at the end
+    return stack[0];
+}
+
+/// executes VM code, sets derivatives and returns value
+double run_code_for_variable(const VMData& vm,
+                             const vector<Variable*> &variables,
+                             vector<double> &derivatives)
+{
+    double stack[16];
+    double* stackPtr = stack - 1; // will be ++'ed first
+    v_foreach (int, i, vm.code()) {
+        if (*i == OP_SYMBOL) {
+            STACK_OFFSET_CHANGE(+1);
+            ++i; // skip the next one
+            *stackPtr = variables[*i]->get_value();
+        }
+        else if (*i == OP_PUT_DERIV) {
+            ++i;
+            // the OP_PUT_DERIV opcode is followed by a number n,
+            // the derivative is calculated with respect to n'th variable
+            assert(*i < (int) derivatives.size());
+            derivatives[*i] = *stackPtr;
+            STACK_OFFSET_CHANGE(-1);
+        }
+        else
+            run_func_op(vm.numbers(), i, stackPtr);
+    }
+    assert(stackPtr == stack);
+    return stack[0];
+}
+
+
+double run_code_for_custom_func(const VMData& vm, double x,
+                                vector<double> &derivatives)
+{
+    double stack[16];
+    double* stackPtr = stack - 1; // will be ++'ed first
+    v_foreach (int, i, vm.code()) {
+        if (*i == OP_X) {
+            STACK_OFFSET_CHANGE(+1);
+            *stackPtr = x;
+        }
+        else if (*i == OP_PUT_DERIV) {
+            ++i;
+            // the OP_PUT_DERIV opcode is followed by a number n,
+            // the derivative is calculated with respect to n'th variable
+            assert(*i < (int) derivatives.size());
+            derivatives[*i] = *stackPtr;
+            STACK_OFFSET_CHANGE(-1);
+        }
+        else
+            run_func_op(vm.numbers(), i, stackPtr);
+    }
+    assert(stackPtr == stack);
+    return stack[0];
+}
+
+double run_code_for_custom_func_value(const VMData& vm, double x,
+                                      int code_offset)
+{
+    double stack[16];
+    double* stackPtr = stack - 1; // will be ++'ed first
+    for (vector<int>::const_iterator i = vm.code().begin() + code_offset;
+                                                 i != vm.code().end(); ++i) {
+        if (*i == OP_X) {
+            STACK_OFFSET_CHANGE(+1);
+            *stackPtr = x;
+        }
+        else
+            run_func_op(vm.numbers(), i, stackPtr);
+    }
+    assert(stackPtr == stack);
     return stack[0];
 }
 
