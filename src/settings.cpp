@@ -177,7 +177,7 @@ void SettingsMgr::set_as_number(string const& k, double d)
         m_.*opt.val.d.ptr = d;
     }
     else // if (opt.vtype == kBool)
-        m_.*opt.val.d.ptr = (fabs(d) >= 0.5);
+        m_.*opt.val.b.ptr = (fabs(d) >= 0.5);
 }
 
 SettingsMgr::ValueType SettingsMgr::get_value_type(const string& k)

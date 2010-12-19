@@ -121,7 +121,7 @@ void GAfit::autoplot_in_autoiter()
 {
     const Individual& indiv = is_index(autoplot_indiv_nr, *pop)
                                     ? (*pop)[autoplot_indiv_nr] : best_indiv;
-    iteration_plot(indiv.g, true, indiv.raw_score);
+    iteration_plot(indiv.g, indiv.raw_score);
 }
 
 void GAfit::mutation()

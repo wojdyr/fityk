@@ -440,28 +440,23 @@ bool Fit::common_termination_criteria(int iter)
     return stop;
 }
 
-void Fit::iteration_plot(vector<fp> const &A, bool changed, fp wssr)
+void Fit::iteration_plot(vector<fp> const &A, fp wssr)
 {
-    int refresh_period = F->get_settings()->refresh_period;
-    if (refresh_period < 0)
+    int p = F->get_settings()->refresh_period;
+    if (p < 0 || (p > 0 && time(0) - last_refresh_time_ < p))
         return;
-    if (time(0) - last_refresh_time_ < refresh_period)
-        return;
-    if (changed) {
+    if (F->get_settings()->fit_replot) {
         F->use_external_parameters(A);
-        if (F->get_settings()->fit_replot)
-            F->get_ui()->draw_plot(UserInterface::kRepaintImmediately);
+        F->get_ui()->draw_plot(UserInterface::kRepaintImmediately);
     }
-    if (refresh_period > 0) {
-        double elapsed = (clock() - start_time_) / (double) CLOCKS_PER_SEC;
-        double percent_change = (wssr - wssr_before) / wssr_before * 100.;
-        F->msg("Iter: " + S(iter_nr) + "/"
-                + (max_iterations > 0 ? S(max_iterations) : string("oo"))
-                + "  Eval: " + S(evaluations) + "/"
-                + (max_evaluations_ > 0 ? S(max_evaluations_) : string("oo"))
-                + "  WSSR=" + S(wssr) + " (" + S(percent_change)+ "%)"
-                + "  CPU time: " + format1<double,16>("%.2f", elapsed) + "s.");
-    }
+    double elapsed = (clock() - start_time_) / (double) CLOCKS_PER_SEC;
+    double percent_change = (wssr - wssr_before) / wssr_before * 100.;
+    F->msg("Iter: " + S(iter_nr) + "/"
+            + (max_iterations > 0 ? S(max_iterations) : string("oo"))
+            + "  Eval: " + S(evaluations) + "/"
+            + (max_evaluations_ > 0 ? S(max_evaluations_) : string("oo"))
+            + "  WSSR=" + S(wssr) + " (" + S(percent_change)+ "%)"
+            + "  CPU time: " + format1<double,16>("%.2f", elapsed) + "s.");
     F->get_ui()->refresh();
     last_refresh_time_ = time(0);
 }

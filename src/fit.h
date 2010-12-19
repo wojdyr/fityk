@@ -74,7 +74,7 @@ protected:
         { ++evaluations; return do_compute_wssr(A, dms, weigthed); }
     bool post_fit (const std::vector<fp>& aa, fp chi2);
     fp draw_a_from_distribution (int nr, char distribution = 'u', fp mult = 1.);
-    void iteration_plot(std::vector<fp> const &A, bool changed, fp wssr);
+    void iteration_plot(std::vector<fp> const &A, fp wssr);
 private:
     time_t last_refresh_time_;
     clock_t start_time_;

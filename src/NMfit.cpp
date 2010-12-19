@@ -81,7 +81,7 @@ void NMfit::autoiter()
         iter_nr++;
         change_simplex();
         find_best_worst();
-        iteration_plot(best->a, true, best->wssr);
+        iteration_plot(best->a, best->wssr);
     }
     post_fit (best->a, best->wssr);
 }

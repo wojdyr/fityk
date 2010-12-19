@@ -94,7 +94,7 @@ void LMfit::autoiter()
                 break;
             }
         }
-        iteration_plot(a, better_fit, chi2);
+        iteration_plot(a, chi2);
     }
     post_fit (a, chi2);
 }
