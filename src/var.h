@@ -77,19 +77,15 @@ public:
 /// of parameters, or it is "compound variable" and has nr_==-1.
 /// third special case: nr_==-2 - it is mirror-variable (such variable
 ///        is not recalculated but copied)
-/// In second case, the value and derivatives are calculated
-/// in following steps:
-///  0. string is parsed by Spirit parser to Spirit AST representation,
-///     and then expression is simplified and derivates are
-///     calculated using calculate_deriv() function.
-///     It results in struct-OpTree-based trees (for value and all derivatives)
-///     That's before creating the Variable
-///  1  set_var_idx() finds indices of variables in variables vector
-///      (references to variables are kept using names of the variables
-///       is has to be called when indices of referred variables change
-///     and prepares bytecode from trees and var_idx
-///  3. recalculate() calculates (using run_code_for_variable()) value
-///     and derivatives for current parameter value
+/// In the second case, the value and derivatives are calculated:
+/// -  string is parsed by eparser to VMData representation,
+///    and then it is transformed to AST (struct OpTree), calculating derivates
+///    at the same time (calculate_deriv()).
+/// -  set_var_idx() finds positions of variables in variables vector
+///    (references to variables are kept using names) and creates bytecode
+///    (VMData, again) that will be used to calculate value and derivatives.
+/// -  recalculate() calculates (using run_code_for_variable()) value
+///    and derivatives for current parameter value
 class Variable : public VariableUser
 {
 public:

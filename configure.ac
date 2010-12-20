@@ -110,14 +110,13 @@ AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
   Either you have too old compiler, or standard C++ library can't be found.])])
 
 AC_CHECK_HEADER([boost/math/special_functions/gamma.hpp], [], [AC_MSG_ERROR(
- [Boost::Math headers not found.
-  Make sure you have Boost >= 1.36 installed.
- ])])
+ [Boost::Math headers not found. Make sure you have Boost installed.])])
 
-AC_CHECK_HEADER([boost/spirit/include/classic_core.hpp], [], [AC_MSG_ERROR(
- [Boost::Spirit headers not found.
-  Make sure you have Boost >= 1.36 installed.
- ])])
+AC_CHECK_HEADER([boost/array.hpp], [], [AC_MSG_ERROR(
+ [Boost::Array headers not found.  Make sure you have Boost installed.])])
+
+AC_CHECK_HEADER([boost/scoped_ptr.hpp], [], [AC_MSG_ERROR(
+ [Boost Smart Pointers not found.  Make sure you have Boost installed.])])
 
 AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
  [xylib headers were not found. You may need to install xylib first.

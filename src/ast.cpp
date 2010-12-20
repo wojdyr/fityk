@@ -2,8 +2,6 @@
 // Licence: GNU General Public License ver. 2+
 // $Id$
 
-//  Based on ast_calc example from Boost::Spirit by Daniel Nuffer
-
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/digamma.hpp>
 

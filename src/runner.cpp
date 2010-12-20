@@ -388,7 +388,7 @@ void Runner::command_assign_all(const vector<Token>& args, int ds)
     VMData* vd = get_vm_from_token(args[3]);
     const FunctionSum& fz = F_->get_model(ds)->get_fz(c);
     v_foreach (string, i, fz.names) {
-        if (F_->find_function(*i)->get_param_nr_nothrow(param) != -1)
+        if (contains_element(F_->find_function(*i)->tp()->fargs, param))
             F_->substitute_func_param(*i, param, vd);
     }
     F_->use_parameters();

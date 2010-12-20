@@ -189,15 +189,10 @@ string Function::get_current_formula(const string& x) const
 
 int Function::get_param_nr(const string& param) const
 {
-    int n = get_param_nr_nothrow(param);
+    int n = index_of_element(tp_->fargs, param);
     if (n == -1)
         throw ExecuteError("%" + name + " has no parameter `" + param + "'");
     return n;
-}
-
-int Function::get_param_nr_nothrow(const string& param) const
-{
-    return index_of_element(tp_->fargs, param);
 }
 
 fp Function::get_param_value(const string& param) const

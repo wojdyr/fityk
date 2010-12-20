@@ -85,7 +85,6 @@ public:
     virtual const std::string get_param(int n) const { return tp_->fargs[n]; }
 
     int get_param_nr(const std::string& param) const;
-    int get_param_nr_nothrow(const std::string& param) const;
     fp get_param_value(const std::string& param) const;
 
     fp numarea(fp x1, fp x2, int nsteps) const;

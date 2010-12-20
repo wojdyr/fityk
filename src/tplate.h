@@ -14,7 +14,6 @@
 class Settings;
 class Function;
 class Parser;
-//class VMData;
 struct OpTree;
 
 /// template -- function type, like Gaussian(height, center, hwhm) = ...,
@@ -25,8 +24,6 @@ struct Tplate
     typedef boost::shared_ptr<const Tplate> Ptr;
     typedef Function* (*create_type)(const Settings*, const std::string&,
                                      Ptr, const std::vector<std::string>&);
-
-    //enum HowDefined { kCoded, kSum, kSplit, kCustom };
 
     struct Component
     {
@@ -44,12 +41,8 @@ struct Tplate
     std::vector<Component> components; // kSum, kSplit
     std::vector<OpTree*> op_trees;     // kCustom
 
-    Tplate() {}
     std::string as_formula() const;
-
-
-private:
-    DISALLOW_COPY_AND_ASSIGN(Tplate);
+    bool is_coded() const;
 };
 
 // takes keyword args and returns positional args for given function.

@@ -28,6 +28,13 @@ string Tplate::as_formula() const
     return r;
 }
 
+bool Tplate::is_coded() const
+{
+    return create != create_CompoundFunction &&
+           create != create_SplitFunction &&
+           create != create_CustomFunction;
+}
+
 #define FACTORY_FUNC(NAME) \
 Function* create_##NAME(const Settings* settings, const std::string& name, \
                       Tplate::Ptr tp, const std::vector<std::string>& vars) \
