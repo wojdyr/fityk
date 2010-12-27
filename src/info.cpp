@@ -9,7 +9,6 @@
 #include <vector>
 #include <ctype.h>
 #include <string.h>
-//#include <iostream>
 
 #include <xylib/xylib.h> //get_version()
 #include <boost/version.hpp> // BOOST_VERSION

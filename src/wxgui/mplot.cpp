@@ -2,16 +2,11 @@
 // Licence: GNU General Public License ver. 2+
 // $Id$
 
-#include <wx/wxprec.h>
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
-#ifndef WX_PRECOMP
 #include <wx/wx.h>
-#endif
 
 #include <wx/fontdlg.h>
 #include <algorithm>
+#include <boost/scoped_ptr.hpp>
 
 #include "mplot.h"
 #include "frame.h"
@@ -24,6 +19,7 @@
 #include "../func.h"
 #include "../ui.h"
 #include "../settings.h"
+#include "../ast.h"
 
 using namespace std;
 
@@ -88,10 +84,10 @@ string FunctionMouseDrag::Drag::get_cmd() const
         return "";
 }
 
-void FunctionMouseDrag::Drag::set(Function const* p, int idx,
+void FunctionMouseDrag::Drag::set(const Function* p, int idx,
                                   drag_type how_, fp multiplier_)
 {
-    Variable const* var = ftk->get_variable(p->get_var_idx(idx));
+    const Variable* var = ftk->get_variable(p->get_var_idx(idx));
     if (!var->is_simple()) {
         how = no_drag;
         return;
@@ -106,7 +102,7 @@ void FunctionMouseDrag::Drag::set(Function const* p, int idx,
 }
 
 
-void FunctionMouseDrag::start(Function const* p, int X, int Y, fp x, fp y)
+void FunctionMouseDrag::start(const Function* p, int X, int Y, fp x, fp y)
 {
     drag_x.parameter_name = drag_y.parameter_name
         = drag_shift_x.parameter_name = drag_shift_y.parameter_name = "-";
@@ -141,33 +137,31 @@ void FunctionMouseDrag::set_defined_drags()
     drag_shift_y.how = no_drag;
 }
 
-bool FunctionMouseDrag::bind_parameter_to_drag(Drag &drag, string const& name,
-                                              Function const* p, drag_type how,
+bool FunctionMouseDrag::bind_parameter_to_drag(Drag &drag, const string& name,
+                                              const Function* p, drag_type how,
                                               fp multiplier)
 {
     // search for Function(..., height, ...)
-    int idx = p->get_param_nr_nothrow(name);
+    int idx = index_of_element(p->tp()->fargs, name);
     if (idx != -1) {
         drag.set(p, idx, how, multiplier);
         return true;
     }
 
-    vector<string> defvalues
-        = Function::get_defvalues_from_formula(p->type_formula);
-
+    const vector<string>& defvals = p->tp()->defvals;
     // search for Function(..., foo=height, ...)
-    idx = index_of_element(defvalues, name);
+    idx = index_of_element(defvals, name);
+    // search for Function(..., foo=height*..., ...)
+    if (idx != -1)
+        v_foreach (string, i, defvals)
+            if (startswith(*i, name+"*")) {
+                idx = i - defvals.begin();
+                break;
+            }
     if (idx != -1) {
         drag.set(p, idx, how, multiplier);
         return true;
     }
-
-    // search for Function(..., foo=height*..., ...)
-    v_foreach (string, i, defvalues)
-        if (startswith(*i, name+"*")) {
-            drag.set(p, i - defvalues.begin(), how, multiplier);
-            return true;
-        }
     return false;
 }
 
@@ -264,7 +258,7 @@ void MainPlot::OnPaint(wxPaintEvent&)
 }
 
 fp y_of_data_for_draw_data(vector<Point>::const_iterator i,
-                           Model const* /*model*/)
+                           const Model* /*model*/)
 {
     return i->y;
 }
@@ -278,7 +272,7 @@ void MainPlot::draw_dataset(wxDC& dc, int n, bool set_pen)
         return;
     wxColour col = get_data_color(n);
     if (shadowed) {
-        wxColour const& bg_col = get_bg_color();
+        const wxColour& bg_col = get_bg_color();
         col.Set((col.Red() + bg_col.Red())/2,
                 (col.Green() + bg_col.Green())/2,
                 (col.Blue() + bg_col.Blue())/2);
@@ -295,7 +289,7 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
 {
     //cout << "MainPlot::draw()" << endl;
     int focused_data = frame->get_focused_data_index();
-    Model const* model = ftk->get_model(focused_data);
+    const Model* model = ftk->get_model(focused_data);
 
     set_scale(get_pixel_width(dc), get_pixel_height(dc));
 
@@ -364,7 +358,7 @@ void MainPlot::draw_y_axis (wxDC& dc, bool set_pen)
     dc.DrawLine (X0, 0, X0, get_pixel_height(dc));
 }
 
-void MainPlot::draw_model(wxDC& dc, Model const* model, bool set_pen)
+void MainPlot::draw_model(wxDC& dc, const Model* model, bool set_pen)
 {
     if (set_pen)
         dc.SetPen(wxPen(modelCol, pen_width));
@@ -383,14 +377,14 @@ void MainPlot::draw_model(wxDC& dc, Model const* model, bool set_pen)
 
 
 //TODO draw groups
-void MainPlot::draw_groups (wxDC& /*dc*/, Model const*, bool)
+void MainPlot::draw_groups (wxDC& /*dc*/, const Model*, bool)
 {
 }
 
-void MainPlot::draw_peaks(wxDC& dc, Model const* model, bool set_pen)
+void MainPlot::draw_peaks(wxDC& dc, const Model* model, bool set_pen)
 {
     fp level = 0;
-    vector<int> const& idx = model->get_ff().idx;
+    const vector<int>& idx = model->get_ff().idx;
     int n = get_pixel_width(dc);
     vector<fp> xx(n), yy(n);
     vector<int> YY(n);
@@ -400,7 +394,7 @@ void MainPlot::draw_peaks(wxDC& dc, Model const* model, bool set_pen)
     }
     for (int k = 0; k < size(idx); k++) {
         fill(yy.begin(), yy.end(), 0.);
-        Function const* f = ftk->get_function(idx[k]);
+        const Function* f = ftk->get_function(idx[k]);
         int from=0, to=n-1;
         fp left, right;
         if (f->get_nonzero_range(level, left, right)) {
@@ -417,7 +411,7 @@ void MainPlot::draw_peaks(wxDC& dc, Model const* model, bool set_pen)
     }
 }
 
-void MainPlot::draw_peaktops (wxDC& dc, Model const* model)
+void MainPlot::draw_peaktops (wxDC& dc, const Model* model)
 {
     dc.SetPen(wxPen(xAxisCol, pen_width));
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
@@ -427,27 +421,27 @@ void MainPlot::draw_peaktops (wxDC& dc, Model const* model)
     draw_peaktop_selection(dc, model);
 }
 
-void MainPlot::draw_peaktop_selection (wxDC& dc, Model const* model)
+void MainPlot::draw_peaktop_selection (wxDC& dc, const Model* model)
 {
     int n = frame->get_sidebar()->get_active_function();
     if (n == -1)
         return;
-    vector<int> const& idx = model->get_ff().idx;
+    const vector<int>& idx = model->get_ff().idx;
     vector<int>::const_iterator t = find(idx.begin(), idx.end(), n);
     if (t != idx.end()) {
-        wxPoint const&p = special_points[t-idx.begin()];
+        const wxPoint& p = special_points[t-idx.begin()];
         dc.SetLogicalFunction (wxINVERT);
         dc.SetPen(*wxBLACK_PEN);
         dc.DrawCircle(p.x, p.y, 4);
     }
 }
 
-void MainPlot::draw_plabels (wxDC& dc, Model const* model, bool set_pen)
+void MainPlot::draw_plabels (wxDC& dc, const Model* model, bool set_pen)
 {
     prepare_peak_labels(model); //TODO re-prepare only when peaks where changed
     set_font(dc, plabelFont);
     vector<wxRect> previous;
-    vector<int> const& idx = model->get_ff().idx;
+    const vector<int>& idx = model->get_ff().idx;
     for (int k = 0; k < size(idx); k++) {
         const wxPoint &peaktop = special_points[k];
         if (set_pen)
@@ -498,15 +492,15 @@ static bool operator< (const wxPoint& a, const wxPoint& b)
 }
 */
 
-void MainPlot::prepare_peaktops(Model const* model, int Ymax)
+void MainPlot::prepare_peaktops(const Model* model, int Ymax)
 {
     int Y0 = ys.px(0);
-    vector<int> const& idx = model->get_ff().idx;
+    const vector<int>& idx = model->get_ff().idx;
     int n = idx.size();
     special_points.resize(n);
     int no_ctr_idx = 0;
     for (int k = 0; k < n; k++) {
-        Function const *f = ftk->get_function(idx[k]);
+        const Function *f = ftk->get_function(idx[k]);
         fp x, ctr;
         int X, Y;
         if (f->get_center(&ctr)) {
@@ -529,12 +523,12 @@ void MainPlot::prepare_peaktops(Model const* model, int Ymax)
     }
 }
 
-void MainPlot::prepare_peak_labels(Model const* model)
+void MainPlot::prepare_peak_labels(const Model* model)
 {
-    vector<int> const& idx = model->get_ff().idx;
+    const vector<int>& idx = model->get_ff().idx;
     plabels.resize(idx.size());
     for (int k = 0; k < size(idx); k++) {
-        Function const *f = ftk->get_function(idx[k]);
+        const Function *f = ftk->get_function(idx[k]);
         string label = plabel_format;
         string::size_type pos = 0;
         while ((pos = label.find("<", pos)) != string::npos) {
@@ -750,7 +744,7 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
 {
     if (over_peak < 0)
         return;
-    Function const* p = ftk->get_function(over_peak);
+    const Function* p = ftk->get_function(over_peak);
     fp ctr;
     if (p->get_center(&ctr)) {
         fp plusmin = 0, fwhm, iw;
@@ -761,8 +755,9 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
         plusmin = max(plusmin, 1.);
         char buffer[64];
         sprintf(buffer, " [%.12g:%.12g]", ctr-plusmin, ctr+plusmin);
-        ftk->exec("%" + p->name + " = guess " + p->type_name + buffer
-                  + frame->get_global_parameters() + frame->get_in_datasets());
+        ftk->exec(frame->get_datasets() + "guess %" + p->name + " = "
+                  + p->tp()->name + frame->get_global_parameters()
+                  + " [" + eS(ctr-plusmin) + ":" + eS(ctr+plusmin) + "]");
     }
 }
 
@@ -881,8 +876,8 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
 void MainPlot::look_for_peaktop (wxMouseEvent& event)
 {
     int focused_data = frame->get_sidebar()->get_focused_data();
-    Model const* model = ftk->get_model(focused_data);
-    vector<int> const& idx = model->get_ff().idx;
+    const Model* model = ftk->get_model(focused_data);
+    const vector<int>& idx = model->get_ff().idx;
     if (special_points.size() != idx.size())
         refresh();
     int n = get_special_point_at_pointer(event);
@@ -895,14 +890,14 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     // and show limits
     over_peak = nearest;
     if (nearest != -1) {
-        Function const* f = ftk->get_function(over_peak);
-        string s = "%" + f->name + " " + f->type_name + " ";
+        const Function* f = ftk->get_function(over_peak);
+        string s = "%" + f->name + " " + f->tp()->name + " ";
         for (int i = 0; i < f->nv(); ++i)
             s += " " + f->get_param(i) + "=" + S(f->av()[i]);
         frame->set_status_text(s);
         set_mouse_mode(mmd_peak);
         fp x1=0., x2=0.;
-        bool r = f->get_nonzero_range(ftk->get_settings()->cut_function_level(),
+        bool r = f->get_nonzero_range(ftk->get_settings()->cut_function_level,
                                       x1, x2);
         if (r) {
             limit1 = xs.px(x1);
@@ -937,7 +932,7 @@ void MainPlot::cancel_mouse_press()
     }
 }
 
-MouseOperation MainPlot::what_mouse_operation(wxMouseEvent const& event)
+MouseOperation MainPlot::what_mouse_operation(const wxMouseEvent& event)
 {
     bool ctrl = (event.AltDown() || event.CmdDown());
     bool shift = event.ShiftDown();
@@ -1024,8 +1019,10 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         refresh();
     }
     else if (mouse_op == kAddPeakTriangle) {
-        func_draft_kind
-            = get_function_kind(Function::get_formula(frame->get_peak_type()));
+        const Tplate* tp = ftk->get_tpm()->get_tp(frame->get_peak_type());
+        if (tp == NULL)
+            return;
+        func_draft_kind = tp->peak_d ? kPeak : kLinear;
         peak_draft (mat_start, event.GetX(), event.GetY());
         SetCursor(wxCURSOR_SIZING);
         frame->set_status_text("Add drawed peak...");
@@ -1076,7 +1073,7 @@ bool MainPlot::can_activate()
 {
     vector<int> sel = frame->get_sidebar()->get_selected_data_indices();
     v_foreach (int, i, sel) {
-        Data const* data = ftk->get_data(*i);
+        const Data* data = ftk->get_data(*i);
         // if data->is_empty() we allow to try disactivate data to let user
         // experiment with mouse right after launching the program
         if (data->is_empty() || data->get_n() != size(data->points()))
@@ -1096,7 +1093,7 @@ void freeze_functions_in_range(double x1, double x2, bool freeze)
         if (!(x1 < ctr && ctr < x2))
             continue;
         for (int j = 0; j != (*i)->get_vars_count(); ++j) {
-            Variable const* var = ftk->get_variable((*i)->get_var_idx(j));
+            const Variable* var = ftk->get_variable((*i)->get_var_idx(j));
             if (freeze && var->is_simple()) {
                 cmd += "$" + var->name + "=" + eS(var->get_value()) + "; ";
             }
@@ -1128,10 +1125,8 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp x2 = xs.valr(event.GetX());
             fp y1 = ys.valr(mouse_press_Y);
             fp y2 = ys.valr(event.GetY());
-            char buffer[128];
-            sprintf(buffer, "[%.12g:%.12g] [%.12g:%.12g]",
-                    min(x1,x2), max(x1,x2), min(y1,y2), max(y1,y2));
-            frame->change_zoom(buffer);
+            frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)),
+                               RealRange(min(y1,y2), max(y1,y2)));
         }
         else
             frame->set_status_text("");
@@ -1141,9 +1136,8 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         if (dist_Y >= 5) {
             fp y1 = ys.valr(mouse_press_Y);
             fp y2 = ys.valr(event.GetY());
-            char buffer[64];
-            sprintf(buffer, ". [%.12g:%.12g]", min(y1,y2), max(y1,y2));
-            frame->change_zoom(buffer);
+            frame->change_zoom(ftk->view.hor,
+                               RealRange(min(y1,y2), max(y1,y2)));
         }
         else
             frame->set_status_text("");
@@ -1153,9 +1147,8 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         if (dist_X >= 5) {
             fp x1 = xs.valr(mouse_press_X);
             fp x2 = xs.valr(event.GetX());
-            char buffer[64];
-            sprintf(buffer, "[%.12g:%.12g] .", min(x1,x2), max(x1,x2));
-            frame->change_zoom(buffer);
+            frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)),
+                               ftk->view.ver);
         }
         else
             frame->set_status_text("");
@@ -1192,7 +1185,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
                 cond += " and "
                         + eS(min(y1,y2)) + " < y and y < " + eS(max(y1,y2));
             }
-            ftk->exec(c + " (" + cond + ")" + frame->get_in_datasets());
+            ftk->exec(frame->get_datasets() + c + " (" + cond + ")");
 
             if (auto_freeze_ && !rect)
                 freeze_functions_in_range(x1, x2, !activate);
@@ -1212,10 +1205,9 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         if (dist_X >= 5) {
             fp x1 = xs.valr(mouse_press_X);
             fp x2 = xs.valr(event.GetX());
-            ftk->exec("guess " + frame->get_peak_type()
-                        + " [" + eS(min(x1,x2)) + " : " + eS(max(x1,x2)) + "]"
-                        + frame->get_global_parameters()
-                        + frame->get_in_datasets());
+            ftk->exec(frame->get_datasets() + "guess "
+                      + frame->get_peak_type() + frame->get_global_parameters()
+                      + " [" + eS(min(x1,x2)) + " : " + eS(max(x1,x2)) + "]");
         }
         line_following_cursor(mat_stop);
     }
@@ -1230,17 +1222,17 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
 void MainPlot::add_peak_from_draft(int X, int Y)
 {
     string args;
-    if (func_draft_kind == Guess::kLinear) {
+    if (func_draft_kind == kLinear) {
         fp y = ys.valr(Y);
         args = "slope=~0, intercept=~" + eS(y) + ", avgy=~" + eS(y);
     }
     else {
         fp height = ys.valr(Y);
         fp center = xs.valr(mouse_press_X);
-        fp fwhm = 2 * fabs(center - xs.valr(X));
-        fp area = height * fwhm;
+        fp hwhm = fabs(center - xs.valr(X));
+        fp area = 2 * height * hwhm;
         args = "height=~" + eS(height) + ", center=~" + eS(center)
-                 + ", fwhm=~" + eS(fwhm) + ", area=~" + eS(area);
+                 + ", hwhm=~" + eS(hwhm) + ", area=~" + eS(area);
         string global = frame->get_global_parameters();
         if (!global.empty())
             args += "," + global;
@@ -1259,14 +1251,13 @@ void MainPlot::add_peak_from_draft(int X, int Y)
 
 bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
 {
-    static int prevX=INT_MIN, prevY=INT_MIN;
     static wxCursor old_cursor = wxNullCursor;
     static int func_nr = -1;
 
     if (over_peak == -1)
         return false;
 
-    Function const* p = ftk->get_function(over_peak);
+    const Function* p = ftk->get_function(over_peak);
 
     if (ma != mat_start && func_nr != over_peak)
             return false;
@@ -1279,8 +1270,6 @@ bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
         fmd.start(p, X, Y, xs.valr(X), ys.valr(Y));
         bool erase_previous = false;
         draw_xor_peak(p, fmd.get_values(), erase_previous);
-        prevX = X;
-        prevY = Y;
         old_cursor = GetCursor();
         SetCursor(wxCURSOR_SIZENWSE);
         connect_esc_to_cancel(true);
@@ -1290,8 +1279,6 @@ bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
         frame->set_status_text(fmd.get_status());
         bool erase_previous = true;
         draw_xor_peak(p, fmd.get_values(), erase_previous);
-        prevX = X;
-        prevY = Y;
     }
     else if (ma == mat_stop) {
         redraw_xor_peak();
@@ -1306,8 +1293,37 @@ bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
     return true;
 }
 
+static
+void calculate_values(const vector<fp>& xx, vector<fp>& yy,
+                      const Tplate::Ptr& tp, const vector<fp>& p_values)
+{
+    // clone function
+    int len = p_values.size();
+    vector<string> varnames(len);
+    for (int i = 0; i != len; ++i)
+        varnames[i] = "v" + S(i);
+    boost::scoped_ptr<Function> f(
+                (*tp->create)(ftk->get_settings(), "tmp", tp, varnames));
+    f->init();
 
-void MainPlot::draw_xor_peak(Function const* func, vector<fp> const& p_values,
+    // create variables with the same values as p_values
+    vector<Variable*> variables(len);
+    const vector<Variable*> dummy_vars;
+    for (int i = 0; i != len; ++i) {
+        OpTree* tree = new OpTree(p_values[i]);
+        variables[i] = new Variable("v" + S(i), vector<string>(),
+                                    vector1<OpTree*>(tree));
+        variables[i]->set_var_idx(dummy_vars);
+        variables[i]->recalculate(dummy_vars, vector<fp>());
+    }
+
+    f->set_var_idx(variables);
+    f->do_precomputations(variables);
+    f->calculate_value(xx, yy);
+    purge_all_elements(variables);
+}
+
+void MainPlot::draw_xor_peak(const Function* func, const vector<fp>& p_values,
                              bool erase_previous)
 {
     wxClientDC dc(this);
@@ -1320,8 +1336,7 @@ void MainPlot::draw_xor_peak(Function const* func, vector<fp> const& p_values,
     vector<fp> xx(n), yy(n, 0);
     for (int i = 0; i < n; ++i)
         xx[i] = xs.val(i);
-    //TODO create and use new func
-    func->calculate_values_with_params(xx, yy, p_values);
+    calculate_values(xx, yy, func->tp(), p_values);
 
     if (erase_previous && draw_xor_peak_points != NULL)
         dc.DrawLines(draw_xor_peak_n, draw_xor_peak_points);
@@ -1389,7 +1404,7 @@ void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y)
     dc.SetLogicalFunction (wxINVERT);
     dc.SetPen(*wxBLACK_DASHED_PEN);
     int Y0 = ys.px(0);
-    if (func_draft_kind == Guess::kLinear) {
+    if (func_draft_kind == kLinear) {
         //TODO draw linear draft with slope
         dc.DrawLine (0, Y, get_pixel_width(dc), Y);
     }
@@ -1803,7 +1818,7 @@ void ConfigurePLabelsDlg::OnChangeLabelFont (wxCommandEvent&)
 //           BgManager (for interactive background setting)
 //===============================================================
 
-BgManager::BgManager(Scale const& x_scale)
+BgManager::BgManager(const Scale& x_scale)
     : x_scale_(x_scale), spline_(true), data_idx_(-1)
 {
     read_recent_baselines();
@@ -1840,7 +1855,7 @@ bool BgManager::stripped() const
     return is_index(data_idx_, stripped_) && stripped_[data_idx_];
 }
 
-wxString const& BgManager::get_recent_bg_name(int n) const
+const wxString& BgManager::get_recent_bg_name(int n) const
 {
     static const wxString empty;
     int idx = recent_bg_.size() - 1 - n;
@@ -1860,7 +1875,7 @@ void BgManager::bg_from_func()
         return;
     }
     const Function *f = ftk->get_function(nr);
-    if (f->type_name != "Spline" && f->type_name != "Polyline") {
+    if (f->tp()->name != "Spline" && f->tp()->name != "Polyline") {
         bg_.clear();
         return;
     }
@@ -1929,7 +1944,7 @@ void BgManager::define_bg_func()
     int nr = ftk->find_function_nr(name);
     if (nr != -1) {
         const Function *f = ftk->get_function(nr);
-        if (f->type_name == ftype && f->nv() == 2 * (int) bg_.size()) {
+        if (f->tp()->name == ftype && f->nv() == 2 * (int) bg_.size()) {
             bool the_same = true;
             for (size_t i = 0; i != bg_.size(); ++i) {
                 const Variable *vx = ftk->find_variable(f->get_var_name(2*i));
@@ -1963,7 +1978,7 @@ void BgManager::strip_background()
     define_bg_func();
     bg_.clear();
     set_stripped(true);
-    ftk->exec("Y = y - %" + get_bg_name() + "(x)" + frame->get_in_datasets());
+    ftk->exec(frame->get_datasets() + "Y = y - %" + get_bg_name() + "(x)");
 }
 
 void BgManager::add_background()
@@ -1974,10 +1989,10 @@ void BgManager::add_background()
         return;
     set_stripped(false);
     bg_from_func();
-    ftk->exec("Y = y + %" + name + "(x)" + frame->get_in_datasets());
+    ftk->exec(frame->get_datasets() + "Y = y + %" + name + "(x)");
 }
 
-vector<int> BgManager::calculate_bgline(int window_width, Scale const& y_scale)
+vector<int> BgManager::calculate_bgline(int window_width, const Scale& y_scale)
 {
     vector<int> bgline(window_width);
     if (spline_)
@@ -2005,7 +2020,7 @@ void BgManager::set_as_convex_hull()
     const Data* data = ftk->get_data(data_idx_);
     for (int i = 0; i < data->get_n(); ++i)
         convex.push_point(data->get_x(i), data->get_y(i));
-    vector<PointD> const& vertices = convex.get_vertices();
+    const vector<PointD>& vertices = convex.get_vertices();
     bg_.resize(vertices.size());
     for (size_t i = 0; i != bg_.size(); ++i) {
         bg_[i].x = vertices[i].x;

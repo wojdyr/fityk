@@ -253,6 +253,7 @@ The kCmd* names in the comments correspond to constants in the code.
     : "sleep" `expr`                     | (*kCmdSleep*)
     : "title" "=" `filename`             | (*kCmdTitle*)
     : "undef:ine" Uname % ","          | (*kCmdUndef*)
+    : "use" Dataset                    | (*kCmdUse*)
     : "!" RestOfLine                   | (*kCmdShell*)
     : Dataset "<" `load_arg`             | (*kCmdLoad*)
     : Dataset "=" `dataset_tr_arg`       | (*kCmdDatasetTr*)
@@ -274,7 +275,7 @@ The kCmd* names in the comments correspond to constants in the code.
          :      "x" "<" `v_expr` "?" `component_func` ":" `component_func`
          :    )
    component_func: Uname "(" `v_expr` % "," ")"
-   delete: (Varname | `func_id` | Dataset) % ","
+   delete: (Varname | `func_id` | Dataset | "file" `filename`) % ","
    delete_points: "(" p_expr ")"
    exec: `filename` |
        : "!" RestOfLine

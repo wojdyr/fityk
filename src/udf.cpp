@@ -44,6 +44,12 @@ CompoundFunction::CompoundFunction(const Settings* settings,
 {
 }
 
+CompoundFunction::~CompoundFunction()
+{
+    purge_all_elements(intern_functions_);
+    purge_all_elements(intern_variables_);
+}
+
 void CompoundFunction::init()
 {
     Function::init();
@@ -185,6 +191,11 @@ CustomFunction::CustomFunction(const Settings* settings,
 {
 }
 
+CustomFunction::~CustomFunction()
+{
+    purge_all_elements(op_trees_);
+}
+
 void CustomFunction::set_var_idx(const vector<Variable*>& variables)
 {
     VariableUser::set_var_idx(variables);
@@ -261,6 +272,13 @@ SplitFunction::SplitFunction(const Settings* settings,
                              const vector<string> &vars)
     : Function(settings, name, tp, vars)
 {
+}
+
+SplitFunction::~SplitFunction()
+{
+    delete left_;
+    delete right_;
+    purge_all_elements(intern_variables_);
 }
 
 void SplitFunction::init()

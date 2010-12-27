@@ -356,9 +356,8 @@ void AuxPlot::OnLeftUp (wxMouseEvent &event)
     fp x1 = xs.val(event.GetX());
     fp x2 = xs.val(mouse_press_X);
     cancel_mouse_left_press();
-    char buffer[128];
-    sprintf(buffer, "[%.12g:%.12g]", min(x1,x2), max(x1,x2));
-    frame->change_zoom(buffer);
+    RealRange all;
+    frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)), all);
 }
 
 //popup-menu
@@ -485,8 +484,8 @@ void AuxPlot::fit_y_zoom(Data const* data, Model const* model)
     if (!is_zoomable())
         return;
     fp y = 0.;
-    vector<Point>::const_iterator first = data->get_point_at(ftk->view.left),
-                                  last = data->get_point_at(ftk->view.right);
+    vector<Point>::const_iterator first = data->get_point_at(ftk->view.left()),
+                                  last = data->get_point_at(ftk->view.right());
     if (data->is_empty() || last==first)
         return;
     int pixel_height = GetClientSize().GetHeight();

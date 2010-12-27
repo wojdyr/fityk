@@ -164,7 +164,7 @@ void FPlot::draw_xtics (wxDC& dc, Rect const &v, bool set_pen)
     dc.GetTextExtent(wxT("1234567890"), 0, &h);
 
     vector<double> minors;
-    vector<double> x_tics = scale_tics_step(v.left, v.right, x_max_tics,
+    vector<double> x_tics = scale_tics_step(v.left(), v.right(), x_max_tics,
                                             minors, xs.logarithm);
 
     //if x axis is visible tics are drawed at the axis,
@@ -177,7 +177,7 @@ void FPlot::draw_xtics (wxDC& dc, Rect const &v, bool set_pen)
                                                     i != x_tics.end(); ++i) {
         int X = xs.px(*i);
         dc.DrawLine (X, Y, X, Y - x_tic_size);
-        wxString label = format_label(*i, v.right - v.left);
+        wxString label = format_label(*i, v.right() - v.left());
         wxCoord w;
         dc.GetTextExtent (label, &w, 0);
         dc.DrawText (label, X - w/2, Y + 1);
@@ -213,13 +213,13 @@ void FPlot::draw_ytics (wxDC& dc, Rect const &v, bool set_pen)
             && xs.px(0) < pixel_width - 10)
         X = xs.px(0);
     vector<double> minors;
-    vector<double> y_tics = scale_tics_step(v.bottom, v.top, y_max_tics,
+    vector<double> y_tics = scale_tics_step(v.bottom(), v.top(), y_max_tics,
                                             minors, ys.logarithm);
     for (vector<double>::const_iterator i = y_tics.begin();
                                                     i != y_tics.end(); ++i) {
         int Y = ys.px(*i);
         dc.DrawLine (X, Y, X + y_tic_size, Y);
-        wxString label = format_label(*i, v.top - v.bottom);
+        wxString label = format_label(*i, v.top() - v.bottom());
         if (x_axis_visible && label == wxT("0"))
             continue;
         wxCoord w, h;
@@ -274,8 +274,8 @@ void FPlot::draw_data (wxDC& dc,
     wxBrush const inactiveBrush(inactivePen.GetColour(), wxSOLID);
     if (data->is_empty())
         return;
-    vector<Point>::const_iterator first = data->get_point_at(ftk->view.left),
-                                  last = data->get_point_at(ftk->view.right);
+    vector<Point>::const_iterator first = data->get_point_at(ftk->view.left()),
+                                  last = data->get_point_at(ftk->view.right());
     //if (last - first < 0) return;
     bool active = first->is_active;
     dc.SetPen (active ? activePen : inactivePen);
@@ -284,7 +284,7 @@ void FPlot::draw_data (wxDC& dc,
     // first line segment -- lines should be drawn towards points
     //                                                 that are outside of plot
     if (line_between_points && first > data->points().begin() && !cumulative) {
-        X_ = xs.px (ftk->view.left);
+        X_ = xs.px (ftk->view.left());
         int Y_l = ys.px ((*compute_y)(first - 1, model));
         int Y_r = ys.px ((*compute_y)(first, model));
         int X_l = xs.px ((first - 1)->x);
@@ -351,7 +351,7 @@ void FPlot::draw_data (wxDC& dc,
 
     //the last line segment, toward next point
     if (line_between_points && last < data->points().end() && !cumulative) {
-        int X = xs.px (ftk->view.right);
+        int X = xs.px (ftk->view.right());
         int Y_l = ys.px ((*compute_y)(last - 1, model));
         int Y_r = ys.px ((*compute_y)(last, model));
         int X_l = xs.px ((last - 1)->x);
@@ -383,9 +383,9 @@ void FPlot::set_scale(int pixel_width, int pixel_height)
 {
     Rect const &v = ftk->view;
     if (pixel_width > 0)
-	xs.set(v.left, v.right, pixel_width);
+	xs.set(v.left(), v.right(), pixel_width);
     if (pixel_height > 0)
-	ys.set(v.top, v.bottom, pixel_height);
+	ys.set(v.top(), v.bottom(), pixel_height);
 }
 
 int FPlot::get_special_point_at_pointer(wxMouseEvent& event)

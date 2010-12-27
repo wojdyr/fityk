@@ -190,6 +190,10 @@ class FuncLogNormal : public Function
 
 class VarArgFunction : public Function
 {
+public:
+    // so far all the va functions have parameters x1,y1,x2,y2,...
+    virtual std::string get_param(int n) const
+            { return (n % 2 == 0 ? "x" : "y") + S(n/2 + 1); }
 protected:
     VarArgFunction(const Settings* settings,
                    const std::string &name,
@@ -197,10 +201,6 @@ protected:
                    const std::vector<std::string> &vars)
         : Function(settings, name, tp, vars) {}
     virtual void init() { center_idx_ = -1; }
-
-    // so far all the va functions have parameters x1,y1,x2,y2,...
-    virtual const std::string get_param(int n) const
-            { return (n % 2 == 0 ? "x" : "y") + S(n/2 + 1); }
 };
 
 class FuncSpline : public VarArgFunction

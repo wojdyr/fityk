@@ -112,8 +112,8 @@ int GnuPlot::plot()
     if (!gnuplot_pipe_ok())
         return -1;
     // Send commands through the pipe to gnuplot
-    int i_f = data->get_lower_bound_ac (ftk->view.left);
-    int i_l = data->get_upper_bound_ac (ftk->view.right);
+    int i_f = data->get_lower_bound_ac (ftk->view.left());
+    int i_l = data->get_upper_bound_ac (ftk->view.right());
     if (i_l - i_f <= 0)
         return 0;
     string plot_string = "plot "+ ftk->view.str()

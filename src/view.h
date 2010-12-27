@@ -19,18 +19,25 @@ class Ftk;
 struct RealRange
 {
     double from, to;
+
     RealRange() : from(-DBL_MAX), to(DBL_MAX) {}
+    RealRange(double from_, double to_) : from(from_), to(to_) {}
     bool from_inf() const { return from == -DBL_MAX; }
     bool to_inf() const { return to == DBL_MAX; }
 };
 
 struct Rect
 {
-    fp left, right, bottom, top;
+    RealRange hor, ver;
 
-    Rect(fp l, fp r, fp b, fp t) : left(l), right(r), bottom(b), top(t) {}
-    fp width() const { return right - left; }
-    fp height() const { return top - bottom; }
+    Rect(double l, double r, double b, double t)
+        { hor.from = l; hor.to = r; ver.from = b; ver.to = t; }
+    double left() const { return hor.from; }
+    double right() const { return hor.to; }
+    double bottom() const { return ver.from; }
+    double top() const { return ver.to; }
+    double width() const { return hor.to - hor.from; }
+    double height() const { return ver.to - ver.from; }
 };
 
 /// manages view, i.e. x and y range visible currently to the user
@@ -46,7 +53,7 @@ public:
           log_x_(false), log_y_(false), y0_factor_(10.) {}
     std::string str() const;
     /// fit specified edges to the data range
-    void change_view(const RealRange& hor, const RealRange& ver,
+    void change_view(const RealRange& hor_r, const RealRange& ver_r,
                      const std::vector<int>& datasets);
     void set_log_scale(bool log_x, bool log_y) { log_x_=log_x; log_y_=log_y; }
     fp y0_factor() const { return y0_factor_; }

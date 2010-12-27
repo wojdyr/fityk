@@ -60,8 +60,7 @@ class UserInterface
 public:
     enum RepaintMode {
         kRepaint, // repaint can be delayed
-        kRepaintImmediately, // repaint immediately
-        kRepaintDataset // paint immediately dataset selected in class View
+        kRepaintImmediately // repaint immediately
     };
 
     // 4 styles are supported by output_message()

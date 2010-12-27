@@ -61,6 +61,7 @@
 #include "../settings.h"
 #include "../guess.h"
 #include "../func.h"
+#include "../tplate.h"
 
 #include "img/fityk.xpm"
 //toolbars icons
@@ -422,7 +423,9 @@ void FFrame::OnQuit(wxCommandEvent&)
 
 void FFrame::update_peak_type_list()
 {
-    peak_types = Function::get_all_types();
+    peak_types.clear();
+    v_foreach(Tplate::Ptr, i, ftk->get_tpm()->tpvec())
+        peak_types.push_back((*i)->name);
     if (peak_type_nr >= size(peak_types))
         peak_type_nr = 0;
     if (toolbar)
@@ -1087,13 +1090,13 @@ void FFrame::OnDefinitionMgr(wxCommandEvent&)
 
 void FFrame::OnSGuess (wxCommandEvent&)
 {
-    ftk->exec("guess " + get_peak_type() + get_global_parameters()
-              + get_in_datasets());
+    ftk->exec(get_datasets() + "guess " + get_peak_type()
+                                              + get_global_parameters());
 }
 
 void FFrame::OnSPFInfo (wxCommandEvent&)
 {
-    ftk->exec("info guess" + get_in_datasets());
+    ftk->exec(get_datasets() + "info guess");
     //TODO animations showing peak positions
 }
 
@@ -1132,16 +1135,16 @@ void FFrame::OnSExport (wxCommandEvent& event)
                         + wxString(wxT("|all files|*")),
                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK)
-        ftk->exec(string("info ") + (as_peaks ? "peaks" : "formula")
-                  + get_in_datasets() + " > '" + wx2s(fdlg.GetPath()) + "'");
+        ftk->exec(get_datasets() + "info " + (as_peaks ? "peaks" : "formula")
+                  + " > '" + wx2s(fdlg.GetPath()) + "'");
     dir = fdlg.GetDirectory();
 }
 
 
 void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
 {
-    int n = ftk->get_settings()->get_e("fitting_method");
-    event.Check (ID_F_M + n == event.GetId());
+    int n = ftk->settings_mgr()->get_enum_index("fitting_method");
+    event.Check(ID_F_M + n == event.GetId());
 }
 
 void FFrame::OnMenuFitRunUpdate(wxUpdateUIEvent& event)
@@ -1167,14 +1170,9 @@ void FFrame::OnMenuFitHistoryUpdate(wxUpdateUIEvent& event)
 void FFrame::OnFOneOfMethods (wxCommandEvent& event)
 {
     int m = event.GetId() - ID_F_M;
-    string method;
-    if (m == 0)
-        method = "levenberg_marquardt";
-    else if (m == 1)
-        method = "nelder_mead_simplex";
-    else // if (m == 2)
-        method = "genetic_algorithms";
-    ftk->exec("set fitting_method=" method);
+    const char** values
+                  = ftk->settings_mgr()->get_allowed_values("fitting_method");
+    ftk->exec("set fitting_method=" + S(values[m]));
 }
 
 void FFrame::OnFRun (wxCommandEvent&)
@@ -1187,7 +1185,6 @@ void FFrame::OnFInfo (wxCommandEvent&)
     FitInfoDlg dlg(this, -1);
     if (dlg.Initialize())
         dlg.ShowModal();
-    //ftk->exec("info fit" + get_in_datasets());
 }
 
 void FFrame::OnFUndo (wxCommandEvent&)
@@ -1417,7 +1414,6 @@ void FFrame::OnChangePeakType(wxCommandEvent& event)
     peak_type_nr = event.GetId() - ID_G_M_PEAK_N;
     if (toolbar)
         toolbar->update_peak_type(peak_type_nr);
-    update_autoadd_enabled();
 }
 
 void FFrame::OnMenuBgStripUpdate(wxUpdateUIEvent& event)
@@ -1573,12 +1569,14 @@ void FFrame::OnMenuShowAuxUpdate (wxUpdateUIEvent& event)
 
 void FFrame::GViewAll()
 {
-    change_zoom("[]");
+    RealRange all;
+    change_zoom(all, all);
 }
 
 void FFrame::OnGFitHeight (wxCommandEvent&)
 {
-    change_zoom(". []");
+    RealRange all;
+    change_zoom(ftk->view.hor, all);
 }
 
 void FFrame::OnGShowY0(wxCommandEvent& e)
@@ -1602,34 +1600,28 @@ void FFrame::OnGScrollUp (wxCommandEvent&)
     Scale const& scale = plot_pane->get_plot()->get_y_scale();
     fp top, bottom;
     if (scale.logarithm) {
-        top = 10 * view.top;
-        bottom = 0.1 * view.bottom;
+        top = 10 * view.top();
+        bottom = 0.1 * view.bottom();
     }
     else {
         fp const factor = 2.;
         int Y0 = scale.px(0);
         int H = plot_pane->get_plot()->GetSize().GetHeight();
         bool Y0_visible = (Y0 >= 0 && Y0 < H);
-        double pivot = (Y0_visible ? 0. : (view.bottom + view.top) / 2);
-        top = pivot + factor * (view.top - pivot);
-        bottom = pivot + factor * (view.bottom - pivot);
+        double pivot = (Y0_visible ? 0. : (view.bottom() + view.top()) / 2);
+        top = pivot + factor * (view.top() - pivot);
+        bottom = pivot + factor * (view.bottom() - pivot);
     }
 
-    char buffer[128];
-    sprintf(buffer, ". [%.12g:%.12g]", bottom, top);
-    change_zoom(buffer);
+    change_zoom(view.hor, RealRange(bottom, top));
 }
 
 void FFrame::OnGExtendH (wxCommandEvent&)
 {
-    fp const factor = 0.5;
-    View const &vw = ftk->view;
-    fp diff = vw.width() * factor;
-    fp new_left = vw.left - diff;
-    fp new_right = vw.right + diff;
-    char buffer[128];
-    sprintf(buffer, "[%.12g:%.12g] .", new_left, new_right);
-    change_zoom(buffer);
+    const fp factor = 0.5;
+    fp diff = ftk->view.width() * factor;
+    change_zoom(RealRange(ftk->view.left() - diff, ftk->view.right() + diff),
+                ftk->view.ver);
 }
 
 
@@ -1637,28 +1629,37 @@ void FFrame::OnPreviousZoom(wxCommandEvent& event)
 {
     int id = event.GetId();
     string s = plot_pane->zoom_backward(id ? id - ID_G_V_ZOOM_PREV : 1);
-    if (s.size())
-        ftk->exec("plot " + s + " in @" + S(get_focused_data_index()));
+    if (!s.empty())
+        ftk->exec("plot " + s);
 }
 
-void FFrame::change_zoom(const string& s)
+static
+string format_range(const RealRange& r)
+{
+    string s = "[";
+    if (!r.from_inf())
+        s += eS(r.from) + ":";
+    if (!r.to_inf())
+        s += eS(r.to);
+    return s + "]";
+}
+
+void FFrame::change_zoom(const RealRange& h, const RealRange& v)
 {
     plot_pane->zoom_forward();
-    string cmd = "plot " + s + sidebar->get_plot_in_datasets();
+    string cmd = "plot " + format_range(h) + " " + format_range(v);
+    if (h.from_inf() || h.to_inf() || v.from_inf() || v.to_inf())
+        cmd += sidebar->get_sel_datasets_as_string();
     ftk->exec(cmd);
 }
 
 void FFrame::scroll_view_horizontally(fp step)
 {
-    View const &vw = ftk->view;
-    fp diff = vw.width() * step;
+    fp diff = ftk->view.width() * step;
     if (plot_pane->get_plot()->get_x_reversed())
         diff = -diff;
-    fp new_left = vw.left + diff;
-    fp new_right = vw.right + diff;
-    char buffer[128];
-    sprintf(buffer, "[%.12g:%.12g] .", new_left, new_right);
-    change_zoom(buffer);
+    change_zoom(RealRange(ftk->view.left() + diff, ftk->view.right() + diff),
+                ftk->view.ver);
 }
 
 
@@ -1806,7 +1807,9 @@ void FFrame::OnSaveAsImage(wxCommandEvent&)
 
 string FFrame::get_peak_type() const
 {
-    return Function::get_all_types()[peak_type_nr];
+    if (peak_type_nr >= (int) ftk->get_tpm()->tpvec().size())
+        return "";
+    return ftk->get_tpm()->tpvec()[peak_type_nr]->name;
 }
 
 void FFrame::set_status_text(std::string const& text)
@@ -1868,7 +1871,6 @@ void FFrame::after_cmd_updates()
 
 void FFrame::update_toolbar()
 {
-    update_autoadd_enabled();
     if (!toolbar)
         return;
     BgManager* bgm = plot_pane->get_bg_manager();
@@ -1876,18 +1878,6 @@ void FFrame::update_toolbar()
     toolbar->EnableTool(ID_T_RUN, !ftk->parameters().empty());
     toolbar->EnableTool(ID_T_UNDO, ftk->get_fit_container()->can_undo());
     toolbar->EnableTool(ID_T_PZ, !plot_pane->get_zoom_hist().empty());
-}
-
-void FFrame::update_autoadd_enabled()
-{
-    bool enable = is_function_guessable(Function::get_formula(peak_type_nr));
-    vector<int> sel = get_selected_data_indices();
-    for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i)
-        if (ftk->get_data(*i)->get_n() <= 2)
-            enable = false;
-    GetMenuBar()->Enable(ID_S_GUESS, enable);
-    if (toolbar)
-        toolbar->EnableTool(ID_T_AUTO, enable);
 }
 
 int FFrame::get_focused_data_index()
@@ -1900,31 +1890,36 @@ vector<int> FFrame::get_selected_data_indices()
     return sidebar->get_selected_data_indices();
 }
 
-string FFrame::get_in_datasets()
+string FFrame::get_datasets()
 {
     if (ftk->get_dm_count() == 1)
         return "";
     vector<int> sel = get_selected_data_indices();
     if (ftk->get_dm_count() == size(sel))
-        return " in @*";
+        return "@*: ";
     else
-        return " in @" + join_vector(sel, ", @");
+        return "@" + join_vector(sel, ", @") + ": ";
 }
 
 string FFrame::get_global_parameters()
 {
     string s;
-
     int nh = ftk->find_variable_nr("_hwhm");
-    if (nh != -1)
-        s += " hwhm=$_hwhm";
-
     int ns = ftk->find_variable_nr("_shape");
+
+    if (nh == -1 && ns == -1)
+        return s;
+
+    s = "(";
+    if (nh != -1)
+        s += "hwhm=$_hwhm";
+
     if (ns != -1) {
-        if (!s.empty())
-            s += ",";
-        s += " shape=$_shape";
+        if (nh != -1)
+            s += ", ";
+        s += "shape=$_shape";
     }
+    s += ")";
 
     return s;
 }
@@ -1936,11 +1931,6 @@ vector<DataAndModel*> FFrame::get_selected_dms()
     for (size_t i = 0; i < sel.size(); ++i)
         dms[i] = ftk->get_dm(sel[i]);
     return dms;
-}
-
-void FFrame::view_dataset()
-{
-    sidebar->select_datasets(ftk->view.get_datasets());
 }
 
 MainPlot* FFrame::get_main_plot()
@@ -2116,7 +2106,6 @@ void FToolBar::OnPeakChoice(wxCommandEvent &event)
 {
     if (frame)
         frame->peak_type_nr = event.GetSelection();
-    frame->update_autoadd_enabled();
 }
 
 void FToolBar::update_peak_type(int nr, vector<string> const* peak_types)
@@ -2159,7 +2148,7 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             break;
         }
         case ID_T_RUN:
-            ftk->exec("fit" + frame->get_in_datasets());
+            ftk->exec(frame->get_datasets() + "fit");
             break;
         case ID_T_UNDO:
             ftk->exec("fit undo");

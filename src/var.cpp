@@ -82,6 +82,11 @@ Variable::Variable(string const &name, vector<string> const &vars,
     assert(!name.empty());
 }
 
+Variable::~Variable()
+{
+    purge_all_elements(op_trees_);
+}
+
 void Variable::set_var_idx(vector<Variable*> const& variables)
 {
     VariableUser::set_var_idx(variables);

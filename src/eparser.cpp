@@ -497,17 +497,21 @@ void ExpressionParser::put_name(Lexer& lex,
 
     if (custom_vars == NULL && new_vars == NULL && !ast_mode) { // data points
         bool has_index = (lex.peek_token().type == kTokenLSquare);
-        if (word == "x")
-            put_array_var(has_index, OP_Px);
-        else if (word == "y")
-            put_array_var(has_index, OP_Py);
-        else if (word == "s")
-            put_array_var(has_index, OP_Ps);
-        else if (word == "a")
-            put_array_var(has_index, OP_Pa);
-        else if (word == "n") {
-            vm_.append_code(OP_Pn);
-            expected_ = kOperator;
+        if (word.size() == 1 && (word[0] == 'x' || word[0] == 'y' ||
+                        word[0] == 's' || word[0] == 'a' || word[0] == 'n')) {
+            if (word[0] == 'x')
+                put_array_var(has_index, OP_Px);
+            else if (word[0] == 'y')
+                put_array_var(has_index, OP_Py);
+            else if (word[0] == 's')
+                put_array_var(has_index, OP_Ps);
+            else if (word[0] == 'a')
+                put_array_var(has_index, OP_Pa);
+            else if (word[0] == 'n') {
+                vm_.append_code(OP_Pn);
+                expected_ = kOperator;
+            }
+            return;
         }
     }
 

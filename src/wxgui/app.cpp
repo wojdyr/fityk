@@ -82,10 +82,7 @@ void gui_show_message(UserInterface::Style style, const string& s)
 
 void gui_do_draw_plot(UserInterface::RepaintMode mode)
 {
-    if (mode == UserInterface::kRepaintDataset)
-        frame->view_dataset();
-    bool now = (mode == UserInterface::kRepaintImmediately ||
-                mode == UserInterface::kRepaintDataset);
+    bool now = (mode == UserInterface::kRepaintImmediately);
     frame->refresh_plots(now, kAllPlots);
 }
 

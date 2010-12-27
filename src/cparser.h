@@ -91,6 +91,7 @@ public:
     void parse_info_args(Lexer& lex, std::vector<Token>& args);
     void parse_print_args(Lexer& lex, std::vector<Token>& args);
     void parse_define_rhs(Lexer& lex, Tplate *tp);
+    Tplate::Ptr parse_define_args(Lexer& lex);
 
 private:
     const Ftk* F_;
@@ -109,7 +110,6 @@ private:
     void parse_command(Lexer& lex, Command& cmd);
     void parse_component(Lexer& lex, const std::vector<std::string>& lhs_vars,
                          Tplate::Component* c);
-    Tplate::Ptr parse_define_args(Lexer& lex);
     void parse_set_args(Lexer& lex, std::vector<Token>& args);
     CommandType parse_xysa_args(Lexer& lex, std::vector<Token>& args);
     void parse_real_range(Lexer& lex, std::vector<Token>& args);

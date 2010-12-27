@@ -130,6 +130,22 @@ string SettingsMgr::get_as_string(string const& k) const
     return "";
 }
 
+int SettingsMgr::get_enum_index(string const& k) const
+{
+    const Option& opt = find_option(k);
+    assert(opt.vtype == kEnum);
+    const char* val = m_.*opt.val.e.ptr;
+    const char** av = opt.allowed_values;
+    int n = 0;
+    while (*av[n]) {
+        if (val == av[n])
+            break;
+        ++n;
+    }
+    assert(*av[n]);
+    return n;
+}
+
 void SettingsMgr::set_as_string(string const& k, string const& v)
 {
     string sp = get_as_string(k);

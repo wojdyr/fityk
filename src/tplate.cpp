@@ -77,8 +77,10 @@ void TplateMgr::add(const char* name,
 {
     Tplate* tp = new Tplate;
     tp->name = name;
-    tp->fargs = split_string(cs_fargs, ',');
-    tp->defvals = split_string(cs_dv, ',');
+    if (cs_fargs[0] != '\0') {
+        tp->fargs = split_string(cs_fargs, ',');
+        tp->defvals = split_string(cs_dv, ',');
+    }
     tp->rhs = rhs;
     tp->linear_d = linear_d;
     tp->peak_d = peak_d;

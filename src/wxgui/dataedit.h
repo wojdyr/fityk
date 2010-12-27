@@ -71,8 +71,7 @@ private:
     void initialize_checklist();
     bool update_apply_button();
     void update_right_side();
-    static std::string get_code(std::string const& code,
-                                std::string const& appendix);
+    static std::string conv_code_to_one_line(std::string const& code);
 };
 
 #endif // FITYK_WX_DATAEDIT_H_

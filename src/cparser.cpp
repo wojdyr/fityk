@@ -43,8 +43,8 @@ const char* info_args[] = {
 };
 
 const char* debug_args[] = {
-    // %functions and $variables are also accepted as args
-    "parse", "lex", "expr", "der", "rd", "idx", "df", NULL
+    // "%" and "$" mean that any %functions and $variables are accepted as args
+    "parse", "lex", "expr", "der", "rd", "idx", "df", "%", "$", NULL
 };
 
 
@@ -776,7 +776,9 @@ bool Parser::parse_statement(Lexer& lex)
     }
 
     parse_command(lex, st_.commands[0]);
-    while (lex.discard_token_if(kTokenSemicolon)) {
+    // the check for Nop below is to allows ';' at the end of line
+    while (lex.discard_token_if(kTokenSemicolon) &&
+           lex.peek_token().type != kTokenNop) {
         st_.commands.resize(st_.commands.size() + 1);
         parse_command(lex, st_.commands.back());
     }
@@ -787,6 +789,7 @@ bool Parser::parse_statement(Lexer& lex)
 
     return true;
 }
+
 
 void Parser::parse_command(Lexer& lex, Command& cmd)
 {
@@ -963,8 +966,8 @@ bool Parser::check_syntax(const string& str)
     } catch (ExecuteError&) {
         return false;
     } catch (SyntaxError&) {
-    // SyntaxError is thrown when resolving %functions and $variables
-    // (in ExpressionParser) fails.
+        // SyntaxError is thrown when resolving %functions and $variables
+        // (in ExpressionParser) fails.
         return false;
     }
     return true;

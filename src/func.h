@@ -26,6 +26,7 @@ public:
 
     Function(const Settings* settings, const std::string &name,
              const Tplate::Ptr tp, const std::vector<std::string> &vars);
+    virtual ~Function() {}
     virtual void init();
 
     static Function* factory(const Settings* settings, const std::string &name,
@@ -35,7 +36,7 @@ public:
     const Tplate::Ptr& tp() const { return tp_; }
 
     /// number of variables
-    int nv() const { return (int) tp_->fargs.size(); }
+    int nv() const {return tp_->fargs.empty() ? av_.size() : tp_->fargs.size();}
 
     /// calculate value at x[i] and _add_ the result to y[i] (for each i)
     virtual void calculate_value_in_range(const std::vector<fp> &x,
@@ -75,14 +76,14 @@ public:
     /// returns value of the property, or 0 if not defined
     virtual fp get_other_prop(const std::string&) const { return 0; }
 
-    std::vector<fp> av() const  { return av_; }
+    const std::vector<fp>& av() const { return av_; }
     std::string get_basic_assignment() const;
     std::string get_current_assignment(const std::vector<Variable*> &variables,
                                        const std::vector<fp> &parameters) const;
     virtual std::string get_current_formula(const std::string& x = "x") const;
 
-    // VarArgFunction provides different defintion
-    virtual const std::string get_param(int n) const { return tp_->fargs[n]; }
+    // VarArgFunction overrides this defintion (that's why value is returned)
+    virtual std::string get_param(int n) const { return tp_->fargs[n]; }
 
     int get_param_nr(const std::string& param) const;
     fp get_param_value(const std::string& param) const;

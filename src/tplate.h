@@ -67,6 +67,7 @@ public:
     /// removes the definition
     void undefine(const std::string& name);
 
+    /// returns NULL if not found
     const Tplate* get_tp(const std::string& name) const;
     Tplate::Ptr get_shared_tp(const std::string& name) const;
 

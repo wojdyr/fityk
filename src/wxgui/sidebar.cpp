@@ -302,7 +302,7 @@ void SideBar::OnDataButtonRen (wxCommandEvent&)
                          wxT("Rename dataset"),
                          old_title);
     if (!s.IsEmpty() && s != old_title)
-        ftk->exec("set @" + S(n) + ".title = '" + wx2s(s) + "'");
+        ftk->exec("@" + S(n) + ".title = '" + wx2s(s) + "'");
 }
 
 void SideBar::delete_selected_items()
@@ -311,15 +311,23 @@ void SideBar::delete_selected_items()
     if (n < 0)
         return;
     string txt = wx2s(nb->GetPageText(n));
+    vector<string> elems;
     if (txt == "data") {
-        ftk->exec("delete " + join_vector(d->get_selected_data(), ", "));
+        elems = d->get_selected_data();
     }
-    else if (txt == "functions")
-        ftk->exec("delete %" + join_vector(get_selected_func(), ", %"));
-    else if (txt == "variables")
-        ftk->exec("delete $" + join_vector(get_selected_vars(), ", $"));
+    else if (txt == "functions") {
+        elems = get_selected_func();
+        vm_foreach (string, i, elems)
+            *i = "%" + *i;
+    }
+    else if (txt == "variables") {
+        elems = get_selected_vars();
+        vm_foreach (string, i, elems)
+            *i = "$" + *i;
+    }
     else
         assert(0);
+    ftk->exec("delete " + join_vector(elems, ", "));
 }
 
 void SideBar::OnDataButtonCopyF (wxCommandEvent&)
@@ -423,10 +431,9 @@ void SideBar::OnFuncFilterChanged (wxCommandEvent&)
 void SideBar::OnFuncButtonNew (wxCommandEvent&)
 {
     string peak_type = frame->get_peak_type();
-    string formula = Function::get_formula(peak_type);
-    vector<string> varnames = Function::get_varnames_from_formula(formula);
+    const Tplate *tp = ftk->get_tpm()->get_tp(peak_type);
     string t = "%put_name_here = " + peak_type + "("
-                                      + join_vector(varnames, "= , ") + "= )";
+                                      + join_vector(tp->fargs, "= , ") + "= )";
     frame->edit_in_input(t);
 }
 
@@ -563,7 +570,7 @@ void SideBar::update_func_list(bool nondata_changed)
             pos = new_func_col_id.size();
         Function const* f = ftk->get_function(i);
         func_data.push_back(f->name);
-        func_data.push_back(f->type_name);
+        func_data.push_back(f->tp()->name);
         fp a;
         func_data.push_back(f->get_center(&a) ? S(a) : S("-"));
         func_data.push_back(f->get_area(&a)   ? S(a) : S("-"));
@@ -702,20 +709,18 @@ vector<int> SideBar::get_ordered_dataset_numbers()
     return ordered;
 }
 
-string SideBar::get_plot_in_datasets()
+string SideBar::get_sel_datasets_as_string()
 {
     if (ftk->get_dm_count() == 1)
         return "";
-    int focused = get_focused_data();
-    string s = " in @" + S(focused);
     if (data_look->GetSelection() == 0) // all datasets
-        s += ", @*";
-    else {
-        for (int i = d->list->GetFirstSelected(); i != -1;
+        return " @*";
+    string s;
+    for (int i = d->list->GetFirstSelected(); i != -1;
                                              i = d->list->GetNextSelected(i))
-            if (i != focused)
-                s += ", @" + S(i);
-    }
+        s += " @" + S(i);
+    if (s.empty())
+        s = " @" + S(get_focused_data());
     return s;
 }
 
@@ -819,9 +824,9 @@ void SideBar::update_func_buttons()
 
     bool has_hwhm = false, has_shape = false;
     v_foreach (Function*, i, ftk->functions()) {
-        if ((*i)->get_param_nr_nothrow("hwhm") != -1)
+        if (contains_element((*i)->tp()->fargs, "hwhm"))
             has_hwhm = true;
-        if ((*i)->get_param_nr_nothrow("shape") != -1)
+        if (contains_element((*i)->tp()->fargs, "shape"))
             has_shape = true;
     }
     func_page->FindWindow(ID_FP_HWHM)->Enable(has_hwhm);
@@ -980,8 +985,7 @@ bool SideBar::find_value_of_param(string const& p, double* value)
 {
     if (active_function != -1) {
         Function const* f = ftk->get_function(active_function);
-        int idx = f->get_param_nr_nothrow(p);
-        bool found = f->get_param_value_nothrow(p, *value);
+        int idx = index_of_element(f->tp()->fargs, p);
         if (idx != -1) {
             *value = f->av()[idx];
             return true;
@@ -989,7 +993,7 @@ bool SideBar::find_value_of_param(string const& p, double* value)
     }
 
     v_foreach (Function*, i, ftk->functions()) {
-        int idx = (*i)->get_param_nr_nothrow(p);
+        int idx = index_of_element((*i)->tp()->fargs, p);
         if (idx != -1) {
             *value = (*i)->av()[idx];
             return true;
@@ -1063,7 +1067,7 @@ void SideBar::update_param_panel()
 
     pp_func = ftk->get_function(active_function);
 
-    wxString new_label = s2wx("%" + pp_func->name + " : " + pp_func->type_name);
+    wxString new_label = s2wx("%" + pp_func->name +" : "+ pp_func->tp()->name);
     if (param_panel->get_title() != new_label)
         param_panel->set_title(new_label);
 

@@ -7,51 +7,33 @@
 
 #include <string>
 #include <vector>
-#include <wx/grid.h>
 #include "../func.h"
+#include "../cparser.h"
 
 
 class DefinitionMgrDlg : public wxDialog
 {
 public:
-    struct FunctionDefinitonElems
-    {
-        std::string name;
-        std::vector<std::string> parameters;
-        std::vector<std::string> defvalues;
-        std::string rhs;
-        Function::HowDefined kind;
-
-        std::string get_full_definition() const;
-    };
-
     DefinitionMgrDlg(wxWindow* parent);
     void OnFunctionChanged(wxCommandEvent &) { select_function(); }
-    void OnEndCellEdit(wxGridEvent &event);
-    void OnNameChanged(wxCommandEvent &);
-    void OnDefChanged(wxCommandEvent &);
+    void OnDefChanged(wxCommandEvent &) { parse_definition(); }
     void OnAddButton(wxCommandEvent &);
     void OnRemoveButton(wxCommandEvent &);
     void OnOk(wxCommandEvent &event);
     std::string get_command();
 
 private:
-    int selected;
+    int selected_;
+    std::vector<Tplate> modified_;
+    Parser parser_;
     wxListBox *lb;
-    wxTextCtrl *name_tc, *def_tc;
-    wxStaticText *name_comment_st, *guess_label_st, *def_label_st;
-    wxGrid *par_g;
-    wxButton *add_btn, *remove_btn;
-    std::vector<FunctionDefinitonElems> orig, modified;
+    wxTextCtrl *def_tc, *help_tc;
+    wxStaticText *def_label_st;
+    wxButton *ok_btn;
 
-    void select_function(bool init=false);
-    void fill_function_list();
-    bool check_definition();
-    void update_guess_comment();
-    bool is_name_in_modified(std::string const& name);
-    bool save_changes();
-
-    DECLARE_EVENT_TABLE()
+    void select_function();
+    void parse_definition();
+    void update_ui(const Tplate& tp);
 };
 
 #endif

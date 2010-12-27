@@ -16,6 +16,7 @@ public:
                      const std::string &name,
                      Tplate::Ptr tp,
                      const std::vector<std::string> &vars);
+    ~CompoundFunction();
     virtual void init();
 
     void more_precomputations();
@@ -52,6 +53,7 @@ public:
                    const std::string &name,
                    const Tplate::Ptr tp,
                    const std::vector<std::string> &vars);
+    ~CustomFunction();
 
     void more_precomputations();
     void calculate_value_in_range(std::vector<fp> const &xx,
@@ -80,7 +82,7 @@ private:
 
 //////////////////////////////////////////////////////////////////////////
 
-/// split function, defined using "x < expr ? Func(...) : FuncType(...)
+/// split function, defined using "x < expr ? Func1(...) : Func2(...)
 class SplitFunction: public Function
 {
 public:
@@ -88,6 +90,7 @@ public:
                   const std::string &name,
                   Tplate::Ptr tp,
                   const std::vector<std::string> &vars);
+    ~SplitFunction();
     virtual void init();
 
 

@@ -488,21 +488,20 @@ void EditTransDlg::OnListItemToggled(wxCommandEvent& event)
 
 void EditTransDlg::execute_tranform(string const& code)
 {
-    string appendix = frame->get_in_datasets();
-    string t = get_code(code, appendix);
-    ftk->exec(t);
+    string t = conv_code_to_one_line(code);
+    ftk->exec(frame->get_datasets() + t);
 }
 
 bool EditTransDlg::update_apply_button()
 {
     string code = wx2s(code_tc->GetValue());
-    string text = get_code(code, "");
+    string text = conv_code_to_one_line(code);
     bool ok = ftk->get_ui()->check_syntax(text);
     apply_btn->Enable(ok);
     return ok;
 }
 
-string EditTransDlg::get_code(string const& code, string const& appendix)
+string EditTransDlg::conv_code_to_one_line(string const& code)
 {
     string cmd;
     const char* p = code.c_str();
@@ -522,7 +521,7 @@ string EditTransDlg::get_code(string const& code, string const& appendix)
             ++p;
         if (!cmd.empty())
             cmd += "; ";
-        cmd += string(start, p) + appendix;
+        cmd += string(start, p);
     }
     return cmd;
 }

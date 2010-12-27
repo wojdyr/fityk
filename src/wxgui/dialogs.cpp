@@ -74,7 +74,7 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
     m_choices.Add(wxT("Genetic Algorithm"));
     method_c = new wxChoice(this, -1, wxDefaultPosition, wxDefaultSize,
                             m_choices);
-    int method_nr = ftk->get_settings()->get_e("fitting_method");
+    int method_nr = ftk->settings_mgr()->get_enum_index("fitting_method");
     method_c->SetSelection(method_nr);
     method_sizer->Add(method_c, 0, wxALL, 5);
     top_sizer->Add(method_sizer, 0);
@@ -88,7 +88,7 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
     max_sizer->Add(nomaxiter_st, 0, wxRIGHT|wxALIGN_CENTER_VERTICAL, 5);
     max_sizer->Add(new wxStaticText(this, -1, wxT("max. WSSR evaluations")),
                    0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT, 5);
-    int default_max_eval = ftk->get_settings()->max_wssr_evaluations();
+    int default_max_eval = ftk->get_settings()->max_wssr_evaluations;
     maxeval_sc = new SpinCtrl(this, -1, default_max_eval, 0, 999999, 70);
     max_sizer->Add(maxeval_sc, 0, wxALL, 5);
     nomaxeval_st = new wxStaticText(this, -1, wxT("(unlimited)"));
@@ -101,7 +101,7 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
 
     autoplot_cb = new wxCheckBox(this, -1,
                                  wxT("refresh plot after each iteration"));
-    autoplot_cb->SetValue(ftk->get_settings()->fit_replot());
+    autoplot_cb->SetValue(ftk->get_settings()->fit_replot);
     top_sizer->Add(autoplot_cb, 0, wxALL, 5);
 
 
@@ -141,16 +141,17 @@ void FitRunDlg::update_unlimited()
 void FitRunDlg::OnOK(wxCommandEvent&)
 {
     string cmd;
-    string m = wx2s(method_c->GetSelectionString());
-    if (m != ftk->get_settings()->fitting_method())
+    int sel = method_c->GetSelection();
+    string m = ftk->settings_mgr()->get_allowed_values("fitting_method")[sel];
+    if (m != ftk->get_settings()->fitting_method)
         cmd += "with fitting_method=" + m + " ";
 
-    if (autoplot_cb->GetValue() != ftk->get_settings()->fit_replot())
+    if (autoplot_cb->GetValue() != ftk->get_settings()->fit_replot)
         cmd += string(cmd.empty() ? "with" : ",") + " fit_replot="
                 + (autoplot_cb->GetValue() ? "1 " : "0 ");
 
     int max_eval = maxeval_sc->GetValue();
-    if (max_eval != ftk->get_settings()->max_wssr_evaluations())
+    if (max_eval != ftk->get_settings()->max_wssr_evaluations)
         cmd += string(cmd.empty() ? "with" : ",")
                 + " max_wssr_evaluations=" + S(max_eval) + " ";
 
@@ -162,8 +163,12 @@ void FitRunDlg::OnOK(wxCommandEvent&)
         cmd += S(max_iter);
 
     if (ini) {
-        if (data_rb->GetSelection() == 0)
-            cmd += frame->get_in_datasets();
+        if (data_rb->GetSelection() == 0) {
+            string ds = frame->get_datasets();
+            if (!ds.empty())
+                // do not append ": "
+                cmd += ds.substr(0, ds.size() - 2);
+        }
         else
             cmd += " @*";
     }
@@ -172,7 +177,6 @@ void FitRunDlg::OnOK(wxCommandEvent&)
     ftk->exec(cmd);
     close_it(this, wxID_OK);
 }
-
 
 
 /// show "Export data" dialog
@@ -358,7 +362,7 @@ MergePointsDlg::MergePointsDlg(wxWindow* parent, wxWindowID id)
     dx_cb = new wxCheckBox(this, -1, wxT("merge points with |x1-x2|<"));
     dx_cb->SetValue(true);
     hsizer->Add(dx_cb, 0, wxALIGN_CENTER_VERTICAL);
-    dx_val = new RealNumberCtrl(this, -1, ftk->get_settings()->epsilon());
+    dx_val = new RealNumberCtrl(this, -1, ftk->get_settings()->epsilon);
     hsizer->Add(dx_val, 0);
     top_sizer->Add(hsizer, 0, wxALL, 5);
     y_rb = new wxRadioBox(this, -1, wxT("set y as ..."),

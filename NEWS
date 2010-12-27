@@ -5,6 +5,13 @@ User-visible changes in version 0.9.5  (2010-  -  ):
 * major changes in the `info' command; two new commands, `print' and `debug', 
   partially took over some functionality of the old `info'. See the manual.
 * "set @0.title = ..." replaced with "@0: title = ..."
+* removed option formula_export_style;
+  autoplot=never/on_plot_change/on_fit_iteration
+    -> autoplot = 0/1, fit_replot=0/1
+  verbosity -1..2
+  info_numeric_format -> numeric_format
+  logfile, log_full
+  removed guess_at_center_pm
 
 User-visible changes in version 0.9.4  (2010-10-09):
 * removed syntax `delete[range]', use `delete(condition)' instead

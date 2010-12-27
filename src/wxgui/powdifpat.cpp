@@ -1278,7 +1278,7 @@ wxString PowderBook::prepare_commands()
         ++lambda_symbol;
 
     // corrections
-    if (UdfContainer::get_udf("PdXcorr") != NULL)
+    if (ftk->get_tpm()->get_tp("PdXcorr") != NULL)
         s += wxT("undefine PdXcorr\n");
     wxString xc_args, xc_vargs, xc_def;
     wxString xc_formulas[] = { wxT("p1/tan(x)"),

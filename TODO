@@ -2,15 +2,15 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
-* GUI bug: when "show all datasets" is selected, zooming doesn't work
+* add syntax: delete file 'filename' (no error if there is no such file)
+
+* add syntax: use @n
+
+* remove syntax: ... '>' filename (use delete file filename; ... '>>' filename
+
+* GUI: don't show %bg* at the bottom of the sidebar (when removing baseline)
 
 * GUI bug: pointer address is written to history instead of string
-
-* finish new parser (cparser.cpp/eparser.cpp/lexer.cpp/runner.cpp/info.cpp)
-
-* make possible something like this:  $min = @*.min(y if a)
-
-* data transformations: add aggregate functions argmin and argmax
 
 * command info:
   - "info peaks" should use info-numeric-format
@@ -23,6 +23,10 @@ $Id$
 
 --- 0.9.5 
 
+* data transformations: add aggregate functions argmin and argmax
+
+* make possible something like this:  $min = @*.min(y if a)
+
 * GUI: Data>Load should use default load dir (as Quick Load)
 
 * subtracting another dataset with interpolation of the subtrahend
@@ -30,6 +34,17 @@ $Id$
   for consistency, `+' should add interpolated data, and 'U' can stand
   for a sum of sets.
   GUI: Data > Subtract data from file
+
+* add functions cot and coth
+
+* GUI: on "Guess function" toolbar button: if initial values are not known,
+  show a dialog asking for the values.
+
+---
+
+* embed Lua interpreter
+
+---
 
 * finish powder diffraction add-on (Pawley fitting)
 
@@ -39,8 +54,6 @@ $Id$
 * convolution and deconvolution of two datasets or a dataset with Gaussian:
   convolve @0 @1; convolve @0 2.3; deconvolve @0 3.4
   
-* embed Lua interpreter
-
 * GUI: there is ugly vertical line (a part of the fitted curve) in points
   where the value is undefined (e.g. in ReadShockley function for x=0).
 
@@ -48,8 +61,6 @@ $Id$
   in the bottom of the sidebar) is not in the new active dataset, the active
   function should also be changed (to the function that was active last time
   this dataset was active)
-
-* add functions cot and coth
 
 * GUI: redesign gradient dialog
 
@@ -76,16 +87,8 @@ $Id$
 * GUI: refactor MainPlot - mouse event handling based on subscriptions,
        a clean interface to XOR-drawing 
 
-* magic default parameters: if $default__name is defined: when functions 
-  with parameter `name' are "guessed", this parameter is set to $default__name
-  (e.g. user sets $default__shape=2.5 to have initial value of Pearson7.shape
-  equal 2.5). (Similar to FFrame::get_global_parameters()).
-
 * GUI: it should be possible to constrain two parameters of two peak 
      (using mouse and peak-top menu), at least to make them equal.
-
-* GUI: on "Guess function" toolbar button: if initial values are not known,
-  show a dialog asking for the values.
 
 * add a new function category: sigmoids/steps (now function can be guessed as
   "peak" and "linear"). (GUI): drawing drafts for the new category.
@@ -106,9 +109,8 @@ $Id$
        - ? search'n'replace button
 
 * user defined functions:
-      - more sophisticated simplifications of expressions and CSE
       - calculating limits, width, area, etc. for UDF
-      - ?? optionally use LLVM for faster calculation of user-defined functions
+      - ?? use LLVM for faster calculation of user-defined functions
 
 * EMG function: how to calculate it? Now there are some problems with
   this function. There must be smarter way to implement it...
@@ -146,6 +148,7 @@ $Id$
   The list of libraries in this category:
     NLopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
     ALGLIB: http://www.alglib.net/ (lsfitcreatewfg)
+    MINUIT
     COOOL: http://coool.mines.edu/ 
     GAUL: http://gaul.sourceforge.net/, 
     WNLIB: http://www.willnaylor.com/wnlib.html
@@ -162,8 +165,6 @@ $Id$
 * fitting:
   robust fit - other error distributions then Gaussian, eg. Lorenzian...;
   so called 'maximum-likelihood method' -- using Poisson error distribution.
-
-* ? exporting formulae in MathML (when option formula-export-style == mathml)
 
 * when wxWidgets 3 will be available in major Linux distributions:
   - open-file dialog (with preview) will use xybrowser.cpp

@@ -2,8 +2,8 @@
 // Licence: GNU General Public License ver. 2+
 // $Id$
 
-#ifndef FITYK__WX_GUI__H__
-#define FITYK__WX_GUI__H__
+#ifndef FITYK_WX_FRAME_H_
+#define FITYK_WX_FRAME_H_
 
 #include <list>
 #include <wx/spinctrl.h>
@@ -12,8 +12,6 @@
 #include "cmn.h"  // enums
 #include "../ui.h" // UserInterface::Style
 
-//struct z_names_type;
-struct f_names_type;
 class ApplicationLogic;
 class FDXLoadDlg;
 class PlotPane;
@@ -25,6 +23,7 @@ class DataEditorDlg;
 class PrintManager;
 class FStatusBar;
 class DataAndModel;
+struct RealRange;
 
 class Ftk;
 extern Ftk *ftk;
@@ -175,7 +174,7 @@ public:
     void set_status_coords(fp x, fp y, PlotTypeEnum pte);
     void clear_status_coords();
     void output_text(UserInterface::Style style, std::string const& str);
-    void change_zoom(const std::string& s);
+    void change_zoom(const RealRange& h, const RealRange& v);
     void scroll_view_horizontally(fp step);
     void refresh_plots(bool now, WhichPlot which_plot);
     void update_crosshair(int X, int Y);
@@ -183,13 +182,11 @@ public:
     void edit_in_input(std::string const& s);
     void after_cmd_updates();
     void update_toolbar();
-    void update_autoadd_enabled();
     void update_config_menu(wxMenu *menu);
     int get_focused_data_index();
     std::vector<int> get_selected_data_indices();
     std::vector<DataAndModel*> get_selected_dms();
-    void view_dataset(); // set dataset(s) from Ftk::view
-    std::string get_in_datasets();
+    std::string get_datasets();
     std::string get_global_parameters();
     MainPlot* get_main_plot();
     MainPlot const* get_main_plot() const;
@@ -235,5 +232,5 @@ private:
 
 extern FFrame *frame;
 
-#endif
+#endif // FITYK_WX_FRAME_H_
 

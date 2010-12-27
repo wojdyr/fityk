@@ -93,24 +93,25 @@ public:
 
     struct ParMult { int p; fp mult; };
     Variable(const std::string &name_, int nr_);
-    Variable(std::string const &name_, std::vector<std::string> const &vars_,
-             std::vector<OpTree*> const &op_trees_);
-    void recalculate(std::vector<Variable*> const &variables,
-                     std::vector<fp> const &parameters);
+    Variable(const std::string &name_, const std::vector<std::string> &vars_,
+             const std::vector<OpTree*> &op_trees_);
+    ~Variable();
+    void recalculate(const std::vector<Variable*> &variables,
+                     const std::vector<fp> &parameters);
 
     int get_nr() const { return nr_; };
     void erased_parameter(int k);
     fp get_value() const { return value_; };
-    std::string get_formula(std::vector<fp> const &parameters) const;
+    std::string get_formula(const std::vector<fp> &parameters) const;
     bool is_visible() const { return true; } //for future use
-    void set_var_idx(std::vector<Variable*> const& variables);
-    std::vector<ParMult> const& recursive_derivatives() const
+    void set_var_idx(const std::vector<Variable*> &variables);
+    const std::vector<ParMult>& recursive_derivatives() const
                                             { return recursive_derivatives_; }
     bool is_simple() const { return nr_ != -1; }
     bool is_constant() const;
 
     std::vector<OpTree*> const& get_op_trees() const { return op_trees_; }
-    void set_original(Variable const* orig) { assert(nr_==-2); original_=orig; }
+    void set_original(const Variable* orig) { assert(nr_==-2); original_=orig; }
     fp get_derivative(int n) const { return derivatives_[n]; }
 
 private:

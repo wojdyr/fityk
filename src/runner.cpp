@@ -268,8 +268,10 @@ void Runner::command_guess(const vector<Token>& args, int ds)
     int idx = F_->assign_func(name, tp, func_args);
 
     FunctionSum& ff = dm->model()->get_ff();
-    ff.names.push_back(name);
-    ff.idx.push_back(idx);
+    if (!contains_element(ff.names, name)) {
+        ff.names.push_back(name);
+        ff.idx.push_back(idx);
+    }
     F_->use_parameters();
     F_->outdated_plot();
 }
@@ -283,7 +285,7 @@ void Runner::command_plot(const vector<Token>& args, int ds)
         dd.push_back(args[i].value.i);
     expand_dataset_glob(F_, dd, ds);
     F_->view.change_view(hor, ver, dd);
-    F_->get_ui()->draw_plot(UserInterface::kRepaintDataset);
+    F_->get_ui()->draw_plot(UserInterface::kRepaintImmediately);
 }
 
 void Runner::command_dataset_tr(const vector<Token>& args)
@@ -322,12 +324,15 @@ int Runner::make_func_from_template(const string& name,
         throw ExecuteError("mixed keyword and non-keyword args");
     Tplate::Ptr tp = F_->get_tpm()->get_shared_tp(ftype);
     if (!tp)
-        throw ExecuteError("Undefined type of function: " + ftype);
+        throw ExecuteError("undefined type of function: " + ftype);
     vector<VMData*> func_args;
     if (par_names.empty())
         func_args = par_values;
     else
         func_args = reorder_args(tp, par_names, par_values);
+    for (size_t i = 0; i < tp->fargs.size(); ++i)
+        if (func_args[i] == NULL)
+            throw ExecuteError("missing parameter " + tp->fargs[i]);
     F_->assign_func(name, tp, func_args);
     return par_values.size();
 }
@@ -714,6 +719,7 @@ void Runner::execute_statement(Statement& st)
             // the result)
             if (i != st.datasets.begin() || !st.with_args.empty())
                 recalculate_args(st.commands, *i);
+
             vm_foreach (Command, c, st.commands) {
                 execute_command(*c, *i);
             }

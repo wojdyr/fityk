@@ -237,15 +237,6 @@ inline std::string join_vector(std::vector<T> const& v, std::string const& sep)
     return join(v.begin(), v.end(), sep);
 }
 
-/// for vector<T*> - delete object and erase pointer
-template<typename T>
-void purge_element(std::vector<T*> &vec, int n)
-{
-    assert(n >= 0 && n < size(vec));
-    delete vec[n];
-    vec.erase(vec.begin() + n);
-}
-
 /// delete all objects handled by pointers and clear vector
 template<typename T>
 void purge_all_elements(std::vector<T*> &vec)

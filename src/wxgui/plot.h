@@ -85,12 +85,12 @@ double Scale::val(int px) const
 class FPlot : public BufferedPanel
 {
 public:
-    FPlot (wxWindow *parent)
+    FPlot(wxWindow *parent)
        : BufferedPanel(parent),
          pen_width(1),
          draw_sigma(false),
          mouse_press_X(INT_MIN), mouse_press_Y(INT_MIN),
-         lfc_prev_X(INT_MIN), lfc_prev_X0(INT_MIN),
+         lfc_prev_X(INT_MIN), lfc_prev_X0(INT_MIN), lfc_orient(kVerticalLine),
          esc_seed_(NULL) {}
 
     virtual ~FPlot() {}
