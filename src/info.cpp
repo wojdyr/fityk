@@ -264,8 +264,7 @@ void save_state(const Ftk* F, string& r)
         const Data* data = F->get_data(i);
         if (i != 0)
             r += "\n@+ = 0";
-        // TODO set default dataset "use %s"
-        //r += "\nuse @" + S(i);
+        r += "\nuse @" + S(i);
         r += "\ntitle = '" + data->get_title() + "'";
         int m = data->points().size();
         r += "\nM=" + S(m);
@@ -289,7 +288,7 @@ void save_state(const Ftk* F, string& r)
         r += "\n";
     }
     r += "\nplot " + F->view.str();
-    // TODO set current dataset "use %s"
+    r += "\nuse @" + S(F->default_dm());
     r += "\nset autoplot = " + F->settings_mgr()->get_as_string("autoplot");
     r += "\nset verbosity = " + F->settings_mgr()->get_as_string("verbosity");
 }

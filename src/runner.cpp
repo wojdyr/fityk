@@ -637,6 +637,9 @@ void Runner::execute_command(Command& c, int ds)
         case kCmdUndef:
             command_undefine(c.args);
             break;
+        case kCmdUse:
+            F_->set_default_dm(c.args[0].value.i);
+            break;
         case kCmdQuit:
             throw ExitRequestedException();
             break;

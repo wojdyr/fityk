@@ -25,7 +25,7 @@ using fityk::SyntaxError;
 
 const char *command_list[] = {
     "debug", "define", "delete", "exec", "fit", "guess", "info", "plot",
-    "quit", "reset", "set", "sleep", "title", "undefine"
+    "quit", "reset", "set", "sleep", "title", "undefine", "use"
 };
 
 const char* info_args[] = {
@@ -67,6 +67,7 @@ const char* commandtype2str(CommandType c)
         case kCmdSleep:   return "Sleep";
         case kCmdTitle:   return "Title";
         case kCmdUndef:   return "Undef";
+        case kCmdUse:     return "Use";
         case kCmdShell:   return "Shell";
         case kCmdLoad:    return "Load";
         case kCmdDatasetTr: return "DatasetTr";
@@ -870,6 +871,10 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
             cmd.type = kCmdTitle;
             lex.get_expected_token(kTokenAssign); // discard '='
             cmd.args.push_back(lex.get_filename_token());
+        }
+        else if (is_command(token, "use","")) {
+            cmd.type = kCmdUse;
+            cmd.args.push_back(lex.get_expected_token(kTokenDataset));
         }
         else if (token.length == 1 && (*token.str == 'x' || *token.str == 'y' ||
                                        *token.str == 's' || *token.str == 'a')){

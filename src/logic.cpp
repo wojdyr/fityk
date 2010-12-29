@@ -64,6 +64,7 @@ void Ftk::initialize()
     view = View(this);
     dirty_plot_ = true;
     append_dm();
+    default_dm_ = 0;
     settings_mgr()->do_srand();
 }
 
@@ -105,19 +106,6 @@ void Ftk::remove_dm(int d)
     dms_.erase(dms_.begin() + d);
     if (dms_.empty())
         append_dm();
-}
-
-int Ftk::check_dm_number(int n) const
-{
-    if (n == -1) {
-        if (get_dm_count() == 1)
-            return 0;
-        else
-            throw ExecuteError("Dataset must be specified.");
-    }
-    if (n < 0 || n >= get_dm_count())
-        throw ExecuteError("No such dataset: @" + S(n));
-    return n;
 }
 
 /// Send warning to UI.

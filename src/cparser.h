@@ -33,6 +33,7 @@ enum CommandType
     kCmdSleep,
     kCmdTitle,
     kCmdUndef,
+    kCmdUse,
     kCmdShell,
     kCmdLoad,
     kCmdDatasetTr,

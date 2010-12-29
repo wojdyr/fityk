@@ -58,8 +58,8 @@ public:
     const std::vector<DataAndModel*>& get_dms() const { return dms_; }
     int get_dm_count() const { return dms_.size(); }
 
-    DataAndModel* get_dm(int n) { return dms_[check_dm_number(n)]; }
-    const DataAndModel* get_dm(int n) const { return dms_[check_dm_number(n)]; }
+    DataAndModel* get_dm(int n) { check_dm_number(n); return dms_[n]; }
+    const DataAndModel* get_dm(int n) const {check_dm_number(n);return dms_[n];}
 
     const Data* get_data(int n) const { return get_dm(n)->data(); }
     Data *get_data(int n) { return get_dm(n)->data(); }
@@ -70,7 +70,8 @@ public:
     bool contains_dm(const DataAndModel* p) const
                       { return count(dms_.begin(), dms_.end(), p) > 0; }
 
-    int default_dm() const { return 0; }
+    int default_dm() const { return default_dm_; }
+    void set_default_dm(int n) { check_dm_number(n); default_dm_ = n; }
 
     const SettingsMgr* settings_mgr() const { return settings_mgr_; }
     SettingsMgr* settings_mgr() { return settings_mgr_; }
@@ -121,6 +122,7 @@ public:
     bool is_plot_outdated() { return dirty_plot_; }
 
 private:
+    int default_dm_;
     std::vector<DataAndModel*> dms_;
     SettingsMgr* settings_mgr_;
     UserInterface* ui_;
@@ -130,8 +132,14 @@ private:
 
     void initialize();
     void destroy();
+
     /// verify that n is the valid number for get_dm() and return n
-    int check_dm_number(int n) const;
+    void check_dm_number(int n) const
+    {
+        if (!is_index(n, dms_))
+            throw ExecuteError("No such dataset: @" + S(n));
+    }
+
 };
 
 #endif
