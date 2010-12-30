@@ -411,10 +411,14 @@ void parse_delete_args(Lexer& lex, vector<Token>& args)
     do {
         // allow "delete %pd*" or %* or $foo* or $*.
         Token t = lex.get_glob_token();
-        if (t.type != kTokenDataset && t.type != kTokenFuncname
-                && t.type != kTokenVarname)
+        if (t.type == kTokenDataset ||      // @n
+                t.type == kTokenFuncname || // %func
+                t.type == kTokenVarname)    // $var
+            args.push_back(t);
+        else if (t.type == kTokenLname && t.as_string() == "file")
+            args.push_back(lex.get_filename_token());
+        else
             lex.throw_syntax_error("unexpected arg after `delete'");
-        args.push_back(t);
     } while (lex.discard_token_if(kTokenComma));
 }
 

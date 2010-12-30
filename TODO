@@ -2,10 +2,6 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
-* add syntax: delete file 'filename' (no error if there is no such file)
-
-* add syntax: use @n
-
 * remove syntax: ... '>' filename (use delete file filename; ... '>>' filename
 
 * GUI: don't show %bg* at the bottom of the sidebar (when removing baseline)

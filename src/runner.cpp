@@ -57,7 +57,7 @@ void Runner::command_undefine(const vector<Token>& args)
 void Runner::command_delete(const vector<Token>& args)
 {
     vector<int> dd;
-    vector<string> vars, funcs;
+    vector<string> vars, funcs, files;
     v_foreach (Token, i, args) {
         if (i->type == kTokenDataset)
             dd.push_back(i->value.i);
@@ -65,6 +65,8 @@ void Runner::command_delete(const vector<Token>& args)
             funcs.push_back(Lexer::get_string(*i));
         else if (i->type == kTokenVarname)
             vars.push_back(Lexer::get_string(*i));
+        else if (i->type == kTokenFilename)
+            files.push_back(Lexer::get_string(*i));
     }
     if (!dd.empty()) {
         sort(dd.rbegin(), dd.rend());
@@ -73,7 +75,14 @@ void Runner::command_delete(const vector<Token>& args)
     }
     F_->delete_funcs(funcs);
     F_->delete_variables(vars);
-    F_->outdated_plot();
+    v_foreach (string, f, files) {
+        // stdio.h remove() should be portable, it is in C89
+        int r = remove(f->c_str());
+        if (r != 0)
+            F_->vmsg("Cannot remove file: " + *f);
+    }
+    if (!dd.empty() || !funcs.empty())
+        F_->outdated_plot();
 }
 
 void Runner::command_delete_points(const vector<Token>& args, int ds)
