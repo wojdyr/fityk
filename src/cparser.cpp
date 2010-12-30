@@ -488,7 +488,7 @@ void Parser::parse_guess_args(Lexer& lex, vector<Token>& args)
 static
 void parse_redir(Lexer& lex, vector<Token>& args)
 {
-    if (lex.peek_token().type == kTokenGT ||
+    if (/*lex.peek_token().type == kTokenGT ||*/
             lex.peek_token().type == kTokenAppend) {
         args.push_back(lex.get_token());
         Token f = lex.get_filename_token();

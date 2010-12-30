@@ -244,9 +244,9 @@ The kCmd* names in the comments correspond to constants in the code.
     : "e:xecute" `exec`                  | (*kCmdExec*)
     : "f:it" `fit`                       | (*kCmdFit*)
     : "g:uess" `guess`                   | (*kCmdGuess*)
-    : "i:nfo" `info_arg` % "," `redir`     | (*kCmdInfo*)
+    : "i:nfo" `info_arg` % "," [`redir`]   | (*kCmdInfo*)
     : "p:lot" [`range`] [`range`] Dataset* | (*kCmdPlot*)
-    : "pr:int" `print` `redir`             | (*kCmdPrint*)
+    : "pr:int" `print` [`redir`]           | (*kCmdPrint*)
     : "quit"                           | (*kCmdQuit*)
     : "reset"                          | (*kCmdReset*)
     : "s:et" (Lname "=" `value`) % ","   | (*kCmdSet*)
@@ -288,7 +288,7 @@ The kCmd* names in the comments correspond to constants in the code.
    guess: [Funcname "="] Uname ["(" (Lname "=" `v_expr`) % "," ")"] [`range`]
    info_arg: ...TODO
    print: ...TODO
-   redir: [(">" | ">>") `filename`]
+   redir: ">>" `filename`
    value: (Lname | QuotedString | `expr`) (*value type depends on the option*)
    model_rhs: "0" |
             : `func_id` |
