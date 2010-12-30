@@ -280,7 +280,7 @@ char *set_eq_generator(const char *text, int state)
         try {
             e.clear();
             const char** a=ftk->settings_mgr()->get_allowed_values(set_eq_str);
-            while (*a) {
+            while (a != NULL && *a != NULL) {
                 if (startswith(*a, text))
                     e.push_back(*a);
                 ++a;
