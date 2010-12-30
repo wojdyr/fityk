@@ -83,7 +83,7 @@ string VariableManager::get_or_make_variable(const VMData* vd)
 */
 
 Variable* make_compound_variable(const string &name, VMData* vd,
-                                 const vector<Variable*> all_variables)
+                                 const vector<Variable*>& all_variables)
 {
     if (vd->has_op(OP_X))
         throw ExecuteError("variable can't depend on x.");
@@ -93,22 +93,7 @@ Variable* make_compound_variable(const string &name, VMData* vd,
         symbols[i] = all_variables[i]->name;
     //printf("make_compound_variable: %s\n", vm2str(*vd).c_str());
 
-    vector<string> used_vars;
-    //TODO get rid of const_cast
-    vm_foreach (int, i, const_cast<vector<int>&>(vd->code())) {
-        if (*i == OP_SYMBOL) {
-            ++i;
-            const string& name = all_variables[*i]->name;
-            int idx = index_of_element(used_vars, name);
-            if (idx == -1) {
-                idx = used_vars.size();
-                used_vars.push_back(name);
-            }
-            *i = idx;
-        }
-        else if (*i == OP_NUMBER) // has_idx
-            ++i;
-    }
+    vector<string> used_vars = vd->reindex_variables(all_variables);
 
     vector<OpTree*> op_trees = prepare_ast_with_der(*vd, used_vars.size());
     return new Variable(name, used_vars, op_trees);

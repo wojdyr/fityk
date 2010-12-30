@@ -192,6 +192,26 @@ bool VMData::has_op(int op) const
     return false;
 }
 
+vector<string> VMData::reindex_variables(const vector<Variable*>& all_variables)
+{
+    vector<string> used_vars;
+    vm_foreach (int, i, code_) {
+        if (*i == OP_SYMBOL) {
+            ++i;
+            const string& name = all_variables[*i]->name;
+            int idx = index_of_element(used_vars, name);
+            if (idx == -1) {
+                idx = used_vars.size();
+                used_vars.push_back(name);
+            }
+            *i = idx;
+        }
+        else if (has_idx(*i))
+            ++i;
+    }
+    return used_vars;
+}
+
 #define STACK_OFFSET_CHANGE(ch) stackPtr+=(ch)
 
 inline

@@ -112,6 +112,6 @@ private:
 
 // used in mgr.cpp and udf.cpp
 Variable* make_compound_variable(const std::string &name, VMData* vd,
-                                 const std::vector<Variable*> all_variables);
+                                 const std::vector<Variable*>& all_variables);
 
 #endif

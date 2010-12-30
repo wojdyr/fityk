@@ -113,6 +113,8 @@ public:
     void append_number(double d);
     void clear_data() { code_.clear(); numbers_.clear(); }
     void replace_symbols(const std::vector<double>& vv);
+    std::vector<std::string> reindex_variables(
+            const std::vector<Variable*>& all_variables);
     void flip_indices();
     bool single_symbol() const {return code_.size()==2 && code_[0]==OP_SYMBOL;}
     bool has_op(int op) const;
