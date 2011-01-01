@@ -11,7 +11,6 @@ Fityk |version| - User's Manual
    intro
    getstarted
    ref
-   extensions
    appendix
 
 ..

@@ -7,7 +7,6 @@ nobase_dist_pkgdata_DATA = \
 $(srcdir)/html/appendix.html \
 $(srcdir)/html/index.html \
 $(srcdir)/html/getstarted.html \
-$(srcdir)/html/extensions.html \
 $(srcdir)/html/_static/file.png \
 $(srcdir)/html/_static/fityk.ico \
 $(srcdir)/html/_static/fityk-banner.png \
@@ -75,7 +74,6 @@ $(srcdir)/html/ref.html \
 $(srcdir)/html/search.html \
 $(srcdir)/html/_sources/appendix.txt \
 $(srcdir)/html/_sources/index.txt \
-$(srcdir)/html/_sources/extensions.txt \
 $(srcdir)/html/_sources/getstarted.txt \
 $(srcdir)/html/_sources/ref.txt \
 $(srcdir)/html/_sources/intro.txt \
@@ -85,14 +83,14 @@ $(srcdir)/html/_sources/fityk-manual.txt
 dist_man_MANS = fityk.1
 
 EXTRA_DIST  = appendix.rst fityk-manual.rst index.rst ref.rst \
-	      extensions.rst getstarted.rst intro.rst \
+	      getstarted.rst intro.rst \
 	      layout.html conf.py fityk_ext.py
 
 SPHINX = sphinx-build -a -d ./doctrees/
 
 all-local: $(srcdir)/html/appendix.html
 
-$(srcdir)/html/appendix.html: $(srcdir)/appendix.rst $(srcdir)/fityk-manual.rst $(srcdir)/index.rst $(srcdir)/ref.rst $(srcdir)/extensions.rst $(srcdir)/getstarted.rst $(srcdir)/intro.rst $(srcdir)/conf.py 
+$(srcdir)/html/appendix.html: $(srcdir)/appendix.rst $(srcdir)/fityk-manual.rst $(srcdir)/index.rst $(srcdir)/ref.rst $(srcdir)/getstarted.rst $(srcdir)/intro.rst $(srcdir)/conf.py 
 	$(SPHINX) -b html $(srcdir) $(srcdir)/html
 	rm -f $(srcdir)/html/objects.inv $(srcdir)/html/.buildinfo
 	sed -i 's/&mdash; Fityk 0.... manual//' $(srcdir)/html/index.html
