@@ -14,49 +14,32 @@ and then recompile it. Users who want to do this should be able to compile
 the program from source and know the basics of C, C++ or another
 programming language.
 
-The description that follows is not complete. If something is not clear,
-you can always send me e-mail, etc.
-
-"fp" you can see in fityk source means a real (floating point) number
-(typedef double fp).
+In some places in the code ``fp`` is used instead of double
+(``typedef double fp``).
 
 The name of your function should start with uppercase letter and contain
 only letters and digits.  Let us add function Foo with the formula:
 Foo(height, center, hwhm) = height/(1+((x-center)/hwhm)^2).
 C++ class representing Foo will be named FuncFoo.
 
-In src/func.cpp you will find a list of functions:
+In src/tplate.cpp you will find a list of functions:
 
 ::
 
     ...
-    FACTORY_FUNC(Polynomial6)
-    FACTORY_FUNC(Gaussian)
+    FACTORY_FUNC(FuncPolynomial6)
+    FACTORY_FUNC(FuncGaussian)
     ...
 
 Now, add:
 
 ::
 
-    FACTORY_FUNC(Foo)
+    FACTORY_FUNC(FuncFoo)
 
-Then find another list:
+Then in the ``TplateMgr::add_builtin_types()`` function add arguments
+and description of the new function.
 
-::
-
-    ...
-    FuncPolynomial6::formula,
-    FuncGaussian::formula,
-    ...
-
-and add the line
-
-::
-
-    FuncFoo::formula,
-
-Note that in the second list
-all items but the last are followed by comma.
 
 In the file :file:`src/bfunc.h` you can now begin writing the definition
 of your class:
@@ -95,41 +78,19 @@ to proper values of x,
 such that if x<left or x>right than \|f(x)|<level.
 If the function sets left and right, it should return true.
 
-If your function does not have a "center" parameter, and there is a
-center-like point where you want the peak top to be drawn, write:
-
-::
+If your function does not have an argument named "center", but there is a
+center-like point where you want the peak top to be drawn, write::
 
     bool has_center() const { return true; }
     fp center() const { return vv[1]; }
 
 In the second line, between return and the semicolon, there is an expression
-for the x coordinate of peak top; vv[0] is the first parameter of function,
-vv[1] is the second, etc.
+for the x coordinate of the center (peak top);
+vv[0] is the first parameter of function, vv[1] is the second, etc.
 
-Finally, close the definition of the class with:
+Now go to the file :file:`src/bfunc.cpp`.
 
-::
-
-    };
-
-Now go to file :file:`src/bfunc.cpp`.
-
-Write the function formula in this way:
-
-::
-
-    const char *FuncFoo::formula
-    = "Foo(height, center, hwhm) = height/(1+((x-center)/hwhm)^2)";
-
-The syntax of the formula is the similar as that of
-the :ref:`UDF <udf>`, but
-for built-in functions only the left hand side of the formula is parsed.
-The right hand side is for documentation only.
-
-Write how to calculate the value of the function:
-
-::
+Write how to calculate the value of the function::
 
     CALCULATE_VALUE_BEGIN(Foo)
     fp xa1a2 = (x - vv[1]) / vv[2];
@@ -142,9 +103,7 @@ expression. Note the "fp" (you can also use "double") at the beginning
 and semicolon at the end of both lines. The meaning of vv has
 already been explained.
 
-Usually it is more difficult to calculate derivatives:
-
-::
+Usually it is more difficult to calculate derivatives::
 
     CALCULATE_DERIV_BEGIN(Foo)
     fp xa1a2 = (x - vv[1]) / vv[2];
@@ -165,16 +124,12 @@ If you declared ``do_precomputations`` or
 do not forget to write definitions for them.
 
 After compilation of the program check if the derivatives are calculated
-correctly using command "info dF(x)", e.g. i dF(30.1).
-You can also use ``numarea``,
-``findx`` and ``extremum``
-(see :ref:`funcindt` for details)
+correctly using the command ``debug dF(x)``, e.g. ``debug dF(30.1)``.
+You can also use ``numarea``, ``findx`` and ``extremum``
 to verify center, area, height and FWHM properties.
 
-Hope this helps.
-Do not hesistate to change this description or ask questions
-if you have any. Consider sharing your function with other users (using
-:wiki:`FitykWiki <>` or mailing list).
+You are welcome to improve this description and to share
+your function with other users.
 
 ..
   $Id$ 

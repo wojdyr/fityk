@@ -29,7 +29,7 @@ given by complex (and general for all peaks) formula.
 Fityk is free software; you can redistribute and modify it under the
 terms of the GPL, version 2 or (at your option) any later version.  See
 :ref:`license` for details.  You can download the latest version of
-fityk from http://www.unipress.waw.pl/fityk (or http://fityk.sf.net).
+fityk from http://fityk.nieto.pl/.
 To contact the author, visit the same page.
 
 How to read this manual
@@ -56,8 +56,8 @@ Interface) version (named *cfityk* to differentiate).
 
 The GUI version is written using the
 `wxWidgets <http://www.wxwidgets.org>`_
-library  and can be run on Unix species with GTK+ and on MS Windows.
-There are also people using it on MacOS X (see details :wiki:`in the wiki <MacOSX>`).
+library  and can be run on Unix species with GTK+, on MS Windows and (with
+some problems) on MacOS X.
 
 If the CLI version was compiled with the *GNU Readline Library*, command
 line editing and command history as per *bash* will be available.

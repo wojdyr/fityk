@@ -30,8 +30,7 @@ html_sidebars = {'index': [],
 html_short_title = 'Fityk %s manual' % version
 html_title = html_short_title
 html_favicon = 'fityk.ico'
-html_static_path = ['fityk-banner.png', 'fityk.css',
-                    'unipress-button.png', 'wxwidgets_powered.png']
+html_static_path = ['fityk-banner.png', 'fityk.css']
 html_style = 'fityk.css'
 html_last_updated_fmt = '%Y-%m-%d'
 html_use_smartypants = True
@@ -57,12 +56,13 @@ latex_elements = {
 latex_show_pagerefs = True
 latex_show_urls = True
 
-sf_dir = 'http://downloads.sourceforge.net/fityk/'
+# determine vertical alignment of the math PNGs
+pngmath_use_preview = True
+
+dl_dir = 'https://github.com/downloads/wojdyr/fityk/'
 msw_filename = 'fityk-%s-setup' % version
-source_filename = 'fityk-%s' % version
 extlinks = {
-    'wiki': ('http://sourceforge.net/apps/trac/fityk/wiki/%s', ''),
-    'sf-download-msw': (sf_dir + msw_filename + '%s', msw_filename),
-    'sf-download-source': (sf_dir + source_filename + '%s', source_filename),
+    'wiki': ('https://github.com/wojdyr/fityk/wiki/%s', ''),
+    'download-msw': (dl_dir + msw_filename + '%s', msw_filename),
     }
 

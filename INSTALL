@@ -24,15 +24,15 @@ either do "make uninstall" or manually find and remove all files, e.g.:
 find /usr/local/ -name \*fityk\* -exec rm -r \{} \;
 
 
-To install the latest version from SVN
+To install the latest version from Git
 ======================================
 
 Install automake, autoconf, libtool.
 Before the ./configure step, run:
 $ autoreconf -iv
 
-If you do not have Sphinx >= 1.0 (http://sphinx.pocoo.org/) and LaTeX installed,
-skip building the manual:
+Either install Sphinx >= 1.0 (http://sphinx.pocoo.org/), LaTeX and dvipng,
+or skip building the manual:
 $ ./configure --without-doc
 
 Configuration Options

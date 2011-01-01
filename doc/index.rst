@@ -1,9 +1,6 @@
 
 .. title:: fityk --- curve fitting software
 
-..
-    Overview
-    ========
 
 .. image:: fityk076.png
    :alt: [screenshot]
@@ -32,7 +29,7 @@ Features
 
 * intuitive graphical interface (and also command line interface),
 * support for many data file formats, thanks to
-  the `xylib library <http://www.unipress.waw.pl/fityk/xylib/>`_,
+  the `xylib library <http://xylib.sourceforge.net/>`_,
 * dozens of built-in functions and support for user-defined functions,
 * equality constraints,
 * modelling error of the *x* coordinate of points (that can be caused by
@@ -43,18 +40,18 @@ Features
 * handling series of datasets,
 * automation with scripts,
 * an add-on for powder diffraction data (Pawley refinement)
-* modular :wiki:`architecture <architecture>`,
+* modular :wiki:`architecture <Architecture>`,
 * open source licence (`GPL <http://creativecommons.org/licenses/GPL/2.0/>`_),
 * portability.
 
 Download
 ========
 
-|ico-win| MS Windows: :sf-download-msw:`.exe`
+|ico-win| MS Windows: :download-msw:`.exe`
 
 |ico-tux| Fresh Linux RPMs from OBS_ and DEBs from PPA_ or debian-xray_
 
-|ico-osx| Mac OS X: see details :wiki:`here <MacOSX>`.
+|ico-osx| Mac OS X: work in progress...
 
 .. _OBS: http://download.opensuse.org/repositories/home://wojdyr/
 .. _PPA: https://launchpad.net/~wojdyr/+archive/fityk
@@ -64,16 +61,10 @@ Download
 .. |ico-osx| image:: ico-osx.png
 
 
-Source code: :sf-download-source:`.tar.bz2` or the latest revision from
-
-.. _svn:
-
-::
-
-    svn co https://fityk.svn.sourceforge.net/svnroot/fityk/trunk fityk
+Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 
 Version 0.9.4 was released on 2010-10-09
-(`changelog <http://fityk.svn.sourceforge.net/svnroot/fityk/trunk/NEWS>`_).
+(`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
 FreshMeat provides new version **notifications**:
 `emails <http://freshmeat.net/projects/fityk/>`_ and
 `feeds <http://freshmeat.net/projects/fityk/releases.atom>`_.
@@ -107,7 +98,7 @@ Documentation
 (`PDF <http://www.unipress.waw.pl/fityk/fityk-manual.pdf>`_)
 documents mainly commands of the fityk mini-language.
 
-`Trac Wiki <http://sourceforge.net/apps/trac/fityk/>`_
+`Fityk Wiki <https://github.com/wojdyr/fityk/wiki>`_
 contains all other informations.
 You are welcome to contribute.
 
@@ -127,12 +118,11 @@ Feel free to send questions, comments, bug reports, new feature requests
 and success stories.
 
 Asking for a new feature usually results in adding the request to
-the `TODO list <http://fityk.svn.sourceforge.net/svnroot/fityk/trunk/TODO>`_
+the `TODO list <https://github.com/wojdyr/fityk/raw/master/NEWS>`_
 or, if it already is in the list, in assigning higher priority to it.
 
 If for some reasons you do not want to use the group,
-you may contact directly the maintainer of the program:
-`Marcin Wojdyr <http://www.unipress.waw.pl/~wojdyr/>`_  wojdyr@gmail.com.
+you may contact directly the maintainer of the program: wojdyr@gmail.com.
 
 
 .. raw:: html
@@ -146,16 +136,6 @@ you may contact directly the maintainer of the program:
      $("#expand_features a").click(function(event){
        $(this).parent().hide();
        $("#features").show('slow');
-       event.preventDefault();
-     });
-     $("#svn").hide();
-     $("#svn").prev().append(
-      "<span id='expand_svn'> <a href=''>SVN &raquo;</a></span>");
-     var svn_shown = true;
-     $("#expand_svn a").click(function(event){
-       $(this).html('SVN ' + (svn_shown ? '&laquo;' : '&raquo'));
-       $("#svn").toggle('fast');
-       svn_shown = !svn_shown;
        event.preventDefault();
      });
    });

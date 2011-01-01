@@ -10,7 +10,6 @@ $(srcdir)/html/getstarted.html \
 $(srcdir)/html/extensions.html \
 $(srcdir)/html/_static/file.png \
 $(srcdir)/html/_static/fityk.ico \
-$(srcdir)/html/_static/unipress-button.png \
 $(srcdir)/html/_static/fityk-banner.png \
 $(srcdir)/html/_static/pygments.css \
 $(srcdir)/html/_static/searchtools.js \
@@ -20,7 +19,6 @@ $(srcdir)/html/_static/jquery.js \
 $(srcdir)/html/_static/plus.png \
 $(srcdir)/html/_static/fityk.css \
 $(srcdir)/html/_static/minus.png \
-$(srcdir)/html/_static/wxwidgets_powered.png \
 $(srcdir)/html/_static/basic.css \
 $(srcdir)/html/_static/doctools.js \
 $(srcdir)/html/_static/sphinxdoc.css \

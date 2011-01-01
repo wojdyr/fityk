@@ -46,8 +46,6 @@ if [ $1 -eq 0 ]; then
  echo NEWS:
  head -4 NEWS | grep version
  echo
- svn update
- echo svnversion: `svnversion`
 
 
 elif [ $1 -eq 1 ]; then
