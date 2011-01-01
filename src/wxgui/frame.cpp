@@ -73,7 +73,7 @@
 //#include "img/manual.xpm"
 #include "img/open_data_custom.xpm"
 #include "img/open_data.xpm"
-#include "img/right_pane.xpm"
+//#include "img/right_pane.xpm"
 #include "img/run_fit.xpm"
 #include "img/run_script.xpm"
 #include "img/save_data.xpm"
@@ -233,7 +233,7 @@ enum {
     ID_T_RUN                  ,
     ID_T_UNDO                 ,
     ID_T_AUTO                 ,
-    ID_T_BAR                  ,
+    //ID_T_BAR                  ,
     ID_T_CHOICE
 };
 
@@ -1478,7 +1478,7 @@ void FFrame::SwitchToolbar(bool show)
         SetToolBar(toolbar);
         update_toolbar();
         update_peak_type_list();
-        toolbar->ToggleTool(ID_T_BAR, v_splitter->IsSplit());
+        //toolbar->ToggleTool(ID_T_BAR, v_splitter->IsSplit());
     }
     else if (!show && GetToolBar()){
         SetToolBar(0);
@@ -1505,8 +1505,8 @@ void FFrame::SwitchSideBar(bool show)
         v_splitter->Unsplit();
     }
     GetMenuBar()->Check(ID_G_S_SIDEB, show);
-    if (toolbar)
-        toolbar->ToggleTool(ID_T_BAR, show);
+    //if (toolbar)
+    //    toolbar->ToggleTool(ID_T_BAR, show);
 }
 
 void FFrame::OnSwitchAuxPlot(wxCommandEvent& ev)
@@ -1996,7 +1996,7 @@ void FFrame::DoGiveHelp(const wxString& help, bool show)
 BEGIN_EVENT_TABLE (FToolBar, wxToolBar)
     EVT_TOOL_RANGE (ID_T_ZOOM, ID_T_ADD, FToolBar::OnChangeMouseMode)
     EVT_TOOL_RANGE (ID_T_PZ, ID_T_AUTO, FToolBar::OnClickTool)
-    EVT_TOOL (ID_T_BAR, FToolBar::OnSwitchSideBar)
+    //EVT_TOOL (ID_T_BAR, FToolBar::OnSwitchSideBar)
     EVT_CHOICE (ID_T_CHOICE, FToolBar::OnPeakChoice)
 END_EVENT_TABLE()
 
@@ -2095,10 +2095,10 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddTool(ID_T_UNDO, wxT("Undo"),
              wxBitmap(undo_fit_xpm), wxNullBitmap, wxITEM_NORMAL,
              wxT("Undo fitting"), wxT("Previous set of parameters"));
-    AddSeparator();
-    AddTool(ID_T_BAR, wxT("SideBar"),
-            wxBitmap(right_pane_xpm), wxNullBitmap, wxITEM_CHECK,
-            wxT("Datasets Pane"), wxT("Show/hide datasets pane"));
+    //AddSeparator();
+    //AddTool(ID_T_BAR, wxT("SideBar"),
+    //        wxBitmap(right_pane_xpm), wxNullBitmap, wxITEM_CHECK,
+    //        wxT("Datasets Pane"), wxT("Show/hide datasets pane"));
     Realize();
 }
 
