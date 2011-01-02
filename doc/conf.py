@@ -52,7 +52,6 @@ latex_elements = {
     'utf8extra': ''
 }
 
-#latex_appendices = ['appendix']
 latex_show_pagerefs = True
 latex_show_urls = True
 

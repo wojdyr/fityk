@@ -4,9 +4,10 @@
 # ++d}- :r! find html -type f -exec echo '$(srcdir)/'\{} \\ \;
 # }bxx
 nobase_dist_pkgdata_DATA = \
-$(srcdir)/html/appendix.html \
 $(srcdir)/html/index.html \
+$(srcdir)/html/model.html \
 $(srcdir)/html/getstarted.html \
+$(srcdir)/html/fit.html \
 $(srcdir)/html/_static/file.png \
 $(srcdir)/html/_static/fityk.ico \
 $(srcdir)/html/_static/fityk-banner.png \
@@ -24,6 +25,7 @@ $(srcdir)/html/_static/sphinxdoc.css \
 $(srcdir)/html/_static/underscore.js \
 $(srcdir)/html/intro.html \
 $(srcdir)/html/searchindex.js \
+$(srcdir)/html/lang.html \
 $(srcdir)/html/fityk-manual.html \
 $(srcdir)/html/_images/ico-tux.png \
 $(srcdir)/html/_images/ico-win.png \
@@ -47,6 +49,7 @@ $(srcdir)/html/_images/math/707fc7dbf98d8f4f39c6bdf3f6c025ed948789c9.png \
 $(srcdir)/html/_images/math/bea4d576937a04ec200b1037fc8ee33e8f744cb1.png \
 $(srcdir)/html/_images/math/d3d29774850d1fa81d750fef3ed9b65ee66c524e.png \
 $(srcdir)/html/_images/math/deaf305680f8dc36524842ef15f13f33789dbbd4.png \
+$(srcdir)/html/_images/math/3dd0773863fdeacd262d797c931a040801c71e90.png \
 $(srcdir)/html/_images/math/7508455f7c089e149392451dec57d771370d63ce.png \
 $(srcdir)/html/_images/math/19f15eacccc345c3179259320491956f3f23887a.png \
 $(srcdir)/html/_images/math/38b394ef8f2ecd34817add552d9daa3fe8b9e017.png \
@@ -56,6 +59,7 @@ $(srcdir)/html/_images/math/d3e7d7cd926970086d34700ac3f979eac398132a.png \
 $(srcdir)/html/_images/math/150d0ed7bec340267e1b148159a2e70ffa5983a7.png \
 $(srcdir)/html/_images/math/566b01428cbc7f85e5dcac822761913d6fd48795.png \
 $(srcdir)/html/_images/math/db9d47c742259fffb7665882158a7b507cb9f052.png \
+$(srcdir)/html/_images/math/e847b12d44bdb9991047fa3001a2d1f23a077769.png \
 $(srcdir)/html/_images/math/486938d1819df5972cb80ef2d101517b20412366.png \
 $(srcdir)/html/_images/math/c104a975652392e8192a26551dc776a5fbdcf9c7.png \
 $(srcdir)/html/_images/math/a61c1e51680e27d35d05bebed87d474972fc70bd.png \
@@ -71,26 +75,30 @@ $(srcdir)/html/_images/math/c2ec895a1a42f04814ac1e370c4b8ca8fb702167.png \
 $(srcdir)/html/_images/math/a1f49d0ef1ed40eddc5de7055dc1378db1e4a95c.png \
 $(srcdir)/html/_images/math/23decadd8b245289f5fa993f2c99e0ac9cff56dc.png \
 $(srcdir)/html/ref.html \
+$(srcdir)/html/data.html \
 $(srcdir)/html/search.html \
-$(srcdir)/html/_sources/appendix.txt \
 $(srcdir)/html/_sources/index.txt \
+$(srcdir)/html/_sources/fit.txt \
+$(srcdir)/html/_sources/data.txt \
 $(srcdir)/html/_sources/getstarted.txt \
+$(srcdir)/html/_sources/model.txt \
 $(srcdir)/html/_sources/ref.txt \
+$(srcdir)/html/_sources/lang.txt \
 $(srcdir)/html/_sources/intro.txt \
 $(srcdir)/html/_sources/fityk-manual.txt
 
 
 dist_man_MANS = fityk.1
 
-EXTRA_DIST  = appendix.rst fityk-manual.rst index.rst ref.rst \
-	      getstarted.rst intro.rst \
+EXTRA_DIST  = fityk-manual.rst index.rst intro.rst getstarted.rst \
+	      lang.rst data.rst model.rst fit.rst ref.rst \
 	      layout.html conf.py fityk_ext.py
 
 SPHINX = sphinx-build -a -d ./doctrees/
 
-all-local: $(srcdir)/html/appendix.html
+all-local: $(srcdir)/html/index.html
 
-$(srcdir)/html/appendix.html: $(srcdir)/appendix.rst $(srcdir)/fityk-manual.rst $(srcdir)/index.rst $(srcdir)/ref.rst $(srcdir)/getstarted.rst $(srcdir)/intro.rst $(srcdir)/conf.py 
+$(srcdir)/html/index.html: $(srcdir)/*.rst $(srcdir)/conf.py 
 	$(SPHINX) -b html $(srcdir) $(srcdir)/html
 	rm -f $(srcdir)/html/objects.inv $(srcdir)/html/.buildinfo
 	sed -i 's/&mdash; Fityk 0.... manual//' $(srcdir)/html/index.html

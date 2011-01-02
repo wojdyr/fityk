@@ -26,27 +26,6 @@ be arbitrarily bound to each other, e.g. the width of a peak can be an
 independent variable, the same as the width of another peak, or can be
 given by complex (and general for all peaks) formula.
 
-Fityk is free software; you can redistribute and modify it under the
-terms of the GPL, version 2 or (at your option) any later version.  See
-:ref:`license` for details.  You can download the latest version of
-fityk from http://fityk.nieto.pl/.
-To contact the author, visit the same page.
-
-How to read this manual
-=======================
-
-After this introduction, you may read the :ref:`getstarted`,
-look for tutorials in :wiki:`wiki <>`
-and postpone reading the manual until you need to write a script, put
-constraints on variables, add user-defined function or understand better
-how the program works.
-
-In case you are not familiar with the term
-:dfn:`weighted sum of squared residuals`
-or you are not sure how it is weighted, have a look at :ref:`nonlinear`.
-Remember that you must set correctly :ref:`standard deviations <weights>`
-of y's of points, otherwise you will get wrong results.
-
 GUI vs CLI
 ==========
 
@@ -54,15 +33,34 @@ The program comes in two versions: the GUI (Graphical User Interface)
 version - more comfortable for most users, and the CLI (Command Line
 Interface) version (named *cfityk* to differentiate).
 
-The GUI version is written using the
-`wxWidgets <http://www.wxwidgets.org>`_
-library  and can be run on Unix species with GTK+, on MS Windows and (with
-some problems) on MacOS X.
+.. admonition:: technical note
 
-If the CLI version was compiled with the *GNU Readline Library*, command
-line editing and command history as per *bash* will be available.
-Especially useful is ``TAB``-expanding.  Data and curves fitted to data
-are visualized with *gnuplot* (if it is installed, not on Windows).
+  The GUI version is written using the
+  `wxWidgets <http://www.wxwidgets.org>`_
+  library. It runs on Unix species with GTK+, on MS Windows and (with
+  some problems) on MacOS X.
+  
+  If the CLI version was compiled with the *GNU Readline Library*, command
+  line editing, ``TAB``-expanding and command history will be available.
+  On Unix, the *gnuplot* program can be used for data visualization.
+
+About...
+========
+
+Fityk is free software; you can redistribute and modify it under the
+terms of the `GPL <http://creativecommons.org/licenses/GPL/2.0/>`_,
+version 2 or (at your option) any later version.
+
+To download the latest version of the program or to contact the author
+visit http://fityk.nieto.pl/.
+
+This manual is written using ReStructuredText.
+All corrections and improvements are welcome.
+Use the ``Show Source`` link to get the source of the page, edit it
+and send me either the modified version or a patch.
+
+The following people have contributed to this manual (in chronological order):
+Marcin Wojdyr (maintainer), Stan Gierlotka, Jaap Folmer, Michael Richardson.
 
 ..
   $Id$ 
