@@ -367,9 +367,15 @@ char **my_completion (const char *text, int start, int end)
         return rl_completion_matches(text, info_generator);
     }
 
-    // info completion
+    // debug completion
     if (starts_with_command(ptr, start - cmd_start, "debug","")) {
         return rl_completion_matches(text, debug_generator);
+    }
+
+    // filename completion after exec
+    if (starts_with_command(ptr, start - cmd_start, "e","xecute")) {
+        rl_attempted_completion_over = 0;
+        return 0;
     }
 
     ptr = rl_line_buffer + start - 1;
