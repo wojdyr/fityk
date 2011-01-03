@@ -36,7 +36,7 @@ private:
     void command_set(const std::vector<Token>& args);
     void command_delete(const std::vector<Token>& args);
     void command_delete_points(const std::vector<Token>& args, int ds);
-    void command_exec(const std::vector<Token>& args);
+    void command_exec(TokenType tt, const std::string& str);
     void command_fit(const std::vector<Token>& args, int ds);
     void command_guess(const std::vector<Token>& args, int ds);
     void command_plot(const std::vector<Token>& args, int ds);

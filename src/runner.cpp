@@ -105,17 +105,13 @@ void Runner::command_delete_points(const vector<Token>& args, int ds)
     F_->outdated_plot();
 }
 
-void Runner::command_exec(const vector<Token>& args)
+void Runner::command_exec(TokenType tt, const string& str)
 {
-    assert(args.size() == 1);
-    const Token& t = args[0];
-
     // exec ! program
-    if (t.type == kTokenRest) {
+    if (tt == kTokenRest) {
 #ifdef HAVE_POPEN
         FILE* f = NULL;
-        string s = t.as_string();
-        f = popen(s.c_str(), "r");
+        f = popen(str.c_str(), "r");
         if (!f)
             return;
         F_->get_ui()->exec_stream(f);
@@ -127,9 +123,7 @@ void Runner::command_exec(const vector<Token>& args)
 
     // exec filename
     else {
-        string filename = (t.type == kTokenString ? Lexer::get_string(t)
-                                                  : t.as_string());
-        F_->get_ui()->exec_script(filename);
+        F_->get_ui()->exec_script(str);
     }
 }
 
@@ -615,7 +609,8 @@ void Runner::execute_command(Command& c, int ds)
             command_delete_points(c.args, ds);
             break;
         case kCmdExec:
-            command_exec(c.args);
+            assert(0);
+            // kCmdExec is handled elsewhere
             break;
         case kCmdFit:
             command_fit(c.args, ds);
@@ -732,7 +727,26 @@ void Runner::execute_statement(Statement& st)
                 recalculate_args(st.commands, *i);
 
             vm_foreach (Command, c, st.commands) {
-                execute_command(*c, *i);
+                if (c->type == kCmdExec) {
+                    // this command contains nested commands that use the same
+                    // Parser/Runner.
+                    assert(c->args.size() == 1);
+                    const Token& t = c->args[0];
+                    TokenType tt = t.type;
+                    string str = Lexer::get_string(t);
+                    Statement backup;
+                    // According to the 0x standard swap() does not invalidate
+                    // iterators that refer to elements.
+                    st.datasets.swap(backup.datasets);
+                    st.with_args.swap(backup.with_args);
+                    st.commands.swap(backup.commands);
+                    command_exec(tt, str);
+                    st.datasets.swap(backup.datasets);
+                    st.with_args.swap(backup.with_args);
+                    st.commands.swap(backup.commands);
+                }
+                else
+                    execute_command(*c, *i);
             }
         }
     }
