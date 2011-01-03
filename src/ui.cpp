@@ -203,7 +203,9 @@ Commands::Status UserInterface::execute_line(const string& str)
         F_->warn(string("Syntax error: ") + e.what());
         return Commands::kStatusSyntaxError;
     }
-    catch (ExecuteError &e) {
+    // ExecuteError and xylib::FormatError and xylib::RunTimeError
+    // are derived from std::runtime_error
+    catch (runtime_error &e) {
         F_->warn(string("Error: ") + e.what());
         return Commands::kStatusExecuteError;
     }

@@ -4,8 +4,6 @@ $Id$
 
 * wiki/Updating: write a page how to update fityk scripts
 
-* BUG report: currently, if a script references a non-existent file, fitYK crashes completely.
-
 --- 0.9.5 
 
 * data transformations: add aggregate functions argmin and argmax
