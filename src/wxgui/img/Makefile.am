@@ -1,4 +1,3 @@
-# $Id$
 
 ## to find files not listed here use (in bash):
 ## for i in *.xpm *.h; do [ `grep -c $i Makefile.am` -eq 0 ] && ls $i; done

@@ -1,8 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id$
-
-/// In this file:
 ///  FPlot, the base class for MainPlot and AuxPlot
 
 #include <wx/wxprec.h>

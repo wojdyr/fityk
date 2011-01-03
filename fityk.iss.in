@@ -1,4 +1,3 @@
-; $Id$
 ; InnoSetup script. It is used to make MS Windows installer.
 
 ;TODO: samples in menu, if 'associate' task is selected

@@ -1,6 +1,5 @@
 // Author: Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id$
 
 //TODO:
 // finish fill_forms()

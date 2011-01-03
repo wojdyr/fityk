@@ -1,8 +1,6 @@
 // This file is part of fityk program. Copyright (C) 2009 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id: $
-//
-// SumHistoryDlg: a dialog for Fit > Parameter History
+/// SumHistoryDlg: a dialog for Fit > Parameter History
 
 #ifndef FITYK_WX_HISTORY_H_
 #define FITYK_WX_HISTORY_H_

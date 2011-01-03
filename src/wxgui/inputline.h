@@ -1,7 +1,6 @@
 // Purpose: input line with history (wxTextCtrl+wxSpinButton)
 // Copyright: (c) 2007 Marcin Wojdyr
 // Licence: wxWidgets licence, or (at your option) GPL ver. 2+
-// $Id$
 
 #ifndef FITYK_WX_INPUTLINE_H_
 #define FITYK_WX_INPUTLINE_H_

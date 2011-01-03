@@ -1,8 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id$
-
-/// In this file:
 ///  part of the sidebar (ListPlusText, which contains ListWithColors)
 
 #include <wx/wxprec.h>

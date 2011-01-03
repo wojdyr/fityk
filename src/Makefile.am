@@ -1,4 +1,4 @@
-# $Id$
+
 SUBDIRS = . $(SRCSUBDIRS)
 DIST_SUBDIRS = cli wxgui
 

@@ -1,5 +1,4 @@
 #!/bin/bash 
-# $Id$
 
 version=0.9.5
 WEB="iris.unipress.waw.pl:www/fityk2/"

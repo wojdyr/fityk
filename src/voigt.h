@@ -1,4 +1,3 @@
-// $Id$
 
 ///     calculates the Faddeeva function
 ///     and partial derivatives of the Voigt function for y>=0

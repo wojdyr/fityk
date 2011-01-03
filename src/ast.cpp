@@ -1,6 +1,5 @@
 // This file is part of fityk program. Copyright (C) 2005 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id$
 
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/digamma.hpp>

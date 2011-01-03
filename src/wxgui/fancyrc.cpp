@@ -1,8 +1,6 @@
 // Purpose: ParameterPanel and LockableRealCtrl (both for input of real numbers)
 // Copyright 2007-2010 Marcin Wojdyr
 // Licence: wxWidgets licence
-// $Id$
-
 
 #include <wx/wx.h>
 

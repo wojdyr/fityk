@@ -1,4 +1,3 @@
-# $Id$
 # Process this file with autoconf to produce a configure script.
 
 AC_INIT([fityk], [0.9.5])

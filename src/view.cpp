@@ -1,6 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id: logic.cpp 322 2007-07-24 00:17:11Z wojdyr $
 
 #include "view.h"
 #include "common.h"

@@ -1,8 +1,7 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id$
 
- //  Various headers and definitions. Included by almost all files.
+///  Various headers and definitions. Included by almost all files.
 
 #ifndef FITYK__COMMON__H__
 #define FITYK__COMMON__H__

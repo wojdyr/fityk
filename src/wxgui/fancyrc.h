@@ -1,7 +1,6 @@
 // Purpose: ParameterPanel and LockableRealCtrl (both for input of real numbers)
 // Copyright 2007-2010 Marcin Wojdyr
 // Licence: wxWidgets licence
-// $Id$
 
 #ifndef FITYK_WX_FANCYRC_H_
 #define FITYK_WX_FANCYRC_H_

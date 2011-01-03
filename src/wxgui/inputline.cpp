@@ -1,7 +1,6 @@
 // Purpose: input line with history (wxTextCtrl+wxSpinButton)
 // Copyright: (c) 2007 Marcin Wojdyr
 // Licence: wxWidgets licence, or (at your option) GPL ver. 2+
-// $Id$
 
 /// Input line with history (wxTextCtrl+wxSpinButton).
 /// Supported keybindings:

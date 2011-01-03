@@ -1,8 +1,7 @@
 // Author: Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id: $
-//
-// A dialog for choosing space group settings
+
+/// A dialog for choosing space group settings
 
 #ifndef FITYK_WX_SGCHOOSER_H_
 #define FITYK_WX_SGCHOOSER_H_

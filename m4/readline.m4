@@ -1,4 +1,3 @@
-dnl $Id$
 
 AC_DEFUN([READLINE_STUFF], 
 [
@@ -54,4 +53,4 @@ AC_DEFUN([READLINE_STUFF],
      AC_DEFINE(NO_READLINE, 1,
         [Define if you do not want to use or do not have readline library.])
  fi
-]) 
+])

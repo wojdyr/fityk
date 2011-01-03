@@ -1,6 +1,5 @@
 // This file is part of fityk program. 
 // Licence: GNU General Public License version 2
-// $Id$
 
 // tests for bindings are in samples/ directory
 

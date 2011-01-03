@@ -284,6 +284,3 @@ If it is found in a script it quits the program, not only the script.
 Commands that start with ``!`` are passed (without '!')
 to the ``system()`` call.
 
-..
-  $Id$ 
-

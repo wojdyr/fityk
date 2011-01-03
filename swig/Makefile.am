@@ -1,4 +1,4 @@
-# $Id: Makefile.am 238 2007-01-21 01:44:04Z wojdyr $
+
 EXTRA_DIST =
 
 SWIG_SOURCES = fityk.i

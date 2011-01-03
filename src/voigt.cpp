@@ -1,4 +1,3 @@
-// $Id$
 
 // fastest_humlik.for and humdev.for - from Bob Wells Voigt Function Page
 // http://www.atm.ox.ac.uk/user/wells/voigt.html

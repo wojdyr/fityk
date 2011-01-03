@@ -1,6 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id$
 
 /// implementation of public API of libfityk, declared in fityk.h
 

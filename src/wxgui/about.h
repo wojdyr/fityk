@@ -1,7 +1,5 @@
 // This file is part of fityk program. Copyright (C) 2009 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id$
-//
 // AboutDlg: "about..." dialog
 
 #ifndef FITYK_WX_ABOUT_H_

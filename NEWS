@@ -1,4 +1,4 @@
-$Id$
+
 User-visible changes in version 0.9.5  (2010-  -  ):
 * syntax: in "define ... where param=expr" expr is substituted in brackets now
 * values of the fitting_method setting changed to lower case

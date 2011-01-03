@@ -1,8 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id$
-//
-// EditTransDlg: Data > Edit Transformations
+/// EditTransDlg: Data > Edit Transformations
 
 #ifndef FITYK_WX_DATAEDIT_H_
 #define FITYK_WX_DATAEDIT_H_

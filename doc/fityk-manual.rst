@@ -16,6 +16,3 @@ Fityk |version| - User's Manual
    fit
    ref
 
-..
-  $Id$ 
-

@@ -1,8 +1,7 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id$
 
-/// In this file: utilities for making plot (BufferedPanel, scale_tics_step())
+/// utilities for making plot (BufferedPanel, scale_tics_step())
 
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__

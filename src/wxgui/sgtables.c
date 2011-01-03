@@ -1,7 +1,6 @@
 /*  sgtables.c
  *  Author: Marcin Wojdyr (only the code, not data)
  *  Licence: GNU General Public License ver. 2+
- *  $Id: $
  */
 
 #include "sgtables.h"

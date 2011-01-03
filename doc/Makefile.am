@@ -1,4 +1,3 @@
-# $Id$
 
 # to regenerage the list in vim:
 # ++d}- :r! find html -type f -exec echo '$(srcdir)/'\{} \\ \;

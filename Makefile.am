@@ -1,4 +1,3 @@
-# $Id$
 
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = fityk.iss fityk.url fityk.svg \

@@ -1,7 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id: $
-
 /// virtual machine - calculates expressions using by executing bytecode
 
 #include "vm.h"

@@ -1,8 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id:  $
-//
-// DataTableDlg: Data > Table dialog
+/// DataTableDlg: Data > Table dialog
 
 #ifndef FITYK_WX_DATATABLE_H_
 #define FITYK_WX_DATATABLE_H_

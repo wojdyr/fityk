@@ -1,4 +1,3 @@
-# $Id$
 
 SUBDIRS = img
 bin_PROGRAMS = fityk

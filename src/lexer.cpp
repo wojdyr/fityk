@@ -1,6 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id: $
 
 /// This lexer (scanner) is not used yet.
 /// In the future it will replace the current lexer/parser.

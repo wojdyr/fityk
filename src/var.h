@@ -1,6 +1,5 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id$
 
 #ifndef FITYK__VAR__H__
 #define FITYK__VAR__H__

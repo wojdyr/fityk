@@ -1,8 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id$
 
-/// In this file:
 ///  Status Bar (FStatusBar) and dialog for its configuration (ConfStatBarDlg)
 
 #include <wx/wx.h>

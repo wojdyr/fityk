@@ -1,8 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id$
 
-/// In this file:
 ///  SideBar class, the right hand sidebar in GUI
 
 #include <wx/wxprec.h>

@@ -1,6 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id: $
+
 #ifndef FITYK_TPLATE_H_
 #define FITYK_TPLATE_H_
 

@@ -1,8 +1,7 @@
 // Author: Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-// $Id: $
-//
-// A tool for creating models for powder diffraction patterns (Pawley method)
+
+/// A tool for creating models for powder diffraction patterns (Pawley method)
 
 #ifndef FITYK_WX_POWDIFPAT_H_
 #define FITYK_WX_POWDIFPAT_H_
