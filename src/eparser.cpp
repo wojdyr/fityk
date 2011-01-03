@@ -379,8 +379,14 @@ void ExpressionParser::put_func_sth(Lexer& lex, const string& name,
     }
     else if (lex.peek_token().type == kTokenDot) {
         lex.get_token(); // discard '.'
-        string word = lex.get_expected_token(kTokenLname).as_string();
-        if (lex.peek_token().type == kTokenOpen) { // method of %function
+        Token arg = lex.get_expected_token(kTokenLname, kTokenCname);
+        string word = arg.as_string();
+        if (arg.type == kTokenCname) {
+            const Function *f = F_->find_function(name);
+            double val = f->get_param_value(word);
+            put_number(val);
+        }
+        else if (lex.peek_token().type == kTokenOpen) { // method of %function
             int n = F_->find_function_nr(name);
             if (n == -1)
                 throw ExecuteError("undefined function: %" + name);
