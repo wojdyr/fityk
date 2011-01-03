@@ -445,7 +445,8 @@ Clicking ``Strip background`` results in a commands like this::
           in the *Baseline Mode*.
 
 Values of the function parameters (e.g. ``%fun.a0``) and pseudo-parameters
-Center, Height, FWHM and Area (e.g. ``%fun.Area``) can also be used.
+``Center``, ``Height``, ``FWHM`` and ``Area`` (e.g. ``%fun.Area``)
+can also be used.
 Pseudo-parameters are supported only by functions, which know
 how to calculate these properties.
 

@@ -60,7 +60,6 @@ Download
 .. |ico-tux| image:: ico-tux.png
 .. |ico-osx| image:: ico-osx.png
 
-
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 
 Version 0.9.4 was released on 2010-10-09
@@ -69,26 +68,47 @@ FreshMeat provides new version **notifications**:
 `emails <http://freshmeat.net/projects/fityk/>`_ and
 `feeds <http://freshmeat.net/projects/fityk/releases.atom>`_.
 
+Subscriptions
+-------------
 
+*This is an attempt to make this software self-sustaining and actively
+developed in the future.*
+
+After releasing ver. 1.0 new binaries will be available to subscribers only.
+Distribution of the source code and the licence will not change.
+
+Subscription cost (includes support via e-mail):
+
+* a `single download <https://www.plimus.com/jsp/buynow.jsp?contractId=2918496>`_: €90 / 115 USD
+
+* `1 year subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918202>`_: €210 / 265 USD
+
+* `1 year subscription + 20 hours of coding <https://www.plimus.com/jsp/buynow.jsp?contractId=2918292>`_ €630 / 795 USD.
+  The maintainer of Fityk will devote up to 20 hours to implement
+  feature(s) requested by the customer. (Bugs are fixed as soon as possible
+  regardless of who reports them). 20 hours can be enough to add
+  a simple data file format (2-3 page long spec), or to add a new function
+  (like, say, Voigt), or to tweak the GUI.
+  If you have a particular feature in mind, please contact us first.
 
 .. raw:: html
 
-   <div align="center" style="font-size:x-small; margin-top:20px;">
-   <form action="https://www.paypal.com/cgi-bin/webscr" method="post">
+   <form action="https://www.paypal.com/cgi-bin/webscr" method="post" style="display:inline; margin:0; padding: 0;">
+   <p>Alternatively, students and home users may
+   donate 10% of the normal price to wojdyr@gmail.com using PayPal
    <input type="hidden" name="cmd" value="_donations">
-   <input type="hidden" name="business" value="wojdyr@gmail.com">
+   <input type="hidden" name="business" value="E98FRTPDBQ3L6">
    <input type="hidden" name="lc" value="US">
-   <input type="hidden" name="item_name" value="Fityk">
    <input type="hidden" name="currency_code" value="USD">
-   <input type="hidden" name="bn" value="PP-DonationsBF:btn_donateCC_LG.gif:NonHosted">
-   <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donateCC_LG.gif" border="0" name="submit" alt="PayPal">
+   <input type="hidden" name="bn" value="PP-DonationsBF:btn_donate_SM.gif:NonHosted">
+   <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
    <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
-   </form>
-   <p>
-   Alternatively, you may donate via
-   <a href="http://moneybookers.com">moneybookers</a> to wojdyr@gmail.com
-   </p>
-   </div>
+  or <a href="http://moneybookers.com">MoneyBookers</a>.
+  </p>
+  </form>
+
+You are welcome to make a purchase now, the subscription time will be counted
+since the release of ver. 1.0.
 
 
 Documentation
@@ -113,7 +133,7 @@ Questions?
 
 Join the Google group
 `fityk-users <http://groups.google.com/group/fityk-users/>`_.
-You may select option "no mail" and use the web interface to send messages.
+You may select the option "no mail" and use the web interface to send messages.
 Feel free to send questions, comments, bug reports, new feature requests
 and success stories.
 
