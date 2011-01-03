@@ -2,15 +2,6 @@ $Id$
 
 ---------- TODO list and tentative development plan  ----------------
 
-* GUI: don't show %bg* at the bottom of the sidebar (when removing baseline)
-
-* GUI bug: pointer address is written to history instead of string
-
-* command info:
-  - "info peaks" should use info-numeric-format
-  - check if this works: @*: print filename, F[1].area, F[1].area.error >>file
-  -                          print y[$var]
-
 * wiki/Updating: write a page how to update fityk scripts
 
 * BUG report: currently, if a script references a non-existent file, fitYK crashes completely.

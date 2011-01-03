@@ -29,7 +29,7 @@
 #include <wx/wx.h>
 #endif
 
-#include <fstream>
+#include <stdio.h>
 
 #include "inputline.h"
 
@@ -64,11 +64,14 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
                       wxKeyEventHandler(InputLine::OnKeyDownAtSpinButton),
                       NULL, this);
     // read history
+    char line[512];
     if (!hist_file.IsEmpty()) {
-        std::ifstream f(hist_file.mb_str());
-        char line[512];
-        while (f.getline(line, 512))
-            m_history.Add(wxString(line, wxConvUTF8));
+        FILE *f = fopen(hist_file.mb_str(), "r");
+        while (fgets(line, 512, f)) {
+            wxString s = wxString(line, wxConvUTF8).Trim();
+            if (!s.empty())
+                m_history.Add(s);
+        }
     }
     // add empty line that will be displayed initially
     m_history.Add(wxT(""));
@@ -80,14 +83,13 @@ InputLine::~InputLine()
     // write history
     if (hist_file.IsEmpty())
         return;
-    std::ofstream f(hist_file.mb_str());
+    FILE *f = fopen(hist_file.mb_str(), "w");
     if (!f)
         return;
     for (size_t i = 0; i < m_history.GetCount(); ++i) {
-        if (i > 0)
-            f << std::endl;
-        f << m_history[i].c_str();
+        fprintf(f, "%s\n", (const char*) m_history[i].mb_str());
     }
+    fclose(f);
 }
 
 wxSize InputLine::DoGetBestSize() const
