@@ -219,8 +219,8 @@ void save_state(const Ftk* F, string& r)
         r += "\n";
     r += fityk_version_line;
     r += "\n## dumped at: " + time_now();
-    r += "\nset verbosity = quiet #the rest of the file is not shown";
-    r += "\nset autoplot = never";
+    r += "\nset verbosity = -1 #the rest of the file is not shown";
+    r += "\nset autoplot = 0";
     r += "\nreset";
     r += "\n# ------------  settings  ------------";
     // do not set autoplot and verbosity here

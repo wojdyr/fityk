@@ -122,7 +122,7 @@ string SettingsMgr::get_as_string(string const& k) const
     else if (opt.vtype == kBool)
         return m_.*opt.val.b.ptr ? "1" : "0";
     else if (opt.vtype == kString)
-        return S(m_.*opt.val.s.ptr);
+        return "'" + S(m_.*opt.val.s.ptr) + "'";
     else if (opt.vtype == kEnum)
         return S(m_.*opt.val.e.ptr);
     assert(0);
