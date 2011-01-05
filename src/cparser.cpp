@@ -744,6 +744,14 @@ void Parser::parse_fz(Lexer& lex, Command &cmd)
         lex.throw_syntax_error("unexpected token after F/Z");
 }
 
+void add_to_datasets(const Ftk* F_, vector<int>& datasets, int n)
+{
+    if (n == Lexer::kAll)
+        for (int j = 0; j != F_->get_dm_count(); ++j)
+            datasets.push_back(j);
+    else
+        datasets.push_back(n);
+}
 
 bool Parser::parse_statement(Lexer& lex)
 {
@@ -762,9 +770,9 @@ bool Parser::parse_statement(Lexer& lex)
         lex.get_token();
         Token t = lex.get_token();
         if (t.type == kTokenDataset || t.type == kTokenColon) {
-            st_.datasets.push_back(first.value.i);
+            add_to_datasets(F_, st_.datasets, first.value.i);
             while (t.type == kTokenDataset) {
-                st_.datasets.push_back(t.value.i);
+                add_to_datasets(F_, st_.datasets, t.value.i);
                 t = lex.get_expected_token(kTokenDataset, kTokenColon);
             }
         }
@@ -772,7 +780,8 @@ bool Parser::parse_statement(Lexer& lex)
             lex.go_back(first);
         }
     }
-    expand_dataset_glob(F_, st_.datasets, F_->default_dm());
+    if (st_.datasets.empty())
+        st_.datasets.push_back(F_->default_dm());
 
     if (first.type == kTokenLname && is_command(first, "w","ith")) {
         lex.get_token(); // discard "with"
@@ -995,33 +1004,5 @@ string Parser::get_statements_repr() const
             r += "\n\t" + token2str(*j);
     }
     return r;
-}
-
-void expand_dataset_glob(const Ftk* F, vector<int>& ds_list, int default_ds)
-{
-    if (ds_list.empty()) {
-        ds_list.push_back(default_ds);
-        return;
-    }
-
-    // the most common case
-    if (ds_list.size() == 1) {
-        if (ds_list[0] == Lexer::kAll)
-            ds_list = range_vector(0, F->get_dm_count());
-        return;
-    }
-
-    // general case
-    for (vector<int>::iterator i = ds_list.begin(); i != ds_list.end(); ++i)
-        if (*i == Lexer::kAll) {
-            for (int j = 0; j != F->get_dm_count(); ++j) {
-                if (!contains_element(ds_list, j)) {
-                    ds_list.insert(i, j);
-                    ++i;
-                }
-            }
-            ds_list.erase(i);
-            --i;
-        }
 }
 

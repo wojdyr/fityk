@@ -118,7 +118,4 @@ private:
     void parse_one_info_arg(Lexer& lex, std::vector<Token>& args);
 };
 
-void expand_dataset_glob(const Ftk* F, std::vector<int>& ds_list,
-                         int default_ds);
-
 #endif //FITYK_CPARSER_H_

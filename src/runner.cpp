@@ -283,9 +283,18 @@ void Runner::command_plot(const vector<Token>& args, int ds)
     RealRange hor = args2range(args[0], args[1]);
     RealRange ver = args2range(args[2], args[3]);
     vector<int> dd;
-    for (size_t i = 4; i < args.size(); ++i)
-        dd.push_back(args[i].value.i);
-    expand_dataset_glob(F_, dd, ds);
+    if (args.size() > 4) {
+        for (size_t i = 4; i < args.size(); ++i) {
+            int n = args[i].value.i;
+            if (n == Lexer::kAll)
+                for (int j = 0; j != F_->get_dm_count(); ++j)
+                    dd.push_back(j);
+            else
+                dd.push_back(n);
+        }
+    }
+    else
+        dd.push_back(ds);
     F_->view.change_view(hor, ver, dd);
     F_->get_ui()->draw_plot(UserInterface::kRepaintImmediately);
 }
