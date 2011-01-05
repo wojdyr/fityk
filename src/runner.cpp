@@ -557,8 +557,15 @@ void Runner::command_all_points_tr(const vector<Token>& args, int ds)
 
 void Runner::command_point_tr(const vector<Token>& args, int ds)
 {
-    vector<Point>& points = F_->get_data(ds)->get_mutable_points();
+    // This command can be executed thousands of times when running
+    // output of "info state". Data::after_transform() is too slow to
+    // be called from here. In typical script, complexity of this function
+    // should not depend on the number of points (we assume that in typical
+    // script, i.e. in a script from "info state", sorting is not needed).
+    Data *data = F_->get_data(ds);
+    vector<Point>& points = data->get_mutable_points();
     // args: (kTokenUletter kTokenExpr kTokenExpr)+
+    bool sorted = true;
     for (size_t n = 0; n < args.size(); n += 3) {
         char c = *args[n].str;
         int idx = iround(args[n+1].value.d);
@@ -568,14 +575,29 @@ void Runner::command_point_tr(const vector<Token>& args, int ds)
         if (idx < 0 || idx >= (int) points.size())
             throw ExecuteError("wrong point index: " + S(idx));
         Point& p = points[idx];
-        if (c == 'x' || c == 'X')
+        if (c == 'x' || c == 'X') {
             p.x = val;
-        else if (c == 'y' || c == 'Y')
+            if ((idx != 0 && points[idx-1].x > val) ||
+                    (idx+1 < (int) points.size() && val > points[idx+1].x))
+                sorted = false;
+            data->find_step();
+        }
+        else if (c == 'y' || c == 'Y') {
             p.y = val;
+        }
         else if (c == 's' || c == 'S')
             p.sigma = val;
-        else if (c == 'a' || c == 'A')
+        else if (c == 'a' || c == 'A') {
+            bool old_a = p.is_active;
             p.is_active = (fabs(val) >= 0.5);
+            if (old_a != p.is_active)
+                data->update_active_for_one_point(idx);
+        }
+    }
+
+    if (!sorted) {
+        data->sort_points();
+        data->find_step();
     }
     F_->outdated_plot();
 }
