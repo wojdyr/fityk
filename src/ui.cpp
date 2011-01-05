@@ -244,49 +244,16 @@ void UserInterface::exec_script(const string& filename)
 
     string dir = get_directory(filename);
 
-    // optimized for reading large embedded datasets
     int line_index = 0;
     string s;
-    int dirty_data = -1;
     while (getline (file, s)) {
         ++line_index;
         if (s.empty())
             continue;
         if (F_->get_verbosity() >= 0)
             show_message (kQuoted, S(line_index) + "> " + s);
-
-        // optimize reading data lines like this:
-        // X[93]=23.5124, Y[93]=122, S[93]=11.0454, A[93]=1 in @0
-        if (s.size() > 20 && s[0] == 'X') {
-            int nx, ny, ns, na, a, nd;
-            double x, y, sigma;
-            if (sscanf(s.c_str(),
-                       "X[%d]=%lf, Y[%d]=%lf, S[%d]=%lf, A[%d]=%d in @%d",
-                       &nx, &x, &ny, &y, &ns, &sigma, &na, &a, &nd) == 9
-                 && nx >= 0 && nx < size(F_->get_data(nd)->points())
-                 && nx == ny && nx == ns && nx == na) {
-                vector<Point>& p = F_->get_data(nd)->get_mutable_points();
-                p[nx].x = x;
-                p[ny].y = y;
-                p[ns].sigma = sigma;
-                p[na].is_active = (a != 0);
-                // check if we need to sort the data
-                if ((nx > 0 && p[nx-1].x > x)
-                    || (nx+1 < size(p) && x > p[nx+1].x))
-                    sort(p.begin(), p.end());
-                if (dirty_data != -1 && dirty_data != nd)
-                    F_->get_data(dirty_data)->after_transform();
-                dirty_data = nd;
-                continue;
-            }
-        }
-        if (dirty_data != -1) {
-            F_->get_data(dirty_data)->after_transform();
-            dirty_data = -1;
-        }
         replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
         execute_line(s);
-
         if (user_interrupt) {
             F_->msg ("Script stopped by signal INT.");
             return;
