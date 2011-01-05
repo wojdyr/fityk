@@ -186,7 +186,10 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
         data = ftk->get_data(data_nr);
         x_min = data->get_x_min();
         x_max = data->get_x_max();
-        y_max = data->get_y_max();
+        y_max = 0;
+        v_foreach(Point, p, data->points())
+            if (p->is_active && p->y > y_max)
+                y_max = p->y;
     }
 #endif
     initialize_quick_phase_list();

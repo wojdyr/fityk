@@ -47,7 +47,7 @@ string Data::get_info() const
     if (p_.empty())
         s = "No data points.";
     else
-        s = S(p_.size()) + " points, " + S(active_p_.size()) + " active.";
+        s = S(p_.size()) + " points, " + S(active_.size()) + " active.";
     if (!filename_.empty())
         s += "\nFilename: " + filename_;
     if (given_x_ != INT_MAX || given_y_ != INT_MAX || given_s_ != INT_MAX)
@@ -57,7 +57,7 @@ string Data::get_info() const
         s += ", " + S(given_s_);
     if (!title.empty())
         s += "\nData title: " + title;
-    if (active_p_.size() != p_.size())
+    if (active_.size() != p_.size())
         s += "\nActive data range: " + range_as_string();
     return s;
 }
@@ -71,7 +71,7 @@ void Data::clear()
     given_blocks_.clear();
     p_.clear();
     x_step_ = 0;
-    active_p_.clear();
+    active_.clear();
     has_sigma_ = false;
 }
 
@@ -97,23 +97,6 @@ void Data::post_load()
     }
     F->msg(inf);
     update_active_p();
-    recompute_y_bounds();
-}
-
-void Data::recompute_y_bounds() {
-    bool ini = false;
-    for (vector<Point>::iterator i = p_.begin(); i != p_.end(); i++) {
-        if (!is_finite(i->y))
-            continue;
-        if (!ini) {
-            y_min_ = y_max_ = i->y;
-            ini = true;
-        }
-        if (i->y < y_min_)
-            y_min_ = i->y;
-        if (i->y > y_max_)
-            y_max_ = i->y;
-    }
 }
 
 int Data::load_arrays(const vector<fp> &x, const vector<fp> &y,
@@ -132,8 +115,8 @@ int Data::load_arrays(const vector<fp> &x, const vector<fp> &y,
             p_[i] = Point(x[i], y[i], sigma[i]);
         has_sigma_ = true;
     }
-    sort(p_.begin(), p_.end());
-    x_step_ = find_step();
+    sort_points();
+    find_step();
     post_load();
     return p_.size();
 }
@@ -141,7 +124,7 @@ int Data::load_arrays(const vector<fp> &x, const vector<fp> &y,
 void Data::set_points(const vector<Point> &p)
 {
     p_ = p;
-    sort(p_.begin(), p_.end());
+    sort_points();
     after_transform();
 }
 
@@ -270,7 +253,7 @@ void Data::load_data_sum(vector<Data const*> const& dd, string const& op)
     filename_ = new_filename;
     p_ = new_p;
     has_sigma_ = true;
-    x_step_ = find_step();
+    find_step();
     post_load();
 }
 
@@ -280,11 +263,7 @@ void Data::add_one_point(double x, double y, double sigma)
     vector<Point>::iterator a = upper_bound(p_.begin(), p_.end(), pt);
     int idx = a - p_.begin();
     p_.insert(a, pt);
-    active_p_.insert(upper_bound(active_p_.begin(), active_p_.end(), idx), idx);
-    if (pt.y < y_min_)
-        y_min_ = pt.y;
-    if (pt.y > y_max_)
-        y_max_ = pt.y;
+    active_.insert(upper_bound(active_.begin(), active_.end(), idx), idx);
     // (fast) x_step_ update
     if (p_.size() < 2)
         x_step_ = 0.;
@@ -301,6 +280,18 @@ void Data::add_one_point(double x, double y, double sigma)
         else
             x_step_ = 0.;
     }
+}
+
+void Data::update_active_for_one_point(int idx)
+{
+    vector<int>::iterator a = lower_bound(active_.begin(), active_.end(), idx);
+    bool present = (a < active_.end() && *a == idx);
+    // this function is called only after switching the active flag
+    assert(present != p_[idx].is_active);
+    if (present)
+        active_.erase(a);
+    else
+        active_.insert(a, idx);
 }
 
 // the same as replace_all(options, "_", "-")
@@ -406,8 +397,8 @@ void Data::load_file (string const& fn,
     }
 
     if (x_step_ == 0) {
-        sort(p_.begin(), p_.end());
-        x_step_ = find_step();
+        sort_points();
+        find_step();
     }
 
     filename_ = fn;
@@ -423,7 +414,7 @@ void Data::load_file (string const& fn,
 fp Data::get_y_at (fp x) const
 {
     int n = get_upper_bound_ac (x);
-    if (n > size(active_p_) || n <= 0)
+    if (n > size(active_) || n <= 0)
         return 0;
     fp y1 = get_y (n - 1);
     fp y2 = get_y (n);
@@ -447,35 +438,34 @@ bool is_vector_sorted(vector<T> const& v)
 void Data::after_transform()
 {
     if (!is_vector_sorted(p_))
-        sort(p_.begin(), p_.end());
-    x_step_ = find_step();
+        sort_points();
+    find_step();
     update_active_p();
-    recompute_y_bounds();
 }
 
 void Data::update_active_p()
     // pre: p_.x sorted
-    // post: active_p_ sorted
+    // post: active_ sorted
 {
-    active_p_.clear();
+    active_.clear();
     for (int i = 0; i < size(p_); i++)
         if (p_[i].is_active)
-            active_p_.push_back(i);
+            active_.push_back(i);
 }
 
 
 //FIXME to remove it or to leave it?
 string Data::range_as_string() const
 {
-    if (active_p_.empty()) {
+    if (active_.empty()) {
         F->warn ("File not loaded or all points inactive.");
         return "[]";
     }
-    vector<Point>::const_iterator old_p = p_.begin() + active_p_[0];
+    vector<Point>::const_iterator old_p = p_.begin() + active_[0];
     fp left =  old_p->x;
     string s = "[" + S (left) + " : ";
-    for (vector<int>::const_iterator i = active_p_.begin() + 1;
-                                                    i != active_p_.end(); i++) {
+    for (vector<int>::const_iterator i = active_.begin() + 1;
+                                                    i != active_.end(); i++) {
         if (p_.begin() + *i != old_p + 1) {
             fp right = old_p->x;
             left = p_[*i].x;
@@ -489,13 +479,27 @@ string Data::range_as_string() const
 }
 
 ///check for fixed step
-fp Data::find_step()
+void Data::find_step()
 {
     const fp tiny_relat_diff = 1e-4;
-    if (p_.size() < 2)
-        return 0.;
-    else if (p_.size() == 2)
-        return p_[1].x - p_[0].x;
+    size_t len = p_.size();
+    if (len < 2) {
+        x_step_ = 0.;
+        return;
+    }
+    else if (len == 2) {
+        x_step_ = p_[1].x - p_[0].x;
+        return;
+    }
+
+    // first check for definitely unequal step
+    fp s1 = p_[1].x - p_[0].x;
+    fp s2 = p_[len-1].x - p_[len-2].x;
+    if (fabs(s2 - s1) > tiny_relat_diff * fabs(s2+s1)) {
+        x_step_ = 0.;
+        return;
+    }
+
     fp min_step, max_step, step;
     min_step = max_step = p_[1].x - p_[0].x;
     for (vector<Point>::iterator i = p_.begin() + 2; i < p_.end(); i++) {
@@ -505,26 +509,28 @@ fp Data::find_step()
     }
     fp avg = (max_step + min_step) / 2;
     if ((max_step - min_step) < tiny_relat_diff * fabs(avg))
-        return avg;
+        x_step_ = avg;
     else
-        return 0.;
+        x_step_ = 0.;
 }
 
+void Data::sort_points()
+{
+    sort(p_.begin(), p_.end());
+}
 
 int Data::get_lower_bound_ac (fp x) const
 {
-    //pre: p_.x is sorted, active_p_ is sorted
-    int pit = lower_bound (p_.begin(), p_.end(), Point(x,0)) - p_.begin();
-    return lower_bound (active_p_.begin(), active_p_.end(), pit)
-        - active_p_.begin();
+    //pre: p_.x is sorted, active_ is sorted
+    int pit = lower_bound(p_.begin(), p_.end(), Point(x,0)) - p_.begin();
+    return lower_bound(active_.begin(), active_.end(), pit) - active_.begin();
 }
 
 int Data::get_upper_bound_ac (fp x) const
 {
-    //pre: p_.x is sorted, active_p_ is sorted
-    int pit = upper_bound (p_.begin(), p_.end(), Point(x,0)) - p_.begin();
-    return upper_bound (active_p_.begin(), active_p_.end(), pit)
-        - active_p_.begin();
+    //pre: p_.x is sorted, active_ is sorted
+    int pit = upper_bound(p_.begin(), p_.end(), Point(x,0)) - p_.begin();
+    return upper_bound(active_.begin(), active_.end(), pit) - active_.begin();
 }
 
 vector<Point>::const_iterator Data::get_point_at(fp x) const
