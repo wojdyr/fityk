@@ -450,7 +450,8 @@ void parse_fit_args(Lexer& lex, vector<Token>& args)
         if (lex.peek_token().type == kTokenDataset)
             throw ExecuteError("No need to specify datasets to continue fit.");
     }
-    else if (t.type == kTokenNumber) {
+    // [n_iter] @n*
+    else if (t.type == kTokenNumber || kTokenDataset) {
         args.push_back(t);
         while (lex.peek_token().type == kTokenDataset)
             args.push_back(lex.get_token());
