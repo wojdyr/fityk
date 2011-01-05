@@ -847,14 +847,14 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
             cmd.type = kCmdInfo;
             parse_info_args(lex, cmd.args);
         }
-        else if (is_command(token, "p","lot")) {
+        else if (is_command(token, "pl","ot")) {
             cmd.type = kCmdPlot;
             parse_real_range(lex, cmd.args);
             parse_real_range(lex, cmd.args);
             while (lex.peek_token().type == kTokenDataset)
                 cmd.args.push_back(lex.get_token());
         }
-        else if (is_command(token, "pr","int")) {
+        else if (is_command(token, "p","rint")) {
             cmd.type = kCmdPrint;
             parse_print_args(lex, cmd.args);
         }
