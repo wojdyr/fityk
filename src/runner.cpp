@@ -668,7 +668,7 @@ void Runner::execute_command(Command& c, int ds)
             command_resize_p(c.args, ds);
             break;
         case kCmdTitle:
-            F_->get_data(ds)->title = c.args[0].as_string();
+            F_->get_data(ds)->title = Lexer::get_string(c.args[0]);
             break;
         case kCmdAssignParam:
             command_assign_param(c.args, ds);
