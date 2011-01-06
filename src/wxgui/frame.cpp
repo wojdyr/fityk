@@ -1325,7 +1325,7 @@ void FFrame::OnDump (wxCommandEvent&)
                       dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
-        ftk->exec("dump > '" + wx2s(fdlg.GetPath()) + "'");
+        ftk->exec("info state > '" + wx2s(fdlg.GetPath()) + "'");
     }
     dir = fdlg.GetDirectory();
 }
