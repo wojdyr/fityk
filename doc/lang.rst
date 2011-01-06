@@ -117,7 +117,7 @@ The kCmd* names in the comments correspond to constants in the code.
    guess: [Funcname "="] Uname ["(" (Lname "=" `v_expr`) % "," ")"] [`range`]
    info_arg: ...TODO
    print: ...TODO
-   redir: ">>" `filename`
+   redir: (">"|">>") `filename`
    value: (Lname | QuotedString | `expr`) (*value type depends on the option*)
    model_rhs: "0" |
             : `func_id` |
