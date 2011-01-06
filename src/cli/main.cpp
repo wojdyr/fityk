@@ -322,6 +322,15 @@ char **my_completion (const char *text, int start, int end)
     if (cmd_start == start)
         return rl_completion_matches(text, command_generator);
     char *ptr = rl_line_buffer+cmd_start;
+
+    char* prev_nonblank = rl_line_buffer + start - 1;
+    while (prev_nonblank > rl_line_buffer && isspace(*prev_nonblank))
+        --prev_nonblank;
+    if (*prev_nonblank == '>' || *prev_nonblank == '<') { //filename completion
+        rl_attempted_completion_over = 0;
+        return 0;
+    }
+
     //check if it is after set command or after with
     if (starts_with_command(ptr, start - cmd_start, "s","et")
         || starts_with_command(ptr, start - cmd_start, "w","ith")) {
@@ -374,14 +383,6 @@ char **my_completion (const char *text, int start, int end)
 
     // filename completion after exec
     if (starts_with_command(ptr, start - cmd_start, "e","xecute")) {
-        rl_attempted_completion_over = 0;
-        return 0;
-    }
-
-    ptr = rl_line_buffer + start - 1;
-    while (ptr > rl_line_buffer && isspace(*ptr))
-        --ptr;
-    if (*ptr == '>' || *ptr == '<') { //filename completion
         rl_attempted_completion_over = 0;
         return 0;
     }
