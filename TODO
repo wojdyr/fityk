@@ -1,6 +1,10 @@
 
 ---------- TODO list and tentative development plan  ----------------
 
+* fix plot refreshing problems (reported on wxGTK 2.8)
+
+* GUI: Fit > Info crashes if "i fit" shows error (zeroed column)
+
 * wiki/Updating: write a page how to update fityk scripts
 
 --- 0.9.5 
