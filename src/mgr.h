@@ -19,8 +19,6 @@ struct Token;
 class VariableManager
 {
 public:
-    bool silent;
-
     VariableManager(const Ftk* F);
     ~VariableManager();
     void register_model(Model *m) { models_.push_back(m); }

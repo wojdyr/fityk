@@ -23,8 +23,7 @@
 using namespace std;
 
 VariableManager::VariableManager(const Ftk* F)
-    : silent(false),
-      F_(F),
+    : F_(F),
       var_autoname_counter_(0),
       func_autoname_counter_(0)
 {
@@ -482,14 +481,12 @@ int VariableManager::add_func(Function* func)
         delete functions_[nr];
         functions_[nr] = func;
         remove_unreferred();
-        if (!silent)
-            F_->msg("%" + func->name + " replaced.");
+        F_->msg("%" + func->name + " replaced.");
     }
     else {
         nr = functions_.size();
         functions_.push_back(func);
-        if (!silent)
-            F_->msg("%" + func->name + " created.");
+        F_->msg("%" + func->name + " created.");
     }
     return nr;
 }
