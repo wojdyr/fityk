@@ -111,7 +111,13 @@ void FitInfoDlg::update_right_tc()
     wxString s;
     if (choice == 0 || choice == 1) {
         fp scale = (choice == 0 ? 1. : 1. / sqrt(wssr_over_dof));
-        vector<fp> errors = fit->get_standard_errors(dms);
+        vector<fp> errors;
+        try {
+            errors = fit->get_standard_errors(dms);
+        }
+        catch (ExecuteError&) {
+            errors.resize(na, 0.);
+        }
         for (int i = 0; i < na; ++i) {
             if (fit->is_param_used(i)) {
                 const Variable *var = ftk->find_variable_handling_param(i);
@@ -135,7 +141,13 @@ void FitInfoDlg::update_right_tc()
     }
     else {
         s = wxT("          ");
-        vector<fp> alpha = fit->get_covariance_matrix(dms);
+        vector<fp> alpha;
+        try {
+            alpha = fit->get_covariance_matrix(dms);
+        }
+        catch (ExecuteError&) {
+            alpha.resize(na*na, 0.);
+        }
         for (int i = 0; i < na; ++i)
             if (fit->is_param_used(i)) {
                 string name = "$" + ftk->find_variable_handling_param(i)->name;
