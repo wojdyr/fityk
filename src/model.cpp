@@ -2,7 +2,6 @@
 // Licence: GNU General Public License ver. 2+
 
 #include <algorithm>
-#include <sstream>
 #include <string>
 #include <vector>
 #include <fstream>

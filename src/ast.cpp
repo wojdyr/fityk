@@ -4,7 +4,6 @@
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/digamma.hpp>
 
-#include <sstream>
 #include <string>
 #include <vector>
 #include <cassert>

@@ -12,7 +12,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <fstream>
-#include <sstream>
 #include <algorithm>
 
 #include <xylib/xylib.h>

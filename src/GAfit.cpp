@@ -6,7 +6,6 @@
 #include <algorithm>
 #include <numeric>
 #include <deque>
-#include <sstream>
 #include <math.h>
 
 #include "common.h"

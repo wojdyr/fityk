@@ -2,7 +2,6 @@
 // Licence: GNU General Public License ver. 2+
 
 #include <algorithm>
-#include <sstream>
 #include <math.h>
 #include <string.h>
 
@@ -276,24 +275,23 @@ string Fit::print_matrix (const vector<fp>& vec, int m, int n,
     assert (size(vec) == m * n);
     if (m < 1 || n < 1)
         throw ExecuteError("In `print_matrix': It is not a matrix.");
-    ostringstream h;
-    h << mname << "={ ";
+    string h = S(mname) + "={ ";
     if (m == 1) { // vector
         for (int i = 0; i < n; i++)
-            h << vec[i] << (i < n - 1 ? ", " : " }") ;
+            h += S(vec[i]) + (i < n - 1 ? ", " : " }") ;
     }
     else { //matrix
         string blanks (strlen(mname) + 1, ' ');
         for (int j = 0; j < m; j++){
             if (j > 0)
-                h << blanks << "  ";
+                h += blanks + "  ";
             for (int i = 0; i < n; i++)
-                h << vec[j * n + i] << ", ";
-            h << endl;
+                h += S(vec[j * n + i]) + ", ";
+            h += "\n";
         }
-        h << blanks << "}";
+        h += blanks + "}";
     }
-    return h.str();
+    return h;
 }
 
 bool Fit::post_fit (const vector<fp>& aa, fp chi2)
