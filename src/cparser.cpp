@@ -393,6 +393,8 @@ Tplate::Ptr Parser::parse_define_args(Lexer& lex)
     lex.get_expected_token(kTokenAssign); // discard '='
 
     const char* start_rhs = lex.pchar();
+    while (isspace(*start_rhs))
+        ++start_rhs;
     parse_define_rhs(lex, tp.get());
     tp->rhs = string(start_rhs, lex.pchar());
     return tp;

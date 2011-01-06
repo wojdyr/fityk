@@ -17,6 +17,13 @@
 
 using namespace std;
 
+bool is_def_used(const string& name)
+{
+    Tplate::Ptr ptr = ftk->get_tpm()->get_shared_tp(name);
+    //printf("%s: %d\n", name.c_str(), (int) ptr.use_count());
+    // minimal use_count() is 2: this pointer and the one in TplateMgr::tpvec_
+    return ptr.use_count() > 2;
+}
 
 DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     : wxDialog(parent, -1, wxT("Function Definition Manager"),
@@ -33,7 +40,7 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     wxButton* add_btn = new wxButton(this, wxID_ADD, wxT("Add"));
     lb_sizer->Add(add_btn, 0, wxALL|wxALIGN_CENTER, 5);
     wxButton* remove_btn = new wxButton(this, wxID_REMOVE, wxT("Remove"));
-    lb_sizer->Add(remove_btn, 0, wxALL|wxALIGN_RIGHT, 5);
+    lb_sizer->Add(remove_btn, 0, wxALL|wxALIGN_CENTER, 5);
     hsizer->Add(lb_sizer, 0, wxEXPAND);
 
     wxBoxSizer *vsizer = new wxBoxSizer(wxVERTICAL);
@@ -47,7 +54,7 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
 
     help_tc = new wxTextCtrl(this, -1, wxT(""),
                wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY);
-    vsizer->Add(new wxStaticText(this, -1, wxT("Description and help:")),
+    vsizer->Add(new wxStaticText(this, -1, wxT("Description:")),
                 0, wxALL, 5);
     vsizer->Add(help_tc, 1, wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
 
@@ -93,8 +100,7 @@ void DefinitionMgrDlg::parse_definition()
     Tplate& tp = modified_[selected_];
     if (tp.is_coded())
         return;
-    wxString value = def_tc->GetValue();
-    value.Trim();
+    string value = wx2s(def_tc->GetValue().Trim());
     if (value.empty()) {
         help_tc->Clear();
         lb->SetString(selected_, wxT("-"));
@@ -102,11 +108,11 @@ void DefinitionMgrDlg::parse_definition()
         return;
     }
     try {
-        Lexer lex(value.mb_str());
+        Lexer lex(value.c_str());
         tp = *parser_.parse_define_args(lex);
         update_ui(tp);
     }
-    catch (ExecuteError &e) {
+    catch (exception &e) {
         help_tc->SetValue(pchar2wx(e.what()));
         lb->SetString(selected_, wxT("-"));
     }
@@ -115,16 +121,17 @@ void DefinitionMgrDlg::parse_definition()
     ok_btn->Enable(all_ok);
 }
 
-
 void DefinitionMgrDlg::update_ui(const Tplate& tp)
 {
     wxString help = wxString::Format(wxT("%d args:"), (int)tp.fargs.size());
     v_foreach (string, i, tp.fargs)
-        help += " " + s2wx(*i);
+        help += wxT(" ") + s2wx(*i);
     help += wxT("\npeak traits: ");
     help += (tp.peak_d ? wxT("yes") : wxT("no"));
     help += wxT("\nlinear traits: ");
     help += (tp.linear_d ? wxT("yes") : wxT("no"));
+    help += wxT("\nused by %functions or other definitions: ");
+    help += is_def_used(tp.name) ? wxT("yes") : wxT("no");
     help_tc->SetValue(help);
     lb->SetString(selected_, s2wx(tp.name));
 }
@@ -141,14 +148,14 @@ void DefinitionMgrDlg::select_function()
     selected_ = n;
     const Tplate& tp = modified_[n];
 
-    def_tc->SetValue(s2wx(tp.rhs));
-    def_tc->SetEditable(!tp.is_coded());
+    def_tc->SetValue(s2wx(tp.as_formula()));
+    def_tc->SetEditable(!tp.is_coded() && !is_def_used(tp.name));
     def_label_st->SetLabel(tp.is_coded() ? wxT("definition (equivalent):")
                                          : wxT("definition:"));
     update_ui(tp);
 }
 
-std::string DefinitionMgrDlg::get_command()
+vector<string> DefinitionMgrDlg::get_commands()
 {
     vector<string> ss;
 
@@ -179,7 +186,7 @@ std::string DefinitionMgrDlg::get_command()
         if (need_define)
             ss.push_back("define " + i->as_formula());
     }
-    return join_vector(ss, "; ");
+    return ss;
 }
 
 void DefinitionMgrDlg::OnAddButton(wxCommandEvent &)
@@ -187,7 +194,7 @@ void DefinitionMgrDlg::OnAddButton(wxCommandEvent &)
     Tplate tp;
     tp.create = NULL;
     modified_.push_back(tp);
-    lb->Append(wxT("new"));
+    lb->Append(wxT(""));
     lb->SetSelection(lb->GetCount() - 1);
     select_function();
     def_tc->SetFocus();
@@ -196,13 +203,15 @@ void DefinitionMgrDlg::OnAddButton(wxCommandEvent &)
 
 void DefinitionMgrDlg::OnRemoveButton(wxCommandEvent &)
 {
+    if (!is_index(selected_, modified_))
+        return;
+    modified_.erase(modified_.begin() + selected_);
+    lb->Delete(selected_);
     if (modified_.empty())
         return;
     lb->SetSelection(selected_ > 0 ? selected_ - 1 : 0);
     selected_ = -1;
     select_function();
-    modified_.erase(modified_.begin() + selected_);
-    lb->Delete(selected_);
 }
 
 void DefinitionMgrDlg::OnOk(wxCommandEvent&)

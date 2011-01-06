@@ -99,6 +99,7 @@ inline std::string S(char k) { return std::string(1, k); }
 inline std::string S(const std::string& k) { return k; }
 inline std::string S() { return std::string(); }
 inline std::string S(int n) { return format1<int, 16>("%d", n); }
+inline std::string S(long n) { return format1<int, 16>("%d", n); }
 inline std::string S(size_t n)
     { return format1<size_t, 16>("%lu", (unsigned long) n); }
 inline std::string S(double d) { return format1<double, 16>("%g", d); }

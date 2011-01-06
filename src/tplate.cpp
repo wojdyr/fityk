@@ -31,7 +31,8 @@ bool Tplate::is_coded() const
 {
     return create != create_CompoundFunction &&
            create != create_SplitFunction &&
-           create != create_CustomFunction;
+           create != create_CustomFunction &&
+           create != NULL; // return false for empty Tplate
 }
 
 #define FACTORY_FUNC(NAME) \

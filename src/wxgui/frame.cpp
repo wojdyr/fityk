@@ -1082,8 +1082,11 @@ void FFrame::OnDataExport (wxCommandEvent&)
 void FFrame::OnDefinitionMgr(wxCommandEvent&)
 {
     DefinitionMgrDlg* dlg = new DefinitionMgrDlg(this);
-    if (dlg->ShowModal() == wxID_OK)
-        ftk->exec(dlg->get_command());
+    if (dlg->ShowModal() == wxID_OK) {
+        vector<string> commands = dlg->get_commands();
+        v_foreach (string, c, commands)
+            ftk->exec(*c);
+    }
     dlg->Destroy();
 }
 

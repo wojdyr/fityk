@@ -19,7 +19,7 @@ public:
     void OnAddButton(wxCommandEvent &);
     void OnRemoveButton(wxCommandEvent &);
     void OnOk(wxCommandEvent &event);
-    std::string get_command();
+    std::vector<std::string> get_commands();
 
 private:
     int selected_;
