@@ -587,8 +587,8 @@ void command_redirectable(const Ftk* F, int ds,
         assert(args.back().type == kTokenFilename ||
                args.back().type == kTokenString);
         string filename = Lexer::get_string(args.back());
-        FILE *f = fopen(filename.c_str(),
-                        (args.end() - 1)->type == kTokenGT ? "w" : "a");
+        const char* mode = args[len-2].type == kTokenGT ? "w" : "a";
+        FILE *f = fopen(filename.c_str(), mode);
         if (!f)
             throw ExecuteError("Can't open file: " + filename);
         fprintf(f, "%s\n", info.c_str());
