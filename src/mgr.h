@@ -4,6 +4,7 @@
 #ifndef FITYK__MGR__H__
 #define FITYK__MGR__H__
 
+#include <map>
 #include "common.h"
 #include "tplate.h" // Tplate::Ptr
 

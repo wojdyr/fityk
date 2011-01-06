@@ -15,10 +15,7 @@
 #endif
 
 #include <string>
-#include <sstream>
-#include <iomanip>
 #include <vector>
-#include <map>
 #include <math.h>
 #include <assert.h>
 
@@ -262,25 +259,6 @@ int index_of_element(std::vector<T> const& vec, T2 const& t)
         return p - vec.begin();
     else
         return -1;
-}
-
-//---------------------------  M A P  --------------------------------
-template<typename T1, typename T2>
-std::vector<T2> get_map_keys(std::map<T1,T2> const& m)
-{
-    std::vector<T2> result;
-    for (typename std::map<T1,T2>::const_iterator i=m.begin(); i!=m.end(); ++i)
-        result.push_back(i->first);
-    return result;
-}
-
-template<typename T1, typename T2>
-std::vector<T2> get_map_values(std::map<T1,T2> const& m)
-{
-    std::vector<T2> result;
-    for (typename std::map<T1,T2>::const_iterator i=m.begin(); i!=m.end(); ++i)
-        result.push_back(i->second);
-    return result;
 }
 
 //----------------  filename utils  -------------------------------------
