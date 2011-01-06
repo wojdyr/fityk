@@ -75,7 +75,7 @@ wxChoice *addEnumSetting(wxWindow *parent, wxString const& label,
     wxArrayString array;
     const char** values = SettingsMgr::get_allowed_values(option);
     while (values != NULL) {
-        array.Add(*values);
+        array.Add(pchar2wx(*values));
         ++values;
     }
     wxChoice *ctrl = new wxChoice(parent, -1, wxDefaultPosition, wxDefaultSize,
