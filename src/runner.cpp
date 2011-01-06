@@ -64,8 +64,10 @@ void Runner::command_delete(const vector<Token>& args)
             funcs.push_back(Lexer::get_string(*i));
         else if (i->type == kTokenVarname)
             vars.push_back(Lexer::get_string(*i));
-        else if (i->type == kTokenFilename)
+        else if (i->type == kTokenFilename || i->type == kTokenString)
             files.push_back(Lexer::get_string(*i));
+        else
+            assert(0);
     }
     if (!dd.empty()) {
         sort(dd.rbegin(), dd.rend());
