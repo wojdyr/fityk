@@ -7,7 +7,7 @@
 //#include <wx/msgdlg.h>
 
 #include "defmgr.h"
-#include "cmn.h" //s2wx, wx2s, close_it
+#include "cmn.h" //s2wx, wx2s
 #include "frame.h" // ftk
 #include "../logic.h"
 #include "../func.h"

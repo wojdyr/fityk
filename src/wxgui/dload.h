@@ -44,7 +44,6 @@ protected:
     void OnBlockChanged (wxCommandEvent& event);
     void OnOpenHere (wxCommandEvent& event);
     void OnOpenNew (wxCommandEvent& event);
-    void OnClose (wxCommandEvent& event);
     void on_path_change();
     void OnPathSelectionChanged(wxTreeEvent&) { on_path_change(); }
     void OnPathTextChanged(wxCommandEvent&);

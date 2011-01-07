@@ -167,7 +167,7 @@ void PageSetupDialog::OnOk(wxCommandEvent&)
     wxPoint bottom_right(right_margin->GetValue(), bottom_margin->GetValue());
     pm->get_page_data().SetMarginBottomRight(bottom_right);
 
-    close_it(this, wxID_OK);
+    EndModal(wxID_OK);
 }
 
 

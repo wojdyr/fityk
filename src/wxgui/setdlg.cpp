@@ -367,7 +367,7 @@ void SettingsDlg::OnOK(wxCommandEvent&)
     wxConfig::Get()->Write(wxT("/loadDataDir"), dir_ld_tc->GetValue());
     wxConfig::Get()->Write(wxT("/execScriptDir"), dir_xs_tc->GetValue());
     wxConfig::Get()->Write(wxT("/exportDir"), dir_ex_tc->GetValue());
-    close_it(this, wxID_OK);
+    EndModal(wxID_OK);
 }
 
 

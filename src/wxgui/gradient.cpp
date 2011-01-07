@@ -98,6 +98,7 @@ GradientDlg::GradientDlg(wxWindow *parent, wxWindowID id,
     add_apply_close_buttons(this, top_sizer);
     SetSizerAndFit(top_sizer);
     update_gradient_display();
+    SetEscapeId(wxID_CLOSE);
 }
 
 void GradientDlg::update_gradient_display()

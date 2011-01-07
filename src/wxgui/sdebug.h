@@ -6,7 +6,6 @@
 
 #include <wx/notebook.h>
 #include <wx/listctrl.h>
-#include "cmn.h" //close_it()
 
 class ScriptDebugDlg : public wxDialog
 {
@@ -20,7 +19,7 @@ public:
     void OnExecSelected(wxCommandEvent&) { ExecSelected(); }
     int ExecSelected();
     void OnExecDown(wxCommandEvent&);
-    void OnClose(wxCommandEvent&) { close_it(this); }
+    void OnClose(wxCommandEvent&) { Show(false); }
     void OnPageChange(wxNotebookEvent& event);
     void OnTextChange(wxCommandEvent&);
     wxString get_list_item(int i);

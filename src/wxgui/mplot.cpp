@@ -1544,7 +1544,6 @@ void MainPlot::OnZoomAll(wxCommandEvent&)
 
 BEGIN_EVENT_TABLE(ConfigureAxesDlg, wxDialog)
     EVT_BUTTON(wxID_APPLY, ConfigureAxesDlg::OnApply)
-    EVT_BUTTON(wxID_CLOSE, ConfigureAxesDlg::OnClose)
     EVT_BUTTON(ID_CAD_COLOR, ConfigureAxesDlg::OnChangeColor)
     EVT_BUTTON(ID_CAD_FONT, ConfigureAxesDlg::OnChangeFont)
 END_EVENT_TABLE()
@@ -1652,6 +1651,7 @@ ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
     top_sizer->Add(common_sizer, 0, wxALIGN_CENTER);
     add_apply_close_buttons(this, top_sizer);
     SetSizerAndFit(top_sizer);
+    SetEscapeId(wxID_CLOSE);
 }
 
 void ConfigureAxesDlg::OnApply (wxCommandEvent&)
@@ -1695,7 +1695,6 @@ void ConfigureAxesDlg::OnChangeFont (wxCommandEvent&)
 
 BEGIN_EVENT_TABLE(ConfigurePLabelsDlg, wxDialog)
     EVT_BUTTON(wxID_APPLY, ConfigurePLabelsDlg::OnApply)
-    EVT_BUTTON(wxID_CLOSE, ConfigurePLabelsDlg::OnClose)
     EVT_BUTTON(ID_CPL_FONT, ConfigurePLabelsDlg::OnChangeLabelFont)
     EVT_CHECKBOX(ID_CPL_SHOW, ConfigurePLabelsDlg::OnCheckShowLabel)
     EVT_TEXT(ID_CPL_TEXT, ConfigurePLabelsDlg::OnChangeLabelText)
@@ -1763,6 +1762,7 @@ ConfigurePLabelsDlg::ConfigurePLabelsDlg(wxWindow* parent, wxWindowID id,
     label_text->Enable(plot->plabels_visible);
     label_radio->Enable(plot->plabels_visible);
     vertical_rb->Enable(plot->plabels_visible);
+    SetEscapeId(wxID_CLOSE);
 }
 
 void ConfigurePLabelsDlg::OnChangeLabelText (wxCommandEvent&)

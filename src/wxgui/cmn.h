@@ -149,29 +149,33 @@ public:
 /// get path ~/.fityk/filename or equivalent on other platforms
 wxString get_conf_file(std::string const& filename);
 
-
-/// To be replaced with SetEscapeId()
-inline void close_it(wxDialog* dlg, int id=wxID_CANCEL)
-{
-    if (dlg->IsModal())
-        dlg->EndModal(id);
-    else {
-        dlg->SetReturnCode(id);
-        dlg->Show(false);
-    }
-}
-
 // same as cwi->Clear(), cwi->Append(...), but optimized for some special cases
 void updateControlWithItems(wxControlWithItems *cwi,
                             std::vector<std::string> const& v);
 
-# if !wxCHECK_VERSION(2, 9, 0)
-#define wxPENSTYLE_SHORT_DASH wxSHORT_DASH
-#define wxPENSTYLE_DOT wxDOT
-#define wxPENSTYLE_DOT_DASH wxDOT_DASH
-typedef int wxPenStyle;
+#if !wxCHECK_VERSION(2, 9, 0)
+# define wxPENSTYLE_SHORT_DASH wxSHORT_DASH
+# define wxPENSTYLE_DOT wxDOT
+# define wxPENSTYLE_DOT_DASH wxDOT_DASH
+  typedef int wxPenStyle;
+
+  // SetEscapeId is buggy in wxgtk 2.8 (ticket #10746), disable it
+# ifdef __WXGTK__
+#  define SetEscapeId(id) \
+      Connect(id, wxEVT_COMMAND_BUTTON_CLICKED, \
+              wxCommandEventHandler(DialogCloser::OnClose), NULL, \
+              DialogCloser::instance());
+# endif
 #endif
 
+class DialogCloser : public wxEvtHandler
+{
+public:
+    static DialogCloser* instance();
+    void OnClose(wxCommandEvent& event);
+private:
+    static DialogCloser* instance_;
+};
 
 // from http://www.wxwidgets.org/wiki/index.php/Embedding_PNG_Images
 inline wxBitmap GetBitmapFromMemory_(const unsigned char *data, int length)

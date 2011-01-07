@@ -172,7 +172,7 @@ void FitRunDlg::OnOK(wxCommandEvent&)
 
     Show(false);
     ftk->exec(cmd);
-    close_it(this, wxID_OK);
+    EndModal(wxID_OK);
 }
 
 

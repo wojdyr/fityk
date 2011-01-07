@@ -124,7 +124,6 @@ BEGIN_EVENT_TABLE(DLoadDlg, wxDialog)
     EVT_SPINCTRL    (ID_DXLOAD_COLX,      DLoadDlg::OnColumnChanged)
     EVT_SPINCTRL    (ID_DXLOAD_COLY,      DLoadDlg::OnColumnChanged)
     EVT_CHOICE      (ID_DXLOAD_BLOCK,     DLoadDlg::OnBlockChanged)
-    EVT_BUTTON      (wxID_CLOSE,          DLoadDlg::OnClose)
     EVT_BUTTON      (ID_DXLOAD_OPENHERE,  DLoadDlg::OnOpenHere)
     EVT_BUTTON      (ID_DXLOAD_OPENNEW,   DLoadDlg::OnOpenNew)
     EVT_TREE_SEL_CHANGED (-1,             DLoadDlg::OnPathSelectionChanged)
@@ -278,6 +277,7 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
     SetSizerAndFit(top_sizer);
     SetSize(wxSize(700, 600));
     update_block_list();
+    SetEscapeId(wxID_CLOSE);
 }
 
 void DLoadDlg::StdDevCheckBoxChanged()
@@ -354,11 +354,6 @@ void DLoadDlg::OnColumnChanged (wxSpinEvent&)
     if (auto_plot_cb->GetValue())
         update_plot_preview();
     update_title_from_file();
-}
-
-void DLoadDlg::OnClose (wxCommandEvent&)
-{
-    close_it(this);
 }
 
 void DLoadDlg::OnOpenHere (wxCommandEvent&)

@@ -285,3 +285,21 @@ wxSizer* persistance_note_sizer(wxWindow *parent)
                      );
 }
 
+DialogCloser* DialogCloser::instance_ = NULL;
+
+DialogCloser* DialogCloser::instance()
+{
+    if (instance_ == NULL)
+        instance_ = new DialogCloser();
+    return instance_;
+}
+void DialogCloser::OnClose(wxCommandEvent& event)
+{
+    wxWindow* w = (wxWindow*) event.GetEventObject();
+    while (!w->IsTopLevel())
+        w = w->GetParent();
+    wxDialog *dialog = wxDynamicCast(w, wxDialog);
+    assert(dialog->IsModal());
+    dialog->EndModal(wxID_CANCEL);
+}
+

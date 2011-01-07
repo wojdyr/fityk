@@ -89,11 +89,8 @@ public:
     {
         Connect(wxID_APPLY, wxEVT_COMMAND_BUTTON_CLICKED,
                   wxCommandEventHandler(GradientDlgWithApply::OnApply));
-        Connect(wxID_CLOSE, wxEVT_COMMAND_BUTTON_CLICKED,
-                  wxCommandEventHandler(GradientDlgWithApply::OnClose));
     }
     void OnApply(wxCommandEvent &) { (callee->*callback)(this); }
-    void OnClose(wxCommandEvent&) { close_it(this); }
 private:
     calleeT *callee;
     void (calleeT::*callback)(GradientDlg *);
