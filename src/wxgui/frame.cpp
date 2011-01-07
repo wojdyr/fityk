@@ -168,7 +168,7 @@ enum {
     ID_SAVE_IMAGE              ,
     ID_SESSION_INCLUDE         ,
     ID_SESSION_REINCLUDE       ,
-    ID_S_DEBUGGER              ,
+    ID_SCRIPT_EDIT             ,
     ID_SESSION_DUMP            ,
     ID_SESSION_SET             ,
     ID_SESSION_EI              ,
@@ -260,7 +260,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_SESSION_RESET, FFrame::OnReset)
     EVT_MENU (ID_SESSION_INCLUDE, FFrame::OnInclude)
     EVT_MENU (ID_SESSION_REINCLUDE, FFrame::OnReInclude)
-    EVT_MENU (ID_S_DEBUGGER,    FFrame::OnDebugger)
+    EVT_MENU (ID_SCRIPT_EDIT,   FFrame::OnShowEditor)
     EVT_MENU (wxID_PRINT,       FFrame::OnPrint)
     EVT_MENU (ID_PRINT_PSFILE,  FFrame::OnPrintPSFile)
     EVT_MENU (ID_PRINT_CLIPB,   FFrame::OnPrintToClipboard)
@@ -560,8 +560,8 @@ void FFrame::set_menubar()
     session_menu->Append (ID_SESSION_REINCLUDE, wxT("R&e-Execute script"),
              wxT("Reset & execute commands from the file included last time"));
     session_menu->Enable (ID_SESSION_REINCLUDE, false);
-    session_menu->Append (ID_S_DEBUGGER, wxT("Script Debu&gger"),
-                                       wxT("Show script editor and debugger"));
+    session_menu->Append (ID_SCRIPT_EDIT, wxT("E&dit Script"),
+                                       wxT("Show script editor"));
     append_mi(session_menu, ID_SESSION_RESET, GET_BMP(reload16), wxT("&Reset"),
                                       wxT("Reset current session"));
     session_menu->AppendSeparator();
@@ -604,7 +604,7 @@ void FFrame::set_menubar()
     append_mi(session_menu, ID_SESSION_SET, GET_BMP(preferences16),
               wxT("&Settings"), wxT("Preferences and options"));
     session_menu->Append (ID_SESSION_EI, wxT("Edit &Init File"),
-                             wxT("Edit script executed when program starts"));
+                         wxT("Edit the script run at startup"));
     session_menu->AppendSeparator();
     session_menu->Append(wxID_EXIT, wxT("&Quit"));
 
@@ -1304,16 +1304,10 @@ void FFrame::OnReInclude (wxCommandEvent&)
     ftk->exec("reset; commands < '" + last_include_path + "'");
 }
 
-void FFrame::show_debugger(wxString const& path)
+void FFrame::show_editor(wxString const& path)
 {
-    static ScriptDebugDlg *dlg = 0;
-    if (!dlg)
-        dlg = new ScriptDebugDlg(this, -1);
-    if (path.IsEmpty()) {
-        if (dlg->get_path().IsEmpty())
-            dlg->OpenFile(this);
-    }
-    else
+    ScriptDebugDlg* dlg = new ScriptDebugDlg(this);
+    if (!path.empty())
         dlg->do_open_file(path);
     dlg->Show(true);
 }
@@ -1340,7 +1334,7 @@ void FFrame::OnSettings (wxCommandEvent&)
 void FFrame::OnEditInit (wxCommandEvent&)
 {
     wxString startup_file = get_conf_file(startup_commands_filename);
-    show_debugger(startup_file);
+    show_editor(startup_file);
 }
 
 void FFrame::change_mouse_mode(MouseModeEnum mode)

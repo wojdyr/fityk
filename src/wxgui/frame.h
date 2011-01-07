@@ -108,8 +108,8 @@ public:
     void OnLogDump       (wxCommandEvent& event);
     void OnInclude      (wxCommandEvent& event);
     void OnReInclude    (wxCommandEvent& event);
-    void OnDebugger     (wxCommandEvent&) { show_debugger(); }
-    void show_debugger (wxString const& path=wxT(""));
+    void OnShowEditor   (wxCommandEvent&) { show_editor(wxT("")); }
+    void show_editor (wxString const& path);
     void OnReset       (wxCommandEvent&);
     void OnDump         (wxCommandEvent&);
     void OnSettings      (wxCommandEvent&);
