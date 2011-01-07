@@ -2,7 +2,6 @@
 // Licence: GNU General Public License ver. 2+
 
 #include <string>
-#include <iostream>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>

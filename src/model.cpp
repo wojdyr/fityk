@@ -4,7 +4,6 @@
 #include <algorithm>
 #include <string>
 #include <vector>
-#include <fstream>
 #include <ctype.h>
 #include "common.h"
 #include "model.h"

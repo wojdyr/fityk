@@ -5,7 +5,6 @@
 #define FITYK__DATA__H__
 #include <string>
 #include <vector>
-#include <fstream>
 #include <limits.h>
 #include "common.h"
 
@@ -78,7 +77,6 @@ public :
     int get_given_x() const { return given_x_; }
     int get_given_y() const { return given_y_; }
     int get_given_s() const { return given_s_; }
-    static std::string read_one_line_as_title(std::ifstream& f, int column=-1);
     void revert();
 
 private:
@@ -93,13 +91,8 @@ private:
     std::vector<Point> p_;
     std::vector<int> active_;
 
-    Data (Data&); //disable
-    void load_xy_filetype (std::ifstream& f, std::vector<int> const& cols);
     void post_load();
-    /// open file with columns embedded into filename (foo.xy:1,2),
-    // returns next files, if `file' stands for a sequance
-    //std::vector<std::string>
-    //open_filename_with_columns(std::string const& file, std::ifstream& f);
+    DISALLOW_COPY_AND_ASSIGN(Data);
 };
 
 #endif
