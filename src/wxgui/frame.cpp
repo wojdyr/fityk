@@ -1332,7 +1332,7 @@ void FFrame::OnDump (wxCommandEvent&)
 
 void FFrame::OnSettings (wxCommandEvent&)
 {
-    SettingsDlg *dialog = new SettingsDlg(this, -1);
+    SettingsDlg *dialog = new SettingsDlg(this);
     dialog->ShowModal();
     dialog->Destroy();
 }

@@ -14,7 +14,7 @@ class SpinCtrl;
 class SettingsDlg : public wxDialog
 {
 public:
-    SettingsDlg(wxWindow* parent, const wxWindowID id);
+    SettingsDlg(wxWindow* parent);
     void OnChangeButton(wxCommandEvent& event);
     void OnOK(wxCommandEvent& event);
 private:
@@ -25,7 +25,7 @@ private:
                    *domain_p, *lm_lambda_ini, *lm_lambda_up, *lm_lambda_down,
                    *lm_stop, *lm_max_lambda,
                    *nm_convergence, *nm_move_factor;
-    wxCheckBox *cancel_guess, *nm_move_all, *autoplot_cb;
+    wxCheckBox *cancel_guess, *nm_move_all, *fit_replot_cb;
     wxTextCtrl *dir_ld_tc, *dir_xs_tc, *dir_ex_tc;
 
     void add_persistence_note(wxWindow *parent, wxSizer *sizer);

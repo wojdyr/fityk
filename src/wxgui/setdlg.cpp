@@ -3,13 +3,7 @@
 
 ///  Settings Dialog (SettingsDlg)
 
-#include <wx/wxprec.h>
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
-#ifndef WX_PRECOMP
 #include <wx/wx.h>
-#endif
 #include <wx/statline.h>
 #include <wx/notebook.h>
 #include <wx/config.h>
@@ -74,7 +68,7 @@ wxChoice *addEnumSetting(wxWindow *parent, wxString const& label,
     siz->Add(st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     wxArrayString array;
     const char** values = SettingsMgr::get_allowed_values(option);
-    while (values != NULL) {
+    while (*values != NULL) {
         array.Add(pchar2wx(*values));
         ++values;
     }
@@ -92,16 +86,16 @@ SpinCtrl* addSpinCtrl(wxWindow *parent, wxString const& label,
     wxStaticText *st = new wxStaticText(parent, -1, label);
     SpinCtrl *spin = new SpinCtrl(parent, -1, value, min_v, max_v, 70);
     wxBoxSizer *box = new wxBoxSizer(wxHORIZONTAL);
-    box->Add(st, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    box->Add(spin, 0, wxTOP|wxBOTTOM|wxRIGHT, 5);
+    box->Add(st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    box->Add(spin, 0, wxTOP|wxBOTTOM, 5);
     sizer->Add(box, 0, wxEXPAND);
     return spin;
 }
 
 } //anonymous namespace
 
-SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
-    : wxDialog(parent, id, wxT("Settings"),
+SettingsDlg::SettingsDlg(wxWindow* parent)
+    : wxDialog(parent, -1, wxT("Settings"),
                wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
@@ -191,7 +185,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
                                  sizer_fcmn,
                                  wxT("%"));
 
-    autoplot_cb = addCheckbox(page_fit_common,
+    fit_replot_cb = addCheckbox(page_fit_common,
                               wxT("refresh plot after each iteration"),
                               settings->fit_replot, sizer_fcmn);
 
@@ -231,8 +225,8 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
                               page_fit_NM, wxT("simplex initialization"));
 
     nm_move_all = addCheckbox(page_fit_NM,
-                           wxT("randomize all vertices (otherwise on is left)"),
-                           settings->nm_move_all, sizer_fnmini);
+                       wxT("randomize all vertices (otherwise one is left)"),
+                       settings->nm_move_all, sizer_fnmini);
     nm_distrib = addEnumSetting(page_fit_NM, wxT("distribution type"),
                                 "nm_distribution", sizer_fnmini);
     nm_move_factor = addRealNumberCtrl(page_fit_NM,
@@ -243,7 +237,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
     wxStaticBoxSizer *sizer_fnmstop = new wxStaticBoxSizer(wxVERTICAL,
                                 page_fit_NM, wxT("termination criteria"));
     nm_convergence = addRealNumberCtrl(page_fit_NM,
-                         wxT("worst and best relative difference"),
+                         wxT("relative difference between vertices"),
                          settings->nm_convergence, sizer_fnmstop);
     sizer_fnm->Add(sizer_fnmstop, 0, wxEXPAND|wxALL, 5);
     add_persistence_note(page_fit_NM, sizer_fnm);
@@ -298,11 +292,10 @@ SettingsDlg::SettingsDlg(wxWindow* parent, const wxWindowID id)
 void SettingsDlg::add_persistence_note(wxWindow *parent, wxSizer *sizer)
 {
     wxStaticBoxSizer *persistence = new wxStaticBoxSizer(wxHORIZONTAL,
-                                           parent, wxT("persistance note"));
+                                           parent, wxT("note"));
     persistence->Add(new wxStaticText(parent, -1,
-                       wxT("To have values above remained after restart, ")
-                       wxT("put proper\ncommands into init file: ")
-                       + get_conf_file(startup_commands_filename)),
+      wxT("If you want to save the values above as default, copy commands")
+      wxT("\nfrom the output to the init file: Session > Edit Init File")),
                      0, wxALL|wxALIGN_CENTER, 5);
     sizer->AddStretchSpacer();
     sizer->Add(persistence, 0, wxEXPAND|wxALL, 5);
@@ -345,8 +338,7 @@ void SettingsDlg::exec_set_command()
     assign += add("can_cancel_guess", cancel_guess->GetValue() ? "1" : "0");;
     assign += add("max_wssr_evaluations", S(mwssre_sp->GetValue()));
     assign += add("variable_domain_percent", wx2s(domain_p->GetValue()));
-    assign += add("autoplot", autoplot_cb->GetValue() ? "on_fit_iteration"
-                                                      : "on_plot_change");
+    assign += add("fit_replot", fit_replot_cb->GetValue() ? "1" : "0");
     assign += add("refresh_period", S(delay_sp->GetValue()));
     assign += add("lm_lambda_start", wx2s(lm_lambda_ini->GetValue()));
     assign += add("lm_lambda_up_factor", wx2s(lm_lambda_up->GetValue()));
