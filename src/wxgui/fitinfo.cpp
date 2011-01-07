@@ -26,7 +26,7 @@ FitInfoDlg::FitInfoDlg(wxWindow* parent, wxWindowID id)
 
 bool FitInfoDlg::Initialize()
 {
-    wxString s; // string for the left panel
+    string s; // string for the left panel
     try {
         vector<DataAndModel*> dms = frame->get_selected_dms();
         vector<fp> const &pp = ftk->parameters();
@@ -42,15 +42,16 @@ bool FitInfoDlg::Initialize()
             points += (*i)->data()->get_n();
 
         if (dms.size() == 1)
-            s.Printf(wxT("dataset %d: %s\n"),
-                     frame->get_selected_data_indices()[0],
-                     dms[0]->data()->get_title().c_str());
+            s = "dataset " + S(frame->get_selected_data_indices()[0])
+                + ": " + dms[0]->data()->get_title() + "\n";
         else
-            s.Printf(wxT("%d datasets\n"), (int) dms.size());
-        s += wxString::Format(
-                wxT("points: %d\n\nDoF: %d\nWSSR: %g\nSSR: %g\nWSSR/DoF: %g\n")
-                wxT("R-squared: %g\n"),
-                points, dof, wssr, ssr, wssr_over_dof, r2);
+            s = S(dms.size()) + " datasets\n";
+        s += "points: " + S(points) +
+             "\n\nDoF: " + S(dof) +
+             "\nWSSR: " + S(wssr) +
+             "\nSSR: " + S(ssr) +
+             "\nWSSR/DoF: " + S(wssr_over_dof) +
+             "\nR-squared: " + S(r2) + "\n";
     } catch (ExecuteError &e) {
         ftk->warn(string("Error: ") + e.what());
         return false;
@@ -58,10 +59,9 @@ bool FitInfoDlg::Initialize()
 
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     wxSplitterWindow *hsplit = new ProportionalSplitter(this, -1, 0.25);
-    left_tc = new wxTextCtrl(hsplit, -1, wxT(""),
+    left_tc = new wxTextCtrl(hsplit, -1, s2wx(s),
                              wxDefaultPosition, wxDefaultSize,
                              wxTE_MULTILINE|wxTE_RICH|wxTE_READONLY);
-    left_tc->SetValue(s);
     wxPanel *right_panel = new wxPanel(hsplit);
     wxSizer *rsizer = new wxBoxSizer(wxVERTICAL);
     wxArrayString choices;
@@ -122,13 +122,13 @@ void FitInfoDlg::update_right_tc()
             if (fit->is_param_used(i)) {
                 const Variable *var = ftk->find_variable_handling_param(i);
                 vector<string> in = ftk->get_variable_references(var->name);
-                string name = "$" + var->name;
+                wxString name = wxT("$") + s2wx(var->name);
                 if (in.size() == 1 && in[0][0] == '%')
-                    name += " = " + in[0];
+                    name += wxT(" = ") + s2wx(in[0]);
                 else if (in.size() == 1)
-                    name += " (in " + in[0] + ")";
+                    name += wxT(" (in ") + s2wx(in[0]) + wxT(")");
                 else
-                    name += " (" + S(in.size()) + " refs)";
+                    name += wxT(" (") + s2wx(S(in.size())) + wxT(" refs)");
                 // \u00B1 == +/-
                 s += wxString::Format(wxT("\n%20s = %10g \u00B1 "),
                                       name.c_str(), pp[i]);
@@ -150,13 +150,13 @@ void FitInfoDlg::update_right_tc()
         }
         for (int i = 0; i < na; ++i)
             if (fit->is_param_used(i)) {
-                string name = "$" + ftk->find_variable_handling_param(i)->name;
-                s += wxString::Format(wxT("$%10s"), name.c_str());
+                wxString t=s2wx("$"+ftk->find_variable_handling_param(i)->name);
+                s += wxString::Format(wxT("%10s"), t.c_str());
             }
         for (int i = 0; i < na; ++i) {
             if (fit->is_param_used(i)) {
-                string name = "$" + ftk->find_variable_handling_param(i)->name;
-                s += wxString::Format(wxT("\n%10s"), name.c_str());
+                wxString t=s2wx("$"+ftk->find_variable_handling_param(i)->name);
+                s += wxString::Format(wxT("\n%10s"), t.c_str());
                 for (int j = 0; j < na; ++j) {
                     if (fit->is_param_used(j)) {
                         fp val = alpha[na*i + j];
@@ -168,7 +168,6 @@ void FitInfoDlg::update_right_tc()
                 }
             }
         }
-
     }
     // On wxMSW 2.9.0 wxTextCtrl::ChangeValue() ignores default styles
     //right_tc->ChangeValue(s);
