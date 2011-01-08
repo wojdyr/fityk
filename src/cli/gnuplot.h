@@ -13,13 +13,13 @@ public:
     GnuPlot();
     ~GnuPlot();
     int plot();
-    static char path_to_gnuplot[] ;
 
 private:
-    FILE *gnuplot_pipe;
+    bool failed_;
+    FILE *gnuplot_pipe_;
 
-    void fork_and_make_pipe ();
-    bool gnuplot_pipe_ok();
+    void fork_and_make_pipe();
+    bool test_gnuplot_pipe();
 };
 
 #endif
