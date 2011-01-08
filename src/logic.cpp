@@ -283,8 +283,3 @@ void Ftk::outdated_plot()
     fit_container_->outdated_error_cache();
 }
 
-// the use of this global variable in libfityk will be eliminated,
-// because it's not thread safe.
-//Ftk* AL = 0;
-
-

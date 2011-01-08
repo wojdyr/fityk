@@ -1,15 +1,22 @@
 
-User-visible changes in version 0.9.5  (2010-  -  ):
-* syntax: in "define ... where param=expr" expr is substituted in brackets now
-* values of the fitting_method setting changed to lower case
-* major changes in the `info' command; two new commands, `print' and `debug', 
-  partially took over some functionality of the old `info'. See the manual.
-* "set @0.title = ..." replaced with "@0: title = ..."
-* options: removed formula_export_style and guess_at_center_pm,
-  changed autoplot and verbosity, added logfile, log_full, fit_replot,
-  info_numeric_format renamed to numeric_format
-* added syntax: delete file 'filename' (no error if there is no such file)
-
+User-visible changes in version 0.9.5  (2011-01-  ):
+* libfityk: the parser has been completely rewritten and the syntax was
+  slightly changed:
+  - major changes in the `info' command; two new commands, `print' and `debug', 
+    partially took over some functionality of the old `info'
+  - "commands" replaced by "set"/"exec"
+  - "dump" replaced by "info state"
+  - values of the fitting_method setting changed to lower case
+  - "set @0.title = ..." replaced with "@0: title = ..."
+  - settings: removed formula_export_style and guess_at_center_pm,
+    changed autoplot and verbosity, added logfile, log_full, fit_replot,
+    info_numeric_format renamed to numeric_format
+  - in "define ... where param=expr" expr is substituted in brackets now
+  - added syntax: delete file 'filename'
+  - "guess": changed argument order
+  See the wiki and the manual for details.
+* new website address (fityk.nieto.pl) and new code repository (GitHub)
+* GUI: simplified two dialogs: Edit Script and Definition Manager
 
 User-visible changes in version 0.9.4  (2010-10-09):
 * removed syntax `delete[range]', use `delete(condition)' instead

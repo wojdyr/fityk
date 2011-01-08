@@ -3,10 +3,6 @@
 
 * fix plot refreshing problems (reported on wxGTK 2.8)
 
-* GUI: Fit > Info crashes if "i fit" shows error (zeroed column)
-
-* wiki/Updating: write a page how to update fityk scripts
-
 --- 0.9.5 
 
 * data transformations: add aggregate functions argmin and argmax
@@ -86,13 +82,6 @@
     even if Apply is not pressed 
   - option to change the width of the sum line (and other lines)
   - ? changing data point size and line separately for each dataset,
-
-* unused variables should not slow down fitting
-
-* GUI, enhancements for the script editor: 
-       - "info ...> file" marked differently than not redirected info 
-       - paths of files to be read should be checked 
-       - ? search'n'replace button
 
 * user defined functions:
       - calculating limits, width, area, etc. for UDF
