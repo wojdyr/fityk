@@ -1050,7 +1050,7 @@ void FFrame::OnDataCalcShirley (wxCommandEvent&)
         if (i != sel.begin())
             cmd += "; ";
         cmd += "@+ = shirley_bg @" + S(*i)
-              + "; set @" + S(c) + ".title = '" + title + "-Shirley'";
+              + "; @" + S(c) + ".title = '" + title + "-Shirley'";
     }
     ftk->exec(cmd);
 }
@@ -1099,7 +1099,6 @@ void FFrame::OnSGuess (wxCommandEvent&)
 void FFrame::OnSPFInfo (wxCommandEvent&)
 {
     ftk->exec(get_datasets() + "info guess");
-    //TODO animations showing peak positions
 }
 
 void FFrame::OnAutoFreeze(wxCommandEvent& event)
@@ -1249,16 +1248,14 @@ void FFrame::OnLogStart (wxCommandEvent&)
 
 void FFrame::OnLogStop (wxCommandEvent&)
 {
-    ftk->exec("commands > /dev/null");
+    ftk->exec("set logfile=''");
 }
 
 void FFrame::OnLogWithOutput (wxCommandEvent& event)
 {
     bool checked = event.IsChecked();
     GetMenuBar()->Check(ID_LOG_WITH_OUTPUT, checked);
-    string const& logfile = ftk->get_ui()->get_commands().get_log_file();
-    if (!logfile.empty())
-        ftk->exec("commands+ > " + logfile);
+    ftk->exec("set log_full=" + S((int)checked));
 }
 
 void FFrame::OnLogDump (wxCommandEvent&)
@@ -1268,7 +1265,7 @@ void FFrame::OnLogDump (wxCommandEvent&)
                       dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
-        ftk->exec("info commands[:] > '" + wx2s(fdlg.GetPath()) + "'");
+        ftk->exec("info history > '" + wx2s(fdlg.GetPath()) + "'");
     }
     dir = fdlg.GetDirectory();
 }
@@ -1292,7 +1289,7 @@ void FFrame::OnInclude (wxCommandEvent&)
                               wxT("fityk file (*.fit)|*.fit;*.FIT|all files|*"),
                               wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
-        ftk->exec("commands < '" + wx2s(fdlg.GetPath()) + "'");
+        ftk->exec("exec '" + wx2s(fdlg.GetPath()) + "'");
         last_include_path = wx2s(fdlg.GetPath());
         GetMenuBar()->Enable(ID_SESSION_REINCLUDE, true);
     }
@@ -1301,7 +1298,7 @@ void FFrame::OnInclude (wxCommandEvent&)
 
 void FFrame::OnReInclude (wxCommandEvent&)
 {
-    ftk->exec("reset; commands < '" + last_include_path + "'");
+    ftk->exec("reset; exec '" + last_include_path + "'");
 }
 
 void FFrame::show_editor(wxString const& path)
@@ -1904,7 +1901,7 @@ string FFrame::get_global_parameters()
     int ns = ftk->find_variable_nr("_shape");
 
     if (nh == -1 && ns == -1)
-        return s;
+        return s; // =""
 
     s = "(";
     if (nh != -1)
