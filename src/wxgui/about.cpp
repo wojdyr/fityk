@@ -28,7 +28,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
     wxStaticText *desc = new wxStaticText(this, -1,
                             wxT("A curve fitting and data analysis program"));
     name_sizer->Add(desc, wxSizerFlags().Centre().Border(wxLEFT|wxRIGHT));
-    wxString link = wxT("http://www.unipress.waw.pl/fityk/");
+    wxString link = wxT("http://fityk.nieto.pl");
     wxHyperlinkCtrl *link_ctrl = new wxHyperlinkCtrl(this, -1, link, link);
     name_sizer->Add(link_ctrl, wxSizerFlags().Centre().Border());
 

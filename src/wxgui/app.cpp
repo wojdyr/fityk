@@ -336,7 +336,7 @@ wxString get_help_url(wxString const& name)
     if (!path.IsEmpty())
         return wxFileSystem::FileNameToURL(path);
     else
-        return wxT("http://www.unipress.waw.pl/fityk/") + name;
+        return wxT("http://fityk.nieto.pl/") + name;
 }
 
 

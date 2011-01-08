@@ -211,10 +211,10 @@ void EditTransDlg::init()
     wxBoxSizer *cl_sizer = new wxBoxSizer(wxHORIZONTAL);
     cl_sizer->Add(new wxStaticText(right_panel, -1, wxT("Code:")),
                   wxSizerFlags().Border().Center());
-    wxString help_url = get_help_url(wxT("ref.html"))
+    wxString help_url = get_help_url(wxT("data.html"))
 #ifndef __WXMSW__
           // wxMSW converts URI back to filename, and it can't handle #fragment
-          + wxT("#data-transformations")
+          + wxT("#data-point-transformations")
 #endif
           ;
     wxHyperlinkCtrl *help_ctrl = new wxHyperlinkCtrl(right_panel, -1,

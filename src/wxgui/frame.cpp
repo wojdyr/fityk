@@ -115,9 +115,9 @@ Ftk *ftk = NULL;
 static const wxString discussions_url(
         wxT("http://groups.google.com/group/fityk-users/topics"));
 static const wxString website_url(
-        wxT("http://www.unipress.waw.pl/fityk/"));
+        wxT("http://fityk.nieto.pl/"));
 static const wxString wiki_url(
-        wxT("http://sourceforge.net/apps/trac/fityk/"));
+        wxT("https://github.com/wojdyr/fityk/wiki"));
 
 enum {
     // menu
