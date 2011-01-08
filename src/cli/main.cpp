@@ -350,7 +350,11 @@ char **my_completion (const char *text, int start, int end)
             return rl_completion_matches(text, set_generator);
         else {
             set_eq_str = strip_string(string(ptr, has_eq));
-            return rl_completion_matches (text, set_eq_generator);
+            const char** a=ftk->settings_mgr()->get_allowed_values(set_eq_str);
+            if (ftk->settings_mgr()->get_allowed_values(set_eq_str) != NULL)
+                return rl_completion_matches (text, set_eq_generator);
+            else
+                return NULL;
         }
     }
     // FunctionType completion
@@ -373,6 +377,16 @@ char **my_completion (const char *text, int start, int end)
 
     // info completion
     if (starts_with_command(ptr, start - cmd_start, "i","nfo")) {
+        // info set
+        int arg_start = cmd_start;
+        while (!isspace(rl_line_buffer[arg_start]))
+            ++arg_start;
+        while (isspace(rl_line_buffer[arg_start]))
+            ++arg_start;
+        char* arg_ptr = rl_line_buffer + arg_start;
+        if (starts_with_command(arg_ptr, start - arg_start, "set",""))
+            return rl_completion_matches(text, set_generator);
+
         return rl_completion_matches(text, info_generator);
     }
 
