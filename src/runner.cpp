@@ -339,13 +339,35 @@ int Runner::make_func_from_template(const string& name,
     if (!tp)
         throw ExecuteError("undefined type of function: " + ftype);
     vector<VMData*> func_args;
+    vector<VMData> vd_storage;
     if (par_names.empty())
         func_args = par_values;
-    else
+    else {
         func_args = reorder_args(tp, par_names, par_values);
-    for (size_t i = 0; i < tp->fargs.size(); ++i)
-        if (func_args[i] == NULL)
-            throw ExecuteError("missing parameter " + tp->fargs[i]);
+        for (size_t i = 0; i < tp->fargs.size(); ++i)
+            if (func_args[i] == NULL) {
+                // Default values are respected here, but only expressions
+                // without symbols, i.e. just numbers like in shape=0.5;
+                // they are converted to the "TILDE NUMBER" code.
+                if (!tp->defvals.empty() && !tp->defvals[i].empty()) {
+                    string dv = tp->defvals[i];
+                    ep_.clear_vm();
+                    Lexer lex(dv.c_str());
+                    vector<string> empty;
+                    bool r = ep_.parse_full(lex, 0, &empty);
+                    if (!r)
+                        throw ExecuteError("Cannot calculate value of `"
+                                           + tp->fargs[i] + "' in " + tp->name);
+                    double value = ep_.calculate();
+                    vd_storage.resize(vd_storage.size() + 1);
+                    vd_storage.back().append_code(OP_TILDE);
+                    vd_storage.back().append_number(value);
+                    func_args[i] = &vd_storage.back();
+                }
+                else
+                    throw ExecuteError("missing parameter " + tp->fargs[i]);
+            }
+    }
     F_->assign_func(name, tp, func_args);
     return par_values.size();
 }
