@@ -697,6 +697,7 @@ void Runner::execute_command(Command& c, int ds)
             break;
         case kCmdUse:
             F_->set_default_dm(c.args[0].value.i);
+            F_->outdated_plot();
             break;
         case kCmdQuit:
             throw ExitRequestedException();
