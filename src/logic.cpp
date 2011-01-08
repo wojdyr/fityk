@@ -83,11 +83,11 @@ void Ftk::reset()
     int verbosity = get_settings()->verbosity;
     bool autoplot = get_settings()->autoplot;
     destroy();
-    ui_->keep_quiet = true;
     initialize();
-    settings_mgr()->set_as_number("verbosity", verbosity);
-    settings_mgr()->set_as_number("autoplot", autoplot);
-    ui_->keep_quiet = false;
+    if (verbosity != get_settings()->verbosity)
+        settings_mgr()->set_as_number("verbosity", verbosity);
+    if (autoplot != get_settings()->autoplot)
+        settings_mgr()->set_as_number("autoplot", autoplot);
 }
 
 int Ftk::append_dm(Data *data)
@@ -134,7 +134,7 @@ void Ftk::vmsg(string const &s) const
 }
 
 /// execute command(s) from string
-Commands::Status Ftk::exec(string const &s)
+UserInterface::Status Ftk::exec(string const &s)
 {
     return get_ui()->exec_and_log(s);
 }

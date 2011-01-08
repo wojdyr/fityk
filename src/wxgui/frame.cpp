@@ -1212,21 +1212,18 @@ void FFrame::OnPowderDiffraction (wxCommandEvent&)
 
 void FFrame::OnMenuLogStartUpdate (wxUpdateUIEvent& event)
 {
-    string const& logfile = ftk->get_ui()->get_commands().get_log_file();
-    event.Enable(logfile.empty());
+    event.Enable(ftk->get_settings()->logfile.empty());
 }
 
 void FFrame::OnMenuLogStopUpdate (wxUpdateUIEvent& event)
 {
-    string const& logfile = ftk->get_ui()->get_commands().get_log_file();
-    event.Enable(!logfile.empty());
+    event.Enable(!ftk->get_settings()->logfile.empty());
 }
 
 void FFrame::OnMenuLogOutputUpdate (wxUpdateUIEvent& event)
 {
-    string const& logfile = ftk->get_ui()->get_commands().get_log_file();
-    if (!logfile.empty())
-        event.Check(ftk->get_ui()->get_commands().get_log_with_output());
+    if (!ftk->get_settings()->logfile.empty())
+        event.Check(ftk->get_settings()->log_full);
 }
 
 void FFrame::OnLogStart (wxCommandEvent&)
@@ -1236,7 +1233,7 @@ void FFrame::OnLogStart (wxCommandEvent&)
                        wxT("Fityk script file (*.fit)|*.fit;*.FIT")
                        wxT("|All files |*"),
                        wxFD_SAVE);
-    string const& logfile = ftk->get_ui()->get_commands().get_log_file();
+    const string& logfile = ftk->get_settings()->logfile;
     if (!logfile.empty())
         fdlg.SetPath(s2wx(logfile));
     if (fdlg.ShowModal() == wxID_OK) {

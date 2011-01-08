@@ -113,7 +113,7 @@ void gui_compute_ui(bool enable)
 }
 
 
-Commands::Status gui_exec_command(const string& s)
+UserInterface::Status gui_exec_command(const string& s)
 {
     //FIXME should I limit number of displayed lines?
     //const int max_lines_in_output_win = 1000;
@@ -124,13 +124,13 @@ Commands::Status gui_exec_command(const string& s)
     else
         frame->set_status_text(s);
     wxBusyCursor wait;
-    Commands::Status r;
+    UserInterface::Status r;
     try {
         r = ftk->get_ui()->execute_line(s);
     }
     catch(ExitRequestedException) {
         frame->Close(true);
-        return Commands::kStatusOk;
+        return UserInterface::kStatusOk;
     }
     frame->after_cmd_updates();
     return r;

@@ -8,7 +8,7 @@
 #include <memory>
 #include <algorithm>
 #include "mgr.h"
-#include "ui.h" //Commands::Status
+#include "ui.h" //UserInterface::Status
 #include "view.h"
 #include "settings.h"
 
@@ -103,7 +103,7 @@ public:
     int get_verbosity() const { return get_settings()->verbosity; }
 
     /// execute command(s) from string
-    Commands::Status exec(const std::string &s);
+    UserInterface::Status exec(const std::string &s);
 
     /// import dataset (or multiple datasets, in special cases)
     void import_dataset(int slot, const std::string& filename,

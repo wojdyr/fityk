@@ -173,7 +173,7 @@ string info_func_props(const Ftk* F, const string& name)
 void info_history(const Ftk* F, const Token& t1, const Token& t2,
                   string& result)
 {
-    const vector<Commands::Cmd>& cmds = F->get_ui()->get_commands().get_cmds();
+    const vector<UserInterface::Cmd>& cmds = F->get_ui()->cmds();
     int from = 0, to = cmds.size();
     if (t1.type == kTokenExpr) {
         from = iround(t1.value.d);
@@ -360,7 +360,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             result += F->get_model(ds)->get_peak_parameters(errors);
         }
         else if (word == "history_summary")
-            result += F->get_ui()->get_commands().get_history_summary();
+            result += F->get_ui()->get_history_summary();
 
         else if (word == "set") {
             if (args[n+1].type == kTokenLname) {

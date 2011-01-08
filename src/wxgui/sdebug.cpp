@@ -160,8 +160,8 @@ void ScriptDebugDlg::exec_line(int n)
     replace_all(s, "_EXECUTED_SCRIPT_DIR_/", script_dir);
     ftk->exec(s);
     /*
-    Commands::Status r = ftk->exec(s);
-    if (r == Commands::kStatusOk) {
+    UserInterface::Status r = ftk->exec(s);
+    if (r == UserInterface::kStatusOk) {
     }
     else { // error
     }

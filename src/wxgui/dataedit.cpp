@@ -4,6 +4,7 @@
 #include <wx/wx.h>
 #include <wx/statline.h>
 #include <wx/hyperlink.h>
+#include <fstream>
 
 #include "dataedit.h"
 

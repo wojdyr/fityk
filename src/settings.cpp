@@ -154,8 +154,18 @@ void SettingsMgr::set_as_string(string const& k, string const& v)
     }
     const Option& opt = find_option(k);
     assert(opt.vtype == kString || opt.vtype == kEnum);
-    if (opt.vtype == kString)
+    if (opt.vtype == kString) {
+        if (k == "logfile" && !v.empty()) {
+            FILE* f = fopen(v.c_str(), "a");
+            if (!f)
+                throw ExecuteError("Cannot open file for writing: " + v);
+            // time_now() ends with "\n"
+            fprintf(f, "%s. LOG START: %s", fityk_version_line,
+                                              time_now().c_str());
+            fclose(f);
+        }
         m_.*opt.val.s.ptr = v;
+    }
     else { // if (opt.vtype == kEnum)
         const char **ptr = opt.allowed_values;
         while (*ptr) {

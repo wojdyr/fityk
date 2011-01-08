@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <fstream>
 
 #include "ui.h"
 #include "settings.h"
@@ -65,7 +66,7 @@ char* LineReader::next()
 
 
 
-string Commands::Cmd::str() const
+string UserInterface::Cmd::str() const
 {
     switch (status) {
         case kStatusOk:           return cmd;
@@ -75,39 +76,15 @@ string Commands::Cmd::str() const
     return ""; // avoid compiler warnings
 }
 
-void Commands::put_command(string const &c, Commands::Status r)
+string UserInterface::get_history_summary() const
 {
-    if (strip_string(c).empty())
-        return;
-    cmds.push_back(Cmd(c, r));
-    ++command_counter;
-    if (!log_filename.empty())
-        log << " " << c << endl;
-}
-
-void Commands::put_output_message(string const& s) const
-{
-    if (!log_filename.empty() && log_with_output) {
-        // insert "# " at the beginning of string and before every new line
-        log << "# ";
-        for (const char *p = s.c_str(); *p; p++) {
-            log << *p;
-            if (*p == '\n')
-                log << "# ";
-        }
-        log << endl;
-    }
-}
-
-string Commands::get_history_summary() const
-{
-    string s = S(command_counter) + " commands since the start of the program,";
-    if (command_counter == size(cmds))
+    string s = S(cmd_count_) + " commands since the start of the program,";
+    if (cmd_count_ == size(cmds_))
         s += " of which:";
     else
-        s += "\nin last " + S(cmds.size()) + " commands:";
+        s += "\nin last " + S(cmds_.size()) + " commands:";
     int n_ok = 0, n_execute_error = 0, n_syntax_error = 0;
-    for (vector<Cmd>::const_iterator i = cmds.begin(); i != cmds.end(); ++i)
+    for (vector<Cmd>::const_iterator i = cmds_.begin(); i != cmds_.end(); ++i)
         if (i->status == kStatusOk)
             ++n_ok;
         else if (i->status == kStatusExecuteError)
@@ -117,61 +94,15 @@ string Commands::get_history_summary() const
     s += "\n  " + S(n_ok) + " executed successfully"
         + "\n  " + S(n_execute_error) + " finished with execute error"
         + "\n  " + S(n_syntax_error) + " with syntax error";
-    if (log_filename.empty())
-        s += "\nCommands are not logged to any file.";
-    else
-        s += S("\nCommands (") + (log_with_output ? "with" : "without")
-            + " output) are logged to file: " + log_filename;
     return s;
-}
-
-
-void Commands::start_logging(string const& filename, bool with_output,
-                             Ftk const* F)
-{
-    if (filename.empty())
-       stop_logging();
-    else if (filename == log_filename) {
-        if (with_output != log_with_output) {
-            log_with_output = with_output;
-            log << "### AT "<< time_now() << "### CHANGED TO LOG "
-                << (log_with_output ? "WITH" : "WITHOUT") << " OUTPUT\n";
-        }
-    }
-    else {
-        stop_logging();
-        log.clear();
-        log.open(filename.c_str(), ios::out | ios::app);
-        if (!log)
-            throw ExecuteError("Can't open file for writing: " + filename);
-        log << fityk_version_line << endl;
-        log << "### AT "<< time_now() << "### START LOGGING ";
-        log_with_output = false; //don't put info() below into log
-        if (with_output) {
-            log << "INPUT AND OUTPUT";
-            F->msg("Logging input and output to file: " + filename);
-        }
-        else {
-            log << "INPUT";
-            F->msg("Logging input to file: " + filename);
-        }
-        log << " TO THIS FILE (" << filename << ")\n";
-        log_with_output = with_output;
-        log_filename = filename;
-    }
-}
-
-void Commands::stop_logging()
-{
-    log.close();
-    log_filename = "";
 }
 
 
 
 UserInterface::UserInterface(Ftk* F)
-        : keep_quiet(false), F_(F), show_message_(NULL), do_draw_plot_(NULL),
-          exec_command_(NULL), refresh_(NULL), compute_ui_(NULL), wait_(NULL)
+        : F_(F), show_message_(NULL), do_draw_plot_(NULL),
+          exec_command_(NULL), refresh_(NULL), compute_ui_(NULL), wait_(NULL),
+          cmd_count_(0)
 {
     parser_ = new Parser(F);
     runner_ = new Runner(F);
@@ -183,14 +114,27 @@ UserInterface::~UserInterface()
     delete runner_;
 }
 
-Commands::Status UserInterface::exec_and_log(string const &c)
+UserInterface::Status UserInterface::exec_and_log(string const &c)
 {
-    Commands::Status r = this->exec_command(c);
-    commands_.put_command(c, r);
+    if (strip_string(c).empty())
+        return UserInterface::kStatusOk;
+
+    // we want to log the input before the output
+    if (!F_->get_settings()->logfile.empty()) {
+        FILE* f = fopen(F_->get_settings()->logfile.c_str(), "a");
+        if (f) {
+            fprintf(f, "%s\n", c.c_str());
+            fclose(f);
+        }
+    }
+
+    UserInterface::Status r = this->exec_command(c);
+    cmds_.push_back(Cmd(c, r));
+    ++cmd_count_;
     return r;
 }
 
-Commands::Status UserInterface::execute_line(const string& str)
+UserInterface::Status UserInterface::execute_line(const string& str)
 {
     try {
         Lexer lex(str.c_str());
@@ -199,19 +143,19 @@ Commands::Status UserInterface::execute_line(const string& str)
     }
     catch (fityk::SyntaxError &e) {
         F_->warn(string("Syntax error: ") + e.what());
-        return Commands::kStatusSyntaxError;
+        return UserInterface::kStatusSyntaxError;
     }
     // ExecuteError and xylib::FormatError and xylib::RunTimeError
     // are derived from std::runtime_error
     catch (runtime_error &e) {
         F_->warn(string("Error: ") + e.what());
-        return Commands::kStatusExecuteError;
+        return UserInterface::kStatusExecuteError;
     }
 
     if (F_->is_plot_outdated() && F_->get_settings()->autoplot)
         draw_plot(UserInterface::kRepaint);
 
-    return Commands::kStatusOk;
+    return UserInterface::kStatusOk;
 }
 
 bool UserInterface::check_syntax(string const& str)
@@ -221,10 +165,24 @@ bool UserInterface::check_syntax(string const& str)
 
 void UserInterface::output_message(Style style, const string& s) const
 {
-    if (keep_quiet)
-        return;
     show_message(style, s);
-    commands_.put_output_message(s);
+
+    if (!F_->get_settings()->logfile.empty() &&
+            F_->get_settings()->log_full) {
+        FILE* f = fopen(F_->get_settings()->logfile.c_str(), "a");
+        if (f) {
+            // insert "# " at the beginning of string and before every new line
+            fprintf(f, "# ");
+            for (const char *p = s.c_str(); *p; p++) {
+                fputc(*p, f);
+                if (*p == '\n')
+                    fprintf(f, "# ");
+            }
+            fprintf(f, "\n");
+            fclose(f);
+        }
+    }
+
     if (style == kWarning && F_->get_settings()->exit_on_warning) {
         show_message(kNormal, "Warning -> exiting program.");
         throw ExitRequestedException();
@@ -301,7 +259,7 @@ void UserInterface::draw_plot(RepaintMode mode)
 }
 
 
-Commands::Status UserInterface::exec_command(string const &s)
+UserInterface::Status UserInterface::exec_command(string const &s)
 {
     return exec_command_ ? (*exec_command_)(s) : execute_line(s);
 }
