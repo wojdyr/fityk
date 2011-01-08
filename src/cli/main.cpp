@@ -350,7 +350,6 @@ char **my_completion (const char *text, int start, int end)
             return rl_completion_matches(text, set_generator);
         else {
             set_eq_str = strip_string(string(ptr, has_eq));
-            const char** a=ftk->settings_mgr()->get_allowed_values(set_eq_str);
             if (ftk->settings_mgr()->get_allowed_values(set_eq_str) != NULL)
                 return rl_completion_matches (text, set_eq_generator);
             else
