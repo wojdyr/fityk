@@ -235,7 +235,6 @@ AC_CONFIG_FILES([Makefile fityk.iss
 		 src/Makefile
 		 src/wxgui/Makefile
 		 src/cli/Makefile
-		 src/wxgui/img/Makefile
 		 doc/Makefile
 		 samples/Makefile
 		 swig/Makefile])

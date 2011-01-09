@@ -1,8 +1,5 @@
 
-SUBDIRS = img
 bin_PROGRAMS = fityk
-
-EXTRA_DIST = winres.rc xyconvert.rc powdifpat.rc
 
 # tested only on MinGW
 if OS_WIN32
@@ -66,4 +63,104 @@ endif
 
 xyconvert.html: xyconvert.rst
 	rst2html --stylesheet-path=$$HOME/xylib/trunk/web.css $< $@
+
+
+## to find icons not listed here use (in bash):
+## for i in img/*.xpm img/*.h; do [ `grep -c $i Makefile.am` -eq 0 ] && ls $i; done
+
+EXTRA_DIST = \
+winres.rc xyconvert.rc powdifpat.rc \
+\
+img/active_mode.xpm \
+img/addpeak_mode.xpm \
+img/add_peak.xpm \
+img/add.xpm \
+img/bg_mode.xpm \
+img/close.xpm \
+img/colorsel.xpm \
+img/color.xpm \
+img/cont_fit.xpm \
+img/convert.xpm \
+img/copyfunc.xpm \
+img/down_arrow.xpm \
+img/edit_data.xpm \
+img/editf.xpm \
+img/exec_down.xpm \
+img/exec_selected.xpm \
+img/filter.xpm \
+img/fityk.xpm \
+img/lock.xpm \
+img/lock_open.xpm \
+img/manual.xpm \
+img/open.xpm \
+img/open_data_custom.xpm \
+img/open_data.xpm \
+img/rename.xpm \
+img/right_pane.xpm \
+img/run_fit.xpm \
+img/run_script.xpm \
+img/save.xpm \
+img/save_as.xpm \
+img/save_data.xpm \
+img/save_script.xpm \
+img/shiftup.xpm \
+img/dpsize.xpm \
+img/strip_bg.xpm \
+img/sum.xpm \
+img/undo_fit.xpm \
+img/unused.xpm \
+img/up_arrow.xpm \
+img/zoom_all.xpm \
+img/zoom_left.xpm \
+img/zoom_mode.xpm \
+img/zoom_prev.xpm \
+img/zoom_right.xpm \
+img/zoom_up.xpm \
+img/zoom_vert.xpm \
+img/zshift.xpm \
+\
+img/book16.h \
+img/editor16.h \
+img/export16.h \
+img/fileopen16.h \
+img/filereload16.h \
+img/filesaveas16.h \
+img/function16.h \
+img/image16.h \
+img/info16.h \
+img/preferences16.h \
+img/recordmacro16.h \
+img/redo16.h \
+img/reload16.h \
+img/revert16.h \
+img/run16.h \
+img/runmacro16.h \
+img/stopmacro16.h \
+img/undo16.h \
+img/web16.h \
+img/zoom-fit16.h \
+\
+img/mouse16.h \
+img/sbprefs.h \
+img/ok24.h \
+\
+img/correction.h \
+img/info32.h \
+img/peak32.h \
+img/radiation32.h \
+img/rubik32.h \
+img/run32.h \
+img/sizes32.h \
+\
+img/fityk96.h \
+\
+img/fityk.ico \
+\
+img/xyconvert16.xpm \
+img/xyconvert48.xpm \
+img/xyconvert.ico \
+\
+img/powdifpat16.xpm \
+img/powdifpat48.xpm \
+img/powdifpat.ico
 
