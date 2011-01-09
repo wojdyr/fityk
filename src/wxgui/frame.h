@@ -81,8 +81,6 @@ public:
     void OnSGuess        (wxCommandEvent& event);
     void OnSPFInfo       (wxCommandEvent& event);
     void OnAutoFreeze    (wxCommandEvent& event);
-    void OnSFuncList     (wxCommandEvent& event);
-    void OnSVarList      (wxCommandEvent& event);
     void OnSExport       (wxCommandEvent& event);
 
     void OnFMethodUpdate (wxUpdateUIEvent& event);
@@ -105,7 +103,7 @@ public:
     void OnLogStart      (wxCommandEvent& event);
     void OnLogStop       (wxCommandEvent& event);
     void OnLogWithOutput (wxCommandEvent& event);
-    void OnLogDump       (wxCommandEvent& event);
+    void OnSaveHistory   (wxCommandEvent& event);
     void OnInclude      (wxCommandEvent& event);
     void OnReInclude    (wxCommandEvent& event);
     void OnShowEditor   (wxCommandEvent&) { show_editor(wxT("")); }

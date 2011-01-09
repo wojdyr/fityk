@@ -71,7 +71,7 @@ public:
     std::string get_sel_datasets_as_string();
     std::vector<int> get_selected_data_indices();
     //bool is_func_selected(int n) const;
-    int set_selection(int page) { return nb->SetSelection(page); }
+    //int set_selection(int page) { return nb->SetSelection(page); }
     void activate_function(int n);
     void select_datasets(const std::vector<int>& datasets);
     std::vector<std::string> get_selected_data() const;

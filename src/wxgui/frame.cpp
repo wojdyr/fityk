@@ -143,8 +143,6 @@ enum {
     ID_S_GUESS                 ,
     ID_S_PFINFO                ,
     ID_S_AUTOFREEZE            ,
-    ID_S_FUNCLIST              ,
-    ID_S_VARLIST               ,
     ID_S_EXPORTP               ,
     ID_S_EXPORTF               ,
     ID_S_EXPORTD               ,
@@ -161,7 +159,7 @@ enum {
     ID_LOG_START               ,
     ID_LOG_STOP                ,
     ID_LOG_WITH_OUTPUT         ,
-    ID_LOG_DUMP                ,
+    ID_SAVE_HISTORY            ,
     ID_SESSION_RESET           ,
     ID_PAGE_SETUP              ,
     ID_PRINT_PSFILE            ,
@@ -257,7 +255,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_LOG_STOP,      FFrame::OnLogStop)
     EVT_UPDATE_UI (ID_LOG_WITH_OUTPUT, FFrame::OnMenuLogOutputUpdate)
     EVT_MENU (ID_LOG_WITH_OUTPUT, FFrame::OnLogWithOutput)
-    EVT_MENU (ID_LOG_DUMP,      FFrame::OnLogDump)
+    EVT_MENU (ID_SAVE_HISTORY,  FFrame::OnSaveHistory)
     EVT_MENU (ID_SESSION_RESET, FFrame::OnReset)
     EVT_MENU (ID_SESSION_INCLUDE, FFrame::OnInclude)
     EVT_MENU (ID_SESSION_REINCLUDE, FFrame::OnReInclude)
@@ -290,8 +288,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_S_GUESS,       FFrame::OnSGuess)
     EVT_MENU (ID_S_PFINFO,      FFrame::OnSPFInfo)
     EVT_MENU (ID_S_AUTOFREEZE,  FFrame::OnAutoFreeze)
-    EVT_MENU (ID_S_FUNCLIST,    FFrame::OnSFuncList)
-    EVT_MENU (ID_S_VARLIST,     FFrame::OnSVarList)
     EVT_MENU (ID_S_EXPORTP,     FFrame::OnSExport)
     EVT_MENU (ID_S_EXPORTF,     FFrame::OnSExport)
     EVT_MENU (ID_S_EXPORTD,     FFrame::OnDataExport)
@@ -573,13 +569,14 @@ void FFrame::set_menubar()
               wxT("Stop Logging"), wxT("Finish logging to file"));
     session_log_menu->AppendCheckItem(ID_LOG_WITH_OUTPUT,wxT("Log also output"),
                           wxT("output can be included in logfile as comments"));
-    session_log_menu->AppendSeparator();
-    session_log_menu->Append(ID_LOG_DUMP, wxT("History Dump"),
-                            wxT("Save all commands executed so far to file"));
     session_menu->Append(ID_SESSION_LOG, wxT("&Logging"), session_log_menu);
     append_mi(session_menu, ID_SESSION_DUMP, GET_BMP(filesaveas16),
               wxT("&Save Session..."),
               wxT("Save current program state as script file"));
+    append_mi(session_menu, ID_SAVE_HISTORY, GET_BMP(filesaveas16),
+              wxT("Save History..."),
+              wxT("Save all commands executed so far to file")
+                      wxT(" (it also creates a script)"));
     session_menu->AppendSeparator();
     session_menu->Append(ID_PAGE_SETUP, wxT("Page Se&tup..."),
                                         wxT("Page setup"));
@@ -657,11 +654,6 @@ void FFrame::set_menubar()
     sum_menu->AppendCheckItem(ID_S_AUTOFREEZE, wxT("Auto-Freeze"),
         wxT("In Data-Range mode: freeze functions in disactivated range"));
     sum_menu->AppendSeparator();
-    sum_menu->Append (ID_S_FUNCLIST, wxT("Show &Function List"),
-                                wxT("Open `Functions' tab on right-hand pane"));
-    sum_menu->Append (ID_S_VARLIST, wxT("Show &Variable List"),
-                                wxT("Open `Variables' tab on right-hand pane"));
-    sum_menu->AppendSeparator();
     append_mi(sum_menu, ID_S_EXPORTP, GET_BMP(export16),
               wxT("&Export Peak Parameters"),
               wxT("Export function parameters to file"));
@@ -709,7 +701,7 @@ void FFrame::set_menubar()
                                     wxT("Use mouse for adding new peaks"));
     gui_menu->Append(ID_G_MODE, wxT("&Mode"), gui_menu_mode);
     wxMenu* baseline_menu = new wxMenu;
-    baseline_menu->Append (ID_G_BG_STRIP, wxT("&Substract baseline"),
+    baseline_menu->Append (ID_G_BG_STRIP, wxT("&Subtract baseline"),
                            wxT("Subtract baseline function from data"));
     baseline_menu->Append (ID_G_BG_UNDO, wxT("&Add baseline"),
                            wxT("Add baseline function to data"));
@@ -1107,18 +1099,6 @@ void FFrame::OnAutoFreeze(wxCommandEvent& event)
     plot_pane->get_plot()->set_auto_freeze(event.IsChecked());
 }
 
-void FFrame::OnSFuncList (wxCommandEvent&)
-{
-    SwitchSideBar(true);
-    sidebar->set_selection(1);
-}
-
-void FFrame::OnSVarList (wxCommandEvent&)
-{
-    SwitchSideBar(true);
-    sidebar->set_selection(2);
-}
-
 void FFrame::OnSExport (wxCommandEvent& event)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
@@ -1256,10 +1236,10 @@ void FFrame::OnLogWithOutput (wxCommandEvent& event)
     ftk->exec("set log_full=" + S((int)checked));
 }
 
-void FFrame::OnLogDump (wxCommandEvent&)
+void FFrame::OnSaveHistory (wxCommandEvent&)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
-    wxFileDialog fdlg(this, wxT("Dump all commands executed so far to file"),
+    wxFileDialog fdlg(this, wxT("Save all commands from this session to file"),
                       dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
