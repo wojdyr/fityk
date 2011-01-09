@@ -841,7 +841,13 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                     put_unary_op(OP_NEG);
                 break;
             case kTokenGT:
-                put_binary_op(OP_GT);
+                // This token can be outside of the expression.
+                // We handle one special case: '>' followed by string,
+                // to allow "print x, y > 'filename'".
+                if (lex.peek_token().type == kTokenString)
+                    finished_ = true;
+                else
+                    put_binary_op(OP_GT);
                 break;
             case kTokenGE:
                 put_binary_op(OP_GE);

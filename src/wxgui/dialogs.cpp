@@ -203,8 +203,8 @@ bool export_data_dlg(wxWindow *parent)
     string path = wx2s(filedlg.GetPath());
     string cmd = (data_idx == -1 ? string("@*") : "@" + S(data_idx))
                  + ": print "
-                 + (ded.get_only_active_checked() ? "a: " : "all: ")
-                 + ded.get_columns() + " >> '" + path + "'";
+                 + (ded.get_only_active_checked() ? "if a: " : "all: ")
+                 + ded.get_columns() + " > '" + path + "'";
     ftk->exec(cmd);
     return true;
 }
