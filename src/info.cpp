@@ -95,8 +95,10 @@ string get_variable_info(const Ftk* F, const Variable* v)
 {
     string s = "$" + v->name + " = " + v->get_formula(F->parameters()) + " = "
                + F->settings_mgr()->format_double(v->get_value());
-    if (v->domain.is_set())
-        s += "  " + v->domain.str();
+    const RealRange& d = v->domain;
+    if (!d.from_inf() || !d.to_inf())
+        s += "  [" + (d.from_inf() ? S("") : S(d.from)) + " : "
+             + (d.to_inf() ? S("") : S(d.to)) + "]";
     if (v->is_auto_delete())
         s += "  [auto]";
     return s;

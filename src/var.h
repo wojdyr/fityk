@@ -47,31 +47,6 @@ protected:
     std::vector<int> var_idx;
 };
 
-
-/// domain of variable, used _only_ for randomization of the variable
-class Domain
-{
-    bool ok, ctr_set;
-    fp ctr, sigma;
-
-public:
-    Domain() : ok(false), ctr_set(false) {}
-    bool is_set() const { return ok; }
-    bool is_ctr_set() const { return ctr_set; }
-    fp get_ctr() const { assert(ok && ctr_set); return ctr; }
-    fp get_sigma() const { assert(ok); return sigma; }
-    void set(fp c, fp s) { ok=true; ctr_set=true; ctr=c; sigma=s; }
-    void set_sigma(fp s) { ok=true; sigma=s; }
-    std::string str() const
-    {
-        if (ok)
-            return "[" + (ctr_set ? S(ctr) : S()) + " +- " + S(sigma) + "]";
-        else
-            return std::string();
-    }
-};
-
-
 /// the variable is either simple-variable and nr_ is the index in vector
 /// of parameters, or it is "compound variable" and has nr_==-1.
 /// third special case: nr_==-2 - it is mirror-variable (such variable
@@ -88,7 +63,7 @@ public:
 class Variable : public VariableUser
 {
 public:
-    Domain domain;
+    RealRange domain;
 
     struct ParMult { int p; fp mult; };
     Variable(const std::string &name_, int nr_);

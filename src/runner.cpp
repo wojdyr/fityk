@@ -441,8 +441,9 @@ void Runner::command_name_var(const vector<Token>& args)
     assert(args[0].type == kTokenVarname);
     string name = Lexer::get_string(args[0]);
     VMData* vd = get_vm_from_token(args[1]);
-    //TODO domain (args[2], args[3])
-    F_->make_variable(name, vd);
+    RealRange domain = args2range(args[2], args[3]);
+    int pos = F_->make_variable(name, vd);
+    F_->get_variable(pos)->domain = domain;
     F_->use_parameters();
     F_->outdated_plot(); // TODO: only for replacing old variable
 }

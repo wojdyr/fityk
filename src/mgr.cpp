@@ -117,10 +117,6 @@ int VariableManager::make_variable(const string &name, VMData* vd)
         parameters_.push_back(val);
         int nr = parameters_.size() - 1;
         var = new Variable(name, nr);
-        /*
-        if (!domain_str.empty())
-            parse_and_set_domain(var, domain_str);
-        */
     }
 
     // compound variable
@@ -528,14 +524,19 @@ void VariableManager::substitute_func_param(const string &name,
     remove_unreferred();
 }
 
-fp VariableManager::variation_of_a (int n, fp variat) const
+fp VariableManager::variation_of_a(int n, fp variat) const
 {
     assert (0 <= n && n < size(parameters()));
-    const Domain& dom = get_variable(n)->domain;
-    fp ctr = dom.is_ctr_set() ? dom.get_ctr() : parameters_[n];
-    fp sgm = dom.is_set() ? dom.get_sigma()
-            : ctr * F_->get_settings()->variable_domain_percent / 100.;
-    return ctr + sgm * variat;
+    const RealRange& dom = get_variable(n)->domain;
+    if (dom.from_inf() || dom.to_inf()) {
+        double ctr = get_variable(n)->get_value();
+        double sigma = ctr * F_->get_settings()->variable_domain_percent / 100.;
+        return ctr + sigma * variat;
+    }
+    else {
+        // return lower bound for variat=-1 and upper bound for variat=1
+        return dom.from + 0.5 * (variat + 1) * (dom.to - dom.from);
+    }
 }
 
 string VariableManager::next_var_name()

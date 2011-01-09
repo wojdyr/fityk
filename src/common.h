@@ -18,6 +18,7 @@
 #include <vector>
 #include <math.h>
 #include <assert.h>
+#include <float.h> // DBL_MAX
 
 #include "fityk.h" //ExecuteError
 using fityk::ExecuteError;
@@ -30,9 +31,21 @@ using boost::math::erf
 using boost::math:erfc
 inline double trunc(double a) { return a >= 0 ? floor(a) : ceil(a); }
 #define snprintf sprintf_s
-// disable warning about unsafe sprintf in eS()
+// disable warning about unsafe sprintf
 #pragma warning( disable : 4996 )
 #endif
+
+//------------------  D A T A   S T R U C T U R E S  ------------------------
+
+struct RealRange
+{
+    double from, to;
+
+    RealRange() : from(-DBL_MAX), to(DBL_MAX) {}
+    RealRange(double from_, double to_) : from(from_), to(to_) {}
+    bool from_inf() const { return from == -DBL_MAX; }
+    bool to_inf() const { return to == DBL_MAX; }
+};
 
 //--------------------------  N U M E R I C  --------------------------------
 

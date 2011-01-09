@@ -927,7 +927,7 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
         cmd.args.push_back(token);
         lex.get_token(); // discard '='
         cmd.args.push_back(read_var(lex));
-        parse_real_range(lex, cmd.args);
+        parse_real_range(lex, cmd.args); // domain
     }
     // %func=...
     else if (token.type == kTokenFuncname &&

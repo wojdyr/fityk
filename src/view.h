@@ -6,7 +6,6 @@
 
 #include <string>
 #include <vector>
-#include <float.h>
 
 #include "common.h"
 
@@ -14,16 +13,6 @@ class DataAndModel;
 class Data;
 class Model;
 class Ftk;
-
-struct RealRange
-{
-    double from, to;
-
-    RealRange() : from(-DBL_MAX), to(DBL_MAX) {}
-    RealRange(double from_, double to_) : from(from_), to(to_) {}
-    bool from_inf() const { return from == -DBL_MAX; }
-    bool to_inf() const { return to == DBL_MAX; }
-};
 
 struct Rect
 {
