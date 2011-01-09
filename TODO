@@ -1,10 +1,6 @@
 
 ---------- TODO list and tentative development plan  ----------------
 
-* fix plot refreshing problems (reported on wxGTK 2.8)
-
---- 0.9.5 
-
 * data transformations: add aggregate functions argmin and argmax
 
 * make possible something like this:  $min = @*.min(y if a)

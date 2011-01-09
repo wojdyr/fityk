@@ -29,7 +29,7 @@ class GridTable: public wxGridTableBase
 public:
     GridTable(int data_nr, Data const* data)
         : wxGridTableBase(), data_nr_(data_nr), data_(data),
-          dataset_str_(" in @" + S(data_nr_)),
+          dataset_str_("@" + S(data_nr_) + ": "),
           instant_update_(true)
     {
         has_last_num[0] = has_last_num[1] = has_last_num[2] = false;
@@ -181,7 +181,7 @@ public:
     void change_value(const char* buffer)
     {
         if (instant_update_)
-            ftk->exec(buffer + dataset_str_);
+            ftk->exec(dataset_str_ + buffer);
         else {
             if (!pending_cmd_.empty())
                 pending_cmd_ += ", ";
@@ -193,7 +193,7 @@ public:
     {
         if (pending_cmd_.empty())
             return;
-        ftk->exec(pending_cmd_ + dataset_str_);
+        ftk->exec(dataset_str_ + pending_cmd_);
         pending_cmd_.clear();
         // when Apply is pressed, the data may need to be sorted
         if (!instant_update_)

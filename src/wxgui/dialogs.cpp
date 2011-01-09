@@ -177,7 +177,7 @@ void FitRunDlg::OnOK(wxCommandEvent&)
 
 
 /// show "Export data" dialog
-bool export_data_dlg(wxWindow *parent, bool load_exported)
+bool export_data_dlg(wxWindow *parent)
 {
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
 
@@ -190,28 +190,23 @@ bool export_data_dlg(wxWindow *parent, bool load_exported)
     else
         return false;
 
-    string columns = "";
-    if (!load_exported) {
-        DataExportDlg ded(parent, -1, data_idx);
-        if (ded.ShowModal() != wxID_OK)
-            return false;
-        columns = " (" + ded.get_columns() + ")";
-    }
-
-    wxFileDialog fdlg (parent, wxT("Export data to file"), dir, wxT(""),
-                       wxT("x y data (*.dat, *.xy)|*.dat;*.DAT;*.xy;*.XY"),
-                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    dir = fdlg.GetDirectory();
-    if (fdlg.ShowModal() == wxID_OK) {
-        string path = wx2s(fdlg.GetPath());
-        string dstr = (data_idx == -1 ? string("@*") : "@" + S(data_idx));
-        ftk->exec("info " + dstr + columns + " > '" + path + "'");
-        if (load_exported)
-            ftk->exec(dstr + " < '" + path + "'");
-        return true;
-    }
-    else
+    DataExportDlg ded(parent, -1, data_idx);
+    if (ded.ShowModal() != wxID_OK)
         return false;
+
+    wxFileDialog filedlg(parent, wxT("Export data to file"), dir, wxT(""),
+                         wxT("x y data (*.dat, *.xy)|*.dat;*.DAT;*.xy;*.XY"),
+                         wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    dir = filedlg.GetDirectory();
+    if (filedlg.ShowModal() != wxID_OK)
+        return false;
+    string path = wx2s(filedlg.GetPath());
+    string cmd = (data_idx == -1 ? string("@*") : "@" + S(data_idx))
+                 + ": print "
+                 + (ded.get_only_active_checked() ? "a: " : "all: ")
+                 + ded.get_columns() + " >> '" + path + "'";
+    ftk->exec(cmd);
+    return true;
 }
 //======================================================================
 //                         DataExportDlg
@@ -409,8 +404,11 @@ void MergePointsDlg::update_info()
 string MergePointsDlg::get_command()
 {
     string s;
-    if (dx_cb->GetValue())
-        s += "with epsilon=" + wx2s(dx_val->GetValue()) + " ";
+    if (dx_cb->GetValue()) {
+        string eps = wx2s(dx_val->GetValue().Trim());
+        if (eps != eS(ftk->get_settings()->epsilon))
+            s += "with epsilon=" + eps + " ";
+    }
     string dat = output_rb->GetSelection() == 0 ? S(focused_data) : S("+");
     s += "@" + dat + " = ";
     if (dx_cb->GetValue())

@@ -30,7 +30,7 @@ private:
 };
 
 
-bool export_data_dlg(wxWindow *parent, bool load_exported=false);
+bool export_data_dlg(wxWindow *parent);
 
 class DataExportDlg : public wxDialog
 {
@@ -42,6 +42,7 @@ public:
     void OnOk(wxCommandEvent& event);
     void on_widget_change();
     std::string get_columns() { return wx2s(text->GetValue()); }
+    bool get_only_active_checked() { return only_a_cb->GetValue(); }
 protected:
     int data_idx_;
     wxRadioBox *rb;
