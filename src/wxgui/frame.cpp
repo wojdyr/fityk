@@ -88,6 +88,7 @@
 #include "img/zoom_vert.xpm"
 
 #include "img/book16.h"
+#include "img/editor16.h"
 #include "img/export16.h"
 #include "img/fileopen16.h"
 #include "img/filereload16.h"
@@ -560,8 +561,8 @@ void FFrame::set_menubar()
     session_menu->Append (ID_SESSION_REINCLUDE, wxT("R&e-Execute script"),
              wxT("Reset & execute commands from the file included last time"));
     session_menu->Enable (ID_SESSION_REINCLUDE, false);
-    session_menu->Append (ID_SCRIPT_EDIT, wxT("E&dit Script"),
-                                       wxT("Show script editor"));
+    append_mi(session_menu, ID_SCRIPT_EDIT, GET_BMP(editor16),
+              wxT("E&dit Script"), wxT("Show script editor"));
     append_mi(session_menu, ID_SESSION_RESET, GET_BMP(reload16), wxT("&Reset"),
                                       wxT("Reset current session"));
     session_menu->AppendSeparator();
