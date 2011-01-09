@@ -32,9 +32,9 @@ void BufferedPanel::redraw_now()
     Update();
 }
 
-void BufferedPanel::buffered_draw()
+void BufferedPanel::update_buffer_and_blit()
 {
-    //cout << "BufferedPanel::buffered_draw()" << endl;
+    //cout << "BufferedPanel::update_buffer_and_blit()" << endl;
     wxPaintDC dc(this);
     // check size
     wxCoord w, h;
@@ -46,12 +46,18 @@ void BufferedPanel::buffered_draw()
         memory_dc_.SetBackground(wxBrush(bg_color_));
         dirty_ = true;
     }
-    // replot if it's necessary
+
+    // update the buffer if necessary
     if (dirty_) {
-        dirty_ = false;
         memory_dc_.SetLogicalFunction(wxCOPY);
         memory_dc_.Clear();
         draw(memory_dc_);
+        // This condition is almost always true. It was added because on
+        // wxGTK 2.8 with some window managers, after loading a data file
+        // the next paint event had the update region set to the area
+        // of the file dialog, and the rest of the plot remained not updated.
+        if (GetUpdateRegion().GetBox().GetSize() == dc.GetSize())
+            dirty_ = false;
     }
 
     // copy bitmap to window

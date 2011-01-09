@@ -30,7 +30,8 @@ public:
     // force redrawing panel now
     void redraw_now();
     /// called from wxPaint event handler
-    void buffered_draw();
+    /// updates buffer only if the window size is changed or if dirty_
+    void update_buffer_and_blit();
     /// plotting function called to refresh buffer
     virtual void draw(wxDC &dc, bool monochrome=false) = 0;
     /// get bitmap buffer
@@ -56,7 +57,7 @@ class PlotWithTics : public BufferedPanel
 {
 public:
     PlotWithTics(wxWindow* parent);
-    void OnPaint(wxPaintEvent &) { buffered_draw(); }
+    void OnPaint(wxPaintEvent &) { update_buffer_and_blit(); }
     void draw_tics(wxDC &dc, double x_min, double x_max,
                    double y_min, double y_max);
     void draw_axis_labels(wxDC& dc, std::string const& x_name,

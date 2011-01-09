@@ -79,12 +79,13 @@ void PlotPane::refresh_plots(bool now, WhichPlot which_plot)
     else
         plot->refresh();
     if (which_plot == kAllPlots) {
-        vector<FPlot*> vp = get_visible_plots();
-        for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i)
-            if (now)
-                (*i)->redraw_now();
-            else
-                (*i)->refresh();
+        for (int i = 0; i < 2; ++i)
+            if (aux_visible(i)) {
+                if (now)
+                    aux_plot[i]->redraw_now();
+                else
+                    aux_plot[i]->refresh();
+            }
     }
 }
 
@@ -96,24 +97,15 @@ void PlotPane::set_mouse_mode(MouseModeEnum m)
 bool PlotPane::is_background_white()
 {
     //have all visible plots white background?
-    vector<FPlot*> vp = get_visible_plots();
-    for (vector<FPlot*>::const_iterator i = vp.begin(); i != vp.end(); ++i)
-        if ((*i)->get_bg_color() != *wxWHITE)
+    if (plot->get_bg_color() != *wxWHITE)
+        return false;
+    for (int i = 0; i < 2; ++i)
+        if (aux_visible(i) && aux_plot[i]->get_bg_color() != *wxWHITE)
             return false;
     return true;
 }
 
 BgManager* PlotPane::get_bg_manager() { return &plot->bgm; }
-
-const std::vector<FPlot*> PlotPane::get_visible_plots() const
-{
-    vector<FPlot*> visible;
-    visible.push_back(plot);
-    for (int i = 0; i < 2; ++i)
-        if (aux_visible(i))
-            visible.push_back(aux_plot[i]);
-    return visible;
-}
 
 bool PlotPane::aux_visible(int n) const
 {

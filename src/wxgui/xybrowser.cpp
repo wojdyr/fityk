@@ -95,7 +95,7 @@ END_EVENT_TABLE()
 
 void PreviewPlot::OnPaint(wxPaintEvent&)
 {
-    buffered_draw();
+    update_buffer_and_blit();
 }
 
 void PreviewPlot::draw(wxDC &dc, bool)

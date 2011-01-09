@@ -49,12 +49,7 @@ class PreviewPlot : public PlotWithTics
 public:
     int block_nr, idx_x, idx_y;
 
-    PreviewPlot(wxWindow* parent)
-        : PlotWithTics(parent), block_nr(0), idx_x(1), idx_y(2),
-          data_updated(false)
-        { set_bg_color(*wxBLACK); }
-
-    void OnPaint(wxPaintEvent &event);
+    PreviewPlot(wxWindow* parent);
     void draw(wxDC &dc, bool);
     void load_dataset(string const& filename, string const& filetype,
                       string const& options);
@@ -64,17 +59,13 @@ public:
 private:
     shared_ptr<const xylib::DataSet> data;
     bool data_updated; // if false, draw() doesn't do anything (plot is clear)
-
-    DECLARE_EVENT_TABLE()
 };
 
-BEGIN_EVENT_TABLE (PreviewPlot, PlotWithTics)
-    EVT_PAINT (PreviewPlot::OnPaint)
-END_EVENT_TABLE()
-
-void PreviewPlot::OnPaint(wxPaintEvent&)
+PreviewPlot::PreviewPlot(wxWindow* parent)
+    : PlotWithTics(parent), block_nr(0), idx_x(1), idx_y(2),
+      data_updated(false)
 {
-    buffered_draw();
+    set_bg_color(*wxBLACK);
 }
 
 void PreviewPlot::draw(wxDC &dc, bool)

@@ -29,7 +29,6 @@ public:
     MainPlot const* get_plot() const { return plot; }
     MainPlot* get_plot() { return plot; }
     BgManager* get_bg_manager();
-    std::vector<FPlot*> const get_visible_plots() const;
     AuxPlot* get_aux_plot(int n) const
                      { assert(n>=0 && n<2); return aux_plot[n]; }
     void show_aux(int n, bool show);

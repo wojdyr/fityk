@@ -62,7 +62,7 @@ END_EVENT_TABLE()
 void AuxPlot::OnPaint(wxPaintEvent&)
 {
     frame->update_crosshair(-1, -1);
-    buffered_draw();
+    update_buffer_and_blit();
     //draw, if necessary, vertical or horizontal lines
     line_following_cursor(mat_redraw);
 }
@@ -121,7 +121,7 @@ double rdiff_y_perc_of_data_for_draw_data (vector<Point>::const_iterator i,
 
 void AuxPlot::draw(wxDC &dc, bool monochrome)
 {
-    //cout << "AuxPlot::draw()" << endl;
+    //printf("AuxPlot::draw()\n");
     int pos = frame->get_focused_data_index();
     Data const* data = ftk->get_data(pos);
     Model const* model = ftk->get_model(pos);
@@ -230,10 +230,11 @@ bool AuxPlot::is_zoomable()
 
 void AuxPlot::set_scale(int pixel_width, int pixel_height)
 {
-    // this functions depends on x scale in MainPlot
-    // sometimes AuxPlot is redrawed before MainPlot, so we are updating
-    // horizontal scale in MainPlot
-    master->set_scale(pixel_width, 0);
+    // This functions depends on the x and y scales in MainPlot.
+    // Since the order in which the plots are redrawn is undetermined,
+    // we are updating here the MainPlot scale.
+    master->set_scale(pixel_width, master->GetClientSize().GetHeight());
+
     xs = master->get_x_scale();
 
     if (kind == apk_cum_chi2) {

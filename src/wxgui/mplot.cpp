@@ -249,7 +249,7 @@ void MainPlot::OnPaint(wxPaintEvent&)
 {
     frame->update_crosshair(-1, -1);
     limit1 = limit2 = INT_MIN;
-    buffered_draw();
+    update_buffer_and_blit();
     // if necessary, redraw inverted lines
     line_following_cursor(mat_redraw);
     peak_draft(mat_redraw);
@@ -286,7 +286,7 @@ void MainPlot::draw_dataset(wxDC& dc, int n, bool set_pen)
 
 void MainPlot::draw(wxDC &dc, bool monochrome)
 {
-    //cout << "MainPlot::draw()" << endl;
+    //printf("MainPlot::draw()\n");
     int focused_data = frame->get_focused_data_index();
     const Model* model = ftk->get_model(focused_data);
 
