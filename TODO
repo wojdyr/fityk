@@ -1,30 +1,28 @@
 
----------- TODO list and tentative development plan  ----------------
-
 * data transformations: add aggregate functions argmin and argmax
 
 * make possible something like this:  $min = @*.min(y if a)
 
 * GUI: Data>Load should use default load dir (as Quick Load)
 
-* subtracting another dataset with interpolation of the subtrahend
-  (this is important for subtracting background from a file);
+* subtracting datasets (with interpolation of the subtrahend): @2 = @0 - @1;
   for consistency, `+' should add interpolated data, and 'U' can stand
   for a sum of sets.
-  GUI: Data > Subtract data from file
 
 * add functions cot and coth
 
-* GUI: on "Guess function" toolbar button: if initial values are not known,
+* GUI, "Guess function" toolbar button: if initial values are not known,
   show a dialog asking for the values.
 
 ---
 
-* embed Lua interpreter
+* embed the Lua interpreter
 
 ---
 
-* finish powder diffraction add-on (Pawley fitting)
+* finish the powder diffraction add-on (Pawley fitting)
+
+* allow all the functions from data transformation in variable/UDF definition
 
 * FFT data transformation using either KISS FFT or FFTW library,
   fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re @3 
@@ -40,20 +38,16 @@
   function should also be changed (to the function that was active last time
   this dataset was active)
 
-* GUI: redesign gradient dialog
+* GUI: redesign the gradient dialog
 
-* (GUI) plot horizontal/vertical lines
+* GUI: plot horizontal/vertical lines
      can be used to show theoretical peak positions in XRD
      (or to mark simulation restarts in data from MD)
      Syntax: line x=42.2 label="foo"
 
-* fitting: stopping criterium based on elapsed time
+* fitting: add stopping criterium based on elapsed time
 
-* (GUI) a simple (for user) way to interrupt fitting or script
-  Requires two thread and thread-safety.
-
-* "%_1.height = ~{sqrt(%_1.height)}^2" creates $_5 before $_4 - check if this
-  is safe.
+* GUI: a simple (for the user) way to interrupt fitting. Requires two threads.
 
 * confidence intervals of model parameters (95%, 99%)
   http://www.boost.org/doc/libs/1_42_0/libs/math/doc/sf_and_dist/html/math_toolkit/dist/stat_tut/weg/st_eg/tut_mean_intervals.html
@@ -71,49 +65,33 @@
 * add a new function category: sigmoids/steps (now function can be guessed as
   "peak" and "linear"). (GUI): drawing drafts for the new category.
 
-* add alpha channel to the toolbar icons
+* GUI: add alpha channel to the toolbar icons
 
-* (GUI) single dialog for configuring main plot (and also aux. plots) (?)
-  - now in Configure axes / peak labels fonts are changed (but shouldn't) 
-    even if Apply is not pressed 
-  - option to change the width of the sum line (and other lines)
-  - ? changing data point size and line separately for each dataset,
+* GUI: single dialog for configuration of the main plot
+  - add option to change the width of the sum line (and other lines)
 
 * user defined functions:
       - calculating limits, width, area, etc. for UDF
       - ?? use LLVM for faster calculation of user-defined functions
 
-* EMG function: how to calculate it? Now there are some problems with
-  this function. There must be smarter way to implement it...
-  perhaps using gsl_sf_log_erfc or exp(x*x)*erfc(x) from
+* EMG function: calculate it in a smarter way. (now there are problems for
+  some parameters -- the functions is calculated as very-large-number x
+  very-small-number), perhaps use gsl_sf_log_erfc or exp(x*x)*erfc(x) from
   http://www.netlib.org/specfun/erf
 
 * Use a better approximation of Voigt function than the one used now.
   There are dozens of papers on Voigt calculation, mostly in JQSRT.
 
-* GUI: menu Functions:
-  Functions > Peak-Find Info -> animation
-  Functions > Multidata P-F Info -> window with list of parameters (Xview-like)
+* GUI: Functions > Peak-Find Info - present the the peak graphically
 
-* ? box-constrained simple variables 
+* info dpeak [range]: show parameters of selected data range assuming that
+  this range contains a peak: area, center, FWHM, max, peak-area, backgr-area
+  (like in the Xview program)
 
-* ?fitting with enforcing valid function's parameters: 
-    eg. in Pearson shape > 0.5 , shape < 1e9
-    what if parameter is out of domain? change? disable function?
-
-* ? more sophisticated algorithms for peak detection
+* more sophisticated algorithms for peak detection
     - compare methods from origin pkfind, peakfit and other programs
     - research papers: http://dx.doi.org/10.1016/j.chroma.2004.11.073
                        http://dx.doi.org/10.1002/cem.1005
-
-* fitting: GA fitting options,
-  replace "shake_before" in LMfit.cpp with separate "randomize" method
-
-* fitting:
-	simulated annealing (it can replace LM shake_before option)
-	perhaps also BFGS, conjugate gradients methods
-	Rosenbrock Method:
-	  http://www.applied-mathematics.net/optimization/rosenbrock.html
 
 * fitting: consider using 3rd-party library for nonlinear fitting/optimization.
   The list of libraries in this category:
@@ -132,12 +110,19 @@
     http://www-unix.mcs.anl.gov/otc/Guide/faq/nonlinear-programming-faq.html 
     levmar: http://www.ics.forth.gr/~lourakis/levmar/
     OpenOpt: http://openopt.org/
+    http://www.applied-mathematics.net/optimization/rosenbrock.html
 
-* fitting:
-  robust fit - other error distributions then Gaussian, eg. Lorenzian...;
-  so called 'maximum-likelihood method' -- using Poisson error distribution.
+* fitting: in addition to the least squares fit, add so-called robust fit 
+  (it is called robust fit in the Numerical Recipes book), i.e. optimize
+  assuming the error distribution is other then Gaussian, eg. Lorenzian...;
+  there is also a literature about so called 'maximum-likelihood method'
+  in which the exact Poisson error distribution is handled.
 
-* when wxWidgets 3 will be available in major Linux distributions:
+* fitting: box-constrained parameters (simple-variables)
+           the constraints could be automatic for some function parameters,
+	   e.g. "guess PseudoVoigt" could give shape with bounds <0,1>
+
+* when wxWidgets 3 is in the major Linux distributions:
   - open-file dialog (with preview) will use xybrowser.cpp
   - file dialogs will be changed to take adventage of custom controls:
       * Choose log file: add "log also output" checkbox
