@@ -20,8 +20,9 @@ Function* init_component(const string& func_name, const Tplate::Component& c,
         }
         else {
             var_name = "_i" + S(variables.size() + 1);
-            //TODO handle OP_TILDE
             VMData vm = *j;
+            if (vm.has_op(OP_TILDE))
+                throw ExecuteError("unexpected `~' in UDF");
             Variable *v = make_compound_variable(var_name, &vm, variables);
             v->set_var_idx(variables);
             variables.push_back(v);
@@ -296,6 +297,8 @@ void SplitFunction::init()
                             settings_);
 
     VMData vm = tp_->components[0].cargs[0];
+    if (vm.has_op(OP_TILDE))
+        throw ExecuteError("unexpected `~' in condition in UDF");
     Variable *v = make_compound_variable("split", &vm, intern_variables_);
     v->set_var_idx(intern_variables_);
     intern_variables_.push_back(v);

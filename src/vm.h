@@ -104,6 +104,9 @@ enum Op
 class VMData
 {
 public:
+    static bool has_idx(int op)
+        { return op == OP_NUMBER || op == OP_SYMBOL || op == OP_PUT_DERIV; }
+
     const std::vector<int>& code() const { return code_; }
     const std::vector<double>& numbers() const { return numbers_; }
 
@@ -111,11 +114,10 @@ public:
     void append_number(double d);
     void clear_data() { code_.clear(); numbers_.clear(); }
     void replace_symbols(const std::vector<double>& vv);
-    std::vector<std::string> reindex_variables(
-            const std::vector<Variable*>& all_variables);
     void flip_indices();
     bool single_symbol() const {return code_.size()==2 && code_[0]==OP_SYMBOL;}
     bool has_op(int op) const;
+    std::vector<int>& get_mutable_code() { return code_; }
 
 private:
     std::vector<int> code_;    //  VM code

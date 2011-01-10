@@ -91,7 +91,22 @@ Variable* make_compound_variable(const string &name, VMData* vd,
         symbols[i] = all_variables[i]->name;
     //printf("make_compound_variable: %s\n", vm2str(*vd).c_str());
 
-    vector<string> used_vars = vd->reindex_variables(all_variables);
+    // re-index variables
+    vector<string> used_vars;
+    vm_foreach (int, i, vd->get_mutable_code()) {
+        if (*i == OP_SYMBOL) {
+            ++i;
+            const string& name = all_variables[*i]->name;
+            int idx = index_of_element(used_vars, name);
+            if (idx == -1) {
+                idx = used_vars.size();
+                used_vars.push_back(name);
+            }
+            *i = idx;
+        }
+        else if (VMData::has_idx(*i))
+            ++i;
+    }
 
     vector<OpTree*> op_trees = prepare_ast_with_der(*vd, used_vars.size());
     return new Variable(name, used_vars, op_trees);
@@ -114,15 +129,31 @@ int VariableManager::make_variable(const string &name, VMData* vd)
             return old_pos;
         }
 
+        var = new Variable(name, parameters_.size());
         parameters_.push_back(val);
-        int nr = parameters_.size() - 1;
-        var = new Variable(name, nr);
     }
 
     // compound variable
     else {
-        //TODO: OP_TILDE -> variables
-        // sub-variables, e.g. ~14.3 -> $var4
+        // OP_TILDE -> new variable
+        vector<int>& code = vd->get_mutable_code();
+        vm_foreach (int, op, code) {
+            if (*op == OP_TILDE) {
+                *op = OP_SYMBOL;
+                ++op;
+                assert(*op == OP_NUMBER);
+                *op = variables_.size();
+                int num_index = *(op+1);
+                double value = vd->numbers()[num_index];
+                code.erase(op+1);
+                string tname = next_var_name();
+                Variable *tilde_var = new Variable(tname, parameters_.size());
+                parameters_.push_back(value);
+                variables_.push_back(tilde_var);
+            }
+            else if (VMData::has_idx(*op))
+                ++op;
+        }
 
         var = make_compound_variable(name, vd, variables_);
     }
