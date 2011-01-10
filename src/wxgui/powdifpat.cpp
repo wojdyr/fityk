@@ -2033,7 +2033,7 @@ void App::OnAbout(wxCommandEvent&)
     wxString desc = wxT("Powder diffraction pattern generator.\n");
     adi.SetDescription(desc);
     adi.SetWebSite(wxT("http://www.unipress.waw.pl/fityk/powdifpat/"));
-    adi.SetCopyright(wxT("(C) 2008 - 2010 Marcin Wojdyr <wojdyr@gmail.com>"));
+    adi.SetCopyright(wxT("(C) 2008 - 2011 Marcin Wojdyr <wojdyr@gmail.com>"));
     wxAboutBox(adi);
 }
 

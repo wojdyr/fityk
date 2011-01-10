@@ -49,7 +49,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
                     + wxT("\n"));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour,
                                     *wxNORMAL_FONT));
-    txt->AppendText(wxT("\nCopyright (C) 2001 - 2010 Marcin Wojdyr\n\n"));
+    txt->AppendText(wxT("\nCopyright (C) 2001 - 2011 Marcin Wojdyr\n\n"));
     txt->AppendText(
    wxT("This program is free software; you can redistribute it and/or modify ")
    wxT("it under the terms of the GNU General Public License as published by ")
