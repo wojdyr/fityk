@@ -29,6 +29,7 @@
 #include "frame.h"
 #include "dataedit.h" //DataEditorDlg::read_transforms()
 #include "sidebar.h" // initializations
+#include "statbar.h" // initializations
 #include "../logic.h"
 
 using namespace std;
@@ -221,6 +222,9 @@ bool FApp::OnInit(void)
 
     // sash inside wxNoteBook can have wrong position (eg. wxGTK 2.7.1)
     frame->sidebar->read_settings(cf);
+    // sash on the status bar is also in the wrong place (wxGTK),
+    // because for some reason wxSplitterWindow had width=0 before Show()
+    frame->status_bar->read_settings(cf);
 
     delete cf;
 

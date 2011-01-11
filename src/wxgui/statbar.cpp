@@ -39,7 +39,7 @@ FStatusBar::FStatusBar(wxWindow *parent)
 
     split->SplitVertically(text, coords);
     split->SetSashGravity(1.0);
-    split->SetMinimumPaneSize(50);
+    split->SetMinimumPaneSize(150);
     sizer->Add(split, wxSizerFlags(1).Centre().Border(wxLEFT));
 
     wxBitmapButton *prefbtn = new wxBitmapButton
@@ -107,7 +107,7 @@ void FStatusBar::read_settings(wxConfigBase *cf)
 
     set_extra_value(ev);
     update_extra_fmt();
-    split->SetSashPosition(-coord_width);
+    split->SetSashPosition(split->GetClientSize().x - coord_width);
     show_or_hide();
 }
 
