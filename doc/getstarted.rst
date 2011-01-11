@@ -147,7 +147,7 @@ Now let us fit the function. Type: ``fit``.
    :alt: Fit
    :class: icon
 
-.. note::
+.. important::
 
     Fitting minimizes the **weighted** sum of squared residuals
     (see :ref:`nonlinear`).

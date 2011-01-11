@@ -49,10 +49,45 @@ latex_elements = {
     'inputenc': r"""
          \usepackage{ucs}
          \usepackage[utf8x]{inputenc}""",
-    'utf8extra': ''
+    'utf8extra': '',
+
+    # put notes into boxes
+    'preamble': r"""
+\usepackage{ifthen}
+\definecolor{gray03}{gray}{0.3}
+\let\origbeginnotice\notice
+\let\origendnotice\endnotice
+
+\renewenvironment{notice}[2]{%
+  \def\noticetype{#1}
+  \ifthenelse{\equal{#1}{note}}{%
+    \setlength{\fboxrule}{1pt}
+    \setlength{\fboxsep}{6pt}
+    \setlength{\mylen}{\linewidth}
+    \addtolength{\mylen}{-2\fboxsep}
+    \addtolength{\mylen}{-4\fboxrule}
+    %\setlength{\shadowsize}{3pt}
+    \Sbox
+    \minipage{\mylen}
+    \ifthenelse{\equal{#2}{In the GUI}}{\color{gray03}}{}
+    \par\hspace{5pt}\strong{#2}
+  }{%
+  \origbeginnotice{#1}{#2}%
+  }
+}{%
+  \ifthenelse{\equal{\noticetype}{note}}{%
+    \endminipage
+    \endSbox
+    %\fbox{\TheSbox}
+    \ovalbox{\TheSbox}
+  }{%
+  \origendnotice%
+  }
+}
+"""
 }
 
-latex_show_pagerefs = True
+#latex_show_pagerefs = True
 latex_show_urls = True
 
 # determine vertical alignment of the math PNGs
