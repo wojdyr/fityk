@@ -284,3 +284,57 @@ If it is found in a script it quits the program, not only the script.
 Commands that start with ``!`` are passed (without '!')
 to the ``system()`` call.
 
+.. _invoking:
+
+Starting the program
+====================
+
+On startup, the program runs a script from the
+:file:`$HOME/.fityk/init` file (on MS Windows XP:
+:file:`C:\\Documents and Settings\\USERNAME\\.fityk\\init`).
+Following this, the program executes command passed with the ``--cmd``
+option, if given, and processes command line arguments:
+
+- if the argument starts with ``=->``, the string following ``=->``
+  is regarded as a command and executed
+  (otherwise, it is regarded as a filename).
+
+- if the filename has extension ".fit" or the file begins with a "# Fityk"
+  string, it is assumed to be a script and is executed.
+
+- otherwise, it is assumed to be a data file.
+  (columns and data blocks can be specified in the normal way, see <dataload>).
+
+.. highlight:: none
+
+There are also other parameters to the CLI and GUI versions of the program.
+Option "-h" ("/h" on MS Windows) gives the full listing::
+
+    wojdyr@ubu:~/fityk/src$ ./fityk -h
+    Usage: fityk \[-h] \[-V] \[-c <str>] \[-I] \[-r] \[script or data file...]
+    -h, --help            show this help message
+    -V, --version         output version information and exit
+    -c, --cmd=<str>       script passed in as string
+    -g, --config=<str>    choose GUI configuration
+    -I, --no-init         don't process $HOME/.fityk/init file
+    -r, --reorder         reorder data (50.xy before 100.xy)
+
+
+    wojdyr@ubu:~/foo$ cfityk -h
+    Usage: cfityk \[-h] \[-V] \[-c <str>] \[script or data file...]
+    -h, --help            show this help message
+    -V, --version         output version information and exit
+    -c, --cmd=<str>       script passed in as string
+    -I, --no-init         don't process $HOME/.fityk/init file
+    -q, --quit            don't enter interactive shell
+
+The example of non-interactive using CLI version on Linux::
+
+    wojdyr@ubu:~/foo$ ls *.rdf
+    dat_a.rdf  dat_r.rdf  out.rdf
+    wojdyr@ubu:~/foo$ cfityk -q -I "=-> set verbosity=quiet, autoplot=never" \
+    > *.rdf "=-> i+ min(x if y > 0) in @*"
+    in @0 dat_a: 1.8875
+    in @1 dat_r: 1.5105
+    in @2 out: 1.8305
+

@@ -474,7 +474,7 @@ Example::
     define FullGBE(k, alpha) = k * alpha * eta * (eta / tanh(eta) - ln (2*sinh(eta))) where eta = 2*pi/alpha * sin(theta/2), theta=x*pi/180
 
 .. tip:: Use the :file:`init` file for often used definitions.
-         See :ref:`invoking` for details.
+         See the section :ref:`invoking` for details.
 
 Defined functions can be undefined using command ``undefine``.
 

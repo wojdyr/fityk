@@ -376,3 +376,26 @@ a.current {
                      times, serif; }
  */
 
+.smallfont { font-size: 0.9em; }
+
+img.icon { vertical-align: text-bottom; }
+
+div.admonition-in-the-gui
+{
+    border: 1px solid #888888;
+    background-color: #bbbbbb;
+    font-family: "myriad-pro-1","myriad-pro-2",HelveticaNeue,Helvetica,Arial,
+                 sans-serif;
+}
+
+div.admonition-in-the-gui p.admonition-title {
+    color: #f8f8f8;
+    border-bottom: 1px solid #888888;
+    font-weight: bold;
+    background-color: #999999;
+}
+
+.guilabel, .menuselection {
+    font-family: Helvetica,Arial,sans-serif;
+}
+

@@ -2,7 +2,7 @@
 Data
 ====
 
-.. _DataLoad:
+.. _dataload:
 
 Loading data
 ------------
@@ -170,7 +170,7 @@ We can also think about weights of points -- every point has a weight
 assigned, that is equal :math:`w_i=1/\sigma_i^2`.
 
 Standard deviation of points can be
-:ref:`read from file <DataLoad>` together with the *x* and *y*
+:ref:`read from file <dataload>` together with the *x* and *y*
 coordinates. Otherwise, it is set either to max(*y*:sup:`1/2`, 1)
 or to 1, depending on the value of :option:`data_default_sigma` option.
 Setting std. dev. as a square root of the value is common
