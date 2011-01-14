@@ -116,13 +116,11 @@ since the release of ver. 1.0.
 Documentation
 =============
 
-`The manual <fityk-manual.html>`_
-(`PDF <http://www.unipress.waw.pl/fityk/fityk-manual.pdf>`_)
-documents mainly commands of the fityk mini-language.
+* `Manual <fityk-manual.html>`_
+  (also in `PDF <http://www.unipress.waw.pl/fityk/fityk-manual.pdf>`_),
 
-`Fityk Wiki <https://github.com/wojdyr/fityk/wiki>`_
-contains all other informations.
-You are welcome to contribute.
+* `Fityk Wiki <https://github.com/wojdyr/fityk/wiki>`_
+  (you are welcome to contribute).
 
 Citing fityk in academic papers:
 M. Wojdyr,
@@ -133,19 +131,16 @@ M. Wojdyr,
 Questions?
 ==========
 
-Join the Google group
-`fityk-users <http://groups.google.com/group/fityk-users/>`_.
-You may select the option "no mail" and use the web interface to send messages.
+* Google group `fityk-users <http://groups.google.com/group/fityk-users/>`_
+  (you may select "no mail" to use it like forum)
+
+* or wojdyr@gmail.com
+
 Feel free to send questions, comments, bug reports, new feature requests
 and success stories.
-
 Asking for a new feature usually results in adding the request to
 the `TODO list <https://github.com/wojdyr/fityk/raw/master/NEWS>`_
 or, if it already is in the list, in assigning higher priority to it.
-
-If for some reasons you do not want to use the group,
-you may contact directly the maintainer of the program: wojdyr@gmail.com.
-
 
 .. raw:: html
 

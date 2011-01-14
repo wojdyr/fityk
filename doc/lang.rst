@@ -1,39 +1,92 @@
 
-Fityk mini-language
-###################
+Mini-language
+#############
 
-.. note::
+Fityk comes with own domain-specific language (DSL), which is humbly
+called mini-language. All operations are driven by commands of the
+mini-language.
 
-   You do not need to learn the syntax of the fityk mini-language.
+.. admonition:: Do not worry
+
+   you do not need to learn the syntax of the mini-language.
    It is possible to use menus and dialogs in the GUI
-   instead of typing the commands.
+   and avoid typing commands.
 
-Introduction
-============
+When you use the GUI and perform an action using the menu,
+you can see the corresponding command in the output window.
+It is one of less than 30 fityk commands. The commands have relatively
+simple syntax and perform single actions, such as loading data from file,
+adding function, assigning variable, fitting, or writing some values to a file.
 
-The fityk mini-language (or :dfn:`domain-specific language`) was designed
-to be simple and to perform easily most common tasks.
-The language has no flow control (but that is what Python, Lua and other
-bindings are for).
-Each line is parsed and executed separately. Typically, one line contains
-one command, but the line can also be empty or contain multiple ``;``-separated
-commands.
+It is possible to write a script (macro) as a sequence of such
+commands. This can automate common tasks, although some complex tasks
+still need to be programmed in a general-purpose language.
+That is why Fityk comes with bindings to Python, Lua and several other
+languages.
 
-The hash (``#``) starts a comment -- everything from the hash
-to the end of the line is ignored.
+Now a quick glimps at the syntax. Here, the ``=->`` prompt marks an input::
 
-Some commands can be shortened: e.g. you can type
-``inf`` or ``in`` or ``i`` instead of ``info``.
+  =-> print pi
+  3.14159
+  =-> # this is a comment -- from `#' to the end of line
+  =-> p '2+3=', 2+3 # p stands for print
+  2+3 = 5
+  =-> set numeric_format='%.9f' # show 9 digits after dot
+  =-> pr pi, pi^2, pi^3 # pr, pri and prin also stand for print
+  3.141592654 9.869604401 31.006276680
 
-TO BE CONTINUED
+Usually, one line is one command, but if it is really needed,
+two or more commands can be put in one line like this::
+
+  =-> $a = 3; $b = 5 # two commands separated with `;'
+
+If the user works simultaneously with multiple datasets, she can refer to
+a dataset using its number: the first dataset is ``@0``, the second -- ``@1``,
+etc::
+
+  =-> fit # perform fitting of the default dataset (the first one)
+  =-> @2: fit # fit the third dataset (@2)
+  =-> @*: fit # fit all datasets, one by one
+
+All settings in the program are changed using the command ``set``::
+
+  set key = value
+
+For example::
+
+  =-> set logfile = 'C:\log.fit' # log all commands to this file
+  =-> set verbosity = 1 # make output from the program more verbose
+  =-> set epsilon = 1e-14
+
+The last example changes the *ε* value, which is used to test floating-point
+numbers *a* and *b* for equality (it is well known that due to rounding
+errors the equality test for two numbers should have some tolerance,
+and the tolerance should be tailored to the application): \|\ *a−b*\ | < *ε*.
+
+To change a setting only for one command, add ``with key=value`` before
+the command::
+
+  =-> with epsilon = 0.1 print pi == 3.14 # abusing epsilon
+  1
+  =-> print pi == 3.14 # default epsilon = 10^-12
+  0
+
+.. highlight:: none
+
+Writing informally, each line has a syntax::
+
+  [[@...:] [with ...] command [";" command]...] [#comment]
+
+All the commands are described in the next chapters.
+
+.. important::
+
+  The rest of this section can be useful as reference, but it is recommended
+  to **skip it** when reading the manual for the first time.
 
 
 Grammar
 =======
-
-.. warning::
-
-   This section presents grammar from not-yet-released version 0.9.5.
 
 The grammar is expressed in EBNF-like notation:
 
@@ -75,7 +128,7 @@ The kCmd* names in the comments correspond to constants in the code.
     : "g:uess" `guess`                   | (*kCmdGuess*)
     : "i:nfo" `info_arg` % "," [`redir`]   | (*kCmdInfo*)
     : "pl:ot" [`range`] [`range`] Dataset* | (*kCmdPlot*)
-    : "p:rint" `print` [`redir`]           | (*kCmdPrint*)
+    : "p:rint" `print_args` [`redir`]      | (*kCmdPrint*)
     : "quit"                           | (*kCmdQuit*)
     : "reset"                          | (*kCmdReset*)
     : "s:et" (Lname "=" `value`) % ","   | (*kCmdSet*)
@@ -105,7 +158,7 @@ The kCmd* names in the comments correspond to constants in the code.
          :    )
    component_func: Uname "(" `v_expr` % "," ")"
    delete: (Varname | `func_id` | Dataset | "file" `filename`) % ","
-   delete_points: "(" p_expr ")"
+   delete_points: "(" `p_expr` ")"
    exec: `filename` |
        : "!" RestOfLine
    fit: [Number] [Dataset*] |
@@ -116,7 +169,8 @@ The kCmd* names in the comments correspond to constants in the code.
       : "clear_history"
    guess: [Funcname "="] Uname ["(" (Lname "=" `v_expr`) % "," ")"] [`range`]
    info_arg: ...TODO
-   print: ...TODO
+   print_args: [("all" | ("if" `p_expr` ":")]
+             : (`p_expr` | QuotedString | "title" | "filename") % ","
    redir: (">"|">>") `filename`
    value: (Lname | QuotedString | `expr`) (*value type depends on the option*)
    model_rhs: "0" |
@@ -155,7 +209,7 @@ The kCmd* names in the comments correspond to constants in the code.
    math_func: "sqrt" "(" expr ")" |
             : "gamma" "(" expr ")" |
             :  ...
-   braced_expr: "{" [Dataset+ ":"] p_expr "}"
+   braced_expr: "{" [Dataset+ ":"] `p_expr` "}"
 
 The ``atom`` rule also accepts some fityk expressions, such as $variable,
 %function.parameter, %function(expr), etc.

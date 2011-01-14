@@ -8,8 +8,8 @@ Graphical interface
 ===================
 
 The GUI window of fityk consists of (from the top): menu bar, toolbar,
-main plot, helper (residual) plot, output window, input field, status bar and of
-sidebar at right-hand side. The input field allows you to type and
+main plot, helper (residual) plot, output window, input field, status bar
+and of sidebar at the right-hand side. The input field allows you to type and
 execute commands in a similar way as is done in the CLI version. The
 output window shows the results.
 
@@ -22,7 +22,7 @@ right button on the plot) to configure it. Some properties of the plot
 (e.g. colors of data points) can be changed using the sidebar.
 
 One of the most useful things which can be displayed by the helper
-plot is the difference between the data and the model (also controlled
+plot is the difference between the data and the model (it is also controlled
 by a pop-up menu). Hopefully, a quick look at this menu and a minute or
 two's worth of experiments will show the potential of this plot.
 
@@ -67,9 +67,8 @@ You can do this by typing::
 The :abbr:`CLI (Command Line Interface)` version of the program is all
 about typing commands. From time to time it is also handy to type
 a command in the :abbr:`GUI (Graphical User Interface)`,
-that is what the the input box (at the bottom of the window) is for.
-But usually the GUI provides more intuitive, mouse-driven way to perform
-the same operations -- read the grey boxes below.
+but usually the GUI provides more intuitive, mouse-driven way to perform
+the same operation -- it is mentioned in the the grey boxes below.
 
 .. admonition:: In the GUI
 
@@ -114,7 +113,7 @@ To add a peak, either set the initial parameters manually::
     it is also possible to set the initial parameters with the mouse:
     change the GUI mode to |mode-add-icon|,
     click on the plot and drag the mouse to select
-    the position, height and width of new peak.
+    the position, height and width of a new peak.
 
 .. |mode-add-icon| image:: img/mode_add_icon.png
    :alt: Add-Peak Mode
@@ -141,7 +140,7 @@ Now let us fit the function. Type: ``fit``.
 
 .. admonition:: In the GUI
 
-    select :menuselection:`Fit --> Run` from the menu (or press |fit-icon|).
+    select :menuselection:`Fit --> Run` from the menu or press |fit-icon|.
 
 .. |fit-icon| image:: img/fit_icon.png
    :alt: Fit

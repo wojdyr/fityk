@@ -9,6 +9,16 @@ Loading data
 
 Data files are read using the `xylib library <http://xylib.sourceforge.net/>`_.
 
+.. admonition:: In the GUI
+
+   click |load-data-icon|. If it just works for your files, you may go
+   straight to :ref:`activepoints`.
+
+.. |load-data-icon| image:: img/load_data_icon.png
+   :alt: Load Data
+   :class: icon
+
+
 Points are loaded from files using the command::
 
    dataslot < filename[:xcol:ycol:scol:block] [filetype options...]
@@ -51,7 +61,7 @@ Multiple y columns and/or blocks can be specified, see the examples below::
 
 Information about loaded data can be obtained with::
 
-   info data [in @0]
+   info data
 
 Supported filetypes
 ~~~~~~~~~~~~~~~~~~~
@@ -114,18 +124,21 @@ by the user. The data read from the file are first stored in a table
 with *m* columns and *n* rows.
 If some of the lines have 3 numbers in it, and some have 5 numbers, we can
 either discard the lines that have 3 numbers or we can discard the numbers
-in 4th and 5th column. Usually the latter is done, unless it seems that the
-shorter lines should be ignored. The line is ignored:
+in 4th and 5th column. Usually the latter is done, but there are exceptions.
+The shorter lines are ignored
 
-* if it is the last line in the file and it contains less numbers than other
-  lines (probably the program was terminated while writing the file),
+* if it is the last line in the file
+  (probably the program was terminated while writing the file),
 
-* if it contains only one number, but the prior lines had more numbers,
+* if it contains only one number, but the prior lines had more numbers
+  (this may be a comment that starts with a number)
 
 * if all the (not ignored) prior lines and the next line are longer
 
-.. note:: Xylib doesn't handle well nan's and inf's in the data. This will be
-          improved in the future.
+These rule may seem complex, but they allow to read many log files
+as numeric data without editing.
+
+For now, xylib does not handle well nan's and inf's in the data.
 
 Data blocks and columns may have names. These names are used to set
 a title of the dataset (see :ref:`multidata` for details).
@@ -141,6 +154,8 @@ If the file starts with the "``LAMMPS (``" string,
 the :option:`last_line_header` option is set automatically.
 This is very helpful when plotting data from LAMMPS log files.
 
+.. _activepoints:
+
 Active and inactive points
 --------------------------
 
@@ -153,8 +168,15 @@ A data :ref:`transformation <transform>`::
 
 can be used to change the state of points.
 
-In the GUI, there is a ``Data-Range Mode`` that allows activating and
-disactivating points with mouse.
+.. admonition:: In the GUI
+
+   data points can be activated and disactivated with mouse
+   in the data-range mode (toolbar: |mode-range-icon|).
+
+.. |mode-range-icon| image:: img/mode_range_icon.png
+   :alt: Data-Range Mode
+   :class: icon
+
 
 .. _weights:
 
@@ -175,8 +197,8 @@ coordinates. Otherwise, it is set either to max(*y*:sup:`1/2`, 1)
 or to 1, depending on the value of :option:`data_default_sigma` option.
 Setting std. dev. as a square root of the value is common
 and has theoretical ground when *y* is the number of independent events.
-You can always change standard deviation, e.g. make it equal for every
-point with command: ``S=1``.
+You can always change the standard deviation, e.g. make it equal for every
+point with the command: ``S=1``.
 See :ref:`transform` for details.
 
 .. note:: It is often the case that user is not sure what standard deviation
@@ -280,22 +302,21 @@ Expressions can contain:
 
 A few examples.
 
-* In the case of diffraction patterns, it is possible to change the *x* scale
-  between *Q* and 2\ *θ*:: 
+* The *x* scale of diffraction pattern can be changed from 2\ *θ* to *Q*::
 
     X = 4*pi * sin(x/2*pi/180) / 1.54051 # Cu 2θ -> Q
 
-* Negative *y* values can be zeroed with command::
+* Negative *y* values can be zeroed::
 
-    Y=max2(y,0)
+    Y = max2(y, 0)
 
 * All standard deviations can be set to 1::
 
-    S=1
+    S = 1
     
 * It is possible to select active range of data::
 
-    A = x > 40 and x < 60
+    A = x > 40 and x < 60 # select range (40, 60)
 
 All operations are performed on **real numbers**.
 Two numbers that differ less than *ε*
@@ -349,18 +370,17 @@ using expression ``delete(condition)``, e.g.::
     y = y[n]+y[n+1]
     delete(mod(n,2) == 1)
 
-The value of a data expression can be shown using command ``info``.
+If you have more than one dataset, you may need to specify to which
+dataset the transformation applies. See :ref:`multidata` for details.
+
+The value of a data expression can be shown using the ``print`` command.
 The precision of printed numbers is governed by the
-:ref:`info_numeric_format <info_numeric_format>` option.
-The ``info`` command can be also used as a calculator::
+:ref:`numeric_format <numeric_format>` option.
 
-    # `i' is a shortcut for `info'
-    i 2+2 #4
-    i sin(pi/4)+cos(pi/4) #1.41421
-    i gamma(10) #362880
+::
 
-If you have more than one dataset, you have to specify explicitly to which
-dataset the transformation applies to. See :ref:`multidata` for details.
+    print M # the number of points
+    print y[index(20)] # value of y for x=20
 
 
 Aggregate functions
@@ -396,13 +416,13 @@ The following aggregate functions are recognized:
 
 Examples::
 
-    i avg(y) # print the average y value
-    i max(y) # the largest y value
-    i max(y if x > 40 and x < 60)   # the largest y value for x in (40, 60)
-    i max(y if a) # the largest y value in the active range
-    i sum(1 if y>100) # the number of points that have y above 100
-    i sum(1 if y>avg(y)) # aggregate functions can be nested
-    i y[min(n if y > 100)] # the first (from the left) value of y above 100
+    p avg(y) # print the average y value
+    p max(y) # the largest y value
+    p max(y if x > 40 and x < 60)   # the largest y value for x in (40, 60)
+    p max(y if a) # the largest y value in the active range
+    p sum(1 if y>100) # the number of points that have y above 100
+    p sum(1 if y>avg(y)) # aggregate functions can be nested
+    p y[min(n if y > 100)] # the first (from the left) value of y above 100
 
     # take the first 2000 points, average them and subtract as background
     Y = y - avg(y if n<2000)
@@ -431,18 +451,30 @@ e.g.::
     X = x + @0.Z(x) # data transformation is here
     Z = 0
 
-In the *Baseline Mode* in the GUI, functions ``Spline()`` and ``Polyline()``
-are used to substract background, that have been manually marked by the user.
-Clicking ``Strip background`` results in a commands like this::
+.. admonition:: In the GUI
+
+   in the *Baseline Mode* (|mode-bg-icon|),
+   functions ``Spline`` and ``Polyline``
+   are used to subtract manually selected background.
+   Clicking |strip-bg-icon| results in a command like this::
 
     %bg0 = Spline(14.2979,62.1253, 39.5695,35.0676, 148.553,49.9493)
     Y = y - %bg0(x)
 
-.. note:: The GUI uses functions named ``%bgX``, where *X* is the index of the
-          dataset, and the type of the function is either ``Spline``
-          or ``Polyline``, to handle the baseline. This allows user to set
-          the function manually (or in a script) and then edit the baseline
-          in the *Baseline Mode*.
+   Clicking the same button again will undo the subtraction by::
+
+    Y = y + %bg0(x)
+
+   The function edited in the *Baseline Mode* is always named ``%bgX``,
+   where *X* is the index of the dataset.
+
+.. |mode-bg-icon| image:: img/mode_bg_icon.png
+   :alt: Baseline Mode
+   :class: icon
+
+.. |strip-bg-icon| image:: img/strip_bg_icon.png
+   :alt: Strip Background
+   :class: icon
 
 Values of the function parameters (e.g. ``%fun.a0``) and pseudo-parameters
 ``Center``, ``Height``, ``FWHM`` and ``Area`` (e.g. ``%fun.Area``)
@@ -452,26 +484,26 @@ how to calculate these properties.
 
 It is also possible to calculate some properties of %functions:
 
-- ``numarea(%f, x1, x2, n)`` gives area integrated numerically
+- ``%f.numarea(x1, x2, n)`` gives area integrated numerically
   from *x1* to *x2* using trapezoidal rule with *n* equal steps.
 
-- ``findx(%f, x1, x2, y)`` finds *x* in interval (*x1*, *x2*) such that
+- ``%f.findx(x1, x2, y)`` finds *x* in interval (*x1*, *x2*) such that
   %f(*x*)=\ *y* using bisection method combined with Newton-Raphson method.
   It is a requirement that %f(*x1*) < *y* < %f(*x2*).
 
-- ``extremum(%f, x1, x2)`` finds *x* in interval (*x1*, *x2*)
+- ``%f.extremum(x1, x2)`` finds *x* in interval (*x1*, *x2*)
   such that %f'(*x*)=0 using bisection method.
   It is a requirement that %f'(*x1*) and %f'(*x2*) have different signs.
 
 A few examples::
 
-    info numarea(%fun, 0, 100, 10000) # shows area of function %fun
-    info %_1(extremum(%_1, 40, 50)) # shows extremum value
+    print %fun.numarea(, 0, 100, 10000) # shows area of function %fun
+    print %_1(%_1.extremum(40, 50)) # shows extremum value
     
     # calculate FWHM numerically, value 50 can be tuned
     $c = {%f.Center}
-    i findx(%f, $c, $c+50, %f.Height/2) - findx(%f, $c, $c-50, %f.Height/2)
-    i %f.FWHM # should give almost the same.
+    p %f.findx($c, $c+50, %f.Height/2) - %f.findx($c, $c-50, %f.Height/2)
+    p %f.FWHM # should give almost the same.
 
 .. _multidata:
 
@@ -479,26 +511,31 @@ Working with multiple datasets
 ------------------------------
 
 Let us call a set of data that usually comes from one file --
-a :dfn:`dataset`.
-All operations described above assume only one dataset.
-If there are more datasets created, it must be explicitly
-stated which dataset the command is being applied to, e.g.
-``M=500 in @0``.
-Datasets have numbers and are referenced by '@' with the number,
-e.g. ``@3``.
-``@*`` means all datasets (e.g. ``Y=y/10 in @*``).
+a :dfn:`dataset`. It is possible to work simultaneously with multiple datasets.
+Datasets have numbers and are referenced by ``@`` with the number,
+(e.g. ``@3``).
+The user can specify which dataset the command should be applied to::
 
-To load dataset from file, use one of commands::
+   @0: M=500    # change the number of points in the first dataset
+   @1 @2: M=500 # the same command applied to two datasets
+   @*: M=500    # and the same applied to all datasets
+
+If the dataset is not specified, the command applies to the default dataset,
+which is initially @0. The ``use`` command changes the default dataset::
+
+   use @2 # set @2 as default
+
+To load dataset from file, use one of the commands::
 
    @n < filename:xcol:ycol:scol:block filetype options...
 
    @+ < filename:xcol:ycol:scol:block filetype options...
 
 The first one uses existing data slot and the second one creates
-a new slot.  Using @+ increases the number of datasets,
-and command ``delete @n`` decreases it.
+a new slot.  Using ``@+`` increases the number of datasets,
+and the command ``delete @n`` decreases it.
 
-The dataset can be duplicate (``@+ = @n``) or transformed,
+The dataset can be duplicated (``@+ = @n``) or transformed,
 more on this in :ref:`the next section <datasettr>`.
 
 Each dataset has a separate :ref:`model <model>`,
@@ -515,21 +552,18 @@ When loading file, a title is automatically created:
 
 Titles can be changed using the command::
 
-   set @n.title=new-title
+   @n.title = 'new-title'
 
-To print the title of the dataset, type ``info title in @n``.
-
-You calculate values of a data expression for each dataset and print
-a list of results, e.g. ``i+ avg(y) in @*``.
+To print the title of the dataset, type ``@n: info title``.
 
 .. _datasettr:
 
 Dataset transformations
 -----------------------
 
-There is also another kind of transformations,
-:dfn:`dataset tranformation`, which operate on a whole dataset,
-not single points::
+Transformations that are defined for a whole dataset, not for each point
+separately, will be called :dfn:`dataset tranformations`.
+They have the following syntax::
 
    @n = dataset-transformation @m
 
@@ -540,14 +574,14 @@ or more generally::
 where *dataset-transformation* can be one of:
 
 ``sum_same_x``
-    Merges points which distance in x is smaller than
+    Merges points which have distance in *x* is smaller than
     :ref:`epsilon <epsilon>`.
-    x of a merged point is the average,
-    and y and sigma are sums of components.
+    *x* of the merged point is the average,
+    and *y* and *σ* are sums of components.
 
 ``avg_same_x``
-    The same as sum_same_x, but y and sigma of a merged point
-    is set as an average of components.
+    The same as ``sum_same_x``, but *y* and *σ* are set as the average
+    of components.
 
 ``shirley_bg``
     Calculates Shirley background
@@ -574,22 +608,24 @@ Exporting data
 
 Command::
 
-   info dataslot (expression , ...) > file.tsv
+   print all: expression, ... > file.tsv
 
 can export data to an ASCII TSV (tab separated values) file.
 
 To export data in a 3-column (x, y and standard deviation) format, use::
 
-   info @0 (x, y, s) > file.tsv
+   print all: x, y, s > file.tsv
 
-If ``a`` is not listed in the list of columns,
-like in the example above, only the active points are exported.
+Any expressions can be printed out::
 
-All expressions that can be used on the right-hand side of data
-transformations can also be used in the column list.
-Additionally, F and Z can be used with dataset prefix, e.g. ::
+   p all: n+1, x, y, F(x), y-F(x), %foo(x), sin(pi*x)+y^2 > file.tsv
 
-   info @0 (n+1, x, y, F(x), y-F(x), Z(x), %foo(x), a, sin(pi*x)+y^2) > file.tsv
+It is possible to select which points are to be printed by replacing ``all``
+with ``if`` followed by a condition::
 
-The option :ref:`info_numeric_format <info_numeric_format>`
-can be used to change the format and precision of all numbers.
+   print if a: x, y # only active points are printed
+   print if x > 30 and x < 40: x, y # only points in (30,40)
+
+The option :ref:`numeric_format <numeric_format>`
+controls the format and precision of all numbers.
+

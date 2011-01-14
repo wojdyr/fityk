@@ -72,7 +72,6 @@ div.related ul li a {
     margin: 0;
     padding: 0 5px 0 5px;
     line-height: 1.75em;
-    color: #EE9816;
 }
 
 div.related ul li a:hover {
@@ -387,6 +386,9 @@ div.admonition-in-the-gui
     font-family: "myriad-pro-1","myriad-pro-2",HelveticaNeue,Helvetica,Arial,
                  sans-serif;
 }
+
+div.admonition-in-the-gui div.highlight
+{ background-color: #bbbbbb; }
 
 div.admonition-in-the-gui p.admonition-title {
     color: #f8f8f8;

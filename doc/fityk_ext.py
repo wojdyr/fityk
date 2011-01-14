@@ -2,7 +2,7 @@
 import re
 
 from pygments.lexer import RegexLexer
-from pygments.token import Text, Name, Comment, String
+from pygments.token import Text, Name, Comment, String, Generic
 from sphinx import addnodes
 from docutils import nodes
 
@@ -13,7 +13,8 @@ class FitykLexer(RegexLexer):
             'root': [
                 (r"'[^']*'", String.Single),
                 (r'[#].*?$', Comment),
-                (r"[^'#]+", Text),
+                (r'^=-> ', Generic.Prompt),
+                (r"[^'#\n]+", Text),
                 ],
             }
 

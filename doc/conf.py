@@ -27,8 +27,8 @@ pygments_style = "trac"
 html_theme = "sphinxdoc"
 html_sidebars = {'index': [],
                  '**': ['globaltoc.html', 'sourcelink.html', 'searchbox.html']}
-html_short_title = 'Fityk %s manual' % version
-html_title = html_short_title
+html_title = 'Fityk %s manual' % version
+html_short_title = 'Manual'
 html_favicon = 'fityk.ico'
 html_static_path = ['fityk-banner.png', 'fityk.css']
 html_style = 'fityk.css'
@@ -60,6 +60,7 @@ latex_elements = {
 
 \renewenvironment{notice}[2]{%
   \def\noticetype{#1}
+  \def\inTheGui{\equal{#2}{In the GUI}}
   \ifthenelse{\equal{#1}{note}}{%
     \setlength{\fboxrule}{1pt}
     \setlength{\fboxsep}{6pt}
@@ -69,8 +70,8 @@ latex_elements = {
     %\setlength{\shadowsize}{3pt}
     \Sbox
     \minipage{\mylen}
-    \ifthenelse{\equal{#2}{In the GUI}}{\color{gray03}}{}
-    \par\hspace{5pt}\strong{#2}
+    \ifthenelse{\inTheGui}{\color{gray03}}{}
+    \par\strong{#2}
   }{%
   \origbeginnotice{#1}{#2}%
   }
@@ -78,8 +79,7 @@ latex_elements = {
   \ifthenelse{\equal{\noticetype}{note}}{%
     \endminipage
     \endSbox
-    %\fbox{\TheSbox}
-    \ovalbox{\TheSbox}
+    \ifthenelse{\inTheGui}{\ovalbox{\TheSbox}}{\fbox{\TheSbox}}
   }{%
   \origendnotice%
   }
