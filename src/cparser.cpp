@@ -29,7 +29,7 @@ const char *command_list[] = {
 
 const char* info_args[] = {
     "version", "compiler", "variables", "types", "functions",
-    "dataset_count", "datasets", "view", "fit_history",
+    "dataset_count", "view", "fit_history",
     "filename", "title", "data",
     "formula", "gnuplot_formula",
     "simplified_formula", "simplified_gnuplot_formula",

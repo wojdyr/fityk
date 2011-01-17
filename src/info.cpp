@@ -317,11 +317,6 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
                 result += (i > 0 ? " %" : "%") + F->get_function(i)->name;
         else if (word == "dataset_count")
             result += S(F->get_dm_count());
-        else if (word == "datasets") {
-            for (int i = 0; i < F->get_dm_count(); ++i)
-                result += (i > 0 ? "\n@" : "@") + S(i) + ": "
-                        + F->get_data(i)->get_title();
-        }
         else if (word == "view")
             result += F->view.str();
         else if (word == "fit_history")
