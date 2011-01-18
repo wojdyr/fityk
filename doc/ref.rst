@@ -4,24 +4,37 @@ Miscellaneous
 
 .. _settings:
 
-set: options
-============
+Settings
+========
 
-.. note:: This manual does not cover the GUI configuration (colors,
-   fonts, etc.).
+.. admonition:: In the GUI
+
+    the options can be set in a dialog (:menuselection:`Session --> Settings`).
+
+    The GUI configuration (colors, fonts, etc.) is changed in a different
+    way (:menuselection:`GUI --> ...`) and is not covered here.
 
 Command ``info set`` shows the syntax of the set command and lists all
-possible options.
-
-``set option`` shows the current value of the *option*.
+possible options. ``info set option`` shows the current value.
 
 ``set option = value`` changes the *option*.
 
-It is possible to change the value of the option temporarily using syntax::
+It is possible to change the value of the option temporarily::
 
     with option1=value1 [,option2=value2]  command args...
 
-The examples at the end of this chapter should clarify this.
+For example::
+
+    info set fitting_method  # show the current fitting method
+    set fitting_method = nelder_mead_simplex # change the method
+    # change the method only for this one fit command
+    with fitting_method = levenberg_marquardt fit 10
+    # and now the default method is back Nelder-Mead
+
+    # multiple comma-separated options can be given
+    with fitting_method=levenberg_marquardt, verbosity=quiet fit 10
+
+The list of available options:
 
 autoplot
     See :ref:`autoplot <autoplot>`.
@@ -30,7 +43,7 @@ can_cancel_guess
     See :ref:`guess`.
 
 cut_function_level
-    See :ref:`speed`.
+    See :ref:`description in the chapter about model <cut_function_level>`.
 
 data_default_sigma
     See :ref:`weights`.
@@ -38,28 +51,41 @@ data_default_sigma
 .. _epsilon:
 
 epsilon
-    It is used for floating-point comparison:
-    a and b are considered equal when
-    \|a−b|<:option:`epsilon`.
-    You may want to decrease it when you work with very small values,
-    like 10\ :sup:`−10`.
+    The *ε* value used to test floating-point numbers *a* and *b* for equality
+    (it is well known that due to rounding errors the equality test for two
+    numbers should have some tolerance, and the tolerance should be tailored
+    to the application): \|\ *a−b*\ | < *ε*. Default value: 10\ :sup:`-12`.
+    You may need to decrease it when working with very small numbers.
 
 exit_on_warning
     If the option :option:`exit_on_warning`
     is set, any warning will close the program.
     This ensures that no warnings can be overlooked.
 
+fit_replot
+    Refresh the plot when fitting (0/1).
+
 fitting_method
     See :ref:`fitting_cmd`.
 
-formula_export_style
-    See :ref:`details in the section "Model" <formula_export_style>`.
-
-guess_at_center_pm
-    See :ref:`guess`.
-
 height_correction
     See :ref:`guess`.
+
+lm_*
+    Setting to tune the :ref:`Levenberg-Marquardt <levmar>` fitting method.
+
+log_full
+    Log output together with input (0/1).
+
+logfile
+    String. File where the commands are logged. Empty -- no logging.
+
+max_wssr_evaluations
+    See :ref:`fitting_cmd`.
+
+nm_*
+    Setting to tune the :ref:`Nelder-Mead downhill simplex <nelder>`
+    fitting method.
 
 .. _numeric_format:
 
@@ -68,16 +94,6 @@ numeric_format
     a format string, the same as ``sprintf()`` in the C language.
     For example ``set numeric_format=%.3f`` changes the precision
     of numbers to 3 digits after the decimal point. Default value: ``%g``.
-
-lm_*
-    Setting to tune the :ref:`Levenberg-Marquardt <levmar>` fitting method.
-
-max_wssr_evaluations
-    See :ref:`fitting_cmd`.
-
-nm_*
-    Setting to tune the :ref:`Nelder-Mead downhill simplex <nelder>`
-    fitting method.
 
 pseudo_random_seed
     Some fitting methods and functions, such as
@@ -105,184 +121,180 @@ verbosity
 width_correction
     See :ref:`guess`.
 
-Examples::
+Data view
+=========
 
-    set fitting_method  # show info
-    set fitting_method = nelder_mead_simplex # change default method
-    set verbosity = verbose
-    with fitting_method = levenberg_marquardt fit 10
-    with fitting_method=levenberg_marquardt, verbosity=quiet fit 10
+The command ``plot`` controls the rectangle that is visualized::
 
-plot: viewing data
-==================
+   plot [[xrange] yrange] @n
 
-In the GUI version there is hardly ever a need to use this command directly.
+*xrange* and *yrange* has syntax ``[min:max]``. If the boundaries
+are skipped, they are automatically determined using the given datasets.
 
-The command ``plot`` controls visualization of data and the model.
-It is used to plot a given area - in GUI it is plotted
-in the program's main window, in CLI the popular program
-gnuplot is used, if available. ::
+.. admonition:: In the GUI
 
-   plot xrange yrange in @n
+   there is hardly ever a need to use this command directly.
 
-*xrange* and *yrange* have one of two following syntaxes:
-
-- ``[min:max]``
-
--  ``.``
-
-The second is just a dot (.), and it implies that the appropriate range
-is not to be changed.
+The CLI version on Unix systems visualizes the data using the ``gnuplot``
+program, which has similar syntax for the plot range.
 
 Examples::
 
     plot [20.4:50] [10:20] # show x from 20.4 to 50 and y from 10 to 20
     plot [20.4:] # x from 20.4 to the end,
-    # y range will be adjusted to encompass all data
-    plot . [:10] # x range will not be changed, y from the lowest point to 10
-    plot [:] [:] # all data will be shown
+                 # y range will be adjusted to encompass all data
     plot         # all data will be shown
-    plot . .     # nothing changes
 
 .. _autoplot:
 
-The value of the option :option:`autoplot`
-changes the automatic plotting behaviour. By default, the plot is
-refreshed automatically after changing the data or the model.
-It is also possible to visualize each iteration of the fitting method by
-replotting the peaks after every iteration.
+The values of the options :option:`autoplot` and :option:`fit_replot`
+change the automatic plotting behaviour. By default, the plot is
+refreshed automatically after changing the data or the model (``autoplot=1``).
+It is also possible to replot the model when fitting, to show the progress
+(see the options :option:`fit_replot` and :option:`refresh_period`).
 
 .. _info:
 
-info: show information
-======================
+Information display
+===================
 
 First, there is an option :option:`verbosity`
-(not related to command :command:`info`)
 which sets the amount of messages displayed when executing commands.
 
-If you are using the GUI, most information can be displayed
-with mouse clicks. Alternatively, you can use the ``info``
-command. Using the ``info+`` instead of ``info``
-sometimes displays more detailed information.
+There are three commands that print explicitely requested information:
 
-The output of :command:`info` can be redirected to a file using syntax::
+* ``info`` -- used to show preformatted information
+* ``print`` -- mainly used to output numbers (expression values)
+* ``debug`` -- used for testing the program itself
 
-  info args > filename    # this truncates the file
+The output of ``info`` and ``print`` can be redirected to a file::
 
-  info args >> filename   # this appends to the file
+  info args > filename    # truncate the file
+  info args >> filename   # append to the file
+  info args > 'filename'  # the filename can (and sometimes must) be in quotes
+
+This allows to create a file, so it should be also possible to delete a file
+from the script::
+
+  delete file filename
+
+info
+----
 
 The following ``info`` arguments are recognized:
 
-+ variables
+* *TypeName* -- definition
+* *$variable_name* -- formula and value
+* *%function_name* -- formula
+* ``F`` -- the list of functions in *F*
+* ``Z`` -- the list of functions in *Z*
+* ``compiler`` -- options used when compiling the program
+* ``cov @n`` -- covariance matrix
+* ``data`` -- number of points, data filename and title
+* ``dataset_count`` -- number of datasets
+* ``errors @n`` -- estimated uncertainties of parameters
+* ``filename`` -- dataset filename
+* ``fit`` -- goodness of fit
+* ``fit_history`` -- info about recorded parameter sets
+* ``formula`` -- full formula of the model
+* ``functions`` -- the list of %functions
+* ``gnuplot_formula`` -- full formula of the model, gnuplot style
+* ``guess`` -- peak-detection and linear regression info
+* ``guess [from:to]`` -- the same, but in the given range
+* ``history`` -- the list of all the command issued in this session
+* ``history [m:n]`` -- selected commands from the history
+* ``history_summary`` -- the summary of command history
+* ``peaks`` -- formatted list of parameters of functions in *F*.
+* ``peaks_err`` -- the same as peaks + uncertainties
+* ``prop`` *%function_name* -- parameters of the function
+* ``refs`` *$variable_name* -- references to the variable
+* ``set`` -- the list of settings
+* ``set`` *option* -- the current value of the option
+* ``simplified_formula`` -- simplified formula
+* ``simplified_gnuplot_formula`` -- simplified formula, gnuplot style
+* ``state`` -- generates a script that can reproduce the current state
+  of the program. The scripts embeds all datasets.
+* ``title`` -- dataset title
+* ``types`` -- the list of function types
+* ``variables`` -- the list of variables
+* ``version`` -- version number
+* ``view`` -- boundaries of the visualized rectangle
 
-+ *$variable_name*
+Both ``info history`` and ``info state`` can be used to restore the current
+session.
 
-+ types
+.. admonition:: In the GUI
 
-+ *TypeName*
+    :menuselection:`Session --> Save State` and
+    :menuselection:`Session --> Save History`.
 
-+ functions
+print
+-----
 
-+ *%function_name*
+The print command is followed by a comma-separated list of expressions
+and/or strings::
 
-+ datasets
+   =-> p pi, pi^2, pi^3
+   3.14159 9.8696 31.0063
+   =-> with numeric_format='%.15f' print pi
+   3.141592653589793
+   =-> p '2+3 =', 2+3
+   2+3 = 5
 
-+ data \[in @\ *n*]
+The other valid arguments are ``filename`` and ``title``.
+They are useful for listing the same values for multiple datasets, e.g.::
 
-+ title \[in @\ *n*]
+   =-> @*: print filename, F[0].area, F[0].area.error
 
-+ filename \[in @\ *n*]
+``print`` can also print a list where each line corresponds to one data point,
+as described in the section :ref:`dexport`.
 
-+ commands
+As an exception, ``print expression > filename`` does not work
+if the filename is not enclosed in single quotes. That is because the parser
+interprets ``>`` as a part of the expression.
+Just use quotes (``print 2+3 > 'tmp.dat'``).
 
-+ commands \[n:m]
+debug
+-----
 
-+ view
+Only a few ``debug`` sub-commands are documented here:
 
-+ set
+* ``der`` *mathematic-function* -- shows derivatives::
 
-+ fit \[in @\ *n*]
-
-+ fit_history
-
-+ errors \[in @\ *n*]
-
-+ formula \[in @\ *n*]
-
-+ peaks \[in @\ *n*]
-
-+ guess \[x-range] \[in @\ *n*]
-
-+ *data-expression* [in @\ *n*]
-
-+ [@\ *n*.]F
-
-+ [@\ *n*.]Z
-
-+ [@\ *n*.]dF(*data-expression*)
-
-+ der *mathematic-function*
-
-+ version
-
-``info der`` shows derivatives of given function::
-
-    =-> info der sin(a) + 3*exp(b/a)
+    =-> debug der sin(a) + 3*exp(b/a)
     f(a, b) = sin(a)+3*exp(b/a)
     df / d a = cos(a)-3*exp(b/a)*b/a^2
     df / d b = 3*exp(b/a)/a
 
+* ``df`` *x* -- compares the symbolic and numerical derivatives of *F* in *x*.
+* ``lex`` *command* -- the list of tokens from the Fityk lexer
+* ``parse`` *command* -- show the command as stored after parsing
+* ``expr`` *expression* -- VM code from the expression
+* ``rd`` -- derivatives for all variables
+* ``%function`` -- bytecode, if available
+* ``$variable`` -- derivatives
 
-commands, dump, sleep, reset, quit, !
-=====================================
+Other commands
+==============
 
-All commands given during program execution are stored in memory.
-They can be listed by::
+* ``exec`` -- Scripts can be executed using the command::
 
-   info commands [n:m]
+    exec filename
 
-or written to file::
+  It is also possible to execute the standard output from external program::
 
-   info commands [n:m] > filename
+    exec ! program [args...]
 
-To put all commands executed so far during the session into the
-file :file:`foo.fit`, type::
+* ``reset`` -- reset the session
 
-   info commands[:] > foo.fit
+* ``sleep`` *sec* -- makes the program wait *sec* seconds.
 
-With the plus sign (+) (i.e. ``info+ commands [n:m]``)
-information about the exit status of each command will be added.
+* ``quit`` -- works as expected; if it is found in a script it quits
+  the program, not only the script.
 
-To log commands to a file when they are executed, use:
-Commands can be logged when they are executed::
+* ``!`` -- commands that start with ``!`` are passed (without the ``!``)
+  to the ``system()`` call (i.e. to the operating system).
 
-   commands > filename    # log commands
-   commands+ > filename   # log both commands and output
-   commands > /dev/null   # stop logging
-
-Scripts can be executed using the command::
-
-   commands < filename
-
-It is also possible to execute the standard output from external program::
-
-   commands ! program [args...]
-
-The command::
-
-   dump > filename
-
-writes the current state of the program
-(including all datasets) to a single .fit file.
-
-The command ``sleep sec`` makes the program wait *sec* seconds.
-
-The command ``quit`` works as expected.
-If it is found in a script it quits the program, not only the script.
-
-Commands that start with ``!`` are passed (without '!')
-to the ``system()`` call.
 
 .. _invoking:
 
@@ -297,13 +309,14 @@ option, if given, and processes command line arguments:
 
 - if the argument starts with ``=->``, the string following ``=->``
   is regarded as a command and executed
-  (otherwise, it is regarded as a filename).
+  (otherwise, it is regarded as a filename),
 
 - if the filename has extension ".fit" or the file begins with a "# Fityk"
-  string, it is assumed to be a script and is executed.
+  string, it is assumed to be a script and is executed,
 
-- otherwise, it is assumed to be a data file.
-  (columns and data blocks can be specified in the normal way, see <dataload>).
+- otherwise, it is assumed to be a data file;
+  columns and data blocks can be specified in the normal way,
+  see :ref:`dataload`.
 
 .. highlight:: none
 

@@ -60,7 +60,7 @@ root of the corresponding diagonal elements of the covariance matrix.
 The covariance matrix is based on standard deviations of data points.
 Formulae can be found e.g. in
 `GSL Manual <http://www.gnu.org/software/gsl/manual/>`_,
-chapter *Linear regression. Overview* (weighted data version).
+chapter *Least-Squares Fitting. Fitting Overview* (weighted data version).
 
 .. _fitting_cmd:
 
@@ -69,19 +69,24 @@ Fitting related commands
 
 To fit model to data, use command
 
-fit[+] [number-of-iterations] [in @n ...]
+fit [+] [number-of-iterations] [@n ...]
 
 The plus sign (+) prevents initialization of the fitting method.
-It is used to continue the previous fitting where it left off.
+It is used to continue the previous fitting where it left off
+(if the previous fitting was stopped before it converged).
 
 All non-linear fitting methods are iterative.
 *number-of-iterations* is the maximum number of iterations.
 There are also other stopping criteria, so the number of executed
 iterations can be smaller.
 
-``fit in @*`` fits all datasets simultaneously.
+Like with all commands, the generic dataset specification (``@n: fit``)
+can be used, but in special cases the datasets can be given at the end
+of the command. The difference is that
+``fit @*`` fits all datasets simultaneously, while
+``@*: fit`` fits all datasets one by one, separately.
 
-Fitting methods can be set using the set command::
+The fitting method can be set using the set command::
 
   set fitting_method = method
 
@@ -91,34 +96,24 @@ where method is one of: ``levenberg_marquardt``, ``nelder_mead_simplex``,
 All non-linear fitting methods are iterative, and there are two common
 stopping criteria:
 
-- the number of iterations and it can be specified after the ``fit`` command.
+- the number of iterations; it can be specified after the ``fit`` command.
 
-- and the number of evaluations of the objective function (WSSR), specified
-  by the value of option :option:`max_wssr_evaluations` (0=unlimited).
-  It is approximately proportional to the time of computations.
+- and the number of evaluations of the objective function (WSSR); set
+  using the option :option:`max_wssr_evaluations` (0=unlimited).
 
 There are also other criteria, different for each method.
 
 On Unix, fitting can be interrupted by sending the ``INT`` signal to the
 program. This is usually done by pressing Ctrl-C in the terminal.
 
-If you give too small *number-of-iterations* to the command ``fit``,
-and fit is not converged, it makes sense to use command ``fit+``
-to process further iterations.
-
-Setting ``set autoplot = on_fit_iteration``
-will plot a model after every iteration, to visualize progress.
-(see :ref:`autoplot <autoplot>`)
+Setting ``set fit_replot = 1`` will plot a model after every iteration,
+to visualize progress.
 
 ``info fit`` shows measures of goodness-of-fit, including :math:`\chi^2`,
 reduced :math:`\chi^2` and R-squared:
 
 .. math::
    R^2 \equiv 1 - {{\sum_i (y_i - f_i)^2} \over {\sum_i (y_i-\bar{y})^2}}
-
-Available methods can be mixed together, e.g. it is sensible
-to obtain initial parameter estimates using the Simplex method,
-and then fit it using Levenberg-Marquardt.
 
 Values of all parameters are stored before and after fitting (if they
 change). This enables simple undo/redo functionality.
@@ -138,7 +133,7 @@ info fit_history
 fit history *n*
     load the *n*-th set of parameters from history
 
-fit history clear
+fit clear_history
     clear the history
 
 Uncertainty in the model parameters
@@ -193,18 +188,17 @@ __ http://www.graphpad.com/manuals/prism4/RegressionBook.pdf
    reported standard error and confidence intervals won’t be helpful.
 
 
-The book describes also more accurate ways to calculate confidence intervals,
-such use Monte Carlo simulations.
-
-
 In Fityk:
 
 * ``info errors`` shows values of :math:`\sigma_{a_k}`.
-* ``info+ errors`` additionally shows the matrix *C*:sup:`--1`.
+* ``info cov`` shows the matrix *C*:sup:`--1`.
 * Individual symmetric errors of simple-variables can be accessed as
   ``$variable.error`` or e.g. ``%func.height.error``.
-* confidence intervals are on the TODO list (in the meantime you can compute
-  them by hand, see p.103 in the GraphPad book)
+
+.. admonition:: In the GUI
+
+    select :menuselection:`Fit --> Info` from the menu to see uncertainties
+    and the covariance matrix.
 
 .. note:: In Fityk 0.9.0 and earlier ``info errors`` reported values of
           :math:`\sqrt{C_{kk}^{-1}}`, which makes sense if the standard
@@ -246,21 +240,6 @@ criteria.
   WSSR is no longer changing, the fitting is also stopped.
 
 .. |lambda| replace:: *λ*
-
-.. COMMENT: it is outdated, but may be re-used in the future
-      L-M method finds a minimum quickly. The question is, if it is the
-      global minimum.  It can be a good idea to add a small random vector to
-      the vector of parameters and try again. This small shift vector is added,
-      when value of <parameter class="option">shake-before</parameter> option
-      is positive (by default it is 0). Value of every parameter's shift
-      is independent and randomly drawn from distribution of type specified by
-      value of <parameter class="option">shake-type</parameter> option
-      (see <link linkend="distribtype">option
-      <parameter class="option">distrib-type</parameter></link>)
-      in simplex method). The expected value of parameter shift is
-      directly proportional to both value of
-      <parameter class="option">shake-before</parameter> option and width of
-      parameter's domain.
 
 .. _nelder:
 

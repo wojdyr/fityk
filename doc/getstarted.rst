@@ -87,7 +87,7 @@ Now all data points are active. Because only the biggest peak is of
 interest for the sake of this example, the remaining points can be
 deactivated::
 
-   A = (23.0 < x < 26.0)
+   A = (x > 23.0 and x < 26.0)
    
 .. admonition:: In the GUI
 

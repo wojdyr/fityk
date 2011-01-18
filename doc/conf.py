@@ -87,7 +87,7 @@ latex_elements = {
 """
 }
 
-#latex_show_pagerefs = True
+latex_show_pagerefs = True
 latex_show_urls = True
 
 # determine vertical alignment of the math PNGs

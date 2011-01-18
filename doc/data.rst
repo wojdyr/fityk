@@ -612,6 +612,10 @@ Command::
 
 can export data to an ASCII TSV (tab separated values) file.
 
+.. admonition:: In the GUI
+
+    :menuselection:`Data --> Export`
+
 To export data in a 3-column (x, y and standard deviation) format, use::
 
    print all: x, y, s > file.tsv

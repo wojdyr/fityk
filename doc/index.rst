@@ -93,21 +93,11 @@ Subscription cost (includes support via e-mail):
   (like, say, Voigt), or to tweak the GUI.
   If you have a particular feature in mind, please contact us first.`
 
-.. raw:: html
 
-   <form action="https://www.paypal.com/cgi-bin/webscr" method="post" style="display:inline; margin:0; padding: 0;">
-   <p>Alternatively, students and home users may
-   donate 10% of the normal price to wojdyr@gmail.com using PayPal
-   <input type="hidden" name="cmd" value="_donations">
-   <input type="hidden" name="business" value="E98FRTPDBQ3L6">
-   <input type="hidden" name="lc" value="US">
-   <input type="hidden" name="currency_code" value="USD">
-   <input type="hidden" name="bn" value="PP-DonationsBF:btn_donate_SM.gif:NonHosted">
-   <input type="image" src="https://www.paypal.com/en_US/i/btn/btn_donate_SM.gif" border="0" name="submit" alt="PayPal - The safer, easier way to pay online!">
-   <img alt="" border="0" src="https://www.paypal.com/en_US/i/scr/pixel.gif" width="1" height="1">
-  or <a href="http://moneybookers.com">MoneyBookers</a>.
-  </p>
-  </form>
+Alternatively, students and home users may
+donate 10% of the normal price to ``wojdyr@gmail.com`` using
+`PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=E98FRTPDBQ3L6&lc=US&currency_code=USD&item_name=Fityk>`_
+or `MoneyBookers <https://www.moneybookers.com/app/payment.pl?pay_to_email=wojdyr@gmail.com&language=EN&detail1_text=The+amount+can+be+changed+at+the+end+of+the+URL&detail1_description=Fityk&currency=USD&amount=26.5>`_.
 
 You are welcome to make a purchase now, the subscription time will be counted
 since the release of ver. 1.0.

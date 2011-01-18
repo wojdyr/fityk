@@ -176,6 +176,7 @@ h2 {
 h3 {
     margin: 1em 0 -0.3em 0;
     font-size: 1.2em;
+    color: #444444;
 }
 
 div.body h1 a, div.body h2 a, div.body h3 a, div.body h4 a, div.body h5 a, div.body h6 a {
@@ -218,11 +219,14 @@ cite, code, tt, pre {
                  'Bitstream Vera Sans Mono', monospace;
 }
 
-p tt, li tt {
+/*
+p tt, li tt, tt {
     font-size: 0.95em;
 }
+*/
 
 tt {
+    font-size: 0.95em;
     background-color: #f2f2f2;
     /*border-bottom: 1px solid #ddd;*/
     color: #222;

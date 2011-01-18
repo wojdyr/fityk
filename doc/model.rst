@@ -4,75 +4,97 @@
 Model
 =====
 
-.. _modelintro:
+From `Numerical Recipes <http://www.nrbook.com/a/bookcpdf.php>`_,
+chapter 15.0:
 
-Model - Introduction
---------------------
+    Given a set of observations, one often wants to condense and summarize
+    the data by fitting it to a "model" that depends on adjustable
+    parameters. Sometimes the model is simply a convenient class of
+    functions, such as polynomials or Gaussians, and the fit supplies the
+    appropriate coefficients. Other times, the model's parameters come
+    from some underlying theory that the data are supposed to satisfy;
+    examples are coefficients of rate equations in a complex network of
+    chemical reactions, or orbital elements of a binary star. Modeling can
+    also be used as a kind of constrained interpolation, where you want to
+    extend a few data points into a continuous function, but with some
+    underlying idea of what that function should look like.
 
-The :dfn:`model` *F* (the function that is fitted to the data) is computed
-as a sum of :dfn:`component functions`, :math:`F = \sum_i f_i`.
-Each component function is one of the functions defined in the program,
+This chapter shows how to construct the model.
+
+Complex models are often a sum of many functions. That is why in Fityk
+the model *F* is constructed as a list of component functions
+and is computed as :math:`F = \sum_i f_i`.
+
+Each component function :math:`f_i` is one of predefined functions,
 such as Gaussian or polynomial.
+This is not a limitation, because the user can add any function
+to the predefined functions.
 
-To avoid confusion we will always use:
-
-- the name *model* when referring to the total function fitted to data.
-
-- and the name *function* only when referring to a component function.
+To avoid confusion, the name *function* will be used only when referring
+to a component function, not when when referring to the sum (model),
+which mathematically is also a function. The predefined functions
+will be sometimes called *function types*.
 
 Function :math:`f_i=f_i(x; \boldsymbol{a})` is a function of *x*,
 and depends on a vector of parameters :math:`\boldsymbol{a}`.
-This vector contains all fitted parameters.
+The parameters :math:`\boldsymbol{a}` will be fitted to achieve agreement
+of the model and data.
 
-Because we often have the situation, that the error in the *x* coordinate
-of data points can be modeled with function :math:`Z(x; \boldsymbol{a})`,
-we introduce this term to the model, and the final formula is:
+In experiments we often have the situation that the measured *x* values
+are subject to systematic errors caused, for example, by instrumental
+zero shift or, in powder diffraction measurements,
+by displacement of sample in the instrument.
+If this is the case, such errors should be a part of the model.
+In Fityk, this part of the model is called :dfn:`x-correction`.
+The final formula for the model is:
+
+.. _model_formula:
 
 .. math::
     F(x; \boldsymbol{a}) = \sum_i f_i(x+Z(x; \boldsymbol{a}); \boldsymbol{a})
 
 where :math:`Z(x; \boldsymbol{a}) = \sum_i z_i(x; \boldsymbol{a})`
+is the *x*-correction. *Z* is constructed as a list of components,
+analogically to *F*, although in practice it has rarely more than
+one component.
 
-Note that the same :dfn:`x-correction` *Z*
-is used in all functions :math:`f_i`.
-
-Now we will have a closer look at component functions.
-Every function :math:`f_i` has a type chosen from the function types
-available in the program. The same is true about functions :math:`z_i`.
-One of these types is the *Gaussian*. It has the following formula:
-
-.. math::
-    f_G(x; a_0, a_1, a_2)=a_{0}\exp\left[-\ln(2)\left(\frac{x-a_{1}}{a_{2}}\right)^{2}\right]
-
-There are three parameters of Gaussian. These parameters do not
-depend on *x*. There must be one :dfn:`variable`
-bound to each function's parameter.
+Each component function is created by specifying a function type
+and binding *variables* to type's parameters. The next section explains
+what are *variables* in Fityk, and then we get back to functions.
 
 .. _variables:
 
 Variables
 ---------
 
-Variables in Fityk have names prefixed with the dollar symbol ($).
-A variable is created by assigning a value to it, e.g. ::
+Variables have names prefixed with the dollar symbol ($)
+and are created by assigning a value::
 
-   $foo=~5.3
-   $c=3.1
-   $bar=5*sin($foo)
+   $foo=~5.3           # simple-variable
+   $bar=5*sin($foo)    # compound-variable
+   $c=3.1              # constant (the simplest compound-variable)
 
-The variables like the first one, ``$foo``,
-created by assigning to it a real number prefixed with '~',
-will be called :dfn:`simple-variables`.
-The '~' means that the value assigned to the variable can be changed
-when fitting the model to the data.
+The numbers prefixed with the tilde (~) are adjustable when the model
+is fitted to the data.
+Variable created by assigning ``~``\ *number*
+(like ``$foo`` in the example above)
+will be called a :dfn:`simple-variable`.
 
-Each simple-variable is independent. In optimization terms, it corresponds
-to one dimension of the space where we will look for the minimum.
+All other variables are called :dfn:`compound-variables`.
+Compound variables either depend on other variables (``$bar`` above)
+or are constant (``$c``).
 
-In the above example, the variable ``$c`` is actually a *constant*.
-``$bar`` depends on the value of ``$foo``.
-When ``$foo`` changes, the value of ``$bar`` also changes.
-Variables like ``$bar`` will be called :dfn:`compound-variables`.
+.. important::
+
+  Unlike in popular programming languages, in Fityk variables store
+  formula, not a numeric value. If we define ``$b=2*$a``,
+  every time ``$a`` changes, the value of ``$b`` will be recalculated.
+
+To assign a value (constant) of another variable, use:
+``$b={$a}``. Braces return the current value of the enclosed expression.
+The left brace can be preceded by the tilde (``~``).
+The assignment ``$b=~{$a}`` creates a simple variable.
+
 Compound-variables can be build using operators +, -, \*, /, ^
 and the functions
 ``sqrt``,
@@ -96,29 +118,41 @@ and the functions
 This is a subset of the functions used in
 :ref:`data transformations <transform>`.
 
-The value of the data expression can be used in the variable definition.
-The expression must be in braces, e.g. ``$bleh={3+5}``.
-The *simple variable* can be created by preceding the left brace
-with the tilde (``$bleh=~{3+5}``). A few examples::
+The braces may contain any data expression::
 
-    $foo = {y[0]}
-    $foo2 = {y[0] in @0}  # dataset can be given if necessary
-    $foo3 = {min(y if a) in @0}
+    $x0 = {x[0]}
+    $min_y = {min(y if a)}
+    $c = {max2($a, $b)}
 
 Sometimes it is useful to freeze a variable, i.e. to prevent it from
-changing while fitting. There is no special syntax for it,
-but it can be done using data expressions in this way::
+changing while fitting::
 
-    $a = ~12.3 # $a is fittable
-    $a = {$a}  # $a is not fittable
-    $a = ~{$a}  # $a is fittable again
+    $a = ~12.3 # $a is fittable (simple-variable)
+    $a = {$a}  # $a is not fittable (constant)
+    $a = ~{$a} # $a is fittable (simple-variable) again
 
-It is also possible to define a variable as e.g. ``$bleh=~9.1*exp(~2)``.
-In this case two simple-variables (with values 9.1 and 2) are created
-automatically.
+.. admonition:: In the GUI
 
-Automatically created variables are named ``$_1``, ``$_2``,
-``$_3``, and so on.
+   a variable can be switched between constant and simple-variable
+   by clicking the padlock button on the sidebar.
+   The icons |open-lock-icon| and |lock-icon|
+   show that the variable is fittable and frozen, respectively.
+
+.. |open-lock-icon| image:: img/open_lock_icon.png
+   :alt: open lock
+
+.. |lock-icon| image:: img/lock_icon.png
+   :alt: lock
+
+
+If the assigned expression contains tildes::
+
+  $bleh=~9.1*exp(~2)
+
+it automatically creates simple-variables corresponding
+to the tilde-prefixed numbers.
+In the example above two simple-variables (with values 9.1 and 2) are created.
+Automatically created variables are named ``$_1``, ``$_2``, ``$_3``, and so on.
 
 Variables can be deleted using the command::
 
@@ -127,36 +161,36 @@ Variables can be deleted using the command::
 .. _domain:
 
 Some fitting algorithms randomize the parameters of the model
-(i.e. they randomize simple variables).
-For this purpose, the simple variable can have a specified :dfn:`domain`.
-Note that the domain does not imply any constraints on the value
+(i.e. they randomize simple variables). To effectively use such algorithms,
+the user should specify a :dfn:`domain` for each simple-variable,
+i.e. the minimum and maximum value.
+The domain does not imply any constraints on the value
 the variable can have -- it is only a hint for fitting algorithms.
-Domains are used by Nelder-Mead method and Genetic Algorithms.
+
+The default algorithm (Lev-Mar) does not need it, so in most cases you
+do not need to worry about domains.
+
+Domains are used by the Nelder-Mead method and Genetic Algorithms.
 The syntax is as follows::
 
-    $a = ~12.3 [11 +- 5] # center and width of the domain are given
-    $b = ~12.3 [ +- 5] # if the center of the domain is not specified,
-                       # the value of the variable is used
+    $a = ~12.3 [0:20] # initial values are drawn from the (0, 20) range
 
-If the domain is not specified, the value of
-:option:`variable_domain_percent` option is used
-(domain is +/- *value-of-variable* * :option:`variable_domain_percent` / 100)
+If the domain is not specified, the default domain is used, which is
+±\ *p*\ % of the current value, where *p* can be set using the
+:option:`variable_domain_percent` option.
 
 Function types and functions
 ----------------------------
 
-Let us go back to functions. Function types have names that start
-with upper case letter, e.g. ``Linear`` or ``Voigt``. Functions
-(i.e. function instances) have names prefixed with a percent symbol,
+Function types have names that start with upper case letter,
+e.g. ``Linear`` or ``Voigt``.
+
+Functions have names prefixed with the percent symbol,
 e.g. ``%func``. Every function has a type and variables bound to its
 parameters.
 
-``info types`` shows the list of available function types.
-``info FunctionType`` (e.g. ``info Pearson7``) shows formula of the
-*FunctionType*.
-
 Functions can be created by giving the type and the correct
-number of variables in brackets, e.g. ::
+number of variables in brackets, e.g.::
 
    %f1 = Gaussian(~66254., ~24.7, ~0.264)
    %f2 = Gaussian(~6e4, $ctr, $b+$c)
@@ -180,16 +214,15 @@ e.g.::
    =-> %f4 = Pearson7(height=~66254., center=~24.7, fwhm=~0.264) # no shape is given
    New function %f4 was created.
 
-A deep copy of function (i.e. all variables that it depends on
-are also copied) can be made using the command::
+Functions can be copied. The following command creates a deep copy
+(i.e. all variables are also duplicated) of %foo::
 
-   %function = copy(%another_function)
+   %bar = copy(%foo)
 
 Functions can be also created with the command ``guess``,
 as described in :ref:`guess`.
 
-You can change a variable bound to any of the function parameters
-in this manner::
+Variables bound to the function parameters can be changed at any time::
 
     =-> %f = Pearson7(height=~66254., center=~24.7, fwhm=~0.264)
     New function %f was created.
@@ -211,10 +244,9 @@ Functions can be deleted using the command::
 Built-in functions
 ------------------
 
-The list of all functions can be obtained using
-``i+ types``. Some formulae here have long parameter
-names (like "height", "center" and "hwhm") replaced with
-:math:`a_i`
+The list of all functions can be obtained using ``i types``.
+Some formulae here have long parameter names
+(like "height", "center" and "hwhm") replaced with :math:`a_i`
 
 **Gaussian:**
 
@@ -375,11 +407,11 @@ Two variadic function types are defined::
     Spline(x1, y1, x2, y2, ...)
     Polyline(x1, y1, x2, y2, ...)
 
-For example ``%f``::
+This example::
 
     %f = Spline(22.1, 37.9, 48.1, 17.2, 93.0, 20.7)
 
-is the *cubic spline interpolation* through points
+creates a function that is a *cubic spline interpolation* through points
 (22.1, 37.9), (48.1, 17.2), ....
 
 The ``Polyline`` function is similar, but gives the *polyline interpolation*.
@@ -392,7 +424,7 @@ for the manual baseline subtraction via the GUI.
 User-defined functions (UDF)
 ----------------------------
 
-User-defined function types can be created using command ``define``,
+User-defined function types can be added using command ``define``,
 and then used in the same way as built-in functions.
 
 Example::
@@ -405,31 +437,27 @@ Example::
 - The name of the type is followed by parameters in brackets.
 
 - Parameter name must start with lowercase letter and,
-  contain only  lowercase letters, digit and the underscore ('_').
+  contain only lowercase letters, digits and the underscore ('_').
 
 - The name "x" is reserved, do not put it into parameter list,
   just use it on the right-hand side of the definition.
 
-- There are special names of parameters,
-  that Fityk understands:
+- There are special names of parameters that Fityk understands:
 
   * if the functions is peak-like:
-    ``height``, ``center``, ``fwhm``, ``area``, ``hwhm``,
+    ``height``, ``center``, ``hwhm``, ``area``,
 
   * if the function is more like linear:
     ``slope``, ``intercept``, ``avgy``.
 
-  Parameters with such names do not need default values.
-  ``fwhm`` mean full width at half maximum (FWHM),
-  ``hwhm`` means half width..., i.e. fwhm/2.
+  The initial values of these parameters can be guessed (command ``guess``)
+  from the data.  ``hwhm`` means half width at half maximum,
+  the other names are self-explaining.
 
-- Each parameter should have a default value (see examples below).
-  Default values allow adding a peak with the command ``guess`` or with
-  one click in the GUI.
-
-- The default value can be a number or expression that contains
-  the special names listed above with exeption of ``hwhm`` (use
-  ``fwhm/2`` instead).
+- Each parameter may have a default value (see examples below).
+  The default value can be either a number or an expression that contains
+  the special names listed above. In the latter case the default value
+  is taken into account only in the ``guess`` command.
 
 UDFs can be defined in a few ways:
 
@@ -441,44 +469,14 @@ UDFs can be defined in a few ways:
 - as a sum of already defined functions
   (see the ``GLSum`` example below),
 
-- ``x <`` *expression* ``?`` *Function1(...)* ``:`` *Function2(...)*
+- as a splitted (bifurcated) function:
+  ``x <`` *expression* ``?`` *Function1(...)* ``:`` *Function2(...)*
   (see the ``SplitL`` example below).
 
-When giving a full formula, right-hand side of the equality sign
+When giving a full formula, the right-hand side of the equality sign
 is similar to the :ref:`definiton of variable <variables>`,
 but the formula can also depend on *x*.
-Hopefully the examples at the end of this section make the syntax clear.
-
-.. admonition:: How it works internally
-
-    The formula is parsed,
-    derivatives of the formula are calculated symbolically,
-    all expressions are simplified (but there is a lot of space for
-    optimization here)
-    and bytecode for virtual machine (VM) is created.
-
-    When fitting, the VM calculates the value of the function
-    and derivatives for every point.
-
-    Possible (i.e. not implemented) optimizations include
-    Common Subexpression Elimination and JIT compilation.
-
-There is a simple substitution mechanism that makes writing complicated
-functions easier.
-Substitutions must be assigned in the same line, after keyword ``where``.
-Example::
-
-    define ReadShockley(sigma0=1, a=1) = sigma0 * t * (a - ln(t)) where t=x*pi/180
-
-    # more complicated example, with nested substitutions
-    define FullGBE(k, alpha) = k * alpha * eta * (eta / tanh(eta) - ln (2*sinh(eta))) where eta = 2*pi/alpha * sin(theta/2), theta=x*pi/180
-
-.. tip:: Use the :file:`init` file for often used definitions.
-         See the section :ref:`invoking` for details.
-
-Defined functions can be undefined using command ``undefine``.
-
-Examples::
+Hopefully the examples can make the syntax clear::
 
     # this is how some built-in functions could be defined
     define MyGaussian(height, center, hwhm) = height*exp(-ln(2)*((x-center)/hwhm)^2)
@@ -501,39 +499,41 @@ Examples::
       x < center ? Lorentzian(height, center, hwhm1)
                  : Lorentzian(height, center, hwhm2)
 
-    # to change definition of UDF, first undefine previous definition
+There is a simple substitution mechanism that makes writing complicated
+functions easier.
+Substitutions must be assigned in the same line, after the keyword ``where``.
+
+Example::
+
+    define ReadShockley(sigma0=1, a=1) = sigma0 * t * (a - ln(t)) where t=x*pi/180
+
+    # more complicated example, with nested substitutions
+    define FullGBE(k, alpha) = k * alpha * eta * (eta / tanh(eta) - ln (2*sinh(eta))) where eta = 2*pi/alpha * sin(theta/2), theta=x*pi/180
+
+.. admonition:: How it works internally
+
+    The formula is parsed,
+    derivatives of the formula are calculated symbolically,
+    expressions are simplified
+    and bytecode for virtual machine (VM) is created.
+
+    When fitting, the VM calculates the value of the function
+    and derivatives for every point.
+
+Defined functions can be undefined using command ``undefine``::
+
     undefine GaussianArea
 
-.. _speed:
-
-Speed of computations
----------------------
-
-With default settings, the value of every function is calculated
-at every point. Functions such as Gaussian often have non-neglegible
-values only in a small fraction of all points. To speed up the calculation,
-set the option :option:`cut_function_level`
-to a non-zero value. For each function the range with values
-greater than :option:`cut_function_level`
-will be estimated, and all values outside of this range are
-considered to be equal zero.
-Note that not all functions support this optimization.
-
-If you have a number of loaded dataset, and the functions in different
-datasets do not share parameters, it is faster to fit the datasets
-sequentially (``fit in @0; fit in @1; ...``)
-then parallelly (``fit in @*``).
-
-Each simple-variable slows down the fitting, although
-this is often negligible.
+It is common to add own definitions to the :file:`init` file.
+See the section :ref:`invoking` for details.
 
 Model, F and Z
 --------------
 
 As already discussed, each dataset has a separate model
 that can be fitted to the data.
-As can be seen from the :ref:`formula above <modelintro>`,
-the model is defined as a set functions :math:`f_i`
+As can be seen from the :ref:`formula <model_formula>` at the beginning
+of this chapter, the model is defined as a set functions :math:`f_i`
 and a set of functions :math:`z_i`.
 These sets are named *F* and *Z* respectively.
 The model is constructed by specifying names of functions in these two sets.
@@ -541,52 +541,59 @@ The model is constructed by specifying names of functions in these two sets.
 In many cases :dfn:`x-correction` Z is not used.
 The fitted curve is thus the sum of all functions in F.
 
-Command ::
+Command::
 
    F += %function
 
-adds  *%function* to F, command ::
+adds  *%function* to F, and analogically
+
+::
 
    Z += %function
 
 adds *%function* to Z.
 
-To remove *%function* from F (or Z) either do::
+A few examples::
 
-   F -= %function
-
-or ``delete %function``.
-
-If there is more than one dataset, F and Z must be prefixed
-with the dataset number (e.g. ``@1.F += %function``).
-
-The following syntax is also valid::
-
-    # create and add funtion to F
+    # create and add function to F
     %g = Gaussian(height=~66254., hwhm=~0.264, center=~24.7)
-    @0.F += %g
+    F += %g
 
-    # create automatically named function and add it to F
-    @0.F += Gaussian(height=~66254., hwhm=~0.264, center=~24.7)
+    # create unnamed function and add it to F
+    F += Gaussian(height=~66254., hwhm=~0.264, center=~24.7)
 
     # clear F
-    @0.F = 0
+    F = 0
 
     # clear F and put three functions in it
-    @0.F = %a + %b + %c
+    F = %a + %b + %c
 
-    # show info about the first and the last function in @0.F
-    info @0.F[0], @0.F[-1]
+    # show info about the first and the last function in F
+    info F[0], F[-1]
 
-    # the same as %bcp = copy(%b)
-    %bcp = copy(@0.F[1])
+The next sections shows an easier way to add a function (command ``guess``).
 
-    # make @1.F the exact (shallow) copy of @0.F
-    @1.F = @0.F
+If there is more than one dataset, F and Z can be prefixed
+with the dataset number (e.g. ``@1.F``).
 
-    # make @1.F a deep copy of @0.F (all functions and variables
-    # are duplicated).
-    @1.F = copy(@0.F)
+The model can be copied. To copy the model from ``@0`` to ``@1``
+we type one of the two commands::
+
+    @1.F = @0.F        # shallow copy
+    @1.F = copy(@0.F)  # deep copy
+
+The former command uses the same functions in both models: if you shift
+a peak in ``@1``, it will be also shifted in ``@0``. The latter command
+(deep copy) duplicates all functions and variables and makes an independent
+model.
+
+.. admonition:: In the GUI
+
+   click the button |copyfunc-icon| on the sidebar to make a deep copy.
+
+.. |copyfunc-icon| image:: img/copyfunc_icon.png
+   :alt: Copy-Model
+   :class: icon
 
 It is often required to keep the width or shape of peaks constant
 for all peaks in the dataset. To change the variables bound to parameters
@@ -608,117 +615,142 @@ Examples::
     # variable to parameter hwhm. All hwhm parameters will be independent.
     F.hwhm = ~0.2
 
+.. admonition:: In the GUI
+
+   the buttons ``=W`` and ``=S`` on the sidebar make, respectively,
+   the HWHM and shape of all functions the same. Pressing the buttons
+   again will make all the parameters independent.
+
+.. _cut_function_level:
+
+With default settings, the value of every function is calculated
+at every point. Functions such as Gaussian often have non-neglegible
+values only in a small fraction of all points. To speed up the calculation,
+set the option :option:`cut_function_level`
+to a non-zero value. For each function the range with values
+greater than :option:`cut_function_level` will be estimated
+and all values outside of this range are considered to be equal zero.
+Not all the functions support this optimization, but most of the built-in
+functions do.
+
 .. _guess:
 
 Guessing peak location
 ----------------------
 
-It is possible to guess peak location and add it to F with the command::
+It is possible to guess peak location and add it to *F* with the command::
 
-   [%name =] guess PeakType [[x1:x2]] [initial values...] [in @n]
+   guess [%name =] PeakType [(initial values...)] [[x1:x2]]
 
-e.g. ::
+Examples::
 
-   %f1 = guess Gaussian [22.1:30.5] in @0
+   # add Gaussian in the given range
+   @0: guess Gaussian [22.1:30.5]
 
-   # the same, but assign function's name automatically
-   guess Gaussian [22.1:30.5] in @0
+   # the same, but name the new function %f1
+   @0: guess %f1 = Gaussian [22.1:30.5]
 
-   # the same, but search for the peak in the whole dataset
-   guess Gaussian in @0
+   # search for the peak in the whole dataset
+   @0: guess Gaussian
 
-   # the same, but works only if there is exactly one dataset loaded
-   guess Gaussian
+   # add one Gaussian to each dataset
+   @*: guess Gaussian
 
-   guess Linear in @* # adds a function to every dataset
-
-   # guess width and height, but set center and shape explicitely
-   guess PseudoVoigt [22.1:30.5] center=$ctr, shape=~0.3 in @0
-
-- If the range is omitted, the whole dataset will be searched.
+   # set the center and shape explicitely (determine height and width)
+   guess PseudoVoigt(center=$ctr, shape=~0.3) [22.1:30.5]
 
 - Name of the function is optional.
+- Some of the parameters can be specified in brackets.
+- If the range is omitted, the whole dataset will be searched.
 
-- Some of the parameters can be specified with syntax *parameter*\ =\ *variable*.
+Fityk offers a simple algorithm for peak-detection.
+It finds the highest point in the given range (``center`` and ``height``),
+and than tries to find the width of the peak (``hwhm``, and ``area``
+= *height* × *hwhm*).
 
-- As an exception, if the range is omitted and the parameter *center*
-  is given, the peak is searched around the *center*,
-  +/- value of the option :option:`guess_at_center_pm`.
-
-Fityk offers only a primitive algorithm for peak-detection.
-It looks for the highest point in a given range, and than tries
-to find the width of the peak.
+The values of height and width found by the algorithm
+are multiplied by the values of options :option:`height_correction`
+and :option:`width_correction`, respectively. The default value for both
+options is 1.
 
 If the highest point is found near the boundary of the given range,
 it is very probable that it is not the peak top,
 and, if the option :option:`can_cancel_guess` is set to true,
 the guess is cancelled.
 
-There are two real-number options related to ``guess``:
-:option:`height_correction` and :option:`width_correction`.
-The default value for them is 1.
-The guessed height and width are multiplied by the values of these
-options respectively.
+The linear traits ``slope`` and ``intercept`` are calculated using linear
+regression (without weights of points).
+``avgy`` is calculated as average value of *y*.
 
-Linear function is guessed using linear regression. It is actually
-fitted (but weights of points are not used), not guessed.
+.. admonition:: In the GUI
+
+   select a function from the list of functions on the toolbar
+   and press |add-peak-icon| to add (guess) the selected function.
+
+   To choose a data range change the GUI mode to |mode-add-icon|
+   and select the range with the right mouse button.
+
+.. |add-peak-icon| image:: img/add_peak_icon.png
+   :alt: Auto Add
+   :class: icon
+
+.. |mode-add-icon| image:: img/mode_add_icon.png
+   :alt: Add-Peak Mode
+   :class: icon
+
 
 Displaying information
 ----------------------
 
-If you are using the GUI, most of the available information can be
-displayed with mouse clicks. Alternatively, you can use the
-``info`` command.
-Using ``info+`` instead of ``info`` sometimes gives more verbose output.
+The ``info`` command can be show useful information when constructing
+the model.
 
-Below is the list of arguments of ``info`` related
-to this chapter. The full list is in :ref:`info`
+``info types``
+    shows the list of available function types.
+
+``info FunctionType``
+    (e.g. ``info Pearson7``) shows the formula (definition).
 
 ``info guess [range]``
-    Shows where the ``guess`` command would find a peak.
+    shows where the ``guess`` command would locate a peak.
 
 ``info functions``
-    Lists all defined functions.
+    lists all defined functions.
 
 ``info variables``
-    Lists all defined variables.
+    lists all defined variables.
 
-``info @n.F``
-    Shows information about F in dataset *n*.
+``info F``
+    lists components of *F*.
 
-``info @n.Z``
-    Shows information about Z in dataset *n*.
+``info Z``
+    lists components of *Z*.
 
-``info formula in @n``
-    Shows the mathematical formula of the fitted model.
-    Some primitive simplifications are applied to the formula.
-    To prevent it, put plus sign (+) after ``info``.
+``info formula``
+    shows the full mathematical formula of the fitted model.
 
-``info @n.dF(x)``
-    Compares the symbolic and numerical derivatives in *x*
-    (useful for debugging).
+``info simplified_formula``
+    shows the same, but the formula is simplified.
 
-``info peaks in @n``
-    Show parameters of functions from dataset *n*.
-    With the plus sign (+) after ``info``, uncertainties of the
-    parameters are also included.
+``info gnuplot_formula``
+    shows same as ``formula``, but the output is readable by gnuplot,
+    e.g. ``x^2`` is replaced by  ``x**2``.
 
+``info simplified_gnuplot_formula``
+    shows the simplified formula in the gnuplot format.
 
-The model can be exported to file as data points, using the syntax
-described in :ref:`dexport`, or as mathematical formula,
-using the ``info`` command redirected to a file::
+``info peaks``
+    show a formatted list of parameters of functions in *F*.
 
-   info[+] formula in @n > filename
+``info peaks_err``
+    shows the same data, additionally including uncertainties of the parameters.
 
-.. _formula_export_style:
+The last two commands are often redirected to a file
+(``info peaks > filename``).
 
-The style of the formula output,
-governed by the :option:`formula_export_style` option,
-can be either ``normal`` (exp(-x^2)) or ``gnuplot`` (exp(-x**2)).
+The complete list of ``info`` arguments can be found in :ref:`info`.
 
-The list of parameters of functions can be exported using the command::
+.. admonition:: In the GUI
 
-    info[+] peaks in @n > filename
-
-With ``@*`` formulae or parameters used in all datasets are written.
+  most of the above commands has clickable equivalents.
 
