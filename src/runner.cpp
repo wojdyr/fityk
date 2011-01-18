@@ -532,7 +532,6 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
         else if (args[i].type == kTokenCname) { // Foo(1,2)
             string name = F_->next_func_name();
             int n_args = make_func_from_template(name, args, i);
-            F_->use_parameters();
             new_names.push_back(name);
             i += 2 * n_args;
         }
@@ -545,9 +544,9 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
 
     if (removed_functions)
         F_->auto_remove_functions();
+    F_->use_parameters();
     F_->update_indices_in_models();
-    if (lhs_ds == ds)
-        F_->outdated_plot();
+    F_->outdated_plot();
 }
 
 void Runner::command_load(const vector<Token>& args)

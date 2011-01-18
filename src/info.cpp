@@ -445,6 +445,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         int k = ds;
         if (args[n].type == kTokenDataset) {
             k = args[n].value.i;
+            ++n;
             ++ret;
         }
         const Model* model = F->get_model(k);

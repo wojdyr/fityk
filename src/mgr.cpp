@@ -376,6 +376,7 @@ bool VariableManager::is_function_referred(int n) const
     return false;
 }
 
+// post: call update_indices_in_models()
 void VariableManager::auto_remove_functions()
 {
     int func_size = functions_.size();
@@ -386,7 +387,6 @@ void VariableManager::auto_remove_functions()
         }
     if (func_size != size(functions_)) {
         remove_unreferred();
-        update_indices_in_models();
     }
 }
 
@@ -481,7 +481,7 @@ int VariableManager::assign_func_copy(const string &name, const string &orig)
     const Function* of = find_function(orig);
     map<int,string> var_copies;
     for (int i = 0; i < size(variables_); ++i) {
-        if (!of->is_dependent_on(i, variables_)) {
+        if (of->is_dependent_on(i, variables_)) {
             const Variable* var_orig = variables_[i];
             var_copies[i] = assign_variable_copy(var_orig, var_copies);
         }
