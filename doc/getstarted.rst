@@ -9,12 +9,11 @@ Graphical interface
 
 The GUI window of fityk consists of (from the top): menu bar, toolbar,
 main plot, helper (residual) plot, output window, input field, status bar
-and of sidebar at the right-hand side. The input field allows you to type and
-execute commands in a similar way as is done in the CLI version. The
-output window shows the results.
+and of sidebar at the right-hand side.
 
-All GUI commands are converted into text and are visible in the output window,
-providing a simple way to learn the syntax.
+The input field with the output window provide a console-like interface
+to the program. The output windows shows also commands corresponding to
+operations performed using the GUI (menu, dialogs, etc.).
 
 The main plot can display data points, model that is to be fitted to the
 data and component functions of the model. Use the pop-up menu (click

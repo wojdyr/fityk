@@ -7,17 +7,18 @@ Miscellaneous
 Settings
 ========
 
+The syntax is simple:
+
+* ``set option = value`` changes the *option*,
+* ``info set option`` shows the current value,
+* ``info set`` lists all available options.
+
 .. admonition:: In the GUI
 
     the options can be set in a dialog (:menuselection:`Session --> Settings`).
 
     The GUI configuration (colors, fonts, etc.) is changed in a different
     way (:menuselection:`GUI --> ...`) and is not covered here.
-
-Command ``info set`` shows the syntax of the set command and lists all
-possible options. ``info set option`` shows the current value.
-
-``set option = value`` changes the *option*.
 
 It is possible to change the value of the option temporarily::
 
@@ -116,7 +117,7 @@ variable_domain_percent
     See :ref:`the section about variables <domain>`.
 
 verbosity
-    Possible values: quiet, normal, verbose, debug.
+    Possible values: -1 (silent), 0 (normal), 1 (verbose), 2 (very verbose).
 
 width_correction
     See :ref:`guess`.
@@ -124,9 +125,9 @@ width_correction
 Data view
 =========
 
-The command ``plot`` controls the rectangle that is visualized::
+The command ``plot`` controls the region of the graph that is displayed::
 
-   plot [[xrange] yrange] @n
+   plot [[xrange] yrange] [@n, ...]
 
 *xrange* and *yrange* has syntax ``[min:max]``. If the boundaries
 are skipped, they are automatically determined using the given datasets.
@@ -173,8 +174,7 @@ The output of ``info`` and ``print`` can be redirected to a file::
   info args >> filename   # append to the file
   info args > 'filename'  # the filename can (and sometimes must) be in quotes
 
-This allows to create a file, so it should be also possible to delete a file
-from the script::
+The redirection can create a file, so there is also a command to delete it::
 
   delete file filename
 
@@ -220,7 +220,7 @@ The following ``info`` arguments are recognized:
 * ``version`` -- version number
 * ``view`` -- boundaries of the visualized rectangle
 
-Both ``info history`` and ``info state`` can be used to restore the current
+Both ``info state`` and ``info history`` can be used to restore the current
 session.
 
 .. admonition:: In the GUI

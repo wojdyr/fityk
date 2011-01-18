@@ -135,8 +135,8 @@ The shorter lines are ignored
 
 * if all the (not ignored) prior lines and the next line are longer
 
-These rule may seem complex, but they allow to read many log files
-as numeric data without editing.
+These rule were introduced to read free-format log files with
+textual comments inserted between lines with numeric data.
 
 For now, xylib does not handle well nan's and inf's in the data.
 
