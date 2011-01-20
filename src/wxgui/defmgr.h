@@ -26,13 +26,13 @@ private:
     std::vector<Tplate> modified_;
     Parser parser_;
     wxListBox *lb;
-    wxTextCtrl *def_tc, *help_tc;
+    wxTextCtrl *def_tc, *desc_tc;
     wxStaticText *def_label_st;
-    wxButton *ok_btn;
+    wxButton *remove_btn, *ok_btn;
 
     void select_function();
     void parse_definition();
-    void update_ui(const Tplate& tp);
+    void update_desc(const Tplate& tp);
 };
 
 #endif
