@@ -37,7 +37,7 @@ struct Option
 
 fp epsilon = 1e-12; // declared in common.h
 
-static const char* data_default_sigma_enum[] =
+static const char* default_sigma_enum[] =
 { "sqrt", "one", NULL };
 
 static const char* fitting_method_enum[] =
@@ -54,8 +54,7 @@ static const Option options[] = {
     OPT(autoplot, kBool, true, NULL),
     OPT(exit_on_warning, kBool, false, NULL),
     OPT(epsilon, kDouble, 1e-12, NULL),
-    OPT(data_default_sigma, kEnum, data_default_sigma_enum[0],
-                                   data_default_sigma_enum),
+    OPT(default_sigma, kEnum, default_sigma_enum[0], default_sigma_enum),
     OPT(pseudo_random_seed, kInt, 0, NULL),
     OPT(numeric_format, kString, "%g", NULL),
     OPT(logfile, kString, "", NULL),

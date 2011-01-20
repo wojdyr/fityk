@@ -46,8 +46,9 @@ can_cancel_guess
 cut_function_level
     See :ref:`description in the chapter about model <cut_function_level>`.
 
-data_default_sigma
-    See :ref:`weights`.
+default_sigma
+    Default *y* standard deviation. See :ref:`weights`.
+    Possible values: ``sqrt`` max(*y*:sup:`1/2`, 1) and ``one`` (1).
 
 .. _epsilon:
 

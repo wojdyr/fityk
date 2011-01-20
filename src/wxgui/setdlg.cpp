@@ -114,7 +114,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
     wxBoxSizer *sizer_general = new wxBoxSizer(wxVERTICAL);
 
     sigma_ch = addEnumSetting(page_general, wxT("default std. dev. of data y:"),
-                              "data_default_sigma", sizer_general);
+                              "default_sigma", sizer_general);
     cut_func = addRealNumberCtrl(page_general,
                                  wxT("f(x) can be assumed 0, if |f(x)|<"),
                                  settings->cut_function_level,
@@ -327,7 +327,7 @@ string add(const char* name, const string& new_value)
 void SettingsDlg::exec_set_command()
 {
     string assign = "set ";
-    assign += add("data_default_sigma", wx2s(sigma_ch->GetStringSelection()));
+    assign += add("default_sigma", wx2s(sigma_ch->GetStringSelection()));
     assign += add("cut_function_level", wx2s(cut_func->GetValue()));
     assign += add("verbosity", S(verbosity_sp->GetValue()));
     assign += add("exit_on_warning", exit_cb->GetValue() ? "1" : "0");

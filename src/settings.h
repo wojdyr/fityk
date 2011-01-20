@@ -17,7 +17,7 @@ struct Settings
     bool autoplot;
     bool exit_on_warning;
     double epsilon; // for now, there is also global epsilon
-    const char* data_default_sigma;
+    const char* default_sigma;
     int pseudo_random_seed;
     std::string numeric_format;
     std::string logfile;

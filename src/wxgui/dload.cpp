@@ -207,7 +207,7 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
         s_column->SetValue(data->get_given_s());
     }
 
-    bool def_sqrt = (S(ftk->get_settings()->data_default_sigma) == "sqrt");
+    bool def_sqrt = (S(ftk->get_settings()->default_sigma) == "sqrt");
     sd_sqrt_cb = new wxCheckBox(left_panel, ID_DXLOAD_SDS,
                                 wxT("std. dev. = max(sqrt(y), 1)"));
     sd_sqrt_cb->SetValue(def_sqrt);
@@ -444,14 +444,14 @@ string DLoadDlg::get_command(string const& ds, int d_nr)
     //if (title_cb->IsChecked())
     //    filetype = " text, first_line_header";
 
-    bool def_sqrt = (S(ftk->get_settings()->data_default_sigma) == "sqrt");
+    bool def_sqrt = (S(ftk->get_settings()->default_sigma) == "sqrt");
     bool set_sqrt = sd_sqrt_cb->GetValue();
     bool sigma_in_file = std_dev_cb->GetValue();
     if (!sigma_in_file && set_sqrt != def_sqrt) {
         if (set_sqrt)
-            cmd = "with data_default_sigma=sqrt ";
+            cmd = "with default_sigma=sqrt ";
         else
-            cmd = "with data_default_sigma=one ";
+            cmd = "with default_sigma=one ";
     }
 
     cmd += ds + " < '" + get_filename() + cols + "'" + filetype;
