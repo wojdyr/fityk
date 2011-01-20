@@ -561,7 +561,7 @@ fp VariableManager::variation_of_a(int n, fp variat) const
     const RealRange& dom = get_variable(n)->domain;
     if (dom.from_inf() || dom.to_inf()) {
         double ctr = get_variable(n)->get_value();
-        double sigma = ctr * F_->get_settings()->variable_domain_percent / 100.;
+        double sigma = ctr * F_->get_settings()->domain_percent / 100.;
         return ctr + sigma * variat;
     }
     else {

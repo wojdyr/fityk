@@ -69,7 +69,7 @@ static const Option options[] = {
     OPT(max_wssr_evaluations, kInt, 1000, NULL),
     OPT(refresh_period, kInt, 4, NULL),
     OPT(fit_replot, kBool, false, NULL),
-    OPT(variable_domain_percent, kDouble, 30., NULL),
+    OPT(domain_percent, kDouble, 30., NULL),
 
     OPT(lm_lambda_start, kDouble, 0.001, NULL),
     OPT(lm_lambda_up_factor, kDouble, 10, NULL),

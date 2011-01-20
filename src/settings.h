@@ -34,7 +34,7 @@ struct Settings
     int max_wssr_evaluations;
     int refresh_period;
     bool fit_replot;
-    double variable_domain_percent;
+    double domain_percent;
     // fitting - LM
     double lm_lambda_start;
     double lm_lambda_up_factor;

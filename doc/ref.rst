@@ -114,7 +114,7 @@ refresh_period
     the program's window notably slows down fitting, and on the other hand
     irresponsive program is a frustrating experience.
 
-variable_domain_percent
+domain_percent
     See :ref:`the section about variables <domain>`.
 
 verbosity

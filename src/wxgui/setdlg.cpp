@@ -181,7 +181,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
 
     domain_p = addRealNumberCtrl(page_fit_common,
                                  wxT("default domain of variable is +/-"),
-                                 settings->variable_domain_percent,
+                                 settings->domain_percent,
                                  sizer_fcmn,
                                  wxT("%"));
 
@@ -337,7 +337,7 @@ void SettingsDlg::exec_set_command()
     assign += add("width_correction", wx2s(width_correction->GetValue()));
     assign += add("can_cancel_guess", cancel_guess->GetValue() ? "1" : "0");;
     assign += add("max_wssr_evaluations", S(mwssre_sp->GetValue()));
-    assign += add("variable_domain_percent", wx2s(domain_p->GetValue()));
+    assign += add("domain_percent", wx2s(domain_p->GetValue()));
     assign += add("fit_replot", fit_replot_cb->GetValue() ? "1" : "0");
     assign += add("refresh_period", S(delay_sp->GetValue()));
     assign += add("lm_lambda_start", wx2s(lm_lambda_ini->GetValue()));

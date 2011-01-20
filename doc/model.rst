@@ -177,7 +177,7 @@ The syntax is as follows::
 
 If the domain is not specified, the default domain is used, which is
 ±\ *p*\ % of the current value, where *p* can be set using the
-:option:`variable_domain_percent` option.
+:option:`domain_percent` option.
 
 Function types and functions
 ----------------------------
