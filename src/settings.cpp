@@ -61,7 +61,6 @@ static const Option options[] = {
     OPT(log_full, kBool, false, NULL),
     OPT(function_cutoff, kDouble, 0., NULL),
 
-    OPT(can_cancel_guess, kBool, true, NULL),
     OPT(height_correction, kDouble, 1., NULL),
     OPT(width_correction, kDouble, 1., NULL),
 

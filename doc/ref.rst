@@ -40,9 +40,6 @@ The list of available options:
 autoplot
     See :ref:`autoplot <autoplot>`.
 
-can_cancel_guess
-    See :ref:`guess`.
-
 function_cutoff
     See :ref:`description in the chapter about model <function_cutoff>`.
 

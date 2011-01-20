@@ -152,11 +152,6 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
                            settings->width_correction,
                            sizer_pf);
 
-    cancel_guess = addCheckbox(page_peakfind,
-                          wxT("cancel peak guess, if the result is doubtful"),
-                          settings->can_cancel_guess,
-                          sizer_pf);
-
     add_persistence_note(page_peakfind, sizer_pf);
     page_peakfind->SetSizerAndFit(sizer_pf);
 
@@ -335,7 +330,6 @@ void SettingsDlg::exec_set_command()
     assign += add("epsilon", wx2s(eps_rc->GetValue()));
     assign += add("height_correction", wx2s(height_correction->GetValue()));
     assign += add("width_correction", wx2s(width_correction->GetValue()));
-    assign += add("can_cancel_guess", cancel_guess->GetValue() ? "1" : "0");;
     assign += add("max_wssr_evaluations", S(mwssre_sp->GetValue()));
     assign += add("domain_percent", wx2s(domain_p->GetValue()));
     assign += add("fit_replot", fit_replot_cb->GetValue() ? "1" : "0");

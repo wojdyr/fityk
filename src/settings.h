@@ -25,7 +25,6 @@ struct Settings
     double function_cutoff;
 
     // guess
-    bool can_cancel_guess;
     double height_correction;
     double width_correction;
 

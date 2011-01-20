@@ -1,5 +1,27 @@
 
-* data transformations: add aggregate functions argmin and argmax
+* F.param = variable -> F[*].param = variable
+
+* =-> F += Voigt(height=~804, center=~38.7, hwhm=~12.6, area=~20260.8)
+  Error: Cannot calculate value of `gwidth' in Voigt
+
+* GUI: change how colors are stored in the config file
+
+* export model as script
+
+* GUI: Help > Anonymous Feedback
+
+--
+
+* GUI: definition mgr - show formula images from the manual, if available
+
+* GUI: pre-defined alternative GUI configuration
+
+* handle gzipped fit files
+
+* CLI/GUI: use sigaction() instead of signal() to handle SIGINT
+  print a message from interrupt_handler()
+
+* data transformations: add aggregate functions argmin, argmax, count
 
 * make possible something like this:  $min = @*.min(y if a)
 
@@ -51,6 +73,7 @@
 
 * confidence intervals of model parameters (95%, 99%)
   http://www.boost.org/doc/libs/1_42_0/libs/math/doc/sf_and_dist/html/math_toolkit/dist/stat_tut/weg/st_eg/tut_mean_intervals.html
+  p.103 in the GraphPad book
 
 * ? confidence intervals for data
 
@@ -92,6 +115,7 @@
     - compare methods from origin pkfind, peakfit and other programs
     - research papers: http://dx.doi.org/10.1016/j.chroma.2004.11.073
                        http://dx.doi.org/10.1002/cem.1005
+                       http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631518/
 
 * fitting: consider using 3rd-party library for nonlinear fitting/optimization.
   The list of libraries in this category:

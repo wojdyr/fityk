@@ -100,9 +100,13 @@ fp Guess::find_hwhm(int pos, fp* area)
 // returns values corresponding to peak_traits
 array<double,4> Guess::estimate_peak_parameters()
 {
-    int pos = max_element(yy_.begin(), yy_.end()) - yy_.begin();
-
-    if (settings_->can_cancel_guess && (pos == 0 || pos == (int)yy_.size() - 1))
+    // find the highest point, which must be higher than the previous and next
+    // points (-> it cannot be the first/last point)
+    int pos = -1;
+    for (int i = 1; i < (int) yy_.size() - 1; ++i)
+        if (yy_[i] > yy_[i+1] && yy_[i] > (pos == -1 ? yy_[i-1] : yy_[pos]))
+            pos = i;
+    if (pos == -1)
         throw ExecuteError("Peak outside of the range.");
 
     double height = yy_[pos] * settings_->height_correction;

@@ -8,9 +8,12 @@ User-visible changes in version 0.9.5  (2011-01-  ):
   - "dump" replaced by "info state"
   - values of the fitting_method setting changed to lower case
   - "set @0.title = ..." replaced with "@0: title = ..."
-  - settings: removed formula_export_style and guess_at_center_pm,
-    changed autoplot and verbosity, added logfile, log_full, fit_replot,
-    info_numeric_format renamed to numeric_format
+  - settings: removed formula_export_style, guess_at_center_pm and
+    can_cancel_guess, changed autoplot and verbosity,
+    added logfile, log_full, fit_replot,
+    info_numeric_format renamed to numeric_format, data_default_sigma to
+    default_sigma, cut_function_level to function_cutoff,
+    variable_domain_percent to domain_percent
   - in "define ... where param=expr" expr is substituted in brackets now
   - added syntax: delete file 'filename'
   - "guess": changed argument order

@@ -668,15 +668,13 @@ It finds the highest point in the given range (``center`` and ``height``),
 and than tries to find the width of the peak (``hwhm``, and ``area``
 = *height* × *hwhm*).
 
+If the highest point is at boundary of the given range,
+the points from the boundary to the nearest local minimum are ignored.
+
 The values of height and width found by the algorithm
 are multiplied by the values of options :option:`height_correction`
 and :option:`width_correction`, respectively. The default value for both
 options is 1.
-
-If the highest point is found near the boundary of the given range,
-it is very probable that it is not the peak top,
-and, if the option :option:`can_cancel_guess` is set to true,
-the guess is cancelled.
 
 The linear traits ``slope`` and ``intercept`` are calculated using linear
 regression (without weights of points).
