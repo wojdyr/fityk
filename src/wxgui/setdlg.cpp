@@ -116,8 +116,8 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
     sigma_ch = addEnumSetting(page_general, wxT("default std. dev. of data y:"),
                               "default_sigma", sizer_general);
     cut_func = addRealNumberCtrl(page_general,
-                                 wxT("f(x) can be assumed 0, if |f(x)|<"),
-                                 settings->cut_function_level,
+                                 wxT("f(x) is negligible if |f(x)|<"),
+                                 settings->function_cutoff,
                                  sizer_general);
 
     verbosity_sp = addSpinCtrl(page_general, wxT("verbosity (in output pane)"),
@@ -328,7 +328,7 @@ void SettingsDlg::exec_set_command()
 {
     string assign = "set ";
     assign += add("default_sigma", wx2s(sigma_ch->GetStringSelection()));
-    assign += add("cut_function_level", wx2s(cut_func->GetValue()));
+    assign += add("function_cutoff", wx2s(cut_func->GetValue()));
     assign += add("verbosity", S(verbosity_sp->GetValue()));
     assign += add("exit_on_warning", exit_cb->GetValue() ? "1" : "0");
     assign += add("pseudo_random_seed", S(seed_sp->GetValue()));

@@ -896,7 +896,7 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
         frame->set_status_text(s);
         set_mouse_mode(mmd_peak);
         fp x1=0., x2=0.;
-        bool r = f->get_nonzero_range(ftk->get_settings()->cut_function_level,
+        bool r = f->get_nonzero_range(ftk->get_settings()->function_cutoff,
                                       x1, x2);
         if (r) {
             limit1 = xs.px(x1);

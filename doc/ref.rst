@@ -43,8 +43,8 @@ autoplot
 can_cancel_guess
     See :ref:`guess`.
 
-cut_function_level
-    See :ref:`description in the chapter about model <cut_function_level>`.
+function_cutoff
+    See :ref:`description in the chapter about model <function_cutoff>`.
 
 default_sigma
     Default *y* standard deviation. See :ref:`weights`.

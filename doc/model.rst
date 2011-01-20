@@ -621,14 +621,14 @@ Examples::
    the HWHM and shape of all functions the same. Pressing the buttons
    again will make all the parameters independent.
 
-.. _cut_function_level:
+.. _function_cutoff:
 
 With default settings, the value of every function is calculated
 at every point. Functions such as Gaussian often have non-neglegible
 values only in a small fraction of all points. To speed up the calculation,
-set the option :option:`cut_function_level`
+set the option :option:`function_cutoff`
 to a non-zero value. For each function the range with values
-greater than :option:`cut_function_level` will be estimated
+greater than :option:`function_cutoff` will be estimated
 and all values outside of this range are considered to be equal zero.
 Not all the functions support this optimization, but most of the built-in
 functions do.

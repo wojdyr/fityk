@@ -22,7 +22,7 @@ struct Settings
     std::string numeric_format;
     std::string logfile;
     bool log_full;
-    double cut_function_level;
+    double function_cutoff;
 
     // guess
     bool can_cancel_guess;

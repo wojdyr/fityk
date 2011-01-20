@@ -59,7 +59,7 @@ static const Option options[] = {
     OPT(numeric_format, kString, "%g", NULL),
     OPT(logfile, kString, "", NULL),
     OPT(log_full, kBool, false, NULL),
-    OPT(cut_function_level, kDouble, 0., NULL),
+    OPT(function_cutoff, kDouble, 0., NULL),
 
     OPT(can_cancel_guess, kBool, true, NULL),
     OPT(height_correction, kDouble, 1., NULL),
