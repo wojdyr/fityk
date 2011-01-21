@@ -1,10 +1,11 @@
+.. _fit:
 
-Fitting
-=======
+Curve Fitting
+=============
 
 .. _nonlinear:
 
-Nonlinear optimization
+Nonlinear Optimization
 ----------------------
 
 This is the core. We have a set of observations (data points), to which
@@ -64,7 +65,7 @@ chapter *Least-Squares Fitting. Fitting Overview* (weighted data version).
 
 .. _fitting_cmd:
 
-Fitting related commands
+Fitting Related Commands
 ------------------------
 
 To fit model to data, use command
@@ -136,8 +137,8 @@ fit history *n*
 fit clear_history
     clear the history
 
-Uncertainty in the model parameters
------------------------------------
+Uncertainty of Parameters
+-------------------------
 
 From the book J. Wolberg, *Data Analysis Using the Method of Least Squares: Extracting the Most Information from Experiments*, Springer, 2006, p.50:
 
@@ -243,8 +244,8 @@ criteria.
 
 .. _nelder:
 
-Nelder-Mead downhill simplex method
------------------------------------
+Nelder-Mead Downhill Simplex
+----------------------------
 
 To quote chapter 4.8.3, p. 86 of Peter Gans,
 *Data Fitting in the Chemical Sciences by the Method of Least Squares*:

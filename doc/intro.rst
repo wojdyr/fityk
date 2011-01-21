@@ -1,8 +1,9 @@
+.. _intro:
 
 Introduction
 ############
 
-What is the program for?
+What's This Program for?
 ========================
 
 Fityk is a program for nonlinear fitting of analytical functions

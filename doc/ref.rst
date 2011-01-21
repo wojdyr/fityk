@@ -1,6 +1,7 @@
+.. _ref:
 
-Miscellaneous
-#############
+All the Rest
+############
 
 .. _settings:
 
@@ -120,7 +121,7 @@ verbosity
 width_correction
     See :ref:`guess`.
 
-Data view
+Data View
 =========
 
 The command ``plot`` controls the region of the graph that is displayed::
@@ -154,7 +155,7 @@ It is also possible to replot the model when fitting, to show the progress
 
 .. _info:
 
-Information display
+Information Display
 ===================
 
 First, there is an option :option:`verbosity`
@@ -272,7 +273,7 @@ Only a few ``debug`` sub-commands are documented here:
 * ``%function`` -- bytecode, if available
 * ``$variable`` -- derivatives
 
-Other commands
+Other Commands
 ==============
 
 * ``exec`` -- Scripts can be executed using the command::
@@ -296,8 +297,8 @@ Other commands
 
 .. _invoking:
 
-Starting the program
-====================
+Starting fityk and cfityk
+=========================
 
 On startup, the program runs a script from the
 :file:`$HOME/.fityk/init` file (on MS Windows XP:

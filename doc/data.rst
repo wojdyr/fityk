@@ -1,10 +1,11 @@
+.. _data:
 
 Data
 ====
 
 .. _dataload:
 
-Loading data
+Loading Data
 ------------
 
 Data files are read using the `xylib library <http://xylib.sourceforge.net/>`_.
@@ -63,7 +64,7 @@ Information about loaded data can be obtained with::
 
    info data
 
-Supported filetypes
+Supported Filetypes
 ~~~~~~~~~~~~~~~~~~~
 
 text
@@ -106,7 +107,7 @@ pdcif
 
 The full list is available at: http://xylib.sourceforge.net/.
 
-Reading text files
+Reading Text Files
 ~~~~~~~~~~~~~~~~~~
 The *xylib* library can read TSV or CSV formats (tab or comma separated
 values). In fact, the values can be separated by any whitespace character
@@ -156,7 +157,7 @@ This is very helpful when plotting data from LAMMPS log files.
 
 .. _activepoints:
 
-Active and inactive points
+Active and Inactive Points
 --------------------------
 
 We often have the situation that only a part of the data from a file is
@@ -180,7 +181,7 @@ can be used to change the state of points.
 
 .. _weights:
 
-Standard deviation (or weight)
+Standard Deviation (or Weight)
 ------------------------------
 
 When fitting data, we assume that only the *y* coordinate is subject to
@@ -206,7 +207,7 @@ See :ref:`transform` for details.
 
 .. _transform:
 
-Data point transformations
+Data Point Transformations
 --------------------------
 
 Every data point has four properties: *x* coordinate, *y* coordinate,
@@ -383,7 +384,7 @@ The precision of printed numbers is governed by the
     print y[index(20)] # value of y for x=20
 
 
-Aggregate functions
+Aggregate Functions
 -------------------
 
 Aggregate functions have syntax::
@@ -407,10 +408,10 @@ The following aggregate functions are recognized:
 * ``stddev()`` --- the standard deviation,
 
 * ``darea()`` --- a function used to normalize the area (see the example below).
-          It returns the sum of
-          *expression*\ \*(*x*\ [*n*\ +1]-*x*\ [*n*-1])/2.
-          In particular, ``darea(y)`` returns the interpolated area under
-          data points.
+  It returns the sum of
+  *expression*\ \*(*x*\ [*n*\ +1]-*x*\ [*n*-1])/2.
+  In particular, ``darea(y)`` returns the interpolated area under
+  data points.
 
 .. note:: There is no ``count`` function, use ``sum(1 if criterium)`` instead.
 
@@ -432,7 +433,7 @@ Examples::
 
 .. _funcindt:
 
-Functions and variables in data transformation
+Functions and Variables in Data Transformation
 ----------------------------------------------
 
 You may postpone reading this section and read about the :ref:`model` first.
@@ -507,7 +508,7 @@ A few examples::
 
 .. _multidata:
 
-Working with multiple datasets
+Working with Multiple Datasets
 ------------------------------
 
 Let us call a set of data that usually comes from one file --
@@ -558,7 +559,7 @@ To print the title of the dataset, type ``@n: info title``.
 
 .. _datasettr:
 
-Dataset transformations
+Dataset Transformations
 -----------------------
 
 Transformations that are defined for a whole dataset, not for each point
@@ -603,7 +604,7 @@ Examples::
 
 .. _dexport:
 
-Exporting data
+Exporting Data
 --------------
 
 Command::

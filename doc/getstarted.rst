@@ -1,10 +1,10 @@
 
 .. _getstarted:
 
-Getting started
+Getting Started
 ###############
 
-Graphical interface
+Graphical Interface
 ===================
 
 The GUI window of fityk consists of (from the top): menu bar, toolbar,
@@ -47,8 +47,8 @@ The right button displays a menu.
    :class: icon
 
 
-The minimal example
-===================
+Minimal Example
+===============
 
 Let us analyze a diffraction pattern of NaCl. Our goal is to determine
 the position of the center of the highest peak. It is needed for

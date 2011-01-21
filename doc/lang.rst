@@ -1,5 +1,6 @@
+.. _lang:
 
-Mini-language
+Mini-Language
 #############
 
 Fityk comes with own domain-specific language (DSL), which is humbly

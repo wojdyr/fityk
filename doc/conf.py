@@ -46,6 +46,8 @@ latex_documents = [
 latex_logo = 'fityk-banner.pdf'
 latex_elements = {
     'papersize': 'a4paper', # 'letterpaper'
+    'pointsize': '10pt,oneside,openany',
+    #'classoptions': ',oneside,openany',
     'inputenc': r"""
          \usepackage{ucs}
          \usepackage[utf8x]{inputenc}""",

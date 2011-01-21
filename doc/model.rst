@@ -1,8 +1,7 @@
-
 .. _model:
 
-Model
-=====
+Models
+======
 
 From `Numerical Recipes <http://www.nrbook.com/a/bookcpdf.php>`_,
 chapter 15.0:
@@ -179,7 +178,7 @@ If the domain is not specified, the default domain is used, which is
 ±\ *p*\ % of the current value, where *p* can be set using the
 :option:`domain_percent` option.
 
-Function types and functions
+Function Types and Functions
 ----------------------------
 
 Function types have names that start with upper case letter,
@@ -241,7 +240,7 @@ Functions can be deleted using the command::
 
 .. _flist:
 
-Built-in functions
+Built-In Functions
 ------------------
 
 The list of all functions can be obtained using ``i types``.
@@ -398,7 +397,7 @@ __ http://dx.doi.org/10.1016/0022-4073(77)90161-3
    y = a_0 + a_1 x +a_2 x^2 + a_3 x^3 + a_4 x^4 + a_5 x^5
 
 
-Variadic functions
+Variadic Functions
 ------------------
 
 *Variadic* function types have variable number of parameters.
@@ -421,7 +420,7 @@ for the manual baseline subtraction via the GUI.
 
 .. _udf:
 
-User-defined functions (UDF)
+User-Defined Functions (UDF)
 ----------------------------
 
 User-defined function types can be added using command ``define``,
@@ -527,6 +526,23 @@ Defined functions can be undefined using command ``undefine``::
 It is common to add own definitions to the :file:`init` file.
 See the section :ref:`invoking` for details.
 
+.. _function_cutoff:
+
+Cutoff
+------
+
+With default settings, the value of every function is calculated
+at every point. Peak functions such as Gaussian often have non-negligible
+values only in a small fraction of all points.
+If you have many narrow peaks
+(like `here <http://commons.wikimedia.org/wiki/File:Diff_NaBr.png>`_),
+set the option :option:`function_cutoff`
+to a non-zero value to speed up the calculation.
+For each function the range with values
+greater than :option:`function_cutoff` will be estimated first
+and the values will be calculated only in this range.
+This optimization is supported by most of the built-in functions.
+
 Model, F and Z
 --------------
 
@@ -621,22 +637,15 @@ Examples::
    the HWHM and shape of all functions the same. Pressing the buttons
    again will make all the parameters independent.
 
-.. _function_cutoff:
-
-With default settings, the value of every function is calculated
-at every point. Functions such as Gaussian often have non-neglegible
-values only in a small fraction of all points. To speed up the calculation,
-set the option :option:`function_cutoff`
-to a non-zero value. For each function the range with values
-greater than :option:`function_cutoff` will be estimated
-and all values outside of this range are considered to be equal zero.
-Not all the functions support this optimization, but most of the built-in
-functions do.
-
 .. _guess:
 
-Guessing peak location
-----------------------
+Guessing Initial Parameters
+---------------------------
+
+The program can automatically set initial parameters of peaks (using
+peak-detection algorithm) and lines (using linear regression).
+Choosing initial parameters of a function by the program
+will be called :dfn:`guessing`.
 
 It is possible to guess peak location and add it to *F* with the command::
 
@@ -697,7 +706,7 @@ regression (without weights of points).
    :class: icon
 
 
-Displaying information
+Displaying Information
 ----------------------
 
 The ``info`` command can be show useful information when constructing
