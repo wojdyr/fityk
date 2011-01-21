@@ -84,6 +84,31 @@ All the commands are described in the next chapters.
   The rest of this section can be useful as reference, but it is recommended
   to **skip it** when reading the manual for the first time.
 
+To keep the description above concise, some details were skipped.
+
+The datasets listed before the colon (``:``) make a *foreach* loop::
+
+   =-> $a=0
+   =-> @0 @0 @0: $a={$a+1}; print $a
+   1
+   2
+   3
+
+``@*`` stands for all datasets, from ``@0`` to the last one.
+
+
+There is a small difference between two commands in two lines and two commands
+separated by ``;``.
+The whole line is parsed before the execution begins and some checks
+for the second command are performed before the first command is run::
+
+   =-> $a=4; print $a # print gives unexpected error
+   Error: undefined variable: $a
+
+   =-> $b=2
+   =-> $b=4; print $b # $b is already defined at the check time
+   4
+
 
 Grammar
 =======
@@ -140,8 +165,7 @@ The kCmd* names in the comments correspond to constants in the code.
     : Dataset "<" `load_arg`             | (*kCmdLoad*)
     : Dataset "=" `dataset_tr_arg`       | (*kCmdDatasetTr*)
     : Funcname "=" `func_rhs`            | (*kCmdNameFunc*)
-    : `func_id` "." Lname "=" `v_expr`     | (*kCmdAssignParam*)
-    : `model_id` "." Lname "=" `v_expr`    | (*kCmdAssignAll*)
+    : `param_lhs` "=" `v_expr`             | (*kCmdAssignParam*)
     : Varname "=" `v_expr`               | (*kCmdNameVar*)
     : `model_id` ("="|"+=") `model_rhs`    | (*kCmdChangeModel*)
     : (`p_attr` "[" `expr` "]" "=" `p_expr`) % "," | (*kCmdPointTr*)
@@ -187,6 +211,8 @@ The kCmd* names in the comments correspond to constants in the code.
    model_id: [Dataset "."] ("F"|"Z")
    func_id: Funcname |
           : `model_id` "[" Number "]"
+   param_lhs: Funcname "." Lname |
+            : `model_id` "[" (Number | "*") "]" "." Lname
    var_id: Varname |
          : `func_id` "." Lname
    range: "[" [`expr`] ":" [`expr`] "]"

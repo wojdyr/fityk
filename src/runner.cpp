@@ -416,16 +416,17 @@ void Runner::command_assign_param(const vector<Token>& args, int ds)
 
 void Runner::command_assign_all(const vector<Token>& args, int ds)
 {
-    // args: (Dataset|Nop) (F|Z) Lname Expr
+    // args: (Dataset|Nop) (F|Z) '*' Lname Expr
     assert(args[0].type == kTokenDataset || args[0].type == kTokenNop);
     assert(args[1].type == kTokenUletter);
-    assert(args[2].type == kTokenLname);
-    assert(args[3].type == kTokenEVar);
+    assert(args[2].type == kTokenMult);
+    assert(args[3].type == kTokenLname);
+    assert(args[4].type == kTokenEVar);
     if (args[0].type == kTokenDataset)
         ds = args[0].value.i;
     char c = *args[1].str;
-    string param = args[2].as_string();
-    VMData* vd = get_vm_from_token(args[3]);
+    string param = args[3].as_string();
+    VMData* vd = get_vm_from_token(args[4]);
     const FunctionSum& fz = F_->get_model(ds)->get_fz(c);
     v_foreach (string, i, fz.names) {
         if (contains_element(F_->find_function(*i)->tp()->fargs, param))
@@ -727,11 +728,14 @@ void Runner::execute_command(Command& c, int ds)
             F_->get_data(ds)->title = Lexer::get_string(c.args[0]);
             break;
         case kCmdAssignParam:
-            command_assign_param(c.args, ds);
+            if (c.args[2].type == kTokenMult)
+                command_assign_all(c.args, ds);
+            else
+                command_assign_param(c.args, ds);
             break;
-        case kCmdAssignAll:
-            command_assign_all(c.args, ds);
-            break;
+        //case kCmdAssignAll:
+        //    command_assign_all(c.args, ds);
+        //    break;
         case kCmdNameVar:
             command_name_var(c.args);
             break;
@@ -744,22 +748,26 @@ void Runner::execute_command(Command& c, int ds)
     }
 }
 
-void Runner::recalculate_args(vector<Command>& cmds, int ds)
+void Runner::recalculate_command(Command& c, int ds, Statement& st)
 {
-    const vector<Point>& points = F_->get_data(ds)->points();
-    vm_foreach (Command, c, cmds) {
-        // Don't evaluate commands that are parsed in command_*().
-        if (c->type == kCmdAllPointsTr || c->type == kCmdDeleteP)
-            continue;
+    // Don't evaluate commands that are parsed in command_*().
+    if (c.type == kCmdAllPointsTr || c.type == kCmdDeleteP)
+        return;
 
-        vm_foreach (Token, t, c->args)
-            if (t->type == kTokenExpr) {
-                Lexer lex(t->str);
-                ep_.clear_vm();
-                ep_.parse_expr(lex, ds);
-                t->value.d = ep_.calculate(/*n=*/0, points);
-            }
-    }
+    const vector<Point>& points = F_->get_data(ds)->points();
+    vm_foreach (Token, t, c.args)
+        if (t->type == kTokenExpr) {
+            Lexer lex(t->str);
+            ep_.clear_vm();
+            ep_.parse_expr(lex, ds);
+            t->value.d = ep_.calculate(/*n=*/0, points);
+        }
+        else if (t->type == kTokenEVar) {
+            Lexer lex(t->str);
+            ep_.clear_vm();
+            ep_.parse_expr(lex, ds, NULL, NULL, true);
+            st.vdlist[t->value.i] = ep_.vm();
+        }
 }
 
 // Execute the last parsed string.
@@ -774,15 +782,16 @@ void Runner::execute_statement(Statement& st)
             command_set(st.with_args);
         }
         v_foreach (int, i, st.datasets) {
-            // The values of expression were calculated when parsing
-            // in the context of the first dataset.
-            // We need to re-evaluate it for all but the first dataset
-            // or if "with ..." options were given (e.g. epsilon can change
-            // the result)
-            if (i != st.datasets.begin() || !st.with_args.empty())
-                recalculate_args(st.commands, *i);
-
             vm_foreach (Command, c, st.commands) {
+                // The values of expression were calculated when parsing
+                // in the context of the first dataset.
+                // We need to re-evaluate it for all but the first dataset,
+                // and also if it is preceded by other command or by "with"
+                // (e.g. epsilon can change the result)
+                if (i != st.datasets.begin() || c != st.commands.begin() ||
+                        !st.with_args.empty())
+                    recalculate_command(*c, *i, st);
+
                 if (c->type == kCmdExec) {
                     // this command contains nested commands that use the same
                     // Parser/Runner.

@@ -72,7 +72,7 @@ const char* commandtype2str(CommandType c)
         case kCmdDatasetTr: return "DatasetTr";
         case kCmdNameFunc: return "NameFunc";
         case kCmdAssignParam: return "AssignParam";
-        case kCmdAssignAll: return "AssignAll";
+        //case kCmdAssignAll: return "AssignAll";
         case kCmdNameVar: return "NameVar";
         case kCmdChangeModel: return "ChangeModel";
         case kCmdPointTr: return "PointTr";
@@ -719,17 +719,25 @@ void Parser::parse_fz(Lexer& lex, Command &cmd)
     }
     // F.param= ...
     else if (t.type == kTokenDot) {
-        cmd.type = kCmdAssignAll;
-        cmd.args.push_back(lex.get_expected_token(kTokenLname));
-        lex.get_expected_token(kTokenAssign); // discard '='
-        cmd.args.push_back(read_var(lex));
+        //cmd.type = kCmdAssignAll;
+        //cmd.args.push_back(lex.get_expected_token(kTokenLname));
+        //lex.get_expected_token(kTokenAssign); // discard '='
+        //cmd.args.push_back(read_var(lex));
+        lex.throw_syntax_error("Illegal syntax, did you mean F[*].par= ?");
     }
     // F[Number]...
-    else if (t.type == kTokenRSquare) {
-        cmd.args.push_back(read_and_calc_expr(lex));
+    else if (t.type == kTokenLSquare) {
+        Token tok_idx;
+        if (lex.peek_token().type == kTokenMult) // F[*]
+            tok_idx = lex.get_token();
+        else                                     // F[expr]
+            tok_idx = read_and_calc_expr(lex);
+        cmd.args.push_back(tok_idx);
         lex.get_expected_token(kTokenRSquare); // discard ']'
         Token k = lex.get_expected_token(kTokenAssign, kTokenDot);
         if (k.type == kTokenAssign) { // F[Number]=...
+            if (tok_idx.type == kTokenMult)
+                lex.throw_syntax_error("Illegal syntax F[*]=...");
             cmd.type = kCmdChangeModel;
             if (lex.peek_token().type == kTokenFuncname) // ...=%func
                 cmd.args.push_back(lex.get_token());

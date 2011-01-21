@@ -1003,29 +1003,28 @@ bool SideBar::find_value_of_param(string const& p, double* value)
 void SideBar::make_same_func_par(string const& p, bool checked)
 {
     string varname = "_" + p;
-    string cmd;
+    string val_str;
     if (checked) {
         fp value = 0.;
         bool found = find_value_of_param(p, &value);
         if (!found)
             return;
 
-        cmd += "$" + varname + " = ~" + S(value);
-        for (int i = 0; i < ftk->get_dm_count(); ++i)
-            if (ftk->get_model(i)->get_ff().names.size() > 0)
-                cmd += "; @" + S(i) + ".F." + p + " = $" + varname;
+        ftk->exec("$" + varname + " = ~" + S(value));
+        val_str = "$" + varname;
     }
     else {
         int nr = ftk->find_variable_nr(varname);
         if (nr == -1)
             return;
         fp value = ftk->get_variable(nr)->get_value();
-        for (int i = 0; i < ftk->get_dm_count(); ++i)
-            if (ftk->get_model(i)->get_ff().names.size() > 0)
-                cmd += "@" + S(i) + ".F." + p + " = " + S(value) + "; ";
-        // the variable was auto-deleted.
-        //cmd += "delete " + varname;
+        val_str = S(value);
+        // varname (_hwhm or _shape) will be auto-deleted
     }
+    string cmd;
+    for (int i = 0; i < ftk->get_dm_count(); ++i)
+        if (ftk->get_model(i)->get_ff().names.size() > 0)
+            cmd += "@" + S(i) + ".F[*]." + p + " = " + val_str + "; ";
     ftk->exec(cmd);
 }
 

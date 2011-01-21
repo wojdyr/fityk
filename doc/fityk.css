@@ -325,6 +325,10 @@ div.warning p.admonition-title {
     border-bottom-color: #940000;
 }
 
+div.important p.admonition-title {
+    background-color: #86989B;
+}
+
 div.admonition ul, div.admonition ol,
 div.warning ul, div.warning ol {
     margin: 0.1em 0.5em 0.5em 3em;

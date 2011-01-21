@@ -599,21 +599,21 @@ It is often required to keep the width or shape of peaks constant
 for all peaks in the dataset. To change the variables bound to parameters
 with a given name for all functions in F, use the command::
 
-   F.param = variable
+   F[*].param = variable
 
 Examples::
 
     # Set hwhm of all functions in F that have a parameter hwhm to $foo
     # (hwhm here means half-width-at-half-maximum)
-    F.hwhm = $foo
+    F[*].hwhm = $foo
 
     # Bound the variable used for the shape of peak %_1 to shapes of all
     # functions in F
-    F.shape = %_1.shape  
+    F[*].shape = %_1.shape
 
     # Create a new simple-variable for each function in F and bound the
     # variable to parameter hwhm. All hwhm parameters will be independent.
-    F.hwhm = ~0.2
+    F[*].hwhm = ~0.2
 
 .. admonition:: In the GUI
 

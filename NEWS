@@ -17,6 +17,7 @@ User-visible changes in version 0.9.5  (2011-01-  ):
   - in "define ... where param=expr" expr is substituted in brackets now
   - added syntax: delete file 'filename'
   - "guess": changed argument order
+  - F.param = $variable   ->   F[*].param = $variable
   See the wiki and the manual for details.
 * new website address (fityk.nieto.pl) and new code repository (GitHub)
 * GUI: simplified two dialogs: Edit Script and Definition Manager

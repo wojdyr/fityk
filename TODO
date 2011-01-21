@@ -1,6 +1,4 @@
 
-* F.param = variable -> F[*].param = variable
-
 * =-> F += Voigt(height=~804, center=~38.7, hwhm=~12.6, area=~20260.8)
   Error: Cannot calculate value of `gwidth' in Voigt
 
@@ -8,7 +6,7 @@
 
 * export model as script
 
-* GUI: Help > Anonymous Feedback
+* GUI: Help > Anonymous Feedback ( -> fityk.nieto.pl/feedback/0.9.5/ -> blog)
 
 --
 

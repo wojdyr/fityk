@@ -39,7 +39,7 @@ enum CommandType
     kCmdNameFunc,
     kCmdNameVar,
     kCmdAssignParam,
-    kCmdAssignAll,
+    //kCmdAssignAll,
     kCmdChangeModel,
     kCmdPointTr,
     kCmdAllPointsTr,

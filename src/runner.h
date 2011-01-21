@@ -54,7 +54,7 @@ private:
     void read_dms(std::vector<Token>::const_iterator first,
                   std::vector<Token>::const_iterator last,
                   std::vector<DataAndModel*>& dms);
-    void recalculate_args(std::vector<Command>& cmds, int ds);
+    void recalculate_command(Command& c, int ds, Statement& st);
     int make_func_from_template(const std::string& name,
                                 const std::vector<Token>& args, int pos);
     VMData* get_vm_from_token(const Token& t) const;

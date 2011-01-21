@@ -290,7 +290,7 @@ void run_const_op(const Ftk* F, const std::vector<double>& numbers,
                                     *(stackPtr+1), iround(*(stackPtr+2)));
             }
             else // OP_SUM_Z
-                throw ExecuteError("numarea(Z,...) is not implemented."
+                throw ExecuteError("Z.numarea() is not implemented. "
                                    "Does anyone need it?");
             break;
 
@@ -302,11 +302,11 @@ void run_const_op(const Ftk* F, const std::vector<double>& numbers,
                                   *stackPtr, *(stackPtr+1), *(stackPtr+2));
             }
             else if (*(i-1) == OP_SUM_F) {
-                throw ExecuteError("findx(F,...) is not implemented. "
+                throw ExecuteError("F.findx() is not implemented. "
                                    "Does anyone need it?");
             }
             else // OP_SUM_Z
-                throw ExecuteError("findx(Z,...) is not implemented. "
+                throw ExecuteError("Z.findx() is not implemented. "
                                    "Does anyone need it?");
             break;
 
@@ -318,11 +318,11 @@ void run_const_op(const Ftk* F, const std::vector<double>& numbers,
                                                             *(stackPtr+1));
             }
             else if (*(i-1) == OP_SUM_F) {
-                throw ExecuteError("extremum(F,...) is not implemented. "
+                throw ExecuteError("F.extremum() is not implemented. "
                                    "Does anyone need it?");
             }
             else // OP_SUM_Z
-                throw ExecuteError("extremum(Z,...) is not implemented. "
+                throw ExecuteError("Z.extremum() is not implemented. "
                                    "Does anyone need it?");
             break;
 #endif //not STANDALONE_DATATRANS
