@@ -119,6 +119,8 @@ static const wxString website_url(
         wxT("http://fityk.nieto.pl/"));
 static const wxString wiki_url(
         wxT("https://github.com/wojdyr/fityk/wiki"));
+static const wxString feedback_url(
+        wxT("http://fityk.nieto.pl/feedback/") + pchar2wx(VERSION));
 
 enum {
     // menu
@@ -126,6 +128,7 @@ enum {
     ID_H_WEBSITE               ,
     ID_H_WIKI                  ,
     ID_H_DISCUSSIONS           ,
+    ID_H_FEEDBACK              ,
     ID_D_QLOAD                 ,
     ID_D_XLOAD                 ,
     ID_D_RECENT                , //and next ones
@@ -352,6 +355,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_H_WEBSITE,     FFrame::OnOnline)
     EVT_MENU (ID_H_WIKI,        FFrame::OnOnline)
     EVT_MENU (ID_H_DISCUSSIONS, FFrame::OnOnline)
+    EVT_MENU (ID_H_FEEDBACK,    FFrame::OnOnline)
     EVT_MENU (wxID_ABOUT,       FFrame::OnAbout)
     EVT_MENU (wxID_EXIT,        FFrame::OnQuit)
 END_EVENT_TABLE()
@@ -807,6 +811,8 @@ void FFrame::set_menubar()
               wiki_url);
     append_mi(help_menu, ID_H_DISCUSSIONS, GET_BMP(web16),
               wxT("&Visit Discussions"), discussions_url);
+    append_mi(help_menu, ID_H_FEEDBACK, GET_BMP(web16),
+              wxT("&Anonymous Feedback"), feedback_url);
     help_menu->Append(wxID_ABOUT, wxT("&About..."), wxT("Show about dialog"));
 
     wxMenuBar *menu_bar = new wxMenuBar();
@@ -880,8 +886,10 @@ void FFrame::OnOnline(wxCommandEvent& event)
         url = &website_url;
     else if (event.GetId() == ID_H_WIKI)
         url = &wiki_url;
-    else //if (event.GetId() == ID_H_DISCUSSIONS)
+    else if (event.GetId() == ID_H_DISCUSSIONS)
         url = &discussions_url;
+    else //if (event.GetId() == ID_H_FEEDBACK)
+        url = &feedback_url;
     bool r = wxLaunchDefaultBrowser(*url);
     if (!r)
         wxMessageBox(wxT("Can not open URL in browser,")
