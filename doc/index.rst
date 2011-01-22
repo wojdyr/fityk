@@ -84,16 +84,16 @@ Distribution of the source code and the licence will not change.
 
 Subscription cost (includes support via e-mail):
 
-* a `single download <https://www.plimus.com/jsp/buynow.jsp?contractId=2918496>`_: €90 / 115 USD
+* `1 month subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918496>`_: €90 / 115 USD
 
 * `1 year subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918202>`_: €210 / 265 USD
 
 * `1 year subscription + 20 hours of coding <https://www.plimus.com/jsp/buynow.jsp?contractId=2918292>`_ €630 / 795 USD.
-  :smallfont:`The maintainer of Fityk will devote up to 20 hours to implement
-  feature(s) requested by the customer. (Bugs are fixed as soon as possible
-  regardless of who reports them). 20 hours can be enough to add
-  a simple data file format (2-3 page long spec), or to add a new function
-  (like, say, Voigt), or to tweak the GUI.
+  :smallfont:`The maintainer of the program will devote up to 20 hours to
+  implement feature(s) requested by the customer.
+  (Bugs are fixed as soon as possible regardless of who reports them).
+  20 hours can be enough to add a simple data file format (2-3 page long spec),
+  or to add a new function (like, say, Voigt), or to tweak the GUI.
   If you have a particular feature in mind, please contact us first.`
 
 

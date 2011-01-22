@@ -1,6 +1,7 @@
 
-* =-> F += Voigt(height=~804, center=~38.7, hwhm=~12.6, area=~20260.8)
-  Error: Cannot calculate value of `gwidth' in Voigt
+* GUI: clicking on peak top crashes
+
+* show an error (rather than crash) for $a=max2($b,$c)
 
 * GUI: change how colors are stored in the config file
 

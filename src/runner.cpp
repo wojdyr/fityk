@@ -251,8 +251,7 @@ void Runner::command_guess(const vector<Token>& args, int ds)
     }
 
     // calculate default values
-    const vector<string> empty;
-    vector<VMData> vds(tp->fargs.size());
+    vector<VMData> vd_storage(tp->fargs.size());
     for (size_t i = 0; i < tp->fargs.size(); ++i) {
         if (func_args[i] != NULL)
             continue;
@@ -263,9 +262,9 @@ void Runner::command_guess(const vector<Token>& args, int ds)
         if (!r)
             throw ExecuteError("Cannot guess `" + dv + "' in " + tp->name);
         double value = ep_.calculate_custom(gvals);
-        vds[i].append_code(OP_TILDE);
-        vds[i].append_number(value);
-        func_args[i] = &vds[i];
+        vd_storage[i].append_code(OP_TILDE);
+        vd_storage[i].append_number(value);
+        func_args[i] = &vd_storage[i];
     }
 
     // add function
@@ -339,34 +338,41 @@ int Runner::make_func_from_template(const string& name,
     if (!tp)
         throw ExecuteError("undefined type of function: " + ftype);
     vector<VMData*> func_args;
-    vector<VMData> vd_storage;
+    vector<VMData> vd_storage(tp->fargs.size());
     if (par_names.empty())
         func_args = par_values;
     else {
         func_args = reorder_args(tp, par_names, par_values);
-        for (size_t i = 0; i < tp->fargs.size(); ++i)
-            if (func_args[i] == NULL) {
-                // Default values are respected here, but only expressions
-                // without symbols, i.e. just numbers like in shape=0.5;
-                // they are converted to the "TILDE NUMBER" code.
-                if (!tp->defvals.empty() && !tp->defvals[i].empty()) {
-                    string dv = tp->defvals[i];
-                    ep_.clear_vm();
-                    Lexer lex(dv.c_str());
-                    vector<string> empty;
-                    bool r = ep_.parse_full(lex, 0, &empty);
-                    if (!r)
-                        throw ExecuteError("Cannot calculate value of `"
-                                           + tp->fargs[i] + "' in " + tp->name);
-                    double value = ep_.calculate();
-                    vd_storage.resize(vd_storage.size() + 1);
-                    vd_storage.back().append_code(OP_TILDE);
-                    vd_storage.back().append_number(value);
-                    func_args[i] = &vd_storage.back();
-                }
-                else
-                    throw ExecuteError("missing parameter " + tp->fargs[i]);
+
+        // calculate current values of VMs in par_values, it will be used
+        // to handle default values
+        vector<double> cvals(par_values.size());
+        vector<double> dummy;
+        for (size_t i = 0; i != par_values.size(); ++i)
+            cvals[i] = run_code_for_variable(*par_values[i], F_->variables(),
+                                             dummy);
+        // calculate default values
+        for (size_t i = 0; i != tp->fargs.size(); ++i) {
+            if (func_args[i] != NULL)
+                continue;
+            // Default values are calculated as values
+            // and converted to the "TILDE NUMBER" code.
+            if (!tp->defvals.empty() && !tp->defvals[i].empty()) {
+                string dv = tp->defvals[i];
+                ep_.clear_vm();
+                Lexer lex(dv.c_str());
+                bool r = ep_.parse_full(lex, 0, &par_names);
+                if (!r)
+                    throw ExecuteError("Cannot calculate `" + dv + "' in "
+                                       + tp->name);
+                double value = ep_.calculate_custom(cvals);
+                vd_storage[i].append_code(OP_TILDE);
+                vd_storage[i].append_number(value);
+                func_args[i] = &vd_storage[i];
             }
+            else
+                throw ExecuteError("missing parameter " + tp->fargs[i]);
+        }
     }
     F_->assign_func(name, tp, func_args);
     return par_values.size();

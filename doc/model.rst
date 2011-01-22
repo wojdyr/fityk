@@ -453,10 +453,10 @@ Example::
   from the data.  ``hwhm`` means half width at half maximum,
   the other names are self-explaining.
 
-- Each parameter may have a default value (see examples below).
-  The default value can be either a number or an expression that contains
-  the special names listed above. In the latter case the default value
-  is taken into account only in the ``guess`` command.
+- Each parameter may have a default value (see the examples below).
+  The default value can be either a number or an expression that depends
+  on the parameters listed above (e.g. ``0.8*hwhm``).
+  The default value always binds a simple-variable to the parameter.
 
 UDFs can be defined in a few ways:
 

@@ -629,9 +629,14 @@ void run_func_op(const vector<double>& numbers, vector<int>::const_iterator &i,
             i++; // OP_NUMBER opcode is always followed by index
             *stackPtr = numbers[*i];
             break;
+
+        case OP_TILDE:
+            // used for default values in Runner::make_func_from_template()
+            break;
+
         default:
-            printf("op:%d\n", *i);
-            assert(0);
+            throw ExecuteError("op " + op2str(*i) +
+                               " is not allowed for variables and functions");
     }
 }
 
