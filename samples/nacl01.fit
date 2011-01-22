@@ -1,4 +1,4 @@
-# Fityk 0.7.8
+# Fityk 0.9.5
 ### the minimal example
 
 @0 < '_EXECUTED_SCRIPT_DIR_/nacl01.dat'  # load data from file 
@@ -12,5 +12,5 @@ F += %p  # add function %p to curve, which will be fitted to data
 
 fit # and fit using default fitting method with default settings
 
-info+ %p # show some informations about peak %p
+info prop %p # show properties of the function
 

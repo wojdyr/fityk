@@ -1,4 +1,4 @@
-# Fityk 0.7.8
+# Fityk 0.9.5
 
 ### syntax testing
 ### this script doesn't assume location of any other files (ie. no data files
@@ -9,9 +9,9 @@
 # first set some options useful for testing
 
 set exit_on_warning = 1
-set autoplot = never
+set autoplot = 0
 set pseudo_random_seed = 174924
-set verbosity = verbose
+set verbosity = 1
 
 
 # ... and then issue as many commands as possible, checking for sytax errors
@@ -37,16 +37,16 @@ X = asin(x/(4*pi)*1.54051) * 2*180/pi
 X = x[0] + n * (x[M-1]-x[0]) / (M-1),  Y = y[index(X)], S = s[index(X)], A = a[index(X)]
 del @0
 
-set @0.title = 'Title X'
+@0: title = 'Title X'
 @+ = 0
-set @1.title = TitleY
-M = 400 in @1
-X=n/M*3*pi in @1
-Y=sin(x) in @1
-plot in @1
+@1: title = TitleY
+@1: M = 400
+@1: X=n/M*3*pi
+@1: Y=sin(x)
+@1: plot
 sleep 0.3
-M = 800 in @0
-X = 10 + n/M*90 in @0
+@0: M = 800
+@0: X = 10 + n/M*90
 delete @1
 Y = 30
 Y = y + 3000 * exp(-((x-21.2)/0.3)^2) # Gaussian
@@ -55,133 +55,126 @@ $height=1901; $center=75.313; $hwhm=0.5; $shape=2.4
 Y = y + $height/(1+((x-$center)/$hwhm)^2*(2^(1/$shape)-1))^$shape #Pearson VII
 S = sqrt(max2(1, y))
 Y = randnormal(y, s)  #noise
-plot in @0
+@0: plot
 sleep 0.3
 
-%p = guess Lorentzian center=~75
-plot in @0
+guess %p = Lorentzian(center=~75)
+@0: plot
 sleep 0.2
 del %p
 guess Gaussian
-%lo = guess SplitGaussian [38:]
-plot in @0
+guess %lo = SplitGaussian [38:]
+@0: plot
 sleep 0.3
-%lo = guess LorentzianA [38:44]
+guess %lo = LorentzianA [38:44]
 %pe = Pearson7(height=~1901, center=~75.313, hwhm=~1/2, shape=2.4)
 F += %pe
 %ble = copy(%pe)
 dele %pe
 F += Pearson7(~2000, ~75, ~0.6, ~2)
-fit 2 in @0
+@0: fit 2
 fit+ 15
 with fitting_method=nelder_mead_simplex fit 10
 with fitting_method=genetic_algorithms fit 10
 %fun = copy(%_1)
-i+ %ble, %lo
+i prop %ble, %lo
 $a = %ble.shape
 $a = %ble.shape + %lo.hwhm
 $b = ~{%ble.shape} + {%lo.hwhm}
 $abc = F[0].hwhm + 1
 $abc = {F[0].hwhm + 0.1}
 @0.F[0].hwhm = $abc
-F.hwhm = $abc
-F.hwhm = ~{F[0].hwhm + 0.1}
+F[*].hwhm = $abc
+F[*].hwhm = ~{F[0].hwhm + 0.1}
 %lo_cp = copy(@0.F[1])
 del %lo_cp
 fit
 fit history 0
-fit h -1
-f u
+fit history -1
+f undo
 f redo
 fi undo
-fi re
+fi redo
 fit clear_history
 
 
-info version
-info variables
-i $a, $_11
-inf types
+info F
+info Z
+inf compiler
+i cov @0
+i data
+i dataset_count
+i errors @0
+i filename
+i fit
+i fit_history
+i formula
 i functions
-i %fun(3), %ble(2 + 5*sin(2/3*pi) + %fun(3.3))
+i gnuplot_formula
+i history [0:0]
+i history_summary
+i refs $a
+i set
+i set autoplot
+i simplified_formula
+i simplified_gnuplot_formula
+i state
+i title
+i types
+i variables
+i version
+i view
+
+p $a, $_11
+p %fun(3), %ble(2 + 5*sin(2/3*pi) + %fun(3.3))
 i %fun, %ble
-i datasets
-i commands
 i view
 i @0.F
 i @0.F[0], @0.F[-1]
 i @0.Z
-i formula in @0
-i @0.dF(12*3)
-i data in @0
-i filename in @0, title in @0
+@0: i formula
+@0: debug df(12*3)
+@0: i data
+@0: i filename, title
 i fit
 i fit_history
 i set
 i errors
-i guess in @0
-i guess [10:40] in @0
-i ((3+5) * (2.1+pi) * exp(5)/cos(ln(3)))^2 in @0
+@0: i guess
+@0: i guess [10:40]
+@0: p ((3+5) * (2.1+pi) * exp(5)/cos(ln(3)))^2
 i GaussianA, Gaussian, Linear
 i SplitGaussian
 i formula
-i min(y), max(s)
-i min(y if 20<x and x<25)
-i sum(y-y[0])
-i avg(y*y), stddev(y if y > avg(y))
-i darea(y-@0.F(x) if 15<x and x<20)
-
-
-info+ version, variables
-i+ $a, $_11
-inf+ types
-i+ functions
-i+ %fun(3), %ble(2 + 5*sin(2/3*pi) + %fun(3.3))
-i+ %fun, %ble
-i+ datasets
-i+ commands
-i+ view
-i+ @0.F
-i+ @0.F[0], @0.F[-1]
-i+ @0.Z
-i+ formula in @0
-i+ @0.dF(12*3)
-i+ data in @0
-i+ filename, title
-i+ fit
-i+ fit_history
-i+ set
-i+ errors
-i+ guess in @0
-i+ guess [10:40] in @0
-i+ ((3+5) * (2.1+pi) * exp(5)/cos(ln(3)))^2 in @0
-i+ GaussianA, Gaussian, Linear
+p min(y), max(s)
+p min(y if 20<x and x<25)
+p sum(y-y[0])
+p avg(y*y), stddev(y if y > avg(y))
+p darea(y-@0.F(x) if 15<x and x<20)
+info version, variables
+p filename, title
 
 # data expressions
-$foo = {y[0] in @0} + 1
+@0: $foo = {y[0]} + 1
 $foo = 3 + 1
 Y = y / $foo
-i 2*(findx(%fun, %fun.Center, %fun.Center+10, %fun.Height/2) - %fun.Center)
-i %fun.FWHM
+p 2*(%fun.findx(%fun.Center, %fun.Center+10, %fun.Height/2) - %fun.Center)
+p %fun.FWHM
 %c = Constant(~0.001)
 Z = %c + %fun
-Z -= %c
 Z = 0
 Z += %c
 X = x + @0.Z(x)
 del %c
-i %fun(extremum(%fun, 10, 50))
-i s[index(19.92)]^2, y[index(19.92)] in @0
+p %fun(%fun.extremum(10, 50))
+@0: p s[index(19.92)]^2, y[index(19.92)]
 
 
 plot
-p [30:40.2][-1:]
-p . .
-plot . [:1000]
+pl [30:40.2][-1:]
 plo [:50]
-pl [40:] .
-plo [] in @*
-plo [:50] in @0
+@*: plo []
+@0: plo [:50]
 
 @+ = @0
 @+ = 0
@@ -203,10 +196,11 @@ $t5=voigt($t4, ~3)
 
 define Bleh(area, center, fwhm, shape) = GaussianA(area*(1-shape), center, fwhm) + LorentzianA(area*shape, center, fwhm+0.2)
 %bleh = Bleh(~123., 30, ~4, ~0.5)
+del %bleh
 undefine Bleh
 define Bleh(a) = Linear(0, a)
 %bleh = Bleh(~{pi})
-i+ Bleh, %bleh
+inf Bleh, %bleh
 del %bleh
 
 #definitions from the manual
@@ -225,34 +219,36 @@ undefine GaussianArea
 
 # commands from script are not stored in commands[], so it can be empty
 # we only use empty ranges, to avoid errors
-info commands[0:0]
-info commands[:]
-info commands[0:] >tmp_foo.fit
-info+ commands[:0] >>tmp_foo.fit
-commands > tmp_log.fit
-commands+ > tmp_log.fit
-commands > /dev/null
-commands < tmp_log.fit # it's an empty file (with some comments)
+info history[0:] >tmp_foo.fit
+info history[:0] >>tmp_foo.fit
+set logfile='tmp_log.fit'
+set log_full=1, logfile='tmp_log.fit'
+set logfile=''
+exec 'tmp_log.fit' # it's an empty file (with some comments)
 
-info @0 (x, y)
-info @* (x, y, s) > tmp_foo2.xy
-info @0 (x, y, a) > tmp_foo3.xy
-info @0 (x, y, s, @0.F(x), (y-@0.F(x))/s, a) > tmp_foo4.xy
-info @0 (x, y, s, F(x), (y-F(x))/s, a) > tmp_foo4.xy
-info peaks in @0 > tmp_foo5.xy
-info+ peaks in @0 > tmp_foo6.xy
-info formula in @0 > tmp_foo7.xy
-info+ formula in @0 > tmp_foo8.xy
-info+ peaks in @* > tmp_foo9.xy
-dump > tmp_dump.fit
+@0: print all: x, y
+@*: print all: x, y, s > 'tmp_foo2.xy'
+@0: print all: x, y, a > 'tmp_foo3.xy'
+@0: print all: x, y, s, @0.F(x), (y-@0.F(x))/s, a > 'tmp_foo4.xy'
+@0: print all: x, y, s, F(x), (y-F(x))/s, a >> tmp_foo4.xy
+@0: info peaks > tmp_foo5.xy
+@0: info peaks_err > tmp_foo6.xy
+@0: info formula > tmp_foo7.xy
+@0: info simplified_gnuplot_formula > tmp_foo8.xy
+@*: info peaks > tmp_foo9.xy
+i history >> tmp_foo9.xy
+i models >> tmp_foo9.xy
+info state > tmp_dump.fit
+
+delete file 'tmp_foo.fit', file 'tmp_foo2.xy', file 'tmp_foo3.xy'
+delete file 'tmp_foo4.xy', file 'tmp_foo5.xy', file 'tmp_foo6.xy'
+delete file 'tmp_foo7.xy', file 'tmp_foo8.xy', file 'tmp_foo9.xy'
+delete file tmp_dump.fit
+delete file tmp_log.fit
 
 # settings
-set can_cancel_guess # only shows info
-set can_cancel_guess = 1
-set cut_function_level = 0
+set function_cutoff = 0
 set fitting_method = levenberg_marquardt
-set formula_export_style = normal
-set guess_at_center_pm = 1
 set height_correction = 1
 set lm_lambda_down_factor = 10
 set lm_lambda_start = 0.001
@@ -264,18 +260,14 @@ set nm_convergence = 0.0001
 set nm_distribution = bound
 set nm_move_all = 0
 set nm_move_factor = 1
-set variable_domain_percent = 30
+set domain_percent = 30
 set width_correction = 1
 set epsilon = 1e-12
-set data_default_sigma=one
-set data_default_sigma=sqrt
-set verbosity = debug
-set verbosity = normal
-set verbosity = quiet
-set verbosity = verbose
+set default_sigma=one
+set default_sigma=sqrt
+set verbosity = 1
 
 set exit_on_warning = 0
 reset
 #quit
-
 
