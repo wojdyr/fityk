@@ -1,9 +1,7 @@
 
 * GUI: change how colors are stored in the config file
 
-* export model as script
-
---
+* GUI: a single dialog for Model > Export... options and for "info models"
 
 * GUI: definition mgr - show formula images from the manual, if available
 

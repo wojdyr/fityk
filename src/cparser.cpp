@@ -33,7 +33,7 @@ const char* info_args[] = {
     "filename", "title", "data",
     "formula", "gnuplot_formula",
     "simplified_formula", "simplified_gnuplot_formula",
-    "state", "history_summary", "peaks", "peaks_err",
+    "models", "state", "history_summary", "peaks", "peaks_err",
     "set",
     "history", "guess",
     "fit", "errors", "cov",

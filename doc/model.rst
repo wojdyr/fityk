@@ -752,6 +752,9 @@ the model.
 ``info peaks_err``
     shows the same data, additionally including uncertainties of the parameters.
 
+``info models``
+    a script that reconstructs all variables, functions and models.
+
 The last two commands are often redirected to a file
 (``info peaks > filename``).
 

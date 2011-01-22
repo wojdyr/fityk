@@ -215,6 +215,46 @@ void info_guess(const Ftk* F, int ds, const RealRange& range, string& result)
     }
 }
 
+void save_models(const Ftk* F, string& r, bool commented_defines)
+{
+    r += "# ------------  (un)defines  ------------";
+    TplateMgr default_tpm;
+    default_tpm.add_builtin_types(F->get_ui()->parser());
+    v_foreach (Tplate::Ptr, i, default_tpm.tpvec()) {
+        const Tplate* t = F->get_tpm()->get_tp((*i)->name);
+        if (t == NULL || t->as_formula() != (*i)->as_formula())
+            r += "\nundefine " + (*i)->name;
+    }
+    v_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec()) {
+        string formula = (*i)->as_formula();
+        const Tplate* t = default_tpm.get_tp((*i)->name);
+        if (t == NULL || t->as_formula() != formula)
+            r += "\ndefine " + formula;
+        else if (commented_defines)
+            r += "\n# define " + formula;
+    }
+    r += "\n\n# ------------  variables and functions  ------------";
+    // The script must not trigger VariableManager::remove_unreferred()
+    // or VariableManager::auto_remove_functions() until all references
+    // are reproduced.
+    v_foreach (Variable*, i, F->variables())
+        r += "\n$" + (*i)->name + " = " + (*i)->get_formula(F->parameters());
+    r += "\n";
+    v_foreach (Function*, i, F->functions())
+        r +="\n" + (*i)->get_basic_assignment();
+    r += "\n\n# ------------  models  ------------";
+    for (int i = 0; i != F->get_dm_count(); ++i) {
+        r += "\n";
+        const Model* model = F->get_model(i);
+        const vector<string>& ff = model->get_ff().names;
+        if (!ff.empty())
+            r += "\n@" + S(i) +  ": F = %" + join_vector(ff, " + %");
+        vector<string> const& zz = model->get_zz().names;
+        if (!zz.empty())
+            r += "\n@" + S(i) +  ": Z = %" + join_vector(zz, " + %");
+    }
+}
+
 void save_state(const Ftk* F, string& r)
 {
     if (!r.empty())
@@ -233,34 +273,10 @@ void save_state(const Ftk* F, string& r)
         string v = F->settings_mgr()->get_as_string(*i);
         r += "\nset " + *i + " = " + (v.empty() ? "''" : v);
     }
-    r += "\n\n# ------------  (un)defines  ------------";
-    TplateMgr default_tpm;
-    default_tpm.add_builtin_types(F->get_ui()->parser());
-    v_foreach (Tplate::Ptr, i, default_tpm.tpvec()) {
-        const Tplate* t = F->get_tpm()->get_tp((*i)->name);
-        if (t == NULL || t->as_formula() != (*i)->as_formula())
-            r += "\nundefine " + (*i)->name;
-    }
-    v_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec()) {
-        string formula = (*i)->as_formula();
-        const Tplate* t = default_tpm.get_tp((*i)->name);
-        if (t == NULL || t->as_formula() != formula)
-            r += "\ndefine " + formula;
-        else
-            r += "\n# define " + formula;
-    }
+    r += "\n\n";
+    save_models(F, r, true);
     r += "\n";
-    r += "\n# ------------  variables and functions  ------------";
-    // The script must not trigger VariableManager::remove_unreferred()
-    // or VariableManager::auto_remove_functions() until all references
-    // are reproduced.
-    v_foreach (Variable*, i, F->variables())
-        r += "\n$" + (*i)->name + " = " + (*i)->get_formula(F->parameters());
-    r += "\n";
-    v_foreach (Function*, i, F->functions())
-        r +="\n" + (*i)->get_basic_assignment();
-    r += "\n";
-    r += "\n# ------------  datasets and models  ------------";
+    r += "\n# ------------  datasets ------------";
     for (int i = 0; i != F->get_dm_count(); ++i) {
         const Data* data = F->get_data(i);
         if (i != 0)
@@ -278,14 +294,6 @@ void save_state(const Ftk* F, string& r)
                  ", S" + idx + eS(p.sigma) +
                  ", A" + idx + (p.is_active ? "1" : "0");
         }
-        r += "\n";
-        const Model* model = F->get_model(i);
-        const vector<string>& ff = model->get_ff().names;
-        if (!ff.empty())
-            r += "\nF = %" + join_vector(ff, " + %");
-        vector<string> const& zz = model->get_zz().names;
-        if (!zz.empty())
-            r += "\nZ = %" + join_vector(zz, " + %");
         r += "\n";
     }
     r += "\nplot " + F->view.str();
@@ -341,6 +349,9 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         else if (word == "simplified_gnuplot_formula") {
             string formula = F->get_model(ds)->get_formula(true);
             result += gnuplotize_formula(formula);
+        }
+        else if (word == "models") {
+            save_models(F, result, false);
         }
         else if (word == "state") {
             save_state(F, result);

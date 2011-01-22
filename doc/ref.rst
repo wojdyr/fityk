@@ -203,6 +203,7 @@ The following ``info`` arguments are recognized:
 * ``history`` -- the list of all the command issued in this session
 * ``history [m:n]`` -- selected commands from the history
 * ``history_summary`` -- the summary of command history
+* ``models`` -- script that re-constructs all variables, functions and models
 * ``peaks`` -- formatted list of parameters of functions in *F*.
 * ``peaks_err`` -- the same as peaks + uncertainties
 * ``prop`` *%function_name* -- parameters of the function
