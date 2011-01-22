@@ -124,6 +124,7 @@ private:
     std::vector<double> numbers_;  //  VM data (numeric values)
 };
 
+std::string op2str(int op);
 std::string vm2str(const std::vector<int>& code,
                    const std::vector<double>& data);
 inline

@@ -1,8 +1,6 @@
 
 * GUI: clicking on peak top crashes
 
-* show an error (rather than crash) for $a=max2($b,$c)
-
 * GUI: change how colors are stored in the config file
 
 * export model as script

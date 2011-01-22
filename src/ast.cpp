@@ -1090,7 +1090,9 @@ vector<OpTree*> calculate_deriv(vector<int>::const_iterator &i, int len,
     }
 
     default:
-        assert(0); // error
+        purge_all_elements(results);
+        throw ExecuteError("`" + op2str(*i) + "' is not allowed for "
+                           "variables/functions");
     }
   assert(results[0] != NULL);
   assert(results[len] != NULL);

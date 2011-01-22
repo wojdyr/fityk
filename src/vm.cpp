@@ -74,6 +74,9 @@ double find_idx_in_sorted(vector<Point> const& pp, double x)
         return i - pp.begin() - (i->x - x) / (i->x - (i-1)->x);
 }
 
+} // anonymous namespace
+
+
 /// debuging utility
 #define OP_(x) \
     case OP_##x: return #x;
@@ -108,9 +111,6 @@ string op2str(int op)
     return S(op);
 };
 #undef OP_
-
-} // anonymous namespace
-
 
 string vm2str(vector<int> const& code, vector<double> const& data)
 {
