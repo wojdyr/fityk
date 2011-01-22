@@ -91,7 +91,7 @@ public:
     bool push_param_history(std::vector<fp> const& aa);
     void clear_param_history() { param_history.clear(); param_hist_ptr = 0; }
     int get_param_history_size() const { return param_history.size(); }
-    void load_param_history(int item_nr, bool relative=false);
+    void load_param_history(int item_nr, bool relative);
     bool has_param_history_rel_item(int rel_nr) const
         { return is_index(param_hist_ptr + rel_nr, param_history); }
     bool can_undo() const;

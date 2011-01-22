@@ -43,7 +43,7 @@ private:
     void command_undefine(const std::vector<Token>& args);
     void command_load(const std::vector<Token>& args);
     void command_dataset_tr(const std::vector<Token>& args);
-    void command_name_func(const std::vector<Token>& args);
+    void command_name_func(const std::vector<Token>& args, int ds);
     void command_all_points_tr(const std::vector<Token>& args, int ds);
     void command_point_tr(const std::vector<Token>& args, int ds);
     void command_resize_p(const std::vector<Token>& args, int ds);

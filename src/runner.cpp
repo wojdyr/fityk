@@ -185,8 +185,8 @@ void Runner::command_fit(const vector<Token>& args, int ds)
         F_->get_fit_container()->clear_param_history();
     }
     else if (args[0].as_string() == "history") {
-        int n = (int) args[2].value.d;
-        F_->get_fit_container()->load_param_history(n);
+        int n = iround(args[1].value.d);
+        F_->get_fit_container()->load_param_history(n, false);
         F_->outdated_plot();
     }
 }
@@ -378,18 +378,6 @@ int Runner::make_func_from_template(const string& name,
     return par_values.size();
 }
 
-// should be reused from kCmdChangeModel
-void Runner::command_name_func(const vector<Token>& args)
-{
-    string name = Lexer::get_string(args[0]);
-    if (args[1].as_string() == "copy") // copy(%f)
-        F_->assign_func_copy(name, Lexer::get_string(args[2]));
-    else                               // Foo(...)
-        make_func_from_template(name, args, 1);
-    F_->use_parameters();
-    F_->outdated_plot(); //TODO only if function in @active
-}
-
 static
 string get_func(const Ftk *F, int ds, vector<Token>::const_iterator a)
 {
@@ -406,6 +394,20 @@ string get_func(const Ftk *F, int ds, vector<Token>::const_iterator a)
         int idx = iround((a+2)->value.d);
         return F->get_model(ds)->get_func_name(c, idx);
     }
+}
+
+// should be reused from kCmdChangeModel?
+void Runner::command_name_func(const vector<Token>& args, int ds)
+{
+    string name = Lexer::get_string(args[0]);
+    if (args[1].as_string() == "copy") { // copy(%f) or copy(@n.F[idx])
+        string orig_name = get_func(F_, ds, args.begin()+2);
+        F_->assign_func_copy(name, orig_name);
+    }
+    else                               // Foo(...)
+        make_func_from_template(name, args, 1);
+    F_->use_parameters();
+    F_->outdated_plot(); //TODO only if function in @active
 }
 
 void Runner::command_assign_param(const vector<Token>& args, int ds)
@@ -716,7 +718,7 @@ void Runner::execute_command(Command& c, int ds)
             command_load(c.args);
             break;
         case kCmdNameFunc:
-            command_name_func(c.args);
+            command_name_func(c.args, ds);
             break;
         case kCmdDatasetTr:
             command_dataset_tr(c.args);

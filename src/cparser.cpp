@@ -202,6 +202,8 @@ void Parser::parse_real_range(Lexer& lex, vector<Token>& args)
 }
 
 // %funcname | [@n.]('F'|'Z') '[' Number ']'
+// returns:   1 token:  Funcname
+//         or 2/3 tokens: Dataset|Nop, "F"|"Z", [expr]
 void Parser::parse_func_id(Lexer& lex, vector<Token>& args, bool accept_fz)
 {
     Token t = lex.get_token();
@@ -431,7 +433,7 @@ void parse_exec_args(Lexer& lex, vector<Token>& args)
         args.push_back(lex.get_filename_token());
 }
 
-void parse_fit_args(Lexer& lex, vector<Token>& args)
+void Parser::parse_fit_args(Lexer& lex, vector<Token>& args)
 {
     Token t = lex.get_token();
     if (t.type == kTokenLname) {
@@ -441,7 +443,7 @@ void parse_fit_args(Lexer& lex, vector<Token>& args)
         }
         else if (name == "history") {
             args.push_back(t);
-            args.push_back(t);
+            args.push_back(read_and_calc_expr(lex));
         }
         else
             lex.throw_syntax_error("unexpected name after `fit'");
@@ -771,6 +773,7 @@ bool Parser::parse_statement(Lexer& lex)
     st_.vdlist.clear();
     st_.commands.resize(1);
     st_.commands[0].args.clear();
+    st_.commands[0].defined_tp.reset();
 
     Token first = lex.peek_token();
 
@@ -872,7 +875,12 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
             cmd.type = kCmdQuit;
             // no args
         }
-        else if (is_command(token, "s","et")) {
+        // "s" starts either kCmdSet or kCmdAllPointsTr("s=...")
+        // or kCmdPointTr("s[...]=...")
+        else if (is_command(token, "s","et") &&
+                 !(token.length == 1 &&
+                     (lex.peek_token().type == kTokenAssign ||
+                      lex.peek_token().type == kTokenLSquare))) {
             cmd.type = kCmdSet;
             parse_set_args(lex, cmd.args);
         }

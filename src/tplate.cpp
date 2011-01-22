@@ -258,8 +258,9 @@ void TplateMgr::undefine(string const &type)
             break;
     if (iter == tpvec_.end())
         throw ExecuteError(type + " is not defined");
-    if (!iter->unique())
-        throw ExecuteError(type + " is currently used.");
+    if (iter->use_count() > 1)
+        throw ExecuteError(type + " is currently used ("
+                           + S(iter->use_count() - 1) + ").");
     tpvec_.erase(iter);
 }
 

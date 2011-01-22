@@ -116,6 +116,7 @@ private:
     void parse_func_id(Lexer& lex, std::vector<Token>& args, bool accept_fz);
     void parse_guess_args(Lexer& lex, std::vector<Token>& args);
     void parse_one_info_arg(Lexer& lex, std::vector<Token>& args);
+    void parse_fit_args(Lexer& lex, std::vector<Token>& args);
 };
 
 #endif //FITYK_CPARSER_H_
