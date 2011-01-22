@@ -1,6 +1,4 @@
 
-* GUI: clicking on peak top crashes
-
 * GUI: change how colors are stored in the config file
 
 * export model as script

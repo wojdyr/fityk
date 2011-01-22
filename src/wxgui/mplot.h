@@ -177,13 +177,13 @@ public:
     void update_mouse_hints();
     void set_cursor();
     void set_mouse_mode(MouseModeEnum m);
-    MouseModeEnum get_mouse_mode() const { return mode; }
+    MouseModeEnum get_mouse_mode() const { return mode_; }
     const wxColour& get_data_color(int n) const
-        { return dataColour[n % max_data_cols]; }
+        { return dataCol[n % max_data_cols]; }
     const wxColour& get_func_color(int n) const
         { return peakCol[n % max_peak_cols]; }
     void set_data_color(int n, const wxColour& col)
-        { dataColour[n % max_data_cols] = col; }
+        { dataCol[n % max_data_cols] = col; }
     void set_data_point_size(int /*n*/, int r) { point_radius = r; }
     void set_data_with_line(int /*n*/, bool b) { line_between_points = b; }
     void set_data_with_sigma(int /*n*/, bool b) { draw_sigma = b; }
@@ -191,41 +191,41 @@ public:
     bool get_data_with_line(int /*n*/) const { return line_between_points; }
     void set_func_color(int n, const wxColour& col)
         { peakCol[n % max_peak_cols] = col; }
-    bool get_x_reversed() const { return x_reversed; }
+    bool get_x_reversed() const { return x_reversed_; }
     void draw_xor_peak(const Function* func, const std::vector<fp>& p_values,
                        bool erase_previous);
     void redraw_xor_peak(bool clear=false);
     void show_popup_menu(wxMouseEvent &event);
     void set_hint_receiver(HintReceiver *hr)
-        { hint_receiver = hr; update_mouse_hints(); }
+        { hint_receiver_ = hr; update_mouse_hints(); }
     void set_auto_freeze(bool value) { auto_freeze_ = value; }
 
 private:
-    MouseModeEnum basic_mode,
-                  mode;  ///actual mode -- either basic_mode or mmd_peak
+    MouseModeEnum basic_mode_,
+                  mode_;  ///actual mode -- either basic_mode_ or mmd_peak
     static const int max_group_cols = 8;
     static const int max_peak_cols = 32;
     static const int max_data_cols = 64;
     static const int max_radius = 4; ///size of data point
-    bool peaks_visible, groups_visible, model_visible,
-         plabels_visible, x_reversed;
+    bool peaks_visible_, groups_visible_, model_visible_,
+         plabels_visible_, x_reversed_;
     wxFont plabelFont;
-    std::string plabel_format;
-    bool vertical_plabels;
-    std::vector<std::string> plabels;
+    std::string plabel_format_;
+    bool vertical_plabels_;
+    std::vector<std::string> plabels_;
     wxColour modelCol, bg_pointsCol;
     wxColour groupCol[max_group_cols], peakCol[max_peak_cols];
-    wxColour dataColour[max_data_cols];
-    int pressed_mouse_button;
-    MouseOperation mouse_op;
-    int over_peak; /// the cursor is over peaktop of this peak
-    int limit1, limit2; /// for drawing function limits (vertical lines)
-    FunctionMouseDrag fmd; //for function dragging
-    Kind func_draft_kind; // for function adding (with drawing draft)
-    HintReceiver *hint_receiver; // used to set mouse hints, probably statusbar
+    wxColour dataCol[max_data_cols];
+    int pressed_mouse_button_;
+    MouseOperation mouse_op_;
+    int over_peak_; /// the cursor is over peaktop of this peak
+    int limit1_, limit2_; /// for drawing function limits (vertical lines)
+    FunctionMouseDrag fmd_; //for function dragging
+    Kind func_draft_kind_; // for function adding (with drawing draft)
+    HintReceiver *hint_receiver_; // used to set mouse hints, probably statusbar
     // variables used in draw_xor_peak() and redraw_xor_peak()
-    int draw_xor_peak_n;
-    wxPoint* draw_xor_peak_points;
+    int draw_xor_peak_n_;
+    wxPoint* draw_xor_peak_points_;
     bool auto_freeze_;
 
     void draw_x_axis (wxDC& dc, bool set_pen=true);
@@ -247,7 +247,7 @@ private:
     void draw_peak_draft (int X_mid, int X_hwhm, int Y);
     void draw_temporary_rect(MouseActEnum ma, int X_=0, int Y_=0);
     void draw_rect (int X1, int Y1, int X2, int Y2);
-    bool visible_peaktops(MouseModeEnum mode);
+    static bool visible_peaktops(MouseModeEnum mode);
     void add_peak_from_draft(int X, int Y);
     bool can_activate();
     MouseOperation what_mouse_operation(const wxMouseEvent& event);
