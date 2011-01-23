@@ -1,6 +1,12 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
+/// \par
+/// Public C++ API of libfityk: class Fityk and helpers.
+/// \par
+/// Minimal examples of using libfityk in C++, Python, Lua and Perl are in
+/// samples/hello.* files.
+
 #ifndef FITYK__API__H__
 #define FITYK__API__H__
 
@@ -8,6 +14,7 @@
 #error "This library does not have C API."
 #endif
 
+// C++ exception specifications are used by SWIG bindings
 #ifdef _MSC_VER
 // ignore warning "C++ exception specification ignored..."
 #pragma warning( disable : 4290 )
@@ -18,12 +25,6 @@
 #include <cstdio>
 #include <stdexcept>
 class Ftk;
-
-/// \par
-/// Public C++ API of libfityk: class Fityk and helpers.
-/// \par
-/// Minimal examples of using libfityk in C++, Python, Lua and Perl are in
-//  samples/hello.* files.
 
 
 namespace fityk
@@ -129,7 +130,12 @@ public:
     // @{
 
     /// return output of the info command
-    std::string get_info(std::string const& s) throw(SyntaxError, ExecuteError);
+    std::string get_info(std::string const& s, int dataset=0)
+                                            throw(SyntaxError, ExecuteError);
+
+    /// return expression value, similarly to the print command
+    double calculate_expr(std::string const& s, int dataset=0)
+                                            throw(SyntaxError, ExecuteError);
 
     /// returns number of datasets n, always n >= 1
     int get_dataset_count();
@@ -145,11 +151,9 @@ public:
     get_model_vector(std::vector<double> const& x, int dataset=0)
                                                         throw(ExecuteError);
 
-    /// returns the value of a variable (given as "$foo" or "%func.height")
-    double get_variable_value(std::string const& name)  throw(ExecuteError);
-
-    /// \brief returns the number of parameter hold by the variable
-    /// (-1 for a compound-variable). Useful with get_covariance_matrix()
+    /// \brief returns the index of parameter hold by the variable
+    /// (the same index as in get_covariance_matrix(),
+    /// -1 for a compound-variable)
     int get_variable_nr(std::string const& name)  throw(ExecuteError);
 
     // @}

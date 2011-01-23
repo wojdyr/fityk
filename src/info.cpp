@@ -478,27 +478,6 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
     return ret;
 }
 
-int eval_info_args(const Ftk* F, int ds, const vector<Token>& args, int len,
-                   string& result)
-{
-    int n = 0;
-    while (n < len) {
-        if (!result.empty())
-            result += "\n";
-        n += eval_one_info_arg(F, ds, args, n, result);
-    }
-    if (len == 0) { // special case
-        result += "Available arguments:\n";
-        const char** arg = info_args;
-        while (*arg != NULL) {
-            result += *arg + S(" ");
-            ++arg;
-        }
-        result += "%* $* AnyFunctionT";
-    }
-    return n;
-}
-
 void eval_one_print_arg(const Ftk* F, int ds, const Token& t, string& result)
 {
     if (t.type == kTokenString)
@@ -558,17 +537,25 @@ int eval_print_args(const Ftk* F, int ds, const vector<Token>& args, int len,
 
 } // anonymous namespace
 
-string get_info_string(Ftk const* F, string const& args)
+int eval_info_args(const Ftk* F, int ds, const vector<Token>& args, int len,
+                   string& result)
 {
-    Lexer lex(args.c_str());
-    Parser cp(const_cast<Ftk*>(F));
-    vector<Token> tt;
-    cp.parse_info_args(lex, tt);
-    if (lex.peek_token().type != kTokenNop)
-        lex.throw_syntax_error("unexpected argument");
-    string result;
-    eval_info_args(F, -1, tt, tt.size(), result);
-    return result;
+    int n = 0;
+    while (n < len) {
+        if (!result.empty())
+            result += "\n";
+        n += eval_one_info_arg(F, ds, args, n, result);
+    }
+    if (len == 0) { // special case
+        result += "Available arguments:\n";
+        const char** arg = info_args;
+        while (*arg != NULL) {
+            result += *arg + S(" ");
+            ++arg;
+        }
+        result += "%* $* AnyFunctionT";
+    }
+    return n;
 }
 
 void command_redirectable(const Ftk* F, int ds,

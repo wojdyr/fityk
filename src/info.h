@@ -11,8 +11,9 @@
 
 class Ftk;
 
-/// returns output of the "info" command
-std::string get_info_string(Ftk const* F, std::string const& args);
+/// appends output of the "info" command to the result
+int eval_info_args(const Ftk* F, int ds, const std::vector<Token>& args,
+                   int len, std::string& result);
 
 /// handles commands info and print
 void command_redirectable(Ftk const* F, int ds,

@@ -1,7 +1,7 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-/// implementation of public API of libfityk, declared in fityk.h
+/// implementation of libfityk public API
 
 #include <cassert>
 #include <cctype>
@@ -106,6 +106,7 @@ Fityk::~Fityk()
 void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
                                             ExitRequestedException)
 {
+    // TODO: execute_line() doesn't throw, wrap it differently
     try {
         ftk_->get_ui()->execute_line(s);
     }
@@ -113,14 +114,37 @@ void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
     CATCH_EXECUTE_ERROR
 }
 
-string Fityk::get_info(string const& s) throw(SyntaxError, ExecuteError)
+string Fityk::get_info(string const& s, int dataset)  throw(SyntaxError,
+                                                            ExecuteError)
 {
     try {
-        return get_info_string(ftk_, s);
+        Lexer lex(s.c_str());
+        Parser parser(ftk_);
+        vector<Token> args;
+        parser.parse_info_args(lex, args);
+        if (lex.peek_token().type != kTokenNop)
+            lex.throw_syntax_error("unexpected argument");
+        string result;
+        eval_info_args(ftk_, dataset, args, args.size(), result);
+        return result;
     }
     CATCH_SYNTAX_ERROR
     CATCH_EXECUTE_ERROR
     return "";
+}
+
+double Fityk::calculate_expr(string const& s, int dataset)  throw(SyntaxError,
+                                                                  ExecuteError)
+{
+    try {
+        Lexer lex(s.c_str());
+        ExpressionParser ep(ftk_);
+        ep.parse_expr(lex, dataset);
+        return ep.calculate(0, ftk_->get_data(dataset)->points());
+    }
+    CATCH_SYNTAX_ERROR
+    CATCH_EXECUTE_ERROR
+    return 0.;
 }
 
 int Fityk::get_dataset_count()
@@ -169,25 +193,6 @@ int Fityk::get_variable_nr(string const& name)  throw(ExecuteError)
     }
     CATCH_EXECUTE_ERROR
     return 0;
-}
-
-double Fityk::get_variable_value(string const& name)  throw(ExecuteError)
-{
-    try {
-        if (name.empty())
-            throw ExecuteError("get_variable_value() called with empty name");
-        if (name[0] == '$')
-            return ftk_->find_variable(string(name, 1))->get_value();
-        else if (name[0] == '%' && name.find('.') < name.size() - 1) {
-            string::size_type pos = name.find('.');
-            Function const* f = ftk_->find_function(string(name, 1, pos-1));
-            return f->get_param_value(string(name, pos+1));
-        }
-        else
-            return ftk_->find_variable(name)->get_value();
-    }
-    CATCH_EXECUTE_ERROR
-    return 0.;
 }
 
 void Fityk::load_data(int dataset,
