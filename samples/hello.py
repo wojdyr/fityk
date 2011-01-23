@@ -10,26 +10,27 @@ class GaussianFitter(Fityk):
             raise ValueError("File `%s' not found." % filename)
         self.filename = filename
         self.execute("@0 < '%s'" % filename)
-        print "Data info:", self.get_info("data in @0")
+        print "Data info:", self.get_info("data", 0)
 
     def run(self):
-        self.execute("%g = guess Gaussian")
+        self.execute("%f = guess Gaussian")
+        self.execute("guess %g = Gaussian")
         print "Fitting %s ..." % self.filename
         self.execute("fit")
         print "WSSR=", self.get_wssr()
-        print "Gaussian center: %.5g" % self.get_variable_value("%g.center")
+        print "Gaussian center: %.5g" % self.calculate_expr("%g.center")
 
     def save_session(self, filename):
-        self.execute("dump >'%s'" % filename)
+        self.execute("info state >'%s'" % filename)
 
 f = Fityk()
 print f.get_info("version", True)
-print "ln(2) =", f.get_info("ln(2)")
+print "ln(2) =", f.calculate_expr("ln(2)")
 del f
 
 g = GaussianFitter("nacl01.dat")
 g.run()
-g.save_session("tmp_dump.fit")
+g.save_session("tmp_save.fit")
 
 # output from commands can be handled by callback function in Python
 def show_msg(s):

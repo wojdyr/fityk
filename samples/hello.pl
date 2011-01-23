@@ -5,7 +5,7 @@ use Fityk;
 my $ftk = new Fityk::Fityk;
 
 printf "libfityk version: %s\n", $ftk->get_info("version", 0);
-printf "ln(2) = %g\n", $ftk->get_info("ln(2)");
+printf "ln(2) = %g\n", $ftk->calculate_expr("ln(2)");
 
 # check error handling
 print "Croaks on error: ", ($ftk->get_throws() ? "yes" : "no" ), "\n";
@@ -24,14 +24,14 @@ $ftk->redir_messages(STDOUT); # redirect fityk messages to stdout
 my $filename = "nacl01.dat";
 print "Reading data from $filename ...\n";
 $ftk->execute("\@0 < '$filename'");
-printf "Data info:\n%s\n", $ftk->get_info('data in @0');
+printf "Data info:\n%s\n", $ftk->get_info('data', 0);
 
-$ftk->execute('%gauss = guess Gaussian');
+$ftk->execute('guess %gauss = Gaussian');
 print "Fitting...\n";
 $ftk->execute("fit");
 printf "WSSR=%f\n", $ftk->get_wssr();
-printf "Gaussian center: %g\n", $ftk->get_variable_value("%gauss.center");
+printf "Gaussian center: %g\n", $ftk->calculate_expr("%gauss.center");
 
-$ftk->execute("dump >tmp_dump.fit");
+$ftk->execute("info state >tmp_save.fit");
 
 $ftk->DESTROY();

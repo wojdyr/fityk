@@ -11,8 +11,8 @@ print("fityk.Fityk is", swig_type(fityk.Fityk)) -- function
 ftk = fityk.Fityk()
 print("fityk.Fityk() gives", swig_type(ftk)) -- fityk::Fityk *
 
-print("libfityk version:", ftk:get_info("version", false))
-print("ln(2) =", ftk:get_info("ln(2)"))
+print("libfityk version:", ftk:get_info("version"))
+print("ln(2) =", ftk:calculate_expr("ln(2)"))
 
 -- check error handling
 status, err = pcall(function() ftk:execute("fit") end)
@@ -26,20 +26,20 @@ GaussianFitter = { f = ftk }
 function GaussianFitter:read_data(filename)
     self.f:execute("@0 < '"..filename.."'")
     self.filename = filename
-    print("Data info:", self.f:get_info("data in @0"))
+    print("Data info:", self.f:get_info("data", 0))
 end
 
 function GaussianFitter:run()
-    self.f:execute("%gauss = guess Gaussian")
+    self.f:execute("guess %gauss = Gaussian")
     print("Fitting "..self.filename.." ...")
     self.f:execute("fit")
     print("WSSR="..self.f:get_wssr())
-    print("Gaussian center: ".. self.f:get_variable_value("%gauss.center"))
+    print("Gaussian center: ".. self.f:calculate_expr("%gauss.center"))
 end
 
 ftk:redir_messages(io.stdout)
 -- ftk:redir_messages(nil) -- nil disables output
 GaussianFitter:read_data("nacl01.dat")
 GaussianFitter:run()
-ftk:execute("dump >tmp_dump.fit")
+ftk:execute("info state >tmp_save.fit")
 

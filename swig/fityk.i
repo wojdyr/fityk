@@ -13,6 +13,7 @@
 %feature("autodoc", "1");
 
 %{
+#include "stddef.h" // bug workaround, needed for Swig1.3 + GCC4.6
 #include "fityk.h"
 %}
 %include "std_string.i"
@@ -108,7 +109,7 @@ namespace std {
     }
 
     %typemap(throws) fityk::SyntaxError {
-        std::string msg = std::string("Syntax error. ") + $1.what() + "\n ";
+        std::string msg = std::string("Syntax error: ") + $1.what() + "\n ";
         croak(msg.c_str());
     }
 
