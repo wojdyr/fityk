@@ -42,6 +42,9 @@
 
 * convolution and deconvolution of two datasets or a dataset with Gaussian:
   convolve @0 @1; convolve @0 2.3; deconvolve @0 3.4
+
+* fitting the functions Spline nad Polyline (the derivatives of these
+  functions are not implemented yet and the L-M method does not fit them)
   
 * GUI: there is ugly vertical line (a part of the fitted curve) in points
   where the value is undefined (e.g. in ReadShockley function for x=0).
@@ -73,8 +76,7 @@
 * GUI: refactor MainPlot - mouse event handling based on subscriptions,
        a clean interface to XOR-drawing 
 
-* GUI: it should be possible to constrain two parameters of two peak 
-     (using mouse and peak-top menu), at least to make them equal.
+* GUI: constraining parameters of two peak using the peak-top menu
 
 * add a new function category: sigmoids/steps (now function can be guessed as
   "peak" and "linear"). (GUI): drawing drafts for the new category.

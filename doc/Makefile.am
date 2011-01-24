@@ -1,7 +1,6 @@
 
-# to regenerage the list in vim:
-# ++d}- :r! find html -type f -exec echo '$(srcdir)/'\{} \\ \;
-# }bxx
+# the list can be updated by copying & pasting this in vim:
+# 5Gd}- :r! find html -type f -exec echo '$(srcdir)/'\{} \\ \;
 nobase_dist_pkgdata_DATA = \
 $(srcdir)/html/index.html \
 $(srcdir)/html/model.html \
@@ -26,10 +25,22 @@ $(srcdir)/html/intro.html \
 $(srcdir)/html/searchindex.js \
 $(srcdir)/html/lang.html \
 $(srcdir)/html/fityk-manual.html \
+$(srcdir)/html/_images/zoom_all.png \
 $(srcdir)/html/_images/ico-tux.png \
 $(srcdir)/html/_images/ico-win.png \
 $(srcdir)/html/_images/ico-osx.png \
+$(srcdir)/html/_images/open_lock_icon.png \
+$(srcdir)/html/_images/copyfunc_icon.png \
 $(srcdir)/html/_images/fityk076.png \
+$(srcdir)/html/_images/fit_icon.png \
+$(srcdir)/html/_images/mode_add_icon.png \
+$(srcdir)/html/_images/mode_range_icon.png \
+$(srcdir)/html/_images/load_data_icon.png \
+$(srcdir)/html/_images/add_peak_icon.png \
+$(srcdir)/html/_images/mode_bg_icon.png \
+$(srcdir)/html/_images/strip_bg_icon.png \
+$(srcdir)/html/_images/lock_icon.png \
+$(srcdir)/html/_images/fityk-with-tooltip.png \
 $(srcdir)/html/_images/math/9e9c8a0fb6a92d4c3f969ab7a959a80f3069e3c9.png \
 $(srcdir)/html/_images/math/5e97a8af68fbc8e357d3ee0eba452022b06c1875.png \
 $(srcdir)/html/_images/math/7532b41a34c9ca592694135d1de65eeb8d9ce036.png \
@@ -53,14 +64,12 @@ $(srcdir)/html/_images/math/7508455f7c089e149392451dec57d771370d63ce.png \
 $(srcdir)/html/_images/math/19f15eacccc345c3179259320491956f3f23887a.png \
 $(srcdir)/html/_images/math/38b394ef8f2ecd34817add552d9daa3fe8b9e017.png \
 $(srcdir)/html/_images/math/695f416425dbcafe8c762a1e8c533023350a525d.png \
-$(srcdir)/html/_images/math/8863e0082a6f43362818a581cde27eaeced7fe3a.png \
 $(srcdir)/html/_images/math/d3e7d7cd926970086d34700ac3f979eac398132a.png \
 $(srcdir)/html/_images/math/150d0ed7bec340267e1b148159a2e70ffa5983a7.png \
 $(srcdir)/html/_images/math/566b01428cbc7f85e5dcac822761913d6fd48795.png \
 $(srcdir)/html/_images/math/db9d47c742259fffb7665882158a7b507cb9f052.png \
 $(srcdir)/html/_images/math/e847b12d44bdb9991047fa3001a2d1f23a077769.png \
 $(srcdir)/html/_images/math/486938d1819df5972cb80ef2d101517b20412366.png \
-$(srcdir)/html/_images/math/c104a975652392e8192a26551dc776a5fbdcf9c7.png \
 $(srcdir)/html/_images/math/a61c1e51680e27d35d05bebed87d474972fc70bd.png \
 $(srcdir)/html/_images/math/98327fe212a6e72966017a3e21780935b66080f8.png \
 $(srcdir)/html/_images/math/1ab39d761413804680d26d972381f028001562f5.png \

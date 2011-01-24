@@ -12,6 +12,11 @@
 
 class VMData;
 
+#ifdef _WIN32
+// On Windows TokenType is a constant in _TOKEN_INFORMATION_CLASS in Winnt.h
+#define TokenType FitykTokenType
+#endif
+
 enum TokenType
 {
     // textual tokens

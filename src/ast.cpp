@@ -821,7 +821,7 @@ static
 vector<OpTree*> calculate_deriv(vector<int>::const_iterator &i, int len,
                                 const VMData& vm)
 {
-  vector<OpTree*> results(len + 1, NULL);
+  vector<OpTree*> results(len + 1, (OpTree*) NULL);
   --i;
   assert(i >= vm.code().begin());
 

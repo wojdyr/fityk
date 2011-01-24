@@ -1,5 +1,5 @@
 
-User-visible changes in version 0.9.5  (2011-01-  ):
+User-visible changes in version 0.9.5  (2011-01-24):
 * libfityk: the parser has been completely rewritten and the syntax was
   slightly changed:
   - major changes in the `info' command; two new commands, `print' and `debug', 
@@ -18,7 +18,7 @@ User-visible changes in version 0.9.5  (2011-01-  ):
   - added syntax: delete file 'filename'
   - "guess": changed argument order
   - F.param = $variable   ->   F[*].param = $variable
-  See the wiki and the manual for details.
+  See the wiki for details (there is a tool that upgrades fityk scripts).
 * new website address (fityk.nieto.pl) and new code repository (GitHub)
 * GUI: simplified two dialogs: Edit Script and Definition Manager
 * error in script stops the script

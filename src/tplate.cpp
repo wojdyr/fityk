@@ -285,7 +285,7 @@ vector<VMData*> reorder_args(Tplate::Ptr tp, const vector<string> &keys,
 {
     assert (keys.size() == values.size());
     int n = tp->fargs.size();
-    vector<VMData*> vv(n, NULL);
+    vector<VMData*> vv(n, (VMData*) NULL);
     for (int i = 0; i < n; ++i) {
         int idx = index_of_element(keys, tp->fargs[i]);
         if (idx != -1)

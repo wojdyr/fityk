@@ -13,7 +13,6 @@ class GaussianFitter(Fityk):
         print "Data info:", self.get_info("data", 0)
 
     def run(self):
-        self.execute("%f = guess Gaussian")
         self.execute("guess %g = Gaussian")
         print "Fitting %s ..." % self.filename
         self.execute("fit")

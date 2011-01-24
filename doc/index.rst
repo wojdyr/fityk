@@ -1,5 +1,5 @@
 
-.. title:: fityk --- curve fitting software
+.. title:: fityk --- curve fitting and peak fitting software
 
 .. meta::
    :description: Fityk. Open-source curve-fitting and data analysis software. Linux, Windows, Mac OS X.
@@ -25,7 +25,7 @@ It is primarily used...
 
 ..
 
-* to fit bell-shaped functions (Gaussian, Lorentzian, Voigt,
+* to fit peaks -- bell-shaped functions (Gaussian, Lorentzian, Voigt,
   Pearson VII, bifurcated Gaussian, EMG, Doniach-Sunjic, etc.),
 
 ... but any functions can be fitted to any 2D (*x*,\ *y*) data.
@@ -40,7 +40,8 @@ Features
 * equality constraints,
 * modelling error of the *x* coordinate of points (that can be caused by
   instrumental zero-shift or by sample displacement in powder diffraction),
-* peak detection algorithm,
+* manual, graphical placement of peaks or auto-placement using peak detection
+  algorithm,
 * various optimization methods (standard Marquardt least-squares algorithm,
   Genetic Algorithms, Nelder-Mead simplex),
 * handling series of datasets,
@@ -68,7 +69,7 @@ Download
 
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 
-Version 0.9.4 was released on 2010-10-09
+Version 0.9.5 was released on 2011-01-24
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
 Subscribe to `new version notifications <http://fityk-announce.nieto.pl/>`_
 (email or feeds).
@@ -127,7 +128,7 @@ Questions?
 ==========
 
 * Google group `fityk-users <http://groups.google.com/group/fityk-users/>`_
-  (you may select "no mail" to use it like forum)
+  (you may select "no mail" and use it like forum)
 
 * or wojdyr@gmail.com
 
