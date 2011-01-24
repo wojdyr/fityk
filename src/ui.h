@@ -37,45 +37,48 @@ public:
         std::string cmd;
         Status status;
 
-        Cmd(std::string const& c, Status s) : cmd(c), status(s) {}
+        Cmd(const std::string& c, Status s) : cmd(c), status(s) {}
         std::string str() const;
     };
 
     UserInterface(Ftk* F);
     ~UserInterface();
 
-    /// redraw plot
+    /// Redraw the plot.
     void draw_plot(RepaintMode mode);
 
-    /// sent message - to user input and to log file (if logging is on)
-    void output_message (Style style, std::string const &s) const;
+    /// Calls the show_message(), logs the message to file if logging is on,
+    /// handles the exit_on_warning option.
+    void output_message (Style style, const std::string& s) const;
 
     /// Excute commands from file, i.e. run a script (.fit).
-    void exec_script (std::string const &filename);
+    void exec_script(const std::string& filename);
 
-    void exec_stream (FILE *fp);
+    void exec_stream(FILE *fp);
     void exec_string_as_script(const char* s);
 
-    UserInterface::Status exec_and_log(std::string const &c);
+    UserInterface::Status exec_and_log(const std::string& c);
 
-    // Calls Parser::parse_statement() and Runner::execute_statement(),
-    // catches exceptions and returns status.
+    // Calls Parser::parse_statement() and Runner::execute_statement().
+    void raw_execute_line(const std::string& str);
+
+    // Calls raw_execute_line(), catches exceptions and returns status code.
     UserInterface::Status execute_line(const std::string& str);
 
     /// return true if the syntax is correct
-    bool check_syntax(std::string const& str);
+    bool check_syntax(const std::string& str);
 
 
-    void process_cmd_line_filename(std::string const& par);
+    void process_cmd_line_filename(const std::string& par);
 
     // callbacks
     typedef void t_do_draw_plot(RepaintMode mode);
     void set_do_draw_plot(t_do_draw_plot *func) { do_draw_plot_ = func; }
 
-    typedef void t_show_message(Style style, std::string const& s);
+    typedef void t_show_message(Style style, const std::string& s);
     void set_show_message(t_show_message *func) { show_message_ = func; }
 
-    typedef UserInterface::Status t_exec_command (std::string const &s);
+    typedef UserInterface::Status t_exec_command(const std::string &s);
     void set_exec_command(t_exec_command *func) { exec_command_ = func; }
 
     typedef void t_refresh();
@@ -96,7 +99,7 @@ public:
     /// share parser -- it can be safely reused
     Parser* parser() const { return parser_; }
 
-    std::vector<Cmd> const& cmds() const { return cmds_; }
+    const std::vector<Cmd>& cmds() const { return cmds_; }
     std::string get_history_summary() const;
 
 private:
@@ -112,16 +115,15 @@ private:
     Parser *parser_;
     Runner *runner_;
 
-    UserInterface (UserInterface const&); //disable
-    UserInterface& operator= (UserInterface const&); //disable
-
     /// show message to user
-    void show_message (Style style, std::string const& s) const
+    void show_message(Style style, const std::string& s) const
         { if (show_message_) (*show_message_)(style, s); }
 
     /// Execute command(s) from string
     /// It can finish the program (eg. if s=="quit").
-    UserInterface::Status exec_command (std::string const &s);
+    UserInterface::Status exec_command(const std::string& s);
+
+    DISALLOW_COPY_AND_ASSIGN(UserInterface);
 };
 
 

@@ -21,6 +21,7 @@ User-visible changes in version 0.9.5  (2011-01-  ):
   See the wiki and the manual for details.
 * new website address (fityk.nieto.pl) and new code repository (GitHub)
 * GUI: simplified two dialogs: Edit Script and Definition Manager
+* error in script stops the script
 
 User-visible changes in version 0.9.4  (2010-10-09):
 * removed syntax `delete[range]', use `delete(condition)' instead

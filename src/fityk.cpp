@@ -108,7 +108,7 @@ void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
 {
     // TODO: execute_line() doesn't throw, wrap it differently
     try {
-        ftk_->get_ui()->execute_line(s);
+        ftk_->get_ui()->raw_execute_line(s);
     }
     CATCH_SYNTAX_ERROR
     CATCH_EXECUTE_ERROR

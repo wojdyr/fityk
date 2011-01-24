@@ -114,7 +114,7 @@ UserInterface::~UserInterface()
     delete runner_;
 }
 
-UserInterface::Status UserInterface::exec_and_log(string const &c)
+UserInterface::Status UserInterface::exec_and_log(const string& c)
 {
     if (strip_string(c).empty())
         return UserInterface::kStatusOk;
@@ -134,12 +134,17 @@ UserInterface::Status UserInterface::exec_and_log(string const &c)
     return r;
 }
 
+void UserInterface::raw_execute_line(const string& str)
+{
+    Lexer lex(str.c_str());
+    while (parser_->parse_statement(lex))
+        runner_->execute_statement(parser_->statement());
+}
+
 UserInterface::Status UserInterface::execute_line(const string& str)
 {
     try {
-        Lexer lex(str.c_str());
-        while (parser_->parse_statement(lex))
-            runner_->execute_statement(parser_->statement());
+        raw_execute_line(str);
     }
     catch (fityk::SyntaxError &e) {
         F_->warn(string("Syntax error: ") + e.what());
@@ -158,7 +163,7 @@ UserInterface::Status UserInterface::execute_line(const string& str)
     return UserInterface::kStatusOk;
 }
 
-bool UserInterface::check_syntax(string const& str)
+bool UserInterface::check_syntax(const string& str)
 {
     return parser_->check_syntax(str);
 }
@@ -210,7 +215,9 @@ void UserInterface::exec_script(const string& filename)
         if (F_->get_verbosity() >= 0)
             show_message (kQuoted, S(line_index) + "> " + s);
         replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
-        execute_line(s);
+        bool r = execute_line(s);
+        if (r != kStatusOk)
+            break;
         if (user_interrupt) {
             F_->msg ("Script stopped by signal INT.");
             return;
@@ -226,7 +233,9 @@ void UserInterface::exec_stream(FILE *fp)
         string s = line;
         if (F_->get_verbosity() >= 0)
             show_message (kQuoted, "> " + s);
-        execute_line(s);
+        bool r = execute_line(s);
+        if (r != kStatusOk)
+            break;
     }
 }
 
@@ -243,7 +252,9 @@ void UserInterface::exec_string_as_script(const char* s)
             string line(start, end);
             if (F_->get_verbosity() >= 0)
                 show_message (kQuoted, "> " + line);
-            execute_line(line);
+            bool r = execute_line(line);
+            if (r != kStatusOk)
+                break;
         }
         if (*end == '\0')
             break;
@@ -259,7 +270,7 @@ void UserInterface::draw_plot(RepaintMode mode)
 }
 
 
-UserInterface::Status UserInterface::exec_command(string const &s)
+UserInterface::Status UserInterface::exec_command(const string& s)
 {
     return exec_command_ ? (*exec_command_)(s) : execute_line(s);
 }
@@ -283,7 +294,7 @@ bool is_fityk_script(string filename)
     return !strncmp(magic, buffer, magic_len);
 }
 
-void UserInterface::process_cmd_line_filename(string const& par)
+void UserInterface::process_cmd_line_filename(const string& par)
 {
     if (startswith(par, "=->"))
         exec_and_log(string(par, 3));
