@@ -259,8 +259,7 @@ void save_state(const Ftk* F, string& r)
 {
     if (!r.empty())
         r += "\n";
-    r += fityk_version_line;
-    r += "\n## dumped at: " + time_now();
+    r += fityk_version_line + S(". Created: ") + time_now();
     r += "\nset verbosity = -1 #the rest of the file is not shown";
     r += "\nset autoplot = 0";
     r += "\nreset";
