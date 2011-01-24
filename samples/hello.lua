@@ -1,7 +1,7 @@
 #!/usr/bin/env lua
 
--- To build a dynamic module for Lua, try "make lua" in swig/ directory.
--- (this was tested only on Linux, you may need to tweak the Makefile)
+--   You may create a link first:
+--   ln -sf /usr/lib/liblua-fityk.so fityk.so
 
 require("fityk")
 

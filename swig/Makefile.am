@@ -11,7 +11,7 @@ pyexec_LTLIBRARIES = _fityk.la
 endif
 
 if LUA_ENABLED
-noinst_LTLIBRARIES = fityk.la
+lib_LTLIBRARIES = liblua-fityk.la
 endif
 
 _fityk_la_SOURCES = $(srcdir)/fityk_python.cpp $(SWIG_SOURCES)
@@ -19,10 +19,10 @@ _fityk_la_CPPFLAGS = $(PYTHON_CPPFLAGS) -I$(top_srcdir)/src
 _fityk_la_LDFLAGS = $(LIBRARY_VERSION_FLAG) -module
 _fityk_la_LIBADD = ../src/libfityk.la
 
-fityk_la_SOURCES = $(srcdir)/fityk_lua.cpp $(SWIG_SOURCES)
-fityk_la_CPPFLAGS = $(LUA_INCLUDE) -I$(top_srcdir)/src
-fityk_la_LDFLAGS = $(LIBRARY_VERSION_FLAG) -module
-fityk_la_LIBADD = ../src/libfityk.la
+liblua_fityk_la_SOURCES = $(srcdir)/fityk_lua.cpp $(SWIG_SOURCES)
+liblua_fityk_la_CPPFLAGS = $(LUA_INCLUDE) -I$(top_srcdir)/src
+liblua_fityk_la_LDFLAGS = $(LIBRARY_VERSION_FLAG) -module
+liblua_fityk_la_LIBADD = ../src/libfityk.la
 
 $(srcdir)/fityk_python.cpp: $(SWIG_SOURCES) $(top_srcdir)/src/fityk.h
 	$(SWIG) -c++ -python -I$(top_srcdir)/src -o $@ $<
