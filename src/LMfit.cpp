@@ -13,14 +13,8 @@
 using namespace std;
 
 LMfit::LMfit(Ftk* F)
-    : Fit(F, "levenberg_marquardt"),
-      shake_before (0), shake_type ('u')
+    : Fit(F, "levenberg_marquardt")
 {
-    /*
-    fpar ["shake-before"] = &shake_before;
-    epar.insert(pair<string, Enum_string>("shake-type",
-                               Enum_string (Distrib_enum, &shake_type)));
-    */
 }
 
 LMfit::~LMfit() {}
@@ -32,18 +26,8 @@ fp LMfit::init()
     alpha_.resize (na*na);
     beta.resize (na);
     beta_.resize (na);
-    if (na < 1) {
-        F->warn ("No data points. What should I fit ?");
-        return -1;
-    }
     lambda = F->get_settings()->lm_lambda_start;
-    //TODO what to do with this shake?
-    if (shake_before > 0.) {
-        for (int i = 0; i < na; i++)
-            a[i] = draw_a_from_distribution (i, shake_type, shake_before);
-    }
-    else
-        a = a_orig;
+    a = a_orig;
 
     F->vmsg (print_matrix (a, 1, na, "Initial A"));
     //no need to optimise it (and compute chi2 and derivatives together)
@@ -54,7 +38,7 @@ fp LMfit::init()
 
 void LMfit::autoiter()
 {
-    wssr_before = (shake_before > 0. ? compute_wssr(a_orig, dmdm_) : chi2);
+    wssr_before = chi2;
     fp prev_chi2 = chi2;
     F->vmsg("\t === Levenberg-Marquardt method ===");
     F->vmsg ("Initial values:  lambda=" + S(lambda) + "  WSSR=" + S(chi2));

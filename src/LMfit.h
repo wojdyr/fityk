@@ -18,12 +18,10 @@ public:
     fp init(); // called before do_iteration()/autoiter()
     void autoiter();
 private:
-    fp shake_before;
-    char shake_type;
     std::vector<fp> alpha, alpha_;            // matrices
     std::vector<fp> beta, beta_;   // and vectors
     std::vector<fp> a;    // parameters table
-    fp chi2 , chi2_;
+    fp chi2, chi2_;
     fp lambda;
 
     bool do_iteration();
