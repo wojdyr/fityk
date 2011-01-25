@@ -462,7 +462,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         char fz = *args[n].str;
         if (is_index(n+1, args) && args[n+1].type == kTokenExpr) {
             ++ret;
-            int idx = iround(args[n].value.d);
+            int idx = iround(args[n+1].value.d);
             const string& name = model->get_func_name(fz, idx);
             const Function *f = F->find_function(name);
             result += f->get_basic_assignment();
