@@ -1,3 +1,5 @@
+User-visible changes in version 0.9.6  (2011-  -  ):
+* a few bug fixes
 
 User-visible changes in version 0.9.5  (2011-01-24):
 * libfityk: the parser has been completely rewritten and the syntax was

@@ -135,7 +135,7 @@ Questions?
 Feel free to send questions, comments, bug reports, new feature requests
 and success stories.
 Asking for a new feature usually results in adding the request to
-the `TODO list <https://github.com/wojdyr/fityk/raw/master/NEWS>`_
+the `TODO list <https://github.com/wojdyr/fityk/raw/master/TODO>`_
 or, if it already is in the list, in assigning higher priority to it.
 
 .. raw:: html

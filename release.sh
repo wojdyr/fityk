@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-version=0.9.5
+version=0.9.6
 WEB="iris.unipress.waw.pl:www/fityk2/"
 
 MINGW_DIR=mingw-build
@@ -114,8 +114,8 @@ elif [ $1 -eq 9 ]; then
  make all pdf
  echo "sending PDF manual..."
  scp latex/fityk-manual.pdf $WEB/
- echo sending html
- scp -r html/* $WEB/
+ #echo sending html
+ #scp -r html/* $WEB/
  echo generating doxygen docs...
  cd ../doxygen/
  doxygen
