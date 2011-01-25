@@ -273,7 +273,8 @@ void FPlot::draw_data (wxDC& dc,
         return;
     vector<Point>::const_iterator first = data->get_point_at(ftk->view.left()),
                                   last = data->get_point_at(ftk->view.right());
-    //if (last - first < 0) return;
+    if (last <= first)
+        return;
     bool active = first->is_active;
     dc.SetPen (active ? activePen : inactivePen);
     dc.SetBrush (active ? activeBrush : inactiveBrush);
