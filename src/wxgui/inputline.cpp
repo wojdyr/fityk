@@ -66,10 +66,12 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
     char line[512];
     if (!hist_file.IsEmpty()) {
         FILE *f = fopen(hist_file.mb_str(), "r");
-        while (fgets(line, 512, f)) {
-            wxString s = wxString(line, wxConvUTF8).Trim();
-            if (!s.empty())
-                m_history.Add(s);
+        if (f) {
+            while (fgets(line, 512, f)) {
+                wxString s = wxString(line, wxConvUTF8).Trim();
+                if (!s.empty())
+                    m_history.Add(s);
+            }
         }
     }
     // add empty line that will be displayed initially
