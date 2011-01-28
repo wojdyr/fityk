@@ -72,7 +72,6 @@ private:
     mutable fp value_;
     mutable std::vector<fp> derivatives_;
 
-    std::vector<OpTree*> op_trees_;
     VMData vm_;
     VMData substituted_vm_; // made by substituting symbols with numbers in vm_
     int value_offset_;

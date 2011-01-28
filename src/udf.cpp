@@ -187,32 +187,31 @@ CustomFunction::CustomFunction(const Settings* settings,
                                const vector<string> &vars)
     : Function(settings, name, tp, vars),
       // don't use nv() here, it's not set until init()
-      derivatives_(vars.size()+1), op_trees_(tp->op_trees)
+      derivatives_(vars.size()+1)
 {
 }
 
 CustomFunction::~CustomFunction()
 {
-    purge_all_elements(op_trees_);
 }
 
 void CustomFunction::set_var_idx(const vector<Variable*>& variables)
 {
     VariableUser::set_var_idx(variables);
 
-    assert(var_idx.size() + 2 == op_trees_.size());
+    assert(var_idx.size() + 2 == tp_->op_trees.size());
     // we put function's parameter index rather than variable index after
     //  OP_SYMBOL, it is handled in this way in more_precomputations()
     vector<int> symbol_map = range_vector(0, var_idx.size());
     vm_.clear_data();
-    int n = op_trees_.size() - 1;
+    int n = tp_->op_trees.size() - 1;
     for (int i = 0; i < n; ++i) {
-        add_bytecode_from_tree(op_trees_[i], symbol_map, vm_);
+        add_bytecode_from_tree(tp_->op_trees[i], symbol_map, vm_);
         vm_.append_code(OP_PUT_DERIV);
         vm_.append_code(i);
     }
     value_offset_ = vm_.code().size();
-    add_bytecode_from_tree(op_trees_.back(), symbol_map, vm_);
+    add_bytecode_from_tree(tp_->op_trees.back(), symbol_map, vm_);
 }
 
 void CustomFunction::more_precomputations()
