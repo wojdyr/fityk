@@ -1,5 +1,5 @@
 
-.. title:: fityk --- curve fitting and peak fitting software
+.. title:: Fityk --- curve fitting and peak fitting software
 
 .. meta::
    :description: Fityk. Open-source curve-fitting and data analysis software. Linux, Windows, Mac OS X.
@@ -69,7 +69,7 @@ Download
 
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 
-Version 0.9.5 was released on 2011-01-24
+Version 0.9.6 was released on 2011-01-26
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
 Subscribe to `new version notifications <http://fityk-announce.nieto.pl/>`_
 (email or feeds).
@@ -118,7 +118,7 @@ Documentation
 * `Fityk Wiki <https://github.com/wojdyr/fityk/wiki>`_
   (you are welcome to contribute).
 
-Citing fityk in academic papers:
+Citing Fityk in academic papers:
 M. Wojdyr,
 `J. Appl. Cryst. 43, 1126-1128 <http://dx.doi.org/10.1107/S0021889810030499>`_
 (2010)
