@@ -237,10 +237,10 @@ void CustomFunction::calculate_value_deriv_in_range(
 {
     int dyn = dy_da.size() / xx.size();
     for (int i = first; i < last; ++i) {
-        run_code_for_custom_func(substituted_vm_, xx[i], derivatives_);
+        fp y = run_code_for_custom_func(substituted_vm_, xx[i], derivatives_);
 
         if (!in_dx) {
-            yy[i] += value_;
+            yy[i] += y;
             v_foreach (Multi, j, multi_)
                 dy_da[dyn*i+j->p] += derivatives_[j->n] * j->mult;
             dy_da[dyn*i+dyn-1] += derivatives_.back();

@@ -69,7 +69,8 @@ public:
 
 
 private:
-    mutable fp value_;
+    // used locally in calculate_value_deriv_in_range(),
+    // declared as a member only as optimization, to avoid allocations
     mutable std::vector<fp> derivatives_;
 
     VMData vm_;
