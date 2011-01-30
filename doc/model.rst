@@ -532,16 +532,17 @@ Cutoff
 ------
 
 With default settings, the value of every function is calculated
-at every point. Peak functions such as Gaussian often have non-negligible
-values only in a small fraction of all points.
-If you have many narrow peaks
+at every point. Peak functions, such as Gaussian, often have non-negligible
+values only in a small fraction of all points,
+so if you have many narrow peaks
 (like `here <http://commons.wikimedia.org/wiki/File:Diff_NaBr.png>`_),
-set the option :option:`function_cutoff`
-to a non-zero value to speed up the calculation.
-For each function the range with values
-greater than :option:`function_cutoff` will be estimated first
-and the values will be calculated only in this range.
-This optimization is supported by most of the built-in functions.
+the basic optimization is to calculate values of each peak function
+only near the function's center.
+If the option :option:`function_cutoff` is set to a non-zero value,
+each function is evaluated only in the range where its values are
+greater than the :option:`function_cutoff`.
+
+This optimization is supported only by some built-in functions.
 
 Model, F and Z
 --------------
