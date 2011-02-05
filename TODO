@@ -1,7 +1,16 @@
 
+* GUI, "Guess function" toolbar button: if initial values are not known,
+  show a dialog asking for the values (comma-separated numbers).
+
+* GUI: Data>Load should use default load dir (as Quick Load)
+
 * GUI: change how colors are stored in the config file
 
+---------
+
 * GUI: a single dialog for Model > Export... options and for "info models"
+
+* GUI: definition mgr - checkbox - show in the list on toolbar
 
 * GUI: definition mgr - show formula images from the manual, if available
 
@@ -12,20 +21,13 @@
 * CLI/GUI: use sigaction() instead of signal() to handle SIGINT
   print a message from interrupt_handler()
 
-* data transformations: add aggregate functions argmin, argmax, count
-
 * make possible something like this:  $min = @*.min(y if a)
-
-* GUI: Data>Load should use default load dir (as Quick Load)
 
 * subtracting datasets (with interpolation of the subtrahend): @2 = @0 - @1;
   for consistency, `+' should add interpolated data, and 'U' can stand
   for a sum of sets.
 
 * add functions cot and coth
-
-* GUI, "Guess function" toolbar button: if initial values are not known,
-  show a dialog asking for the values.
 
 ---
 

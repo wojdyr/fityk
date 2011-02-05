@@ -20,6 +20,7 @@ class AggregFunc
 public:
     AggregFunc() : counter_(0), v_(0.) {}
     virtual ~AggregFunc() {}
+    // x - expression value, n - index of the point in Data::p_
     void put(double x, int n) { ++counter_; op(x, n); }
     virtual double value() const { return v_; }
 

@@ -171,6 +171,16 @@ protected:
     }
 };
 
+class AggregCount : public AggregFunc
+{
+protected:
+    virtual void op(double x, int)
+    {
+        if (fabs(x) >= 0.5)
+            v_ += 1;
+    }
+};
+
 class AggregMin : public AggregFunc
 {
 protected:
@@ -191,18 +201,53 @@ protected:
     }
 };
 
+class AggregArgMin : public AggregFunc
+{
+public:
+    AggregArgMin(const vector<Point>& points) : points_(points) {}
+protected:
+    virtual void op(double x, int n)
+    {
+        if (counter_ == 1 || x < min_) {
+            min_ = x;
+            v_ = points_[n].x;
+        }
+    }
+private:
+    double min_;
+    const vector<Point>& points_;
+};
+
+class AggregArgMax : public AggregFunc
+{
+public:
+    AggregArgMax(const vector<Point>& points) : points_(points) {}
+protected:
+    virtual void op(double x, int n)
+    {
+        if (counter_ == 1 || x > max_) {
+            max_ = x;
+            v_ = points_[n].x;
+        }
+    }
+private:
+    double max_;
+    const vector<Point>& points_;
+};
+
 class AggregDArea : public AggregFunc
 {
 public:
     AggregDArea(const vector<Point>& points) : points_(points) {}
 protected:
-    const vector<Point>& points_;
     virtual void op(double x, int n)
     {
         int M = points_.size();
         double dx = (points_[min(n+1, M-1)].x - points_[max(n-1, 0)].x) / 2.;
         v_ += x * dx;
     }
+private:
+    const vector<Point>& points_;
 };
 
 class AggregAvg : public AggregFunc
@@ -649,12 +694,24 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                         AggregSum ag;
                         put_ag_function(lex, default_ds, ag);
                     }
+                    else if (word == "count") {
+                        AggregCount ag;
+                        put_ag_function(lex, default_ds, ag);
+                    }
                     else if (word == "min") {
                         AggregMin ag;
                         put_ag_function(lex, default_ds, ag);
                     }
                     else if (word == "max") {
                         AggregMax ag;
+                        put_ag_function(lex, default_ds, ag);
+                    }
+                    else if (word == "argmin") {
+                        AggregArgMin ag(F_->get_data(default_ds)->points());
+                        put_ag_function(lex, default_ds, ag);
+                    }
+                    else if (word == "argmax") {
+                        AggregArgMax ag(F_->get_data(default_ds)->points());
                         put_ag_function(lex, default_ds, ag);
                     }
                     else if (word == "avg") {

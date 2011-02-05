@@ -292,7 +292,7 @@ Expressions can contain:
 
   * ``mod`` (modulo)
   * ``min2``
-  * ``max2`` (e.g. ``max2(3,5)`` will give 5),
+  * ``max2`` (``max2(3,5)`` gives 5),
   * ``randuniform(a, b)`` (random number from interval (a, b)),
   * ``randnormal(mu, sigma)`` (random number from normal distribution),
   * ``voigt(a, b)``
@@ -362,7 +362,7 @@ of two neighbouring indices. This enables equilibrating the step of data
    X = x[0] + n * (x[M-1]-x[0]) / (M-1), Y = y[index(X)], S = s[index(X)]
 
 It is possible to delete points for which given condition is true,
-using expression ``delete(condition)``, e.g.::
+using expression ``delete(condition)``::
     
     delete(not a) # delete inactive points
 
@@ -401,7 +401,16 @@ The following aggregate functions are recognized:
 
 * ``max()`` --- the largest value,
 
+* ``argmin()`` --- (stands for the argument of the minimum)
+                   the x value of the point for which the expression
+                   in brackets has the smallest value,
+
+* ``argmax()`` --- the x value of the point for which the expression
+                   in brackets has the largest value,
+
 * ``sum()`` --- the sum,
+
+* ``count()`` --- the number of points for which the expression is true,
 
 * ``avg()`` --- the arithmetic mean,
 
@@ -413,22 +422,27 @@ The following aggregate functions are recognized:
   In particular, ``darea(y)`` returns the interpolated area under
   data points.
 
-.. note:: There is no ``count`` function, use ``sum(1 if criterium)`` instead.
-
 Examples::
 
     p avg(y) # print the average y value
     p max(y) # the largest y value
+    p argmax(y) # the position of data maximum
     p max(y if x > 40 and x < 60)   # the largest y value for x in (40, 60)
     p max(y if a) # the largest y value in the active range
-    p sum(1 if y>100) # the number of points that have y above 100
-    p sum(1 if y>avg(y)) # aggregate functions can be nested
+    p min(x if y > 0.1)] # x of the first point with y > 0.1
+    p count(y>100) # the number of points that have y above 100
+    p count(y>avg(y)) # aggregate functions can be nested
     p y[min(n if y > 100)] # the first (from the left) value of y above 100
 
     # take the first 2000 points, average them and subtract as background
     Y = y - avg(y if n<2000)
 
     Y = y / darea(y) # normalize data area
+
+    # make active only the points on the left from the first
+    # point with y > 0.1
+    a = x < min(x if y > 0.1)]
+
 
 
 .. _funcindt:
@@ -438,19 +452,25 @@ Functions and Variables in Data Transformation
 
 You may postpone reading this section and read about the :ref:`model` first.
 
-Variables ($foo) and functions (%bar) can be used in data transformations,
-e.g.::
+Variables ($foo) and functions (%bar) can be used in data expressions::
 
     Y = y / $foo  # divides all y's by $foo
     Y = y - %f(x) # subtracts function %f from data
     Y = y - @0.F(x) # subtracts all functions in F
 
-    # Fit constant x-correction (e.g. a shift in the scale of the instrument
-    # collecting data), correct the data and remove the correction from the model.
+    # print the abscissa value of the maximum of the model
+    # (only the values in points are considered,
+    #  so it's not exactly the model's maximum)
+    print argmax(F(x))
+
+    # print the maximum of the sum of two functions
+    print max(%_1(x) + %_2(x))
+
+    # Fit constant x-correction (i.e. fit the instrumental zero error), ...
     Z = Constant(~0)
     fit
-    X = x + @0.Z(x) # data transformation is here
-    Z = 0
+    X = x + Z(x)        # ... correct the data
+    Z = 0               # ... and remove the correction from the model.
 
 .. admonition:: In the GUI
 

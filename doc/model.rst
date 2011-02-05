@@ -54,7 +54,7 @@ The final formula for the model is:
 
 where :math:`Z(x; \boldsymbol{a}) = \sum_i z_i(x; \boldsymbol{a})`
 is the *x*-correction. *Z* is constructed as a list of components,
-analogically to *F*, although in practice it has rarely more than
+analogously to *F*, although in practice it has rarely more than
 one component.
 
 Each component function is created by specifying a function type
@@ -562,7 +562,7 @@ Command::
 
    F += %function
 
-adds  *%function* to F, and analogically
+adds  *%function* to F, and
 
 ::
 
