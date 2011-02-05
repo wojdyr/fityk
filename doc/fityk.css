@@ -40,7 +40,7 @@ div.body {
     padding: 0.5em 20px 20px 20px;
 
     line-height: 1.4em;
-    font-family: georgia,"Times New Roman",times,serif !important;
+    font-family: Georgia, serif !important;
     font-size: 1.2em !important;
     color:#222222;
 }
@@ -158,10 +158,11 @@ div.body pre a:hover {
     text-decoration: underline;
 }
 
-h1 {
+h1, .h1 {
     margin: 0;
     padding: 0.7em 0 0.3em 0;
     font-size: 1.5em;
+    font-weight: bold;
     color: #444444;
 }
 
@@ -409,3 +410,8 @@ div.admonition-in-the-gui p.admonition-title {
     font-family: Helvetica,Arial,sans-serif;
 }
 
+#contents { text-align: center; display: none; }
+
+#expand_features a { text-decoration: none; }
+
+.FlattrButton { text-align: center; float: right; }

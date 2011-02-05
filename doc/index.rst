@@ -8,6 +8,9 @@
 .. role:: smallfont
    :class: smallfont
 
+.. role:: html(raw)
+   :format: html
+
 .. image:: fityk076.png
    :alt: [screenshot]
    :align: right
@@ -30,6 +33,15 @@ It is primarily used...
 
 ... but any functions can be fitted to any 2D (*x*,\ *y*) data.
 
+.. _contents:
+
+:ref:`Features` |
+:ref:`Download` |
+:ref:`Documentation` |
+:ref:`Support <Support>`
+
+.. _Features:
+
 Features
 ========
 
@@ -38,18 +50,20 @@ Features
   the `xylib library <http://xylib.sourceforge.net/>`_,
 * dozens of built-in functions and support for user-defined functions,
 * equality constraints,
-* modelling error of the *x* coordinate of points (that can be caused by
-  instrumental zero-shift or by sample displacement in powder diffraction),
-* manual, graphical placement of peaks or auto-placement using peak detection
+* fitting systematic errors of the *x* coordinate of points (for example
+  instrumental zero error or sample displacement correction
+  in powder diffraction),
+* manual, graphical placement of peaks and auto-placement using peak detection
   algorithm,
 * various optimization methods (standard Marquardt least-squares algorithm,
   Genetic Algorithms, Nelder-Mead simplex),
 * handling series of datasets,
-* automation with scripts,
+* automation with macros (scripts),
 * an add-on for powder diffraction data (Pawley refinement)
 * modular :wiki:`architecture <Architecture>`,
-* open source licence (`GPL <http://creativecommons.org/licenses/GPL/2.0/>`_),
-* portability.
+* open source licence (`GPL <http://creativecommons.org/licenses/GPL/2.0/>`_).
+
+.. _Download:
 
 Download
 ========
@@ -67,7 +81,9 @@ Download
 .. |ico-tux| image:: ico-tux.png
 .. |ico-osx| image:: ico-osx.png
 
+
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
+:html:`<a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://fityk.nieto.pl"></a>`
 
 Version 0.9.6 was released on 2011-01-26
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
@@ -85,11 +101,11 @@ Distribution of the source code and the licence will not change.
 
 Subscription cost (includes support via e-mail):
 
-* `1 month subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918496>`_: €90 / 115 USD
+* `1 month subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918496>`_: €90 / $115
 
-* `1 year subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918202>`_: €210 / 265 USD
+* `1 year subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918202>`_: €210 / $265
 
-* `1 year subscription + 20 hours of coding <https://www.plimus.com/jsp/buynow.jsp?contractId=2918292>`_ €630 / 795 USD.
+* `1 year subscription + 20 hours of coding <https://www.plimus.com/jsp/buynow.jsp?contractId=2918292>`_ €630 / $795.
   :smallfont:`The maintainer of the program will devote up to 20 hours to
   implement feature(s) requested by the customer.
   (Bugs are fixed as soon as possible regardless of who reports them).
@@ -100,12 +116,14 @@ Subscription cost (includes support via e-mail):
 
 Alternatively, students and home users may
 donate 10% of the normal price to ``wojdyr@gmail.com`` using
-`PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=E98FRTPDBQ3L6&lc=US&currency_code=USD&item_name=Fityk>`_
-or `MoneyBookers <https://www.moneybookers.com/app/payment.pl?pay_to_email=wojdyr@gmail.com&language=EN&detail1_text=The+amount+can+be+changed+at+the+end+of+the+URL&detail1_description=Fityk&currency=USD&amount=26.5>`_.
+`PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=E98FRTPDBQ3L6&lc=US&currency_code=USD&item_name=Fityk>`_,
+`MoneyBookers <https://www.moneybookers.com/app/payment.pl?pay_to_email=wojdyr@gmail.com&language=EN&detail1_text=The+amount+can+be+changed+at+the+end+of+the+URL&detail1_description=Fityk&currency=USD&amount=26.5>`_
+or `Flattr <https://flattr.com/donation/give/to/wojdyr>`_.
 
 You are welcome to make a purchase now, the subscription time will be counted
 since the release of ver. 1.0.
 
+.. _Documentation:
 
 Documentation
 =============
@@ -123,6 +141,8 @@ M. Wojdyr,
 `J. Appl. Cryst. 43, 1126-1128 <http://dx.doi.org/10.1107/S0021889810030499>`_
 (2010)
 [`reprint <http://www.unipress.waw.pl/fityk/fityk-JAC-10-reprint.pdf>`_]
+
+.. _Support:
 
 Questions?
 ==========
@@ -145,12 +165,19 @@ or, if it already is in the list, in assigning higher priority to it.
    $(document).ready(function(){
      $("#features").hide();
      $("#features").prev().after(
-      "<p id='expand_features'><a href=''>More &raquo;</a></p>");
+      "<p id='expand_features'><a href=''><span class='h1'>Features</span> &nbsp; <span class='smallfont'>[show]</span></a></p>");
      $("#expand_features a").click(function(event){
        $(this).parent().hide();
        $("#features").show('slow');
        event.preventDefault();
      });
+
+     var s = document.createElement('script'), t = document.getElementsByTagName('script')[0];
+     s.type = 'text/javascript';
+     s.async = true;
+     s.src = 'http://api.flattr.com/js/0.6/load.js?mode=auto';
+     t.parentNode.insertBefore(s, t);
+
    });
    //--> </script>
 

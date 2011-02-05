@@ -106,7 +106,7 @@ SPHINX = sphinx-build -a -d ./doctrees/
 
 all-local: $(srcdir)/html/index.html
 
-$(srcdir)/html/index.html: $(srcdir)/*.rst $(srcdir)/conf.py 
+$(srcdir)/html/index.html: $(srcdir)/*.rst $(srcdir)/fityk.css $(srcdir)/conf.py
 	$(SPHINX) -b html $(srcdir) $(srcdir)/html
 	rm -f $(srcdir)/html/objects.inv $(srcdir)/html/.buildinfo
 	sed -i 's/&mdash; Fityk 0.... manual//' $(srcdir)/html/index.html
