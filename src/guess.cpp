@@ -1,19 +1,18 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
+#include "guess.h"
+
 #include <algorithm>
 #include <ctype.h>
 
 #include "common.h"
-#include "guess.h"
 #include "data.h"
 #include "model.h"
 #include "logic.h"
 #include "ui.h"
 #include "func.h"
 #include "settings.h"
-#include "lexer.h"
-#include "eparser.h"
 
 using namespace std;
 using boost::array;
@@ -44,9 +43,9 @@ void Guess::initialize(const DataAndModel* dm, int lb, int rb, int ignore_idx)
 }
 
 
-fp Guess::find_hwhm(int pos, fp* area)
+double Guess::find_hwhm(int pos, double* area)
 {
-    const fp hm = 0.5 * yy_[pos];
+    const double hm = 0.5 * yy_[pos];
     const int n = 3;
     int left_pos = 0;
     int right_pos = yy_.size() - 1;
@@ -92,7 +91,7 @@ fp Guess::find_hwhm(int pos, fp* area)
             *area += (xx_[i+1] - xx_[i]) * (yy_[i] + yy_[i+1]) / 2;
     }
 
-    fp hwhm = (xx_[right_pos] - xx_[left_pos]) / 2.;
+    double hwhm = (xx_[right_pos] - xx_[left_pos]) / 2.;
     return max(hwhm, epsilon);
 }
 
@@ -119,11 +118,11 @@ array<double,4> Guess::estimate_peak_parameters()
 
 array<double,3> Guess::estimate_linear_parameters()
 {
-    fp sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
+    double sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
     int n = yy_.size();
     for (int i = 0; i != n; ++i) {
-        fp x = xx_[i];
-        fp y = yy_[i];
+        double x = xx_[i];
+        double y = yy_[i];
         sx += x;
         sy += y;
         sxx += x*x;
