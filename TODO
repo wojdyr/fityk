@@ -2,8 +2,6 @@
 * GUI, "Guess function" toolbar button: if initial values are not known,
   show a dialog asking for the values (comma-separated numbers).
 
-* GUI: Data>Load should use default load dir (as Quick Load)
-
 * GUI: change how colors are stored in the config file
 
 ---------

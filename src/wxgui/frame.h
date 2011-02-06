@@ -215,6 +215,7 @@ private:
     std::string last_include_path;
     std::list<wxFileName> recent_data_files;
     wxMenu *data_menu_recent, *data_ft_menu, *func_type_menu;
+    wxString script_dir_, data_dir_, export_dir_;
 
     void place_plot_and_io_windows(wxWindow *parent);
     void create_io_panel(wxWindow *parent);

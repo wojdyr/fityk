@@ -368,11 +368,15 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
       main_pane(NULL), sidebar(NULL), status_bar(NULL), toolbar(NULL)
 {
     const int default_peak_nr = 7; // Gaussian
-    peak_type_nr = wxConfig::Get()->Read(wxT("/DefaultFunctionType"),
-                                         default_peak_nr);
+    wxConfigBase *config = wxConfig::Get();
+    peak_type_nr = config->Read(wxT("/DefaultFunctionType"), default_peak_nr);
     update_peak_type_list();
     // Load icon and bitmap
     SetIcon (wxICON (fityk));
+
+    script_dir_ = config->Read(wxT("/execScriptDir"));
+    export_dir_ = config->Read(wxT("/exportDir"));
+    data_dir_ = config->Read(wxT("/loadDataDir"));
 
     //sizer, splitters, etc.
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
@@ -899,13 +903,12 @@ void FFrame::OnOnline(wxCommandEvent& event)
 
 void FFrame::OnDataQLoad (wxCommandEvent&)
 {
-    static wxString dir = wxConfig::Get()->Read(wxT("/loadDataDir"));
-    wxFileDialog fdlg (this, wxT("Load data from a file"), dir, wxT(""),
+    wxFileDialog fdlg (this, wxT("Load data from a file"), data_dir_, wxT(""),
                        wxT("All Files (*)|*|")
                                        + s2wx(xylib::get_wildcards_string()),
                        wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
     int ret = fdlg.ShowModal();
-    dir = fdlg.GetDirectory();
+    data_dir_ = fdlg.GetDirectory();
     if (ret != wxID_OK)
         return;
 
@@ -1109,7 +1112,6 @@ void FFrame::OnAutoFreeze(wxCommandEvent& event)
 
 void FFrame::OnSExport (wxCommandEvent& event)
 {
-    static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     bool as_peaks = (event.GetId() == ID_S_EXPORTP);
     wxString name;
     vector<int> sel = get_selected_data_indices();
@@ -1118,7 +1120,7 @@ void FFrame::OnSExport (wxCommandEvent& event)
         name = wxFileName(s2wx(filename)).GetName()
                                 + (as_peaks ? wxT(".peaks") : wxT(".formula"));
     }
-    wxFileDialog fdlg (this, wxT("Export curve to file"), dir, name,
+    wxFileDialog fdlg (this, wxT("Export curve to file"), export_dir_, name,
                        (as_peaks
                             ? wxT("parameters of functions (*.peaks)|*.peaks")
                             : wxT("mathematic formula (*.formula)|*.formula"))
@@ -1127,7 +1129,7 @@ void FFrame::OnSExport (wxCommandEvent& event)
     if (fdlg.ShowModal() == wxID_OK)
         ftk->exec(get_datasets() + "info " + (as_peaks ? "peaks" : "formula")
                   + " > '" + wx2s(fdlg.GetPath()) + "'");
-    dir = fdlg.GetDirectory();
+    export_dir_ = fdlg.GetDirectory();
 }
 
 
@@ -1217,8 +1219,7 @@ void FFrame::OnMenuLogOutputUpdate (wxUpdateUIEvent& event)
 
 void FFrame::OnLogStart (wxCommandEvent&)
 {
-    static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
-    wxFileDialog fdlg (this, wxT("Log to file"), dir, wxT(""),
+    wxFileDialog fdlg (this, wxT("Log to file"), export_dir_, wxT(""),
                        wxT("Fityk script file (*.fit)|*.fit;*.FIT")
                        wxT("|All files |*"),
                        wxFD_SAVE);
@@ -1229,7 +1230,7 @@ void FFrame::OnLogStart (wxCommandEvent&)
         string plus = GetMenuBar()->IsChecked(ID_LOG_WITH_OUTPUT) ? "+" : "";
         ftk->exec("commands" + plus + " > '" + wx2s(fdlg.GetPath()) + "'");
     }
-    dir = fdlg.GetDirectory();
+    export_dir_ = fdlg.GetDirectory();
 }
 
 void FFrame::OnLogStop (wxCommandEvent&)
@@ -1246,14 +1247,14 @@ void FFrame::OnLogWithOutput (wxCommandEvent& event)
 
 void FFrame::OnSaveHistory (wxCommandEvent&)
 {
-    static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     wxFileDialog fdlg(this, wxT("Save all commands from this session to file"),
-                      dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
+                      export_dir_, wxT(""),
+                      wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
         ftk->exec("info history > '" + wx2s(fdlg.GetPath()) + "'");
     }
-    dir = fdlg.GetDirectory();
+    export_dir_ = fdlg.GetDirectory();
 }
 
 void FFrame::OnReset (wxCommandEvent&)
@@ -1270,16 +1271,16 @@ void FFrame::OnReset (wxCommandEvent&)
 
 void FFrame::OnInclude (wxCommandEvent&)
 {
-    static wxString dir = wxConfig::Get()->Read(wxT("/execScriptDir"));
-    wxFileDialog fdlg (this, wxT("Execute commands from file"), dir, wxT(""),
-                              wxT("fityk file (*.fit)|*.fit;*.FIT|all files|*"),
-                              wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    wxFileDialog fdlg (this, wxT("Execute commands from file"),
+                       script_dir_, wxT(""),
+                       wxT("fityk file (*.fit)|*.fit;*.FIT|all files|*"),
+                       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
         ftk->exec("exec '" + wx2s(fdlg.GetPath()) + "'");
         last_include_path = wx2s(fdlg.GetPath());
         GetMenuBar()->Enable(ID_SESSION_REINCLUDE, true);
     }
-    dir = fdlg.GetDirectory();
+    script_dir_ = fdlg.GetDirectory();
 }
 
 void FFrame::OnReInclude (wxCommandEvent&)
@@ -1297,14 +1298,14 @@ void FFrame::show_editor(wxString const& path)
 
 void FFrame::OnDump (wxCommandEvent&)
 {
-    static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     wxFileDialog fdlg(this, wxT("Save everything as a script"),
-                      dir, wxT(""), wxT("fityk file (*.fit)|*.fit;*.FIT"),
+                      export_dir_, wxT(""),
+                      wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
         ftk->exec("info state > '" + wx2s(fdlg.GetPath()) + "'");
     }
-    dir = fdlg.GetDirectory();
+    export_dir_ = fdlg.GetDirectory();
 }
 
 void FFrame::OnSettings (wxCommandEvent&)
@@ -1771,16 +1772,16 @@ void FFrame::OnPrintToClipboard(wxCommandEvent&)
 
 void FFrame::OnSaveAsImage(wxCommandEvent&)
 {
-    static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
     wxFileDialog fdlg(this, wxT("Save main plot as image"),
-                      dir, wxT(""), wxT("PNG image (*.png)|*.png;*.PNG"),
+                      export_dir_, wxT(""),
+                      wxT("PNG image (*.png)|*.png;*.PNG"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
         wxString path = fdlg.GetPath();
         wxBitmap const& bmp = get_main_plot()->get_bitmap();
         bmp.ConvertToImage().SaveFile(path, wxBITMAP_TYPE_PNG);
     }
-    dir = fdlg.GetDirectory();
+    export_dir_ = fdlg.GetDirectory();
 }
 
 

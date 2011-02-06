@@ -167,12 +167,15 @@ DLoadDlg::DLoadDlg (wxWindow* parent, wxWindowID id, int n, Data* data)
                        wxT("All Files (*)|*|")
                            + s2wx(xylib::get_wildcards_string()));
     left_sizer->Add(dir_ctrl, 1, wxALL|wxEXPAND, 5);
-    wxFileName path = s2wx(data->get_filename());
+    wxFileName path;
+    if (!data->get_filename().empty())
+        path = s2wx(data->get_filename());
+    else
+        path = wxConfig::Get()->Read(wxT("/loadDataDir"));
     path.Normalize();
     dir_ctrl->SetPath(path.GetFullPath());
     filename_tc = new KFTextCtrl(left_panel, ID_DXLOAD_FN, path.GetFullPath());
     left_sizer->Add (filename_tc, 0, wxALL|wxEXPAND, 5);
-
 
     // selecting block
     block_ch = new wxChoice(left_panel, ID_DXLOAD_BLOCK);
