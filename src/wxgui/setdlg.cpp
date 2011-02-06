@@ -343,6 +343,8 @@ void SettingsDlg::exec_set_command()
     assign += add("nm_distribution", wx2s(nm_distrib->GetStringSelection()));
     assign += add("nm_move_factor", wx2s(nm_move_factor->GetValue()));
     assign += add("nm_convergence", wx2s(nm_convergence->GetValue()));
+    if (assign.size() == 4) // no options
+        return;
     assign.resize(assign.size() - 2);
     ftk->exec(assign);
 }
