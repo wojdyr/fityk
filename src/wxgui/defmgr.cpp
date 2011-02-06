@@ -98,7 +98,8 @@ void DefinitionMgrDlg::parse_definition()
     string value = wx2s(def_tc->GetValue().Trim());
     if (value.empty()) {
         desc_tc->Clear();
-        lb->SetString(selected_, wxT("-"));
+        if (lb->GetString(selected_) != wxT("-"))
+            lb->SetString(selected_, wxT("-"));
         ok_btn->Enable(false);
         return;
     }
@@ -106,11 +107,18 @@ void DefinitionMgrDlg::parse_definition()
         Lexer lex(value.c_str());
         tp = *parser_.parse_define_args(lex);
         update_desc(tp);
-        lb->SetString(selected_, s2wx(tp.name));
+        // We check if SetString() is needed, because on wxGTK 2.8
+        // the program crashed when pressing PgDown or PgUp in the listbox,
+        // and these checks helped to avoid crashes. Now parse_definition()
+        // is not called from the listbox selection event, so it should not
+        // matter, but the checks are left just in case.
+        if (lb->GetString(selected_) != s2wx(tp.name))
+            lb->SetString(selected_, s2wx(tp.name));
     }
     catch (exception &e) {
-        desc_tc->SetValue(pchar2wx(e.what()));
-        lb->SetString(selected_, wxT("-"));
+        desc_tc->ChangeValue(pchar2wx(e.what()));
+        if (lb->GetString(selected_) != wxT("-"))
+            lb->SetString(selected_, wxT("-"));
     }
 
     bool all_ok = (lb->FindString(wxT("-")) == wxNOT_FOUND);
@@ -143,7 +151,7 @@ void DefinitionMgrDlg::update_desc(const Tplate& tp)
     if (!used)
         desc += wxT(" -");
 
-    desc_tc->SetValue(desc);
+    desc_tc->ChangeValue(desc);
 }
 
 void DefinitionMgrDlg::select_function()
@@ -155,19 +163,25 @@ void DefinitionMgrDlg::select_function()
         lb->SetSelection(selected_);
         return;
     }
+    if (selected_ != wxNOT_FOUND) {
+        const Tplate& old = modified_[selected_];
+        wxString name = old.rhs.empty() ? wxString(wxT("-")) : s2wx(old.name);
+        if (lb->GetString(selected_) != name)
+            lb->SetString(selected_, name);
+    }
+
     selected_ = n;
     const Tplate& tp = modified_[n];
     Tplate::Ptr orig_ptr = ftk->get_tpm()->get_shared_tp(tp.name);
     // minimal use_count() is 2: this pointer and the one in TplateMgr::tpvec_
     bool used = (orig_ptr.use_count() > 2);
 
-    def_tc->SetValue(s2wx(tp.as_formula()));
+    def_tc->ChangeValue(s2wx(tp.as_formula()));
     def_tc->SetEditable(!tp.is_coded() && !used);
     def_label_st->SetLabel(tp.is_coded() ? wxT("definition (equivalent):")
                                          : wxT("definition:"));
     remove_btn->Enable(!used);
     update_desc(tp);
-    lb->SetString(selected_, s2wx(tp.name));
 }
 
 vector<string> DefinitionMgrDlg::get_commands()
@@ -209,7 +223,7 @@ void DefinitionMgrDlg::OnAddButton(wxCommandEvent &)
     Tplate tp;
     tp.create = NULL;
     modified_.push_back(tp);
-    lb->Append(wxT(""));
+    lb->Append(wxT("-"));
     lb->SetSelection(lb->GetCount() - 1);
     select_function();
     def_tc->SetFocus();
