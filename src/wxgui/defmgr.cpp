@@ -106,6 +106,7 @@ void DefinitionMgrDlg::parse_definition()
         Lexer lex(value.c_str());
         tp = *parser_.parse_define_args(lex);
         update_desc(tp);
+        lb->SetString(selected_, s2wx(tp.name));
     }
     catch (exception &e) {
         desc_tc->SetValue(pchar2wx(e.what()));

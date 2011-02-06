@@ -998,7 +998,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
     // no more tokens to read
     pop_until_bracket(); // there should be no bracket
     if (!opstack_.empty())
-        lex.throw_syntax_error("mismatching '" + S(opstack_.back()) + "'");
+        lex.throw_syntax_error("mismatching bracket");
 }
 
 void ExpressionParser::push_assign_lhs(const Token& t)
