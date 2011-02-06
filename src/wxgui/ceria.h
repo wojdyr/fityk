@@ -152,14 +152,13 @@ public:
     int n_atoms;
     std::vector<Atom> atoms;
     std::vector<PlanesWithSameD> bp; // boundles of hkl planes
+    double old_min_d;
 
     Crystal();
     ~Crystal();
     void set_space_group(const SpaceGroupSetting* name);
     void generate_reflections(double min_d);
-    void set_unit_cell(double a, double b, double c,
-                       double alpha, double beta, double gamma)
-        { delete uc; uc = new UnitCell(a, b, c, alpha, beta, gamma); }
+    void set_unit_cell(UnitCell *unit_cell) { delete uc; uc = unit_cell; }
     void update_intensities(RadiationType r, double lambda);
     CrystalSystem xs() const
         { return sgs ? get_crystal_system(sgs->sgnumber) : UndefinedSystem; }

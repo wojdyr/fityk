@@ -104,8 +104,10 @@ int parse_atoms(const char* s, Crystal& cr)
         // skip whitespace
         while(isspace(*s) && *s != '\n')
             ++s;
-        if (*s == '\n')
+        if (*s == '\n') {
+            ++s;
             continue;
+        }
         if (*s == '\0')
             break;
 
@@ -494,6 +496,7 @@ void Crystal::generate_reflections(double min_d)
                 }
             }
     sort(bp.begin(), bp.end());
+    old_min_d = min_d;
 }
 
 

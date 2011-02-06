@@ -3,7 +3,6 @@
 
 //TODO:
 // finish fill_forms()
-// support non-tetraghonal phases
 //
 // deconvolution of instrumental profile
 // buffer the plot with data
@@ -149,9 +148,9 @@ private:
 
     void enable_parameter_fields();
     void update_disabled_parameters();
-    void update_miller_indices();
+    void update_miller_indices(bool sg_changed);
     void set_ortho_angles();
-    void change_space_group();
+    void update_space_group_ui();
 
     DISALLOW_COPY_AND_ASSIGN(PhasePanel);
 };
@@ -731,12 +730,13 @@ void PhasePanel::OnSpaceGroupChanged(wxCommandEvent&)
     string text = wx2s(sg_tc->GetValue());
     const SpaceGroupSetting *sgs = parse_any_sg_symbol(text.c_str());
     cr_.set_space_group(sgs);
-    change_space_group();
+    update_space_group_ui();
+    update_miller_indices(true);
     powder_book->deselect_phase_quick_list();
     sample_plot_->refresh();
 }
 
-void PhasePanel::change_space_group()
+void PhasePanel::update_space_group_ui()
 {
     if (cr_.sgs == NULL) {
         sg_tc->Clear();
@@ -753,7 +753,6 @@ void PhasePanel::change_space_group()
                                         get_sg_order(cr_.sg_ops)));
     enable_parameter_fields();
     update_disabled_parameters();
-    update_miller_indices();
 }
 
 void PhasePanel::enable_parameter_fields()
@@ -769,29 +768,37 @@ void PhasePanel::enable_parameter_fields()
         case MonoclinicSystem:
             par_b->Enable(true);
             par_c->Enable(true);
-            par_alpha->Enable(true);
-            par_beta->Enable(false);
-            par_beta->set_value(90.);
+            par_beta->Enable(true);
+            par_alpha->Enable(false);
+            par_alpha->set_value(90.);
             par_gamma->Enable(false);
             par_gamma->set_value(90.);
             break;
         case OrthorhombicSystem:
-            par_b->Enable(false);
-            par_c->Enable(true);
-            set_ortho_angles();
-            break;
-        case TetragonalSystem:
             par_b->Enable(true);
             par_c->Enable(true);
             set_ortho_angles();
             break;
-        case TrigonalSystem:
+        case TetragonalSystem:
+            par_b->Enable(false);
+            par_c->Enable(true);
+            set_ortho_angles();
+            break;
+            /*
+        Crystals in the trigonal crystal system are either in the rhombohedral
+        lattice system or in the hexagonal lattice system.
+        Those in the rhombohedral space groups are described either using
+        the hexagonal basis or the rhombohedral basis.
+        The latter is not supported yet.
+        case RhombohedralSystem:
             par_b->Enable(false);
             par_c->Enable(false);
             par_alpha->Enable(true);
             par_beta->Enable(false);
             par_gamma->Enable(false);
             break;
+            */
+        case TrigonalSystem:
         case HexagonalSystem:
             par_b->Enable(false);
             par_c->Enable(true);
@@ -827,7 +834,7 @@ void PhasePanel::OnParameterChanging(wxCommandEvent&)
 
 void PhasePanel::OnParameterChanged(wxCommandEvent&)
 {
-    update_miller_indices();
+    update_miller_indices(false);
     sample_plot_->refresh();
 }
 
@@ -949,13 +956,15 @@ void PhasePanel::update_disabled_parameters()
     if (!par_c->IsEnabled())
         par_c->set_string(par_a->get_string());
 
-    if (cr_.xs() == TrigonalSystem) {
+    /*
+    if (cr_.xs() == RhombohedralSystem) {
         par_beta->set_string(par_alpha->get_string());
         par_gamma->set_string(par_alpha->get_string());
     }
+    */
 }
 
-void PhasePanel::update_miller_indices()
+void PhasePanel::update_miller_indices(bool sg_changed)
 {
     double a = par_a->get_value();
     double b = par_b->get_value();
@@ -968,25 +977,31 @@ void PhasePanel::update_miller_indices()
     double min_d = powder_book->get_min_d();
     RadiationType radiation = powder_book->get_radiation_type();
 
-    hkl_list->Clear();
     if (a <= 0 || b <= 0 || c <= 0 || alpha <= 0 || beta <= 0 || gamma <= 0
             || min_d <= 0) {
+        hkl_list->Clear();
         return;
     }
-    cr_.set_unit_cell(a, b, c, alpha, beta, gamma);
 
-    cr_.generate_reflections(min_d);
-    cr_.update_intensities(radiation, lambda);
+    if (sg_changed || cr_.uc == NULL ||
+            cr_.uc->a != a || cr_.uc->b != b || cr_.uc->c != c ||
+            cr_.uc->alpha != alpha || cr_.uc->beta != beta ||
+            cr_.uc->gamma != gamma || cr_.old_min_d != min_d) {
+        cr_.set_unit_cell(new UnitCell(a, b, c, alpha, beta, gamma));
+        cr_.generate_reflections(min_d);
 
-    for (vector<PlanesWithSameD>::iterator i = cr_.bp.begin();
-                                                i != cr_.bp.end(); ++i) {
-        i->enabled = powder_book->is_d_active(i->d);
-        char a = (i->planes.size() == 1 ? ' ' : '*');
-        Miller const& m = i->planes[0];
-        hkl_list->Append(wxString::Format(wxT("(%d,%d,%d)%c  d=%g"),
-                                          m.h, m.k, m.l, a, i->d));
-        hkl_list->Check(hkl_list->GetCount() - 1, i->enabled);
+        hkl_list->Clear();
+        vm_foreach (PlanesWithSameD, i, cr_.bp) {
+            i->enabled = powder_book->is_d_active(i->d);
+            char a = (i->planes.size() == 1 ? ' ' : '*');
+            Miller const& m = i->planes[0];
+            hkl_list->Append(wxString::Format(wxT("(%d,%d,%d)%c  d=%g"),
+                                              m.h, m.k, m.l, a, i->d));
+            hkl_list->Check(hkl_list->GetCount() - 1, i->enabled);
+        }
     }
+
+    cr_.update_intensities(radiation, lambda);
 }
 
 void PhasePanel::set_phase(string const& name, CelFile const& cel)
@@ -994,7 +1009,6 @@ void PhasePanel::set_phase(string const& name, CelFile const& cel)
     name_tc->ChangeValue(s2wx(name));
     powder_book->update_phase_labels(this);
     cr_.set_space_group(cel.sgs);
-    change_space_group();
     par_a->set_string(wxString::Format(wxT("%g"), (cel.a)));
     par_b->set_string(wxString::Format(wxT("%g"), (cel.b)));
     par_c->set_string(wxString::Format(wxT("%g"), (cel.c)));
@@ -1011,12 +1025,14 @@ void PhasePanel::set_phase(string const& name, CelFile const& cel)
                                       i->x, i->y, i->z);
     }
     atoms_tc->ChangeValue(atoms_str);
+    update_space_group_ui();
+
     cr_.atoms.clear();
     line_with_error_ = parse_atoms((const char*) atoms_str.mb_str(), cr_);
     wxString info = make_info_string_for_atoms(cr_.atoms, line_with_error_);
     info_tc->SetValue(info);
     atoms_show_help_ = false;
-    update_miller_indices();
+    update_miller_indices(true);
 }
 
 wxPanel* PowderBook::PrepareSamplePanel()
@@ -1370,6 +1386,14 @@ wxString PowderBook::prepare_commands()
         if (p->par_gamma->IsEnabled())
             s += pre + wxT("gamma = ") + get_var(p->par_gamma, d2r) + wxT("\n");
 
+        if (cr.xs() == TriclinicSystem) {
+            wxString v_str = wxT(":a*:b*:c *")
+                 wxT(" sqrt(1 - cos(:alpha)^2 - cos(:beta)^2 - cos(:gamma)^2")
+                 wxT(" + 2*cos(:alpha)*cos(:beta)*cos(:gamma))\n");
+            v_str.Replace(wxT(":"), pre);
+            s += pre + wxT("volume = ") + v_str;
+        }
+
         bool has_shape = peak_rb->GetSelection() >= 2;
         int shape_sel = shape_rb->GetSelection();
 
@@ -1450,22 +1474,51 @@ wxString PowderBook::prepare_commands()
                 wxString rd_str; // d^-1
                 switch (cr.xs()) {
                     case CubicSystem: // use only a
-                        rd_str.Printf(wxT("sqrt(%d)/$pd%d_a"),
-                                hkl.h*hkl.h + hkl.k*hkl.k + hkl.l*hkl.l, i);
+                        rd_str.Printf(wxT("sqrt(%d)/:a"),
+                                hkl.h*hkl.h + hkl.k*hkl.k + hkl.l*hkl.l);
                         break;
-                    case OrthorhombicSystem: // use a and c
-                        rd_str.Printf(wxT("sqrt(%d/$pd%d_a^2 + %d/$pd%d_c^2)"),
-                                  hkl.h*hkl.h + hkl.k*hkl.k, i, hkl.l*hkl.l, i);
+                    case TetragonalSystem: // use a and c
+                        rd_str.Printf(wxT("sqrt(%d/:a^2 + %d/:c^2)"),
+                                  hkl.h*hkl.h + hkl.k*hkl.k, hkl.l*hkl.l);
                         break;
-                    case TetragonalSystem: // use a, b, c
+                    //TODO rhombohedral basis are not supported
+                    case TrigonalSystem:
+                    case HexagonalSystem:
+                        rd_str.Printf(wxT("sqrt(%g/:a^2 + %d/:c^2)"),
+                          4./3.*(hkl.h*hkl.h + hkl.h*hkl.k + hkl.k*hkl.k),
+                          hkl.l*hkl.l);
+                        break;
+                    case OrthorhombicSystem: // use a, b, c
                         rd_str.Printf(
-                       wxT("sqrt(%d/$pd%d_a^2 + %d/$pd%d_b^2 + %d/$pd%d_c^2)"),
-                            hkl.h*hkl.h, i, hkl.k*hkl.k, i, hkl.l*hkl.l, i);
+                       wxT("sqrt(%d/:a^2 + %d/:b^2 + %d/:c^2)"),
+                            hkl.h*hkl.h, hkl.k*hkl.k, hkl.l*hkl.l);
                         break;
-                    //TODO
-                    default:
+                    case MonoclinicSystem:
+                        rd_str.Printf(
+                       wxT("(1/sin(:beta) * ")
+                       wxT("sqrt(%d/:a^2 + %d*sin(:beta)^2/:b^2 + %d/:c^2 ")
+                           wxT("- %d*cos(:beta)/(:a*:c)))"),
+                            hkl.h*hkl.h, hkl.k*hkl.k, hkl.l*hkl.l,
+                            2*hkl.h*hkl.l);
+                        break;
+                    case TriclinicSystem:
+                        rd_str.Printf(
+                wxT("(sqrt(")
+                wxT(" (%d*:b*:c*sin(:alpha))^2 + ")
+                wxT(" (%d*:a*:c*sin(:beta))^2 + ")
+                wxT(" (%d*:a*:b*sin(:gamma))^2 + ")
+                wxT("%d*:a*:b*:c^2*(cos(:alpha)*cos(:beta) - cos(:gamma)) + ")
+                wxT("%d*:a^2*:b*:c*(cos(:beta)*cos(:gamma) - cos(:alpha)) + ")
+                wxT("%d*:a*:b^2*:c*(cos(:alpha)*cos(:gamma) - cos(:beta)) ")
+                wxT(") / :volume)"),
+                            hkl.h, hkl.k, hkl.l,
+                            2*hkl.h*hkl.k, 2*hkl.k*hkl.l, 2*hkl.h*hkl.l);
+                        break;
+                    case UndefinedSystem:
+                        rd_str = wxT(" # undefined system # ");
                         break;
                 }
+                rd_str.Replace(wxT(":"), wxString::Format(wxT("$pd%d_"), i));
                 s += cvar;
                 if (xaxis_val == 0) // 2T
                     s += wxString::Format(
@@ -1738,7 +1791,7 @@ void PowderBook::OnPageChanged(wxListbookEvent& event)
     if (event.GetSelection() == 2) { // sample
         for (size_t i = 0; i != sample_nb->GetPageCount(); ++i) {
             PhasePanel* p = get_phase_panel(i);
-            p->update_miller_indices();
+            p->update_miller_indices(false);
             p->sample_plot_->refresh();
         }
     }
