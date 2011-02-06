@@ -43,6 +43,7 @@ struct Tplate
 
     std::string as_formula() const;
     bool is_coded() const;
+    std::vector<std::string> get_missing_default_values() const;
 };
 
 // takes keyword args and returns positional args for given function.

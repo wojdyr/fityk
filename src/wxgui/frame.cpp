@@ -1096,8 +1096,7 @@ void FFrame::OnDefinitionMgr(wxCommandEvent&)
 
 void FFrame::OnSGuess (wxCommandEvent&)
 {
-    ftk->exec(get_datasets() + "guess " + get_peak_type()
-                                              + get_global_parameters());
+    ftk->exec(get_datasets() + "guess " + get_guess_string(get_peak_type()));
 }
 
 void FFrame::OnSPFInfo (wxCommandEvent&)
@@ -1881,14 +1880,11 @@ string FFrame::get_datasets()
         return "@" + join_vector(sel, ", @") + ": ";
 }
 
-string FFrame::get_global_parameters()
+string FFrame::get_guess_string(const std::string& name)
 {
     string s;
     int nh = ftk->find_variable_nr("_hwhm");
     int ns = ftk->find_variable_nr("_shape");
-
-    if (nh == -1 && ns == -1)
-        return s; // =""
 
     s = "(";
     if (nh != -1)
@@ -1899,9 +1895,28 @@ string FFrame::get_global_parameters()
             s += ", ";
         s += "shape=$_shape";
     }
-    s += ")";
 
-    return s;
+    const Tplate* tp = ftk->get_tpm()->get_tp(name);
+    vector<string> missing;
+    try {
+        missing = tp->get_missing_default_values();
+    }
+    catch (fityk::SyntaxError&) {
+    }
+    v_foreach (string, arg, missing) {
+        wxString value = wxGetTextFromUser(s2wx(*arg) + wxT(" = "),
+                                           wxT("Initial value"), wxT("~0"));
+        if (value.empty()) // pressing Cancel returns ""
+            break;
+        if (s.size() > 1)
+            s += ", ";
+        s += *arg + "=" + wx2s(value);
+    }
+
+    if (s.size() == 1)
+        return name;
+    else
+        return name + s + ")";
 }
 
 vector<DataAndModel*> FFrame::get_selected_dms()

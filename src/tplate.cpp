@@ -9,6 +9,8 @@
 #include "ast.h"
 #include "lexer.h"
 #include "cparser.h"
+#include "eparser.h"
+#include "guess.h"
 
 
 using namespace std;
@@ -33,6 +35,26 @@ bool Tplate::is_coded() const
            create != create_SplitFunction &&
            create != create_CustomFunction &&
            create != NULL; // return false for empty Tplate
+}
+
+vector<string> Tplate::get_missing_default_values() const
+{
+    vector<string> gkeys;
+    if (peak_d)
+        gkeys.insert(gkeys.end(), Guess::peak_traits.begin(),
+                                  Guess::peak_traits.end());
+    if (linear_d)
+        gkeys.insert(gkeys.end(), Guess::linear_traits.begin(),
+                                  Guess::linear_traits.end());
+    ExpressionParser ep(NULL);
+    vector<string> missing;
+    for (size_t i = 0; i < fargs.size(); ++i) {
+        string dv = defvals[i].empty() ? fargs[i] : defvals[i];
+        ep.clear_vm();
+        Lexer lex(dv.c_str());
+        ep.parse_expr(lex, 0, &gkeys, &missing, false);
+    }
+    return missing;
 }
 
 #define FACTORY_FUNC(NAME) \

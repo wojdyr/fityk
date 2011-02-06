@@ -759,7 +759,7 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
         char buffer[64];
         sprintf(buffer, " [%.12g:%.12g]", ctr-plusmin, ctr+plusmin);
         ftk->exec(frame->get_datasets() + "guess %" + p->name + " = "
-                  + p->tp()->name + frame->get_global_parameters()
+                  + frame->get_guess_string(p->tp()->name)
                   + " [" + eS(ctr-plusmin) + ":" + eS(ctr+plusmin) + "]");
     }
 }
@@ -1211,7 +1211,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             fp x1 = xs.valr(mouse_press_X);
             fp x2 = xs.valr(event.GetX());
             ftk->exec(frame->get_datasets() + "guess "
-                      + frame->get_peak_type() + frame->get_global_parameters()
+                      + frame->get_guess_string(frame->get_peak_type())
                       + " [" + eS(min(x1,x2)) + " : " + eS(max(x1,x2)) + "]");
         }
         line_following_cursor(mat_stop);
@@ -1237,12 +1237,17 @@ void MainPlot::add_peak_from_draft(int X, int Y)
         fp hwhm = fabs(center - xs.valr(X));
         fp area = 2 * height * hwhm;
         args = "height=~" + eS(height) + ", center=~" + eS(center)
-                 + ", hwhm=~" + eS(hwhm) + ", area=~" + eS(area);
-        string global = frame->get_global_parameters();
-        if (!global.empty())
-            args += "," + global;
+                 + ", area=~" + eS(area);
+        if (ftk->find_variable_nr("_hwhm") == -1)
+            args += ", hwhm=~" + eS(hwhm);
     }
-    string tail = "F += " + frame->get_peak_type() + "(" + args + ")";
+    string tail = "F += " + frame->get_guess_string(frame->get_peak_type());
+    if (*(tail.end() - 1) == ')') {
+        tail.resize(tail.size() - 1);
+        tail += ", " + args + ")";
+    }
+    else
+        tail += "(" + args + ")";
     string cmd;
     if (ftk->get_dm_count() == 1)
         cmd = tail;

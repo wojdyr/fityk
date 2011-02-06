@@ -184,7 +184,7 @@ public:
     std::vector<int> get_selected_data_indices();
     std::vector<DataAndModel*> get_selected_dms();
     std::string get_datasets();
-    std::string get_global_parameters();
+    std::string get_guess_string(const std::string& name);
     MainPlot* get_main_plot();
     MainPlot const* get_main_plot() const;
     void update_data_pane();

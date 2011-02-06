@@ -1,7 +1,4 @@
 
-* GUI, "Guess function" toolbar button: if initial values are not known,
-  show a dialog asking for the values (comma-separated numbers).
-
 * GUI: change how colors are stored in the config file
 
 ---------
