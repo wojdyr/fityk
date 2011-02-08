@@ -39,21 +39,32 @@ double cfg_read_double(wxConfigBase *cf, const wxString& key, double def_val)
     return d;
 }
 
+// the storing of color values was changed in 0.9.7
+//   before:
+//     config->Write(key + wxT("/Red"), (int) value.Red());
+//     config->Write(key + wxT("/Green"), (int) value.Green());
+//     config->Write(key + wxT("/Blue"), (int) value.Blue());
+//   after:
+//     config->Write(key + wxT("_col"), value.GetAsString(wxC2S_CSS_SYNTAX));
+
 wxColour cfg_read_color(const wxConfigBase *config, const wxString& key,
                         const wxColour& default_value)
 {
-    return wxColour(
-             config->Read (key + wxT("/Red"), (int) default_value.Red()),
-             config->Read (key + wxT("/Green"), (int) default_value.Green()),
-             config->Read (key + wxT("/Blue"), (int) default_value.Blue()));
+    wxString val = config->Read(key + wxT("_col"), wxEmptyString);
+    if (val.empty() && config->Exists(key + wxT("/Red")))
+        return wxColour(
+              config->Read (key + wxT("/Red"), (int) default_value.Red()),
+              config->Read (key + wxT("/Green"), (int) default_value.Green()),
+              config->Read (key + wxT("/Blue"), (int) default_value.Blue()));
+    return val.empty() ? default_value : wxColour(val);
 }
 
 void cfg_write_color(wxConfigBase *config, const wxString& key,
                            const wxColour& value)
 {
-    config->Write (key + wxT("/Red"), (int) value.Red());
-    config->Write (key + wxT("/Green"), (int) value.Green());
-    config->Write (key + wxT("/Blue"), (int) value.Blue());
+    config->Write(key + wxT("_col"), value.GetAsString(wxC2S_CSS_SYNTAX));
+    if (config->Exists(key + wxT("/Red")))
+        config->DeleteGroup(key);
 }
 
 wxFont cfg_read_font(wxConfigBase const *config, wxString const& key,

@@ -1,11 +1,7 @@
 
-* GUI: change how colors are stored in the config file
-
----------
-
 * GUI: a single dialog for Model > Export... options and for "info models"
 
-* GUI: definition mgr - checkbox - show in the list on toolbar
+* GUI: definition mgr - add checkbox:   [ ] show in the toolbar list
 
 * GUI: definition mgr - show formula images from the manual, if available
 
