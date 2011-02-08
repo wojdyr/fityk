@@ -85,7 +85,7 @@ Download
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 :html:`<a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://fityk.nieto.pl"></a>`
 
-Version 0.9.6 was released on 2011-01-26
+Version 0.9.7 was released on 2011-02-08
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
 Subscribe to `new version notifications <http://fityk-announce.nieto.pl/>`_
 (email or feeds).
