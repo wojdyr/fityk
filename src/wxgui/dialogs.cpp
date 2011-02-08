@@ -1,6 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
-///  small dialogs:  FitRunDlg, DataExportDlg, MergePointsDlg
+///  small dialogs:  FitRunDlg, MergePointsDlg
 
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
@@ -11,7 +11,6 @@
 #endif
 
 #include <wx/statline.h>
-#include <wx/config.h>
 
 #include "dialogs.h"
 #include "frame.h"
@@ -20,16 +19,8 @@
 #include "../settings.h"
 #include "../logic.h"
 #include "../data.h"
-#include "../model.h" // get_ff_names()
 
 using namespace std;
-
-
-enum {
-    ID_DED_RADIO            = 26150,
-    ID_DED_INACT_CB                ,
-    ID_DED_TEXT
-};
 
 
 //=====================    fit->run  dialog    ==================
@@ -173,162 +164,6 @@ void FitRunDlg::OnOK(wxCommandEvent&)
     Show(false);
     ftk->exec(cmd);
     EndModal(wxID_OK);
-}
-
-
-/// show "Export data" dialog
-bool export_data_dlg(wxWindow *parent)
-{
-    static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
-
-    vector<int> sel = frame->get_selected_data_indices();
-    int data_idx;
-    if (sel.size() == 1)
-        data_idx = sel[0];
-    else if ((int) sel.size() == ftk->get_dm_count())
-        data_idx = -1;
-    else
-        return false;
-
-    DataExportDlg ded(parent, -1, data_idx);
-    if (ded.ShowModal() != wxID_OK)
-        return false;
-
-    wxFileDialog filedlg(parent, wxT("Export data to file"), dir, wxT(""),
-                         wxT("x y data (*.dat, *.xy)|*.dat;*.DAT;*.xy;*.XY"),
-                         wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    dir = filedlg.GetDirectory();
-    if (filedlg.ShowModal() != wxID_OK)
-        return false;
-    string path = wx2s(filedlg.GetPath());
-    string cmd = (data_idx == -1 ? string("@*") : "@" + S(data_idx))
-                 + ": print "
-                 + (ded.get_only_active_checked() ? "if a: " : "all: ")
-                 + ded.get_columns() + " > '" + path + "'";
-    ftk->exec(cmd);
-    return true;
-}
-//======================================================================
-//                         DataExportDlg
-//======================================================================
-BEGIN_EVENT_TABLE(DataExportDlg, wxDialog)
-    EVT_BUTTON(wxID_OK, DataExportDlg::OnOk)
-    EVT_RADIOBOX(ID_DED_RADIO, DataExportDlg::OnRadioChanged)
-    EVT_CHECKBOX(ID_DED_INACT_CB, DataExportDlg::OnInactiveChanged)
-    EVT_TEXT(ID_DED_TEXT, DataExportDlg::OnTextChanged)
-END_EVENT_TABLE()
-
-DataExportDlg::DataExportDlg(wxWindow* parent, wxWindowID id, int data_idx)
-    : wxDialog(parent, id, wxT("Export data/functions as points"),
-               wxDefaultPosition, wxSize(600, 500),
-               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
-      data_idx_(data_idx)
-{
-    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
-    wxStaticText *st1 = new wxStaticText(this, -1,
-                                         wxT("       Step 1: Select columns"));
-    top_sizer->Add(st1, 0, wxTOP|wxLEFT|wxRIGHT, 5);
-    wxStaticText *st2 = new wxStaticText(this, -1,
-                                         wxT("       Step 2: Choose a file"));
-    st2->Enable(false);
-    top_sizer->Add(st2, 0, wxALL, 5);
-    wxArrayString choices;
-    choices.Add(wxT("x, y"));
-    cv.Add(wxT("x, y"));
-    choices.Add(wxT("x, y, sigma"));
-    cv.Add(wxT("x, y, s"));
-    choices.Add(wxT("x, model"));
-    cv.Add(wxT("x, F(x)"));
-    choices.Add(wxT("x, model, x-correction"));
-    cv.Add(wxT("x, F(x), Z(x)"));
-    choices.Add(wxT("x, y, sigma, model"));
-    wxString xysF = wxT("x, y, s, F(x)");
-    cv.Add(xysF);
-
-    choices.Add(wxT("x, y, sigma, model, all functions..."));
-    wxString all_func;
-    if (data_idx_ >= 0) {
-        vector<string> const& ff_names
-            = ftk->get_model(data_idx_)->get_ff().names;
-        for (vector<string>::const_iterator i = ff_names.begin();
-                                                      i != ff_names.end(); ++i)
-            all_func += wxT(", %") + s2wx(*i) + wxT("(x)");
-        cv.Add(xysF + all_func);
-    }
-    else
-        cv.Add(wxT(""));
-
-    choices.Add(wxT("x, y, sigma, model, residual"));
-    cv.Add(wxT("x, y, s, F(x), y-F(x)"));
-    choices.Add(wxT("x, y, sigma, weighted residual"));
-    cv.Add(wxT("x, y, s, (y-F(x))/s"));
-    choices.Add(wxT("custom"));
-    rb = new wxRadioBox(this, ID_DED_RADIO, wxT("exported columns"),
-                        wxDefaultPosition, wxDefaultSize, choices,
-                        2, wxRA_SPECIFY_COLS);
-    for (size_t i = 0; i < cv.GetCount(); ++i) {
-        if (cv[i].IsEmpty())
-            rb->Enable(i, false);
-    }
-    top_sizer->Add(rb, 0, wxALL|wxEXPAND, 5);
-    only_a_cb = new wxCheckBox(this, ID_DED_INACT_CB,
-                               wxT("only active points"));
-    top_sizer->Add(only_a_cb, 0, wxALL, 5);
-    text = new wxTextCtrl(this, ID_DED_TEXT, wxT(""));
-    top_sizer->Add(text, 0, wxEXPAND|wxALL, 5);
-    top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
-    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL),
-                   0, wxALL|wxALIGN_CENTER, 5);
-    SetSizerAndFit(top_sizer);
-
-    //read settings
-    wxConfigBase *config = wxConfig::Get();
-    int n = config->Read(wxT("/exportDataSel"), 0L);
-    if (n >= 0 && n < (int) rb->GetCount())
-        rb->SetSelection(n);
-    if (is_custom()) {
-        text->SetValue(config->Read(wxT("/exportDataText"), wxT("")));
-        text->MarkDirty();
-    }
-    else {
-        bool a = cfg_read_bool(config, wxT("/exportDataA"), false);
-        only_a_cb->SetValue(!a);
-    }
-    on_widget_change();
-}
-
-
-void DataExportDlg::on_widget_change()
-{
-    bool custom = is_custom();
-    if (!custom) {
-        int n = rb->GetSelection();
-        text->SetValue(cv[n]);
-        FindWindow(wxID_OK)->Enable(true);
-    }
-    text->Enable(custom);
-}
-
-void DataExportDlg::OnTextChanged(wxCommandEvent&)
-{
-    if (!text->IsModified())
-        return;
-    string test_cmd = "print " + wx2s(text->GetValue());
-    bool parsable = ftk->get_ui()->check_syntax(test_cmd);
-    FindWindow(wxID_OK)->Enable(parsable);
-}
-
-void DataExportDlg::OnOk(wxCommandEvent& event)
-{
-    // save current settings to config file
-    wxConfigBase *config = wxConfig::Get();
-    config->Write(wxT("/exportDataSel"), rb->GetSelection());
-    if (is_custom())
-        config->Write(wxT("/exportDataText"), text->GetValue());
-    else
-        config->Write(wxT("/exportDataA"), !only_a_cb->GetValue());
-
-    event.Skip();
 }
 
 

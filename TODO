@@ -1,7 +1,7 @@
 
 * GUI: a single dialog for Model > Export... options and for "info models"
 
-* GUI: definition mgr - add checkbox:   [ ] show in the toolbar list
+* GUI: definition mgr - checkbox - show in the list on toolbar
 
 * GUI: definition mgr - show formula images from the manual, if available
 
@@ -11,8 +11,6 @@
 
 * CLI/GUI: use sigaction() instead of signal() to handle SIGINT
   print a message from interrupt_handler()
-
-* make possible something like this:  $min = @*.min(y if a)
 
 * subtracting datasets (with interpolation of the subtrahend): @2 = @0 - @1;
   for consistency, `+' should add interpolated data, and 'U' can stand
@@ -25,6 +23,9 @@
 * embed the Lua interpreter
 
 ---
+
+* syntax enhancements:  $min = @*.min(y if a)
+                        print all: F[*](x) # print all components as columns
 
 * finish the powder diffraction add-on (Pawley fitting)
 

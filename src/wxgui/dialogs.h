@@ -30,32 +30,6 @@ private:
 };
 
 
-bool export_data_dlg(wxWindow *parent);
-
-class DataExportDlg : public wxDialog
-{
-public:
-    DataExportDlg(wxWindow* parent, wxWindowID id, int data_idx);
-    void OnRadioChanged(wxCommandEvent&) { on_widget_change(); }
-    void OnInactiveChanged(wxCommandEvent&) { on_widget_change(); }
-    void OnTextChanged(wxCommandEvent&);
-    void OnOk(wxCommandEvent& event);
-    void on_widget_change();
-    std::string get_columns() { return wx2s(text->GetValue()); }
-    bool get_only_active_checked() { return only_a_cb->GetValue(); }
-protected:
-    int data_idx_;
-    wxRadioBox *rb;
-    wxCheckBox *only_a_cb;
-    wxTextCtrl *text;
-    wxArrayString cv;
-
-    bool is_custom() const { return rb->GetSelection() == (int) cv.GetCount(); }
-
-    DECLARE_EVENT_TABLE()
-};
-
-
 class DataListPlusText;
 
 class MergePointsDlg : public wxDialog

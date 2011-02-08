@@ -36,6 +36,7 @@
 #include "mplot.h"
 #include "aplot.h"
 #include "dialogs.h"
+#include "exportd.h"
 #include "history.h"
 #include "about.h"
 #include "dload.h"

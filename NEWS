@@ -1,6 +1,8 @@
-User-visible changes in version 0.9.7  (2011-  -  ):
-* fix: UDFs (user-defined functions) did not work properly in ver. 0.9.5-6
+User-visible changes in version 0.9.7  (2011-02-08):
+* bug fixes: UDFs (user-defined functions) did not work in ver. 0.9.5-6,
+  a few fixes in the powder diffraction add-on and in other places
 * data operations: added aggregate functions argmin, argmax and count
+* GUI: redesigned the Data > Export dialog
 
 User-visible changes in version 0.9.6  (2011-01-26):
 * fixed three bugs, one of them was sometimes crashing the program at startup
