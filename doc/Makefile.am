@@ -100,7 +100,7 @@ dist_man_MANS = fityk.1
 
 EXTRA_DIST  = fityk-manual.rst index.rst intro.rst getstarted.rst \
 	      lang.rst data.rst model.rst fit.rst ref.rst \
-	      layout.html conf.py fityk_ext.py
+	      layout.html conf.py fityk_ext.py fityk.css
 
 SPHINX = sphinx-build -a -d ./doctrees/
 

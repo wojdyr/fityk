@@ -34,11 +34,15 @@ AboutDlg::AboutDlg(wxWindow* parent)
 
     hsizer->Add(name_sizer, wxSizerFlags(1).Expand());
     sizer->Add(hsizer, wxSizerFlags());
-    wxTextCtrl *txt = new wxTextCtrl(this, -1, wxT(""),
-                                     wxDefaultPosition, wxSize(-1,200),
+    wxTextCtrl *txt = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition,
+#ifdef __WXMSW__
+                                     wxSize(-1,150),
+#else
+                                     wxSize(-1,200),
+#endif
                          wxTE_MULTILINE|wxTE_RICH|wxNO_BORDER |wxTE_READONLY);
     txt->SetBackgroundColour(GetBackgroundColour());
-    txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour,
+    txt->SetDefaultStyle(wxTextAttr(wxNullColour, GetBackgroundColour(),
                                     *wxITALIC_FONT));
     txt->AppendText(wxT("powered by ") wxVERSION_STRING wxT("\n"));
     txt->AppendText(wxString::Format(wxT("powered by Boost %d.%d.%d\n"),
@@ -47,7 +51,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
                                      BOOST_VERSION % 100));
     txt->AppendText(wxT("powered by xylib ") + pchar2wx(xylib_get_version())
                     + wxT("\n"));
-    txt->SetDefaultStyle(wxTextAttr(wxNullColour, wxNullColour,
+    txt->SetDefaultStyle(wxTextAttr(wxNullColour, GetBackgroundColour(),
                                     *wxNORMAL_FONT));
     txt->AppendText(wxT("\nCopyright (C) 2001 - 2011 Marcin Wojdyr\n\n"));
     txt->AppendText(

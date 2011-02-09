@@ -268,7 +268,7 @@ wxPanel* PowderBook::PrepareIntroPanel()
     "  - data (powder diffraction pattern) loaded,\n"
     "  - only interesting data range active,\n"
     "  - baseline (background) either removed manually\n"
-    "    or modeled with e.g. polynomial.\n"
+    "    or modeled with polynomial or another function.\n"
     "\n"
     "This tool can build a model for powder diffraction data, "
     "The model has constrained position of peaks "
@@ -278,7 +278,7 @@ wxPanel* PowderBook::PrepareIntroPanel()
     "\n"
     "The CCTBX library have been used to generate space group data.\n"
     "\n"
-    "This tool is new in fityk 0.9.3. The next release will contain more features.\n";
+    "The size-strain analysis is not implemented yet.\n";
 #endif
 
     wxPanel *panel = new wxPanel(this);
@@ -1205,7 +1205,7 @@ wxPanel* PowderBook::PrepareActionPanel()
      wxT("Press OK to execute the script above that prepares the XRPD model.")
      wxT("\nOK closes this window.")
      wxT(" If the initial model is good, fit it to the data.")
-     wxT("\nThis tool can be reopened at any time to tune the model.")),
+     wxT("\nThis window can be reopened at any time to modify the model.")),
                      wxSizerFlags().Border());
     wxButton *ok_btn = new wxButton(panel, wxID_OK);
     a_set_sizer->Add(ok_btn, wxSizerFlags().Right().Border(wxLEFT|wxRIGHT));

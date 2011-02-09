@@ -29,15 +29,17 @@ FStatusBar::FStatusBar(wxWindow *parent)
 {
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     split = new wxSplitterWindow(this, -1, wxDefaultPosition, wxDefaultSize, 0);
-    text = new wxStaticText(split, -1, wxT(""));
+    wxPanel *panel_text = new wxPanel(split, -1);
+    wxPanel *panel_coords = new wxPanel(split, -1);
+    text = new wxStaticText(panel_text, -1, wxT(""));
 
-    coords = new wxStaticText(split, -1, wxT(""),
+    coords = new wxStaticText(panel_coords, -1, wxT(""),
                               wxDefaultPosition, wxSize(240, -1));
     wxFont font = coords->GetFont();
     font.SetFamily(wxFONTFAMILY_TELETYPE);
     coords->SetFont(font);
 
-    split->SplitVertically(text, coords);
+    split->SplitVertically(panel_text, panel_coords);
     split->SetSashGravity(1.0);
     split->SetMinimumPaneSize(150);
     sizer->Add(split, wxSizerFlags(1).Centre().Border(wxLEFT));

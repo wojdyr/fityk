@@ -120,7 +120,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
                                  settings->function_cutoff,
                                  sizer_general);
 
-    verbosity_sp = addSpinCtrl(page_general, wxT("verbosity (in output pane)"),
+    verbosity_sp = addSpinCtrl(page_general, wxT("verbosity level (in output pane)"),
                                settings->verbosity, -1, 2, sizer_general);
 
     exit_cb = addCheckbox(page_general,
