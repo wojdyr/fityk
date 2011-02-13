@@ -18,6 +18,8 @@
 
 * add functions cot and coth
 
+* GUI: Help > Examples
+
 ---
 
 * embed the Lua interpreter
