@@ -20,16 +20,14 @@ using namespace std;
 
 // filename utils
 #if defined(_WIN32) || defined(WIN32) || defined(__NT__) || defined(__WIN32__) || defined(__OS2__)
-#define FILE_SEP_PATH '\\'
-#elif defined(__MAC__) || defined(__APPLE__) || defined(macintosh)
-#define FILE_SEP_PATH ':'
+#define DIR_SEPARATOR '\\'
 #else
-#define FILE_SEP_PATH '/'
+#define DIR_SEPARATOR '/'
 #endif
 
 string get_file_basename(string const& path)
 {
-    string::size_type last_sep = path.rfind(FILE_SEP_PATH);
+    string::size_type last_sep = path.rfind(DIR_SEPARATOR);
     string::size_type last_dot = path.rfind('.');
     size_t basename_begin = (last_sep == string::npos ? 0 : last_sep + 1);
     if (last_dot != string::npos && last_dot > basename_begin)
