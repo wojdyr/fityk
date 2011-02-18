@@ -83,9 +83,10 @@ void ValueChangingWidget::OnThumbTrack(wxScrollEvent&)
 
 class LockButton : public wxBitmapButton
 {
+    static const wxBitmap lock_bmp, lock_open_bmp;
 public:
     LockButton(wxWindow* parent, bool connect_default_handler=true)
-        : wxBitmapButton(parent, -1, wxBitmap(lock_xpm),
+        : wxBitmapButton(parent, -1, lock_bmp,
                          wxDefaultPosition, wxDefaultSize, wxNO_BORDER),
           locked_(true)
     {
@@ -97,7 +98,7 @@ public:
     void set_lock(bool locked)
     {
         locked_ = locked;
-        SetBitmapLabel(wxBitmap(locked_ ? lock_xpm : lock_open_xpm));
+        SetBitmapLabel(locked_ ? lock_bmp : lock_open_bmp);
     }
 
     void toggle_lock() { set_lock(!locked_); }
@@ -107,6 +108,19 @@ private:
     bool locked_;
     void OnClick(wxCommandEvent&) { toggle_lock(); }
 };
+
+#ifdef __WXMAC__
+// wxOSX supports border-less image buttons only when using bitmap of
+// one of the standard sizes (128x128, 48x48, 24x24 or 16x16).
+// Let's resize the bitmaps to 16x16.
+const wxBitmap LockButton::lock_bmp(wxImage(lock_xpm).
+                                         Size(wxSize(16, 16), wxPoint(2, 1)));
+const wxBitmap LockButton::lock_open_bmp(wxImage(lock_open_xpm).
+                                         Size(wxSize(16, 16), wxPoint(2, 1)));
+#else
+const wxBitmap LockButton::lock_bmp(lock_xpm);
+const wxBitmap LockButton::lock_open_bmp(lock_open_xpm);
+#endif
 
 LockableRealCtrl::LockableRealCtrl(wxWindow* parent, bool percent)
     : wxPanel(parent, -1)
