@@ -1,7 +1,7 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-///  SideBar class, the right hand sidebar in GUI
+/// class SideBar
 
 #include <wx/wxprec.h>
 #ifdef __BORLANDC__
@@ -180,15 +180,15 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     dpline_cb->SetToolTip(wxT("line between data points"));
     data_spin_sizer->Add(dpline_cb, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
     // line between points
-    dpsigma_cb = new wxCheckBox(data_page, ID_DP_PS, wxT("s"));
-    dpsigma_cb->SetToolTip(wxT("show std. dev. of y (sigma)"));
+    dpsigma_cb = new wxCheckBox(data_page, ID_DP_PS, wxT("\u03C3")); // sigma
+    dpsigma_cb->SetToolTip(wxT("show std. dev. of y"));
     data_spin_sizer->Add(dpsigma_cb, 0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
     // shift-up spin button
     data_spin_sizer->AddStretchSpacer();
     data_spin_sizer->Add(new wxStaticBitmap(data_page, -1,
                                             wxBitmap(shiftup_xpm)),
                          0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-    shiftup_sc = new SpinCtrl(data_page, ID_DP_SHIFTUP, 0, 0, 80, 40);
+    shiftup_sc = new SpinCtrl(data_page, ID_DP_SHIFTUP, 0, 0, 80, 50);
     shiftup_sc->SetToolTip(wxT("shift up (in % of plot height)"));
     data_spin_sizer->Add(shiftup_sc, 0);
     data_sizer->Add(data_spin_sizer, 0, wxEXPAND);
