@@ -25,7 +25,8 @@ using namespace std;
 
 enum {
     ID_OUTPUT_CLEAR     = 27001,
-    ID_OUTPUT_CONFIGURE
+    ID_OUTPUT_CONFIGURE,
+    ID_OUTPUT_EDITLINE
 };
 
 
@@ -69,6 +70,7 @@ BEGIN_EVENT_TABLE(OutputWin, wxTextCtrl)
     EVT_RIGHT_DOWN (                      OutputWin::OnRightDown)
     EVT_MENU       (ID_OUTPUT_CLEAR,      OutputWin::OnClear)
     EVT_MENU       (ID_OUTPUT_CONFIGURE,  OutputWin::OnConfigure)
+    EVT_MENU       (ID_OUTPUT_EDITLINE,   OutputWin::OnEditLine)
     EVT_KEY_DOWN   (                      OutputWin::OnKeyDown)
 END_EVENT_TABLE()
 
@@ -151,10 +153,28 @@ void OutputWin::OnClear (wxCommandEvent&)
     show_fancy_dashes();
 }
 
+void OutputWin::OnEditLine (wxCommandEvent&)
+{
+    InputLine *input_field = static_cast<IOPane*>(GetParent())->input_field;
+    input_field->SetValue(selection);
+    input_field->SetFocus();
+}
+
 
 void OutputWin::OnRightDown (wxMouseEvent& event)
 {
     wxMenu popup_menu;
+    popup_menu.Append (ID_OUTPUT_EDITLINE, wxT("&Edit Line/Selection"));
+    selection = GetStringSelection();
+    if (selection.empty()) {
+        wxTextCoord col, row;
+        if (HitTest(event.GetPosition(), &col, &row) != wxTE_HT_UNKNOWN)
+            selection = GetLineText(row);
+    }
+    if (selection.StartsWith(wxT("=-> ")))
+        selection = selection.substr(4);
+    if (selection.empty())
+        popup_menu.Enable(ID_OUTPUT_EDITLINE, false);
     popup_menu.Append (ID_OUTPUT_CLEAR, wxT("Clea&r"));
     popup_menu.Append (ID_OUTPUT_CONFIGURE, wxT("&Configure"));
     PopupMenu (&popup_menu, event.GetX(), event.GetY());

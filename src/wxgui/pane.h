@@ -35,12 +35,14 @@ public:
     void set_bg_color(wxColour const &color);
     void OnRightDown (wxMouseEvent& event);
     void OnConfigure(wxCommandEvent&);
+    void OnEditLine(wxCommandEvent&);
     void OnClear(wxCommandEvent&);
     void OnKeyDown (wxKeyEvent& event);
 
 private:
     wxColour text_color[4];
     wxColour bg_color;
+    wxString selection; // string passed to OnEditLine()
 
     DECLARE_EVENT_TABLE()
 };
