@@ -184,6 +184,7 @@ ParameterPanel::ParameterPanel(wxWindow* parent, wxWindowID id,
     top_sizer->Add(title_st_, wxSizerFlags().Center());
     grid_sizer_ = new wxFlexGridSizer(3, 0, 0);
     grid_sizer_->AddGrowableCol(1);
+    grid_sizer_->AddGrowableCol(2);
     top_sizer->Add(grid_sizer_, wxSizerFlags(1).Expand());
     //SetSizerAndFit(top_sizer);
     SetSizer(top_sizer);
@@ -305,9 +306,9 @@ void ParameterPanel::append_row()
     data.arm = new ValueChangingWidget(this, -1, this);
     data.label2 = new wxStaticText(this, -1, wxEmptyString);
 
-    data.rsizer->Add(data.lock, wxSizerFlags().Center());
-    data.rsizer->Add(data.arm, wxSizerFlags().Center());
-    data.rsizer->Add(data.label2, wxSizerFlags().Center());
+    data.rsizer->Add(data.label2, wxSizerFlags().Center().Left());
+    data.rsizer->Add(data.lock, wxSizerFlags().Center().Left());
+    data.rsizer->Add(data.arm, wxSizerFlags(1).Center());
 
     grid_sizer_->Add(data.label, wxSizerFlags().Center()
 #ifdef __WXMSW__
@@ -316,7 +317,7 @@ void ParameterPanel::append_row()
                                    );
     grid_sizer_->Add(data.text, wxSizerFlags().Expand().Center()
                                          .Border(wxLEFT|wxTOP|wxBOTTOM, 2));
-    grid_sizer_->Add(data.rsizer, wxSizerFlags().Center());
+    grid_sizer_->Add(data.rsizer, wxSizerFlags().Expand().Center());
 
     data.label2->Show(false);
 
