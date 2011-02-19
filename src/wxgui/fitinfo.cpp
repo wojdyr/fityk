@@ -77,7 +77,7 @@ bool FitInfoDlg::Initialize()
                               wxDefaultPosition, wxDefaultSize,
                               wxTE_MULTILINE|wxTE_RICH|wxTE_READONLY|
                               wxTE_DONTWRAP);
-    wxFont font(10, wxFONTFAMILY_TELETYPE,
+    wxFont font(12, wxFONTFAMILY_TELETYPE,
                             wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     wxTextAttr attr;
     attr.SetFont(font);
