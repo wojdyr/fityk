@@ -90,6 +90,7 @@ img/exec_down.xpm \
 img/exec_selected.xpm \
 img/filter.xpm \
 img/fityk.xpm \
+img/goto.xpm \
 img/lock.xpm \
 img/lock_open.xpm \
 img/manual.xpm \

@@ -1041,10 +1041,26 @@ void SideBar::on_parameter_changed(int n)
     ftk->exec(vname + " = ~" + eS(param_panel->get_value(n)));
 }
 
-void SideBar::on_parameter_lock_toggled(int n, bool locked)
+void SideBar::on_parameter_lock_clicked(int n, int state)
 {
     string vname = wx2s(param_panel->get_label2(n));
-    ftk->exec(vname + " = " + (locked ? "{" : "~{") + vname + "}");
+    if (state == 0)
+        ftk->exec(vname + " = ~{" + vname + "}");
+    else if (state == 1)
+        ftk->exec(vname + " = {" + vname + "}");
+    else { // state == 2
+        nb->SetSelection(2); // "variables" page
+        wxString vname_no_prefix = vname.substr(1);
+        for (int i = 0; i != v->list->GetItemCount(); ++i) {
+            if (v->list->GetItemText(i) == vname_no_prefix) {
+                v->list->Select(i, true);
+                v->list->EnsureVisible(i);
+                v->list->Focus(i);
+            }
+            else
+                v->list->Select(i, false);
+        }
+    }
 }
 
 void SideBar::change_parameter_value(int idx, double value)
@@ -1085,8 +1101,10 @@ void SideBar::update_param_panel()
                                                 s2wx("$"+var->name));
     }
 
+    // Layout() is needed only when the layout has changed (e.g. when label2
+    // is shown for the first time). We call it always, just in case.
+    param_panel->Layout();
     if (new_count != old_count) {
-        param_panel->Layout();
         int sash_pos = GetClientSize().GetHeight() - 3
                          - param_panel->GetSizer()->GetMinSize().GetHeight();
         if (sash_pos < GetSashPosition())

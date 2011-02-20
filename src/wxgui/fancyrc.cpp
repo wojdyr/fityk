@@ -9,6 +9,7 @@
 
 #include "img/lock.xpm"
 #include "img/lock_open.xpm"
+#include "img/goto.xpm"
 
 using namespace std;
 
@@ -84,39 +85,38 @@ void ValueChangingWidget::OnThumbTrack(wxScrollEvent&)
 class LockButton : public wxBitmapButton
 {
 public:
-    LockButton(wxWindow* parent, bool connect_default_handler=true)
-        : wxBitmapButton(parent, -1, lock_bmp,
+    LockButton(wxWindow* parent, bool connect_default_handler)
+        : wxBitmapButton(parent, -1, bitmaps[0],
                          wxDefaultPosition, wxDefaultSize, wxNO_BORDER),
-          locked_(true)
+          state_(0)
     {
-        if (!lock_bmp.IsOk()) {
+        if (!bitmaps[0].IsOk()) {
             initialize_bitmaps();
-            SetBitmapLabel(lock_bmp);
+            SetBitmapLabel(bitmaps[0]);
         }
         if (connect_default_handler)
             Connect(GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
                     wxCommandEventHandler(LockButton::OnClick));
     }
 
-    void set_lock(bool locked)
+    void set_state(int state)
     {
-        locked_ = locked;
-        SetBitmapLabel(locked_ ? lock_bmp : lock_open_bmp);
+        assert(state >= 0 && state < 3);
+        state_ = state;
+        SetBitmapLabel(bitmaps[state]);
     }
 
-    void toggle_lock() { set_lock(!locked_); }
-    bool is_locked() const { return locked_; }
+    int state() const { return state_; }
 
 private:
-    static wxBitmap lock_bmp, lock_open_bmp;
+    static wxBitmap bitmaps[3];
     static void initialize_bitmaps();
 
-    bool locked_;
-    void OnClick(wxCommandEvent&) { toggle_lock(); }
+    int state_;
+    void OnClick(wxCommandEvent&) { set_state(state_ == 0 ? 1 : 0); }
 };
 
-wxBitmap LockButton::lock_bmp;
-wxBitmap LockButton::lock_open_bmp;
+wxBitmap LockButton::bitmaps[3];
 
 
 void LockButton::initialize_bitmaps()
@@ -124,14 +124,15 @@ void LockButton::initialize_bitmaps()
 #ifdef __WXMAC__
     // wxOSX supports border-less image buttons only when using bitmap of
     // one of the standard sizes (128x128, 48x48, 24x24 or 16x16).
-    // Let's resize the bitmaps to 16x16.
-    lock_bmp = wxBitmap(wxImage(lock_xpm).Size(wxSize(16, 16), wxPoint(2, 1)));
-    lock_open_bmp = wxBitmap(wxImage(lock_open_xpm).
-                                          Size(wxSize(16, 16), wxPoint(2, 1)));
+    // Let's resize the bitmaps from 12x14 to 16x16.
+#define RESIZE_BMP(xpm) \
+    wxImage(xpm).Size(wxSize(16, 16), wxPoint(2, 1))
 #else
-    lock_bmp = wxBitmap(lock_xpm);
-    lock_open_bmp = wxBitmap(lock_open_xpm);
+#define RESIZE_BMP(xpm) xpm
 #endif
+    bitmaps[0] = wxBitmap(RESIZE_BMP(lock_xpm));
+    bitmaps[1] = wxBitmap(RESIZE_BMP(lock_open_xpm));
+    bitmaps[2] = wxBitmap(RESIZE_BMP(goto_xpm));
 }
 
 LockableRealCtrl::LockableRealCtrl(wxWindow* parent, bool percent)
@@ -141,7 +142,7 @@ LockableRealCtrl::LockableRealCtrl(wxWindow* parent, bool percent)
         text = new KFTextCtrl(this, -1, wxT(""), 50, wxTE_RIGHT);
     else
         text = new KFTextCtrl(this, -1, wxT(""));
-    lock = new LockButton(this);
+    lock = new LockButton(this, true);
     wxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(text, wxSizerFlags().Center());
     if (percent)
@@ -166,12 +167,12 @@ void LockableRealCtrl::set_value(double value)
 
 bool LockableRealCtrl::is_locked() const
 {
-    return lock->is_locked();
+    return lock->state() == 0;
 }
 
 void LockableRealCtrl::set_lock(bool locked)
 {
-    lock->set_lock(locked);
+    lock->set_state(locked ? 0 : 1);
 }
 
 bool LockableRealCtrl::is_nonzero() const
@@ -259,7 +260,7 @@ void ParameterPanel::set_normal_parameter(int n, const wxString& label,
     set_value(n, value);
     rows_[n].label->SetLabel(label);
     rows_[n].text->SetToolTip(label2);
-    rows_[n].lock->set_lock(locked);
+    rows_[n].lock->set_state(locked ? 0 : 1);
     rows_[n].text->SetEditable(!locked);
     rows_[n].arm->Enable(!locked);
 }
@@ -272,6 +273,7 @@ void ParameterPanel::set_disabled_parameter(int n, const wxString& label,
     set_value(n, value);
     rows_[n].label->SetLabel(label);
     rows_[n].text->SetToolTip(label2);
+    rows_[n].lock->set_state(2);
     rows_[n].label2->SetLabel(label2);
 }
 
@@ -284,7 +286,6 @@ void ParameterPanel::change_mode(int n, bool normal)
     if (row.text->IsEnabled() == normal)
         return;
     row.text->Enable(normal);
-    row.lock->Show(normal);
     row.arm->Show(normal);
     row.label2->Show(!normal);
 }
@@ -318,8 +319,8 @@ void ParameterPanel::append_row()
     data.arm = new ValueChangingWidget(this, -1, this);
     data.label2 = new wxStaticText(this, -1, wxEmptyString);
 
-    data.rsizer->Add(data.label2, wxSizerFlags().Center().Left());
     data.rsizer->Add(data.lock, wxSizerFlags().Center().Left());
+    data.rsizer->Add(data.label2, wxSizerFlags().Center().Left());
     data.rsizer->Add(data.arm, wxSizerFlags(1).Center());
 
     grid_sizer_->Add(data.label, wxSizerFlags().Center()
@@ -402,11 +403,14 @@ int ParameterPanel::find_in_rows(wxObject* w)
 void ParameterPanel::OnLockButton(wxCommandEvent& event)
 {
     int n = find_in_rows(event.GetEventObject());
-    rows_[n].lock->toggle_lock();
-    bool locked = rows_[n].lock->is_locked();
-    rows_[n].text->SetEditable(!locked);
-    rows_[n].arm->Enable(!locked);
-    observer_->on_parameter_lock_toggled(n, locked);
+    int old_state = rows_[n].lock->state();
+    if (old_state != 2) {
+        rows_[n].lock->set_state(old_state == 0 ? 1 : 0);
+        bool locked = (old_state != 0);
+        rows_[n].text->SetEditable(!locked);
+        rows_[n].arm->Enable(!locked);
+    }
+    observer_->on_parameter_lock_clicked(n, old_state);
 }
 
 void ParameterPanel::OnTextEnter(wxCommandEvent &event)

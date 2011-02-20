@@ -89,7 +89,7 @@ public:
     // implementation of ParameterPanelObserver
     virtual void on_parameter_changing(const std::vector<double>& values);
     virtual void on_parameter_changed(int n);
-    virtual void on_parameter_lock_toggled(int n, bool locked);
+    virtual void on_parameter_lock_clicked(int n, int state);
 
 private:
     wxNotebook *nb;

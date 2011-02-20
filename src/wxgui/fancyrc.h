@@ -50,7 +50,7 @@ class ParameterPanelObserver
 public:
     virtual void on_parameter_changing(const std::vector<double>& values) = 0;
     virtual void on_parameter_changed(int n) = 0;
-    virtual void on_parameter_lock_toggled(int n, bool locked) = 0;
+    virtual void on_parameter_lock_clicked(int n, int state) = 0;
 };
 
 struct ParameterRowData
