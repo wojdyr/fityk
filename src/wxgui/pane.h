@@ -1,27 +1,14 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__WX_PANE__H__
-#define FITYK__WX_PANE__H__
-
-#include <list>
-#include <vector>
-#include <assert.h>
-#include <wx/config.h>
-#include <wx/spinctrl.h>
-#include <wx/clrpicker.h>
-#include <wx/fontpicker.h>
+#ifndef FITYK_WX_PANE_H_
+#define FITYK_WX_PANE_H_
 
 #include "../ui.h" // UserInterface::Style
 #include "inputline.h" // InputLineObserver
 
-class IOPane;
-class MainPlot;
-class AuxPlot;
-class FPlot;
-class BgManager;
+class wxConfigBase;
 class InputLine;
-
 
 class OutputWin : public wxTextCtrl
 {
@@ -31,18 +18,20 @@ public:
     void append_text (UserInterface::Style style, const wxString& str);
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
+    void show_preferences_dialog();
+
+private:
+    wxColour text_color_[4];
+    wxColour bg_color_;
+    wxString selection_; // string passed to OnEditLine()
+
     void show_fancy_dashes();
     void set_bg_color(wxColour const &color);
     void OnRightDown (wxMouseEvent& event);
-    void OnConfigure(wxCommandEvent&);
     void OnEditLine(wxCommandEvent&);
     void OnClear(wxCommandEvent&);
     void OnKeyDown (wxKeyEvent& event);
-
-private:
-    wxColour text_color[4];
-    wxColour bg_color;
-    wxString selection; // string passed to OnEditLine()
+    void OnConfigure(wxCommandEvent&) { show_preferences_dialog(); }
 
     DECLARE_EVENT_TABLE()
 };
@@ -62,23 +51,5 @@ public:
     InputLine *input_field;
 };
 
-class OutputWinConfDlg : public wxDialog
-{
-public:
-    OutputWinConfDlg(wxWindow* parent, wxWindowID id, OutputWin* ow_);
-
-private:
-    OutputWin *ow;
-    wxStaticText *font_label;
-    wxColourPickerCtrl *cp_bg, *cp_input, *cp_output, *cp_quote, *cp_warning;
-    wxFontPickerCtrl *font_picker;
-    wxTextCtrl *preview;
-
-    void show_preview();
-    void OnSystemFontCheckbox(wxCommandEvent& event);
-    void OnFontChange(wxFontPickerEvent& event);
-    void OnColor(wxColourPickerEvent& event);
-};
-
-#endif
+#endif // FITYK_WX_PANE_H_
 

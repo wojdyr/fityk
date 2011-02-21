@@ -155,7 +155,7 @@ public:
     void SwitchCrosshair(bool show);
     void OnShowPopupMenu(wxCommandEvent& ev);
     void OnConfigureStatusBar(wxCommandEvent& event);
-    void OnConfigureOutputWin(wxCommandEvent& event);
+    void OnConfigureOutputWin(wxCommandEvent&);
     void OnSwitchCrosshair(wxCommandEvent& e) {SwitchCrosshair(e.IsChecked());}
     void OnSwitchFullScreen(wxCommandEvent& event);
     void OnGShowY0(wxCommandEvent& e);

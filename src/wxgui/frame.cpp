@@ -1525,9 +1525,9 @@ void FFrame::OnConfigureStatusBar(wxCommandEvent& event)
         status_bar->OnPrefButton(event);
 }
 
-void FFrame::OnConfigureOutputWin(wxCommandEvent& event)
+void FFrame::OnConfigureOutputWin(wxCommandEvent&)
 {
-    io_pane->output_win->OnConfigure(event);
+    io_pane->output_win->show_preferences_dialog();
 }
 
 void FFrame::SwitchCrosshair (bool show)
