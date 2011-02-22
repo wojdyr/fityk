@@ -598,9 +598,9 @@ void MainPlot::read_settings(wxConfigBase *cf)
                                                       wxColour (128, 128, 128));
     modelCol = cfg_read_color (cf, wxT("model"), wxColour(wxT("YELLOW")));
     bg_pointsCol = cfg_read_color(cf, wxT("BgPoints"), wxColour(wxT("RED")));
-    for (int i = 0; i < max_group_cols; i++)
-        groupCol[i] = cfg_read_color(cf, wxString::Format(wxT("group/%i"), i),
-                                     wxColour(173, 216, 230));
+    //for (int i = 0; i < max_group_cols; i++)
+    //    groupCol[i] = cfg_read_color(cf, wxString::Format(wxT("group/%i"), i),
+    //                                 wxColour(173, 216, 230));
     for (int i = 0; i < max_peak_cols; i++)
         peakCol[i] = cfg_read_color(cf, wxString::Format(wxT("peak/%i"), i),
                                     wxColour(255, 0, 0));
@@ -657,8 +657,8 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cfg_write_color (cf, wxT("inactive_data"), inactiveDataCol);
     cfg_write_color (cf, wxT("model"), modelCol);
     cfg_write_color (cf, wxT("BgPoints"), bg_pointsCol);
-    for (int i = 0; i < max_group_cols; i++)
-        cfg_write_color(cf, wxString::Format(wxT("group/%i"), i), groupCol[i]);
+    //for (int i = 0; i < max_group_cols; i++)
+    //    cfg_write_color(cf, wxString::Format(wxT("group/%i"), i), groupCol[i]);
     for (int i = 0; i < max_peak_cols; i++)
         cfg_write_color(cf, wxString::Format(wxT("peak/%i"), i), peakCol[i]);
 
@@ -1514,8 +1514,8 @@ void MainPlot::OnInvertColors (wxCommandEvent&)
     inactiveDataCol = invert_colour(inactiveDataCol);
     modelCol = invert_colour(modelCol);
     xAxisCol = invert_colour(xAxisCol);
-    for (int i = 0; i < max_group_cols; i++)
-        groupCol[i] = invert_colour(groupCol[i]);
+    //for (int i = 0; i < max_group_cols; i++)
+    //    groupCol[i] = invert_colour(groupCol[i]);
     for (int i = 0; i < max_peak_cols; i++)
         peakCol[i] = invert_colour(peakCol[i]);
     frame->update_data_pane();

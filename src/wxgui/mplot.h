@@ -203,7 +203,7 @@ public:
 private:
     MouseModeEnum basic_mode_,
                   mode_;  ///actual mode -- either basic_mode_ or mmd_peak
-    static const int max_group_cols = 8;
+    //static const int max_group_cols = 8;
     static const int max_peak_cols = 32;
     static const int max_data_cols = 64;
     static const int max_radius = 4; ///size of data point
@@ -214,7 +214,8 @@ private:
     bool vertical_plabels_;
     std::vector<std::string> plabels_;
     wxColour modelCol, bg_pointsCol;
-    wxColour groupCol[max_group_cols], peakCol[max_peak_cols];
+    //wxColour groupCol[max_group_cols];
+    wxColour peakCol[max_peak_cols];
     wxColour dataCol[max_data_cols];
     int pressed_mouse_button_;
     MouseOperation mouse_op_;
