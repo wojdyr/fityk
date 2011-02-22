@@ -710,23 +710,23 @@ void FFrame::set_menubar()
                                     wxT("Use mouse for adding new peaks"));
     gui_menu->Append(ID_G_MODE, wxT("&Mode"), gui_menu_mode);
     wxMenu* baseline_menu = new wxMenu;
-    baseline_menu->Append (ID_G_BG_STRIP, wxT("&Subtract baseline"),
+    baseline_menu->Append (ID_G_BG_STRIP, wxT("&Subtract Baseline"),
                            wxT("Subtract baseline function from data"));
-    baseline_menu->Append (ID_G_BG_UNDO, wxT("&Add baseline"),
+    baseline_menu->Append (ID_G_BG_UNDO, wxT("&Add Baseline"),
                            wxT("Add baseline function to data"));
-    baseline_menu->Append (ID_G_BG_CLEAR, wxT("&Clear baseline"),
+    baseline_menu->Append (ID_G_BG_CLEAR, wxT("&Clear Baseline"),
                            wxT("Clear baseline points, disable undo"));
     wxMenu* recent_b_menu = new wxMenu;
     baseline_menu->AppendSeparator();
     baseline_menu->Append(ID_G_BG_RECENT, wxT("&Recent"), recent_b_menu);
-    baseline_menu->Append (ID_G_BG_HULL, wxT("&Set as convex hull"),
+    baseline_menu->Append (ID_G_BG_HULL, wxT("&Set As Convex Hull"),
                            wxT("Set baseline as convex hull of data"));
     baseline_menu->AppendSeparator();
     baseline_menu->AppendCheckItem(ID_G_BG_SPLINE,
                                    wxT("&Spline interpolation"),
                                    wxT("Cubic spline interpolation of points"));
     baseline_menu->Check(ID_G_BG_SPLINE, true);
-    gui_menu->Append(ID_G_BG_SUB, wxT("Baseline handling"), baseline_menu);
+    gui_menu->Append(ID_G_BG_SUB, wxT("Baseline Handling"), baseline_menu);
     gui_menu->AppendSeparator();
 
     wxMenu* gui_menu_show = new wxMenu;
