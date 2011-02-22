@@ -4,14 +4,9 @@
 /// In this file:
 ///  Auxiliary Plot, for displaying residuals, peak positions, etc. (AuxPlot)
 
-#include <wx/wxprec.h>
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
-#ifndef WX_PRECOMP
 #include <wx/wx.h>
-#endif
-#include <wx/numdlg.h>
+#include <wx/clrpicker.h>
+#include <wx/fontpicker.h>
 
 #include "aplot.h"
 #include "frame.h"
@@ -23,18 +18,34 @@
 using namespace std;
 
 enum {
-    ID_aux_plot0            = 25310,
-    ID_aux_plot_ctr         = 25340,
-    ID_aux_revd                    ,
-    ID_aux_c_background            ,
-    ID_aux_c_active_data           ,
-    ID_aux_c_inactive_data         ,
-    ID_aux_c_axis                  ,
-    ID_aux_color                   ,
-    ID_aux_m_tfont                 ,
+    ID_aux_prefs            = 25310,
+    ID_aux_plot0            = 25311,
+    ID_aux_mark_pos         = 25340,
     ID_aux_yz_fit                  ,
-    ID_aux_yz_change               ,
     ID_aux_yz_auto
+};
+
+
+class AuxPlotConfDlg : public wxDialog
+{
+public:
+    AuxPlotConfDlg(AuxPlot* ap);
+
+private:
+    AuxPlot *ap_;
+    wxCheckBox* rev_cb_;
+    wxSpinCtrl* zoom_sc_;
+    wxColourPickerCtrl *bg_cp_, *active_cp_, *inactive_cp_, *axis_cp_;
+    wxFontPickerCtrl *tics_fp_;
+
+    void show_preview();
+    void OnPlotKind(wxCommandEvent& event);
+    void OnReversedDiff(wxCommandEvent& event);
+    void OnMarkPeakPositions(wxCommandEvent& e) {ap_->OnMarkPeakPositions(e);}
+    void OnAutoZoom(wxCommandEvent& event);
+    void OnZoomSpin(wxSpinEvent& event);
+    void OnColor(wxColourPickerEvent& event);
+    void OnTicsFont(wxFontPickerEvent& event);
 };
 
 
@@ -49,14 +60,11 @@ BEGIN_EVENT_TABLE (AuxPlot, FPlot)
     EVT_LEFT_UP (         AuxPlot::OnLeftUp)
     EVT_RIGHT_DOWN (      AuxPlot::OnRightDown)
     EVT_MIDDLE_DOWN (     AuxPlot::OnMiddleDown)
+    EVT_MENU (ID_aux_prefs, AuxPlot::OnPrefs)
     EVT_MENU_RANGE (ID_aux_plot0, ID_aux_plot0+10, AuxPlot::OnPopupPlot)
-    EVT_MENU (ID_aux_plot_ctr, AuxPlot::OnPopupPlotCtr)
-    EVT_MENU (ID_aux_revd, AuxPlot::OnPopupReversedDiff)
-    EVT_MENU_RANGE (ID_aux_c_background, ID_aux_color-1, AuxPlot::OnPopupColor)
-    EVT_MENU (ID_aux_m_tfont, AuxPlot::OnTicsFont)
-    EVT_MENU (ID_aux_yz_change, AuxPlot::OnPopupYZoom)
+    EVT_MENU (ID_aux_mark_pos, AuxPlot::OnMarkPeakPositions)
     EVT_MENU (ID_aux_yz_fit, AuxPlot::OnPopupYZoomFit)
-    EVT_MENU (ID_aux_yz_auto, AuxPlot::OnPopupYZoomAuto)
+    EVT_MENU (ID_aux_yz_auto, AuxPlot::OnAutoZoom)
 END_EVENT_TABLE()
 
 void AuxPlot::OnPaint(wxPaintEvent&)
@@ -125,9 +133,9 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
     int pos = frame->get_focused_data_index();
     Data const* data = ftk->get_data(pos);
     Model const* model = ftk->get_model(pos);
-    if (auto_zoom_y || fit_y_once) {
+    if (auto_zoom_y_ || fit_y_once_) {
         fit_y_zoom(data, model);
-        fit_y_once = false;
+        fit_y_once_ = false;
     }
     const int pixel_width = get_pixel_width(dc);
     const int pixel_height = get_pixel_height(dc);
@@ -139,7 +147,7 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
     else
         dc.SetPen(wxPen(xAxisCol, pen_width));
 
-    if (mark_peak_ctrs) {
+    if (mark_peak_pos_) {
         v_foreach (int, i, model->get_ff().idx) {
             fp x;
             if (ftk->get_function(*i)->get_center(&x)) {
@@ -149,13 +157,13 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         }
     }
 
-    if (kind == apk_empty || data->is_empty())
+    if (kind_ == apk_empty || data->is_empty())
         return;
 
     if (x_axis_visible) {
         int Y0 = ys.px(0.);
         dc.DrawLine (0, Y0, pixel_width, Y0);
-        if (kind == apk_diff)
+        if (kind_ == apk_diff)
             draw_zoom_text(dc, !monochrome);
     }
     if (y_axis_visible) {
@@ -167,18 +175,18 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         draw_ytics(dc, rect, !monochrome);
     }
 
-    fp (*f)(vector<Point>::const_iterator, Model const*) = 0;
+    fp (*f)(vector<Point>::const_iterator, Model const*) = NULL;
     bool cummulative = false;
-    if (kind == apk_diff)
-        f = reversed_diff ? rdiff_of_data_for_draw_data
-                          : diff_of_data_for_draw_data;
-    else if (kind == apk_diff_stddev)
-        f = reversed_diff ? rdiff_stddev_of_data_for_draw_data
-                          : diff_stddev_of_data_for_draw_data;
-    else if (kind == apk_diff_y_perc)
-        f = reversed_diff ? rdiff_y_perc_of_data_for_draw_data
-                          : diff_y_perc_of_data_for_draw_data;
-    else if (kind == apk_cum_chi2) {
+    if (kind_ == apk_diff)
+        f = reversed_diff_ ? rdiff_of_data_for_draw_data
+                           : diff_of_data_for_draw_data;
+    else if (kind_ == apk_diff_stddev)
+        f = reversed_diff_ ? rdiff_stddev_of_data_for_draw_data
+                           : diff_stddev_of_data_for_draw_data;
+    else if (kind_ == apk_diff_y_perc)
+        f = reversed_diff_ ? rdiff_y_perc_of_data_for_draw_data
+                           : diff_y_perc_of_data_for_draw_data;
+    else if (kind_ == apk_cum_chi2) {
         f = diff_chi2_of_data_for_draw_data;
         cummulative = true;
     }
@@ -190,12 +198,12 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
 /// it makes sense only for apk_diff plot, when master plot is not logarithmic
 void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
 {
-    if (master->get_y_scale().logarithm)
+    if (master_->get_y_scale().logarithm)
         return;
     if (set_pen)
         dc.SetTextForeground(xAxisCol);
     set_font(dc, *wxNORMAL_FONT);
-    string s = "x" + S(y_zoom);
+    string s = "\u00D7" + S(y_zoom_); // U+00D7 == &times;
     wxCoord w, h;
     dc.GetTextExtent (s2wx(s), &w, &h);
     dc.DrawText (s2wx(s), get_pixel_width(dc) - w - 2, 2);
@@ -224,8 +232,8 @@ void AuxPlot::OnLeaveWindow (wxMouseEvent&)
 
 bool AuxPlot::is_zoomable()
 {
-    return kind == apk_diff || kind == apk_diff_stddev
-           || kind == apk_diff_y_perc || kind == apk_cum_chi2;
+    return kind_ == apk_diff || kind_ == apk_diff_stddev
+           || kind_ == apk_diff_y_perc || kind_ == apk_cum_chi2;
 }
 
 void AuxPlot::set_scale(int pixel_width, int pixel_height)
@@ -233,28 +241,28 @@ void AuxPlot::set_scale(int pixel_width, int pixel_height)
     // This functions depends on the x and y scales in MainPlot.
     // Since the order in which the plots are redrawn is undetermined,
     // we are updating here the MainPlot scale.
-    master->set_scale(pixel_width, master->GetClientSize().GetHeight());
+    master_->set_scale(pixel_width, master_->GetClientSize().GetHeight());
 
-    xs = master->get_x_scale();
+    xs = master_->get_x_scale();
 
-    if (kind == apk_cum_chi2) {
-        ys.scale = -1. * y_zoom_base * y_zoom;
+    if (kind_ == apk_cum_chi2) {
+        ys.scale = -1. * y_zoom_base_ * y_zoom_;
         ys.origin = - pixel_height / ys.scale;
         return;
     }
-    switch (kind) {
+    switch (kind_) {
         case apk_empty:
             ys.scale = 1.; //y scale doesn't matter
             break;
         case apk_diff:
-            if (master->get_y_scale().logarithm)
-                ys.scale = y_zoom;
+            if (master_->get_y_scale().logarithm)
+                ys.scale = y_zoom_;
             else
-                ys.scale = master->get_y_scale().scale * y_zoom;
+                ys.scale = master_->get_y_scale().scale * y_zoom_;
             break;
         case apk_diff_stddev:
         case apk_diff_y_perc:
-            ys.scale = -1. * y_zoom_base * y_zoom;
+            ys.scale = -1. * y_zoom_base_ * y_zoom_;
             break;
         default:
             assert(0);
@@ -264,12 +272,12 @@ void AuxPlot::set_scale(int pixel_width, int pixel_height)
 
 void AuxPlot::read_settings(wxConfigBase *cf)
 {
-    wxString path = wxT("/AuxPlot_") + name;
+    wxString path = wxT("/AuxPlot_") + name_;
     cf->SetPath(path);
-    kind = static_cast<AuxPlotKind>(cf->Read (wxT("kind"), apk_diff));
-    mark_peak_ctrs = cfg_read_bool (cf, wxT("markCtr"), false);
-    reversed_diff = cfg_read_bool (cf, wxT("reversedDiff"), false);
-    auto_zoom_y = false;
+    kind_ = static_cast<AuxPlotKind>(cf->Read (wxT("kind"), apk_diff));
+    mark_peak_pos_ = cfg_read_bool (cf, wxT("markCtr"), false);
+    reversed_diff_ = cfg_read_bool (cf, wxT("reversedDiff"), false);
+    auto_zoom_y_ = false;
     line_between_points = cfg_read_bool(cf, wxT("line_between_points"), true);
     point_radius = cf->Read (wxT("point_radius"), 1);
     y_max_tics = cf->Read(wxT("yMaxTics"), 5);
@@ -289,10 +297,10 @@ void AuxPlot::read_settings(wxConfigBase *cf)
 
 void AuxPlot::save_settings(wxConfigBase *cf) const
 {
-    cf->SetPath(wxT("/AuxPlot_") + name);
-    cf->Write (wxT("kind"), (int) kind);
-    cf->Write (wxT("markCtr"), mark_peak_ctrs);
-    cf->Write (wxT("reversedDiff"), reversed_diff);
+    cf->SetPath(wxT("/AuxPlot_") + name_);
+    cf->Write (wxT("kind"), (int) kind_);
+    cf->Write (wxT("markCtr"), mark_peak_pos_);
+    cf->Write (wxT("reversedDiff"), reversed_diff_);
     cf->Write (wxT("line_between_points"), line_between_points);
     cf->Write (wxT("point_radius"), point_radius);
     cf->Write(wxT("yMaxTics"), y_max_tics);
@@ -366,43 +374,28 @@ void AuxPlot::OnRightDown (wxMouseEvent &event)
     if (cancel_mouse_left_press())
         return;
 
-    wxMenu popup_menu (wxT("aux. plot menu"));
-    //wxMenu *kind_menu = new wxMenu;
+    wxMenu popup_menu;
+    popup_menu.Append(ID_aux_prefs, wxT("&Configure"), wxT(""));
+    popup_menu.AppendSeparator();
+    popup_menu.Append (ID_aux_yz_fit, wxT("&Fit to window"));
+    popup_menu.Enable(ID_aux_yz_fit, is_zoomable());
+    popup_menu.AppendCheckItem (ID_aux_yz_auto, wxT("&Auto-fit"));
+    popup_menu.Check (ID_aux_yz_auto, auto_zoom_y_);
+    popup_menu.Enable(ID_aux_yz_auto, is_zoomable());
+    popup_menu.AppendSeparator();
     popup_menu.AppendRadioItem(ID_aux_plot0+0, wxT("&empty"), wxT("nothing"));
     popup_menu.AppendRadioItem(ID_aux_plot0+1, wxT("&diff"), wxT("y_d - y_s"));
     popup_menu.AppendRadioItem(ID_aux_plot0+2, wxT("&weighted diff"),
                                wxT("(y_d - y_s) / sigma"));
-    popup_menu.AppendRadioItem(ID_aux_plot0+3, wxT("&proc diff"),
+    popup_menu.AppendRadioItem(ID_aux_plot0+3, wxT("&diff/y [%]"),
                                wxT("(y_d - y_s) / y_d [%]"));
-    popup_menu.AppendRadioItem(ID_aux_plot0+4, wxT("cumul. &chi2"),
-                               wxT("cumulative chi square"));
-    popup_menu.Check(ID_aux_plot0+kind, true);
+    popup_menu.AppendRadioItem(ID_aux_plot0+4, wxT("c&umulative \u03c7\u00b2"),
+                           wxT("cumulative weighted sum of squared residuals"));
+    popup_menu.Check(ID_aux_plot0+kind_, true);
     popup_menu.AppendSeparator();
-    popup_menu.AppendCheckItem(ID_aux_revd, wxT("reversed diff"),
-                               wxT(""));
-    popup_menu.Check(ID_aux_revd, reversed_diff);
-    popup_menu.AppendSeparator();
-    popup_menu.AppendCheckItem(ID_aux_plot_ctr, wxT("show peak po&sitions"),
+    popup_menu.AppendCheckItem(ID_aux_mark_pos, wxT("Show &Peak Positions"),
                                wxT("mark centers of peaks"));
-    popup_menu.Check(ID_aux_plot_ctr, mark_peak_ctrs);
-    popup_menu.AppendSeparator();
-    popup_menu.Append (ID_aux_yz_fit, wxT("&Fit to window"));
-    popup_menu.Enable(ID_aux_yz_fit, is_zoomable());
-    popup_menu.Append (ID_aux_yz_change, wxT("Change &y scale"));
-    popup_menu.Enable(ID_aux_yz_change, is_zoomable());
-    popup_menu.AppendCheckItem (ID_aux_yz_auto, wxT("&Auto-fit"));
-    popup_menu.Check (ID_aux_yz_auto, auto_zoom_y);
-    popup_menu.Enable(ID_aux_yz_auto, is_zoomable());
-    popup_menu.AppendSeparator();
-    wxMenu *color_menu = new wxMenu;
-    color_menu->Append (ID_aux_c_background, wxT("&Background"));
-    color_menu->Append (ID_aux_c_active_data, wxT("&Active Data"));
-    color_menu->Append (ID_aux_c_inactive_data, wxT("&Inactive Data"));
-    color_menu->Append (ID_aux_c_axis, wxT("&X Axis"));
-    popup_menu.Append (ID_aux_color, wxT("&Color"), color_menu);
-    wxMenu *misc_menu = new wxMenu;
-    misc_menu->Append (ID_aux_m_tfont, wxT("&Tics font"));
-    popup_menu.Append (wxNewId(), wxT("&Miscellaneous"), misc_menu);
+    popup_menu.Check(ID_aux_mark_pos, mark_peak_pos_);
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
 
@@ -413,68 +406,37 @@ void AuxPlot::OnMiddleDown (wxMouseEvent&)
     frame->GViewAll();
 }
 
+void AuxPlot::show_pref_dialog()
+{
+    AuxPlotConfDlg dlg(this);
+    dlg.ShowModal();
+}
+
 void AuxPlot::OnPopupPlot (wxCommandEvent& event)
 {
-    kind = static_cast<AuxPlotKind>(event.GetId()-ID_aux_plot0);
+    change_plot_kind(static_cast<AuxPlotKind>(event.GetId()-ID_aux_plot0));
+    Refresh(false); // needed on Windows (i don't know why)
+}
+
+void AuxPlot::change_plot_kind(AuxPlotKind kind)
+{
+    kind_ = kind;
     //fit_y_zoom();
-    fit_y_once = true;
+    fit_y_once_ = true;
+    refresh();
+}
+
+void AuxPlot::OnMarkPeakPositions(wxCommandEvent& event)
+{
+    mark_peak_pos_ = event.IsChecked();
     refresh();
     Refresh(false); // needed on Windows (i don't know why)
-}
-
-void AuxPlot::OnPopupPlotCtr (wxCommandEvent& event)
-{
-    mark_peak_ctrs = event.IsChecked();
-    refresh();
-    Refresh(false); // needed on Windows (i don't know why)
-}
-
-void AuxPlot::OnPopupReversedDiff (wxCommandEvent& event)
-{
-    reversed_diff = event.IsChecked();
-    refresh();
-    Refresh(false); // needed on Windows (i don't know why)
-}
-
-void AuxPlot::OnPopupColor (wxCommandEvent& event)
-{
-    wxColour *color = 0;
-    int n = event.GetId();
-    wxColour bg_color = get_bg_color();
-    if (n == ID_aux_c_background)
-        color = &bg_color;
-    else if (n == ID_aux_c_active_data) {
-        color = &activeDataCol;
-    }
-    else if (n == ID_aux_c_inactive_data) {
-        color = &inactiveDataCol;
-    }
-    else if (n == ID_aux_c_axis)
-        color = &xAxisCol;
-    else
-        return;
-    if (change_color_dlg(*color)) {
-        if (n == ID_aux_c_background)
-            set_bg_color(bg_color);
-        refresh();
-    }
-}
-
-void AuxPlot::OnPopupYZoom (wxCommandEvent&)
-{
-    int r = wxGetNumberFromUser(wxT("Set zoom in y direction [%]"),
-                                wxT(""), wxT(""),
-                                static_cast<int>(y_zoom * 100 + 0.5),
-                                1, 10000000);
-    if (r > 0)
-        y_zoom = r / 100.;
-    refresh();
 }
 
 void AuxPlot::OnPopupYZoomFit (wxCommandEvent&)
 {
     //fit_y_zoom();
-    fit_y_once = true;
+    fit_y_once_ = true;
     refresh();
     Refresh(false); // needed on Windows (i don't know why)
 }
@@ -489,48 +451,183 @@ void AuxPlot::fit_y_zoom(Data const* data, Model const* model)
     if (data->is_empty() || last==first)
         return;
     int pixel_height = GetClientSize().GetHeight();
-    switch (kind) { // setting y_zoom
+    switch (kind_) {
         case apk_diff:
             {
             y = get_max_abs_y(diff_of_data_for_draw_data, first, last, model);
-            Scale const& mys = master->get_y_scale();
-            y_zoom = fabs (pixel_height / (2 * y
+            Scale const& mys = master_->get_y_scale();
+            y_zoom_ = fabs (pixel_height / (2 * y
                                            * (mys.logarithm ? 1 : mys.scale)));
-            fp order = pow (10, floor (log10(y_zoom)));
-            y_zoom = floor(y_zoom / order) * order;
+            fp order = pow (10, floor (log10(y_zoom_)));
+            y_zoom_ = floor(y_zoom_ / order) * order;
             }
             break;
         case apk_diff_stddev:
             y = get_max_abs_y(diff_stddev_of_data_for_draw_data,
                               first, last, model);
-            y_zoom_base = pixel_height / (2. * y);
-            y_zoom = 0.9;
+            y_zoom_base_ = pixel_height / (2. * y);
+            y_zoom_ = 0.9;
             break;
         case apk_diff_y_perc:
             y = get_max_abs_y(diff_y_perc_of_data_for_draw_data,
                               first, last, model);
-            y_zoom_base = pixel_height / (2. * y);
-            y_zoom = 0.9;
+            y_zoom_base_ = pixel_height / (2. * y);
+            y_zoom_ = 0.9;
             break;
         case apk_cum_chi2:
             y = 0.;
             for (vector<Point>::const_iterator i = first; i < last; i++)
                 y += diff_chi2_of_data_for_draw_data(i, model);
-            y_zoom_base = pixel_height / y;
-            y_zoom = 0.9;
+            y_zoom_base_ = pixel_height / y;
+            y_zoom_ = 0.9;
             break;
         default:
             assert(0);
     }
 }
 
-void AuxPlot::OnPopupYZoomAuto (wxCommandEvent&)
+void AuxPlot::OnAutoZoom(wxCommandEvent& event)
 {
-    auto_zoom_y = !auto_zoom_y;
-    if (auto_zoom_y) {
+    auto_zoom_y_ = event.IsChecked();
+    if (auto_zoom_y_) {
         //fit_y_zoom() is called from draw
         refresh();
         Refresh(false); // needed on Windows (i don't know why)
     }
+}
+
+// ========================================================================
+
+AuxPlotConfDlg::AuxPlotConfDlg(AuxPlot* ap)
+  : wxDialog(NULL, -1, wxString(wxT("Configure Auxiliary Plot")),
+             wxDefaultPosition, wxDefaultSize,
+             wxDEFAULT_DIALOG_STYLE),
+    ap_(ap)
+{
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *left_sizer = new wxBoxSizer(wxVERTICAL);
+    wxArrayString plot_choices;
+    plot_choices.Add(wxT("&Empty"));
+    plot_choices.Add(wxT("&Diff"));
+    plot_choices.Add(wxT("&Weighted diff"));
+    plot_choices.Add(wxT("Diff as % of &y"));
+    plot_choices.Add(wxT("&Cumulative \u03c7\u00b2")); // chi2
+    wxRadioBox* plot_rb = new wxRadioBox(this, -1, wxT("plot"),
+                                         wxDefaultPosition, wxDefaultSize,
+                                         plot_choices, 1, wxRA_SPECIFY_COLS);
+    plot_rb->SetSelection(ap_->kind_);
+    left_sizer->Add(plot_rb, 0, wxALL, 5);
+    rev_cb_ = new wxCheckBox(this, -1, wxT("&Reversed"));
+    rev_cb_->SetValue(ap_->reversed_diff_);
+    rev_cb_->Enable(ap_->kind_ != apk_empty && ap_->kind_ != apk_cum_chi2);
+    left_sizer->Add(rev_cb_, 0, wxALL, 5);
+    wxCheckBox* pos_cb = new wxCheckBox(this, -1, wxT("&Show peak positions"));
+    pos_cb->SetValue(ap_->mark_peak_pos_);
+    left_sizer->Add(pos_cb, 0, wxALL, 5);
+    wxCheckBox* auto_cb = new wxCheckBox(this, -1, wxT("&Auto-zoom y scale"));
+    auto_cb->SetValue(ap_->auto_zoom_y_);
+    left_sizer->Add(auto_cb, 0, wxALL, 5);
+    wxBoxSizer *zoom_sizer = new wxBoxSizer(wxHORIZONTAL);
+    zoom_sizer->AddSpacer(10);
+    zoom_sizer->Add(new wxStaticText(this, -1, wxT("max. iterations")),
+                    0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    zoom_sc_ = new SpinCtrl(this, -1, iround(ap_->y_zoom_ * 100),
+                            0, 999999, 70);
+    zoom_sc_->Enable(!ap_->auto_zoom_y_);
+    zoom_sizer->Add(zoom_sc_, 0, wxALL, 5);
+    zoom_sizer->Add(new wxStaticText(this, -1, wxT("%")),
+                    0, wxRIGHT|wxALIGN_CENTER_VERTICAL, 5);
+    left_sizer->Add(zoom_sizer, 0);
+
+    wxGridSizer *gsizer = new wxGridSizer(2, 5, 5);
+    wxSizerFlags cl = wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL),
+             cr = wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL|wxALIGN_RIGHT);
+    gsizer->Add(new wxStaticText(this, -1, wxT("background color")), cr);
+    bg_cp_ = new wxColourPickerCtrl(this, -1, ap_->get_bg_color());
+    gsizer->Add(bg_cp_, cl);
+    gsizer->Add(new wxStaticText(this, -1, wxT("active data color")), cr);
+    active_cp_ = new wxColourPickerCtrl(this, -1, ap_->activeDataCol);
+    gsizer->Add(active_cp_, cl);
+    gsizer->Add(new wxStaticText(this, -1, wxT("inactive data color")), cr);
+    inactive_cp_ = new wxColourPickerCtrl(this, -1, ap_->inactiveDataCol);
+    gsizer->Add(inactive_cp_, cl);
+    gsizer->Add(new wxStaticText(this, -1, wxT("axis & tics color")), cr);
+    axis_cp_ = new wxColourPickerCtrl(this, -1, ap_->xAxisCol);
+    gsizer->Add(axis_cp_, cl);
+    gsizer->Add(new wxStaticText(this, -1, wxT("tic label font")), cr);
+    tics_fp_ = new wxFontPickerCtrl(this, -1, ap_->ticsFont);
+    gsizer->Add(tics_fp_, cl);
+
+    top_sizer->Add(left_sizer, wxSizerFlags().Border());
+    top_sizer->Add(gsizer, wxSizerFlags().Border());
+
+    SetSizerAndFit(top_sizer);
+    //SetEscapeId(wxID_CLOSE);
+
+    Connect(plot_rb->GetId(), wxEVT_COMMAND_RADIOBOX_SELECTED,
+            wxCommandEventHandler(AuxPlotConfDlg::OnPlotKind));
+    Connect(rev_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(AuxPlotConfDlg::OnReversedDiff));
+    Connect(pos_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(AuxPlotConfDlg::OnMarkPeakPositions));
+    Connect(auto_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(AuxPlotConfDlg::OnAutoZoom));
+    Connect(zoom_sc_->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
+            wxSpinEventHandler(AuxPlotConfDlg::OnZoomSpin));
+    Connect(bg_cp_->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            wxColourPickerEventHandler(AuxPlotConfDlg::OnColor));
+    Connect(active_cp_->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            wxColourPickerEventHandler(AuxPlotConfDlg::OnColor));
+    Connect(inactive_cp_->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            wxColourPickerEventHandler(AuxPlotConfDlg::OnColor));
+    Connect(axis_cp_->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            wxColourPickerEventHandler(AuxPlotConfDlg::OnColor));
+    Connect(tics_fp_->GetId(), wxEVT_COMMAND_FONTPICKER_CHANGED,
+            wxFontPickerEventHandler(AuxPlotConfDlg::OnTicsFont));
+}
+
+void AuxPlotConfDlg::OnPlotKind(wxCommandEvent& event)
+{
+    AuxPlotKind k = static_cast<AuxPlotKind>(event.GetSelection());
+    ap_->change_plot_kind(k);
+    rev_cb_->Enable(k != apk_empty && k != apk_cum_chi2);
+}
+
+void AuxPlotConfDlg::OnReversedDiff(wxCommandEvent& event)
+{
+    ap_->reversed_diff_ = event.IsChecked();
+    ap_->refresh();
+}
+
+void AuxPlotConfDlg::OnAutoZoom(wxCommandEvent& event)
+{
+    ap_->OnAutoZoom(event);
+    zoom_sc_->Enable(!ap_->auto_zoom_y_);
+}
+
+void AuxPlotConfDlg::OnZoomSpin(wxSpinEvent& event)
+{
+    ap_->y_zoom_ = event.GetPosition() / 100.;
+    ap_->refresh();
+}
+
+void AuxPlotConfDlg::OnTicsFont(wxFontPickerEvent& event)
+{
+    ap_->ticsFont = event.GetFont();
+    ap_->refresh();
+}
+
+void AuxPlotConfDlg::OnColor(wxColourPickerEvent& event)
+{
+    int id = event.GetId();
+    if (id == bg_cp_->GetId())
+        ap_->set_bg_color(event.GetColour());
+    else if (id == active_cp_->GetId())
+        ap_->activeDataCol = event.GetColour();
+    else if (id == inactive_cp_->GetId())
+        ap_->inactiveDataCol = event.GetColour();
+    else if (id == axis_cp_->GetId())
+        ap_->xAxisCol = event.GetColour();
+    ap_->refresh();
 }
 

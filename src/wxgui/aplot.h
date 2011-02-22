@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__WX_APLOT__H__
-#define FITYK__WX_APLOT__H__
+#ifndef FITYK_WX_APLOT_H_
+#define FITYK_WX_APLOT_H_
 
 #include "plot.h"
 
@@ -18,51 +18,53 @@ enum AuxPlotKind
 //Auxiliary plot, usually shows residuals or peak positions
 class AuxPlot : public FPlot
 {
+    friend class AuxPlotConfDlg;
 public:
-    AuxPlot(wxWindow *parent, FPlot *master_, wxString const& name_)
-        : FPlot(parent), master(master_), name(name_),
-          y_zoom(1.), y_zoom_base(1.), fit_y_once(false) {}
+    AuxPlot(wxWindow *parent, FPlot *master, wxString const& name)
+        : FPlot(parent), master_(master), name_(name),
+          y_zoom_(1.), y_zoom_base_(1.), fit_y_once_(false) {}
     ~AuxPlot() {}
+    void save_settings(wxConfigBase *cf) const;
+    void read_settings(wxConfigBase *cf);
+    void show_pref_dialog();
+
+private:
+    static const int move_plot_margin_width = 20;
+
+    FPlot* master_;
+    const wxString name_;
+    AuxPlotKind kind_;
+    bool mark_peak_pos_;
+    bool reversed_diff_;
+    double y_zoom_, y_zoom_base_;
+    bool auto_zoom_y_;
+    bool fit_y_once_;
+
     void OnPaint(wxPaintEvent &event);
     void draw(wxDC &dc, bool monochrome=false);
     void OnLeaveWindow (wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent &event);
-    void OnLeftDown (wxMouseEvent &event);
-    void OnLeftUp (wxMouseEvent &event);
-    void OnRightDown (wxMouseEvent &event);
-    void OnMiddleDown (wxMouseEvent &event);
+    void OnLeftDown(wxMouseEvent &event);
+    void OnLeftUp(wxMouseEvent &event);
+    void OnRightDown(wxMouseEvent &event);
+    void OnMiddleDown(wxMouseEvent &event);
     // function called when Esc is pressed
     virtual void cancel_action() { cancel_mouse_left_press(); }
     bool cancel_mouse_left_press();
     void set_scale(int pixel_width, int pixel_height);
     bool is_zoomable(); //false if kind is eg. empty or peak-position
-    void OnPopupPlot (wxCommandEvent& event);
-    void OnPopupPlotCtr (wxCommandEvent& event);
-    void OnPopupReversedDiff (wxCommandEvent& event);
-    void OnPopupColor (wxCommandEvent& event);
-    void OnPopupYZoom (wxCommandEvent& event);
-    void OnPopupYZoomFit (wxCommandEvent& event);
-    void OnPopupYZoomAuto (wxCommandEvent& event);
-    void OnTicsFont (wxCommandEvent&) { change_tics_font(); }
-    void save_settings(wxConfigBase *cf) const;
-    void read_settings(wxConfigBase *cf);
-
-private:
-    FPlot* master;
-    wxString name;
-    AuxPlotKind kind;
-    bool mark_peak_ctrs;
-    bool reversed_diff;
-    double y_zoom, y_zoom_base;
-    bool auto_zoom_y;
-    bool fit_y_once;
-    int cursor_id;
-    static const int move_plot_margin_width = 20;
+    void OnPrefs(wxCommandEvent&) { show_pref_dialog(); }
+    void OnPopupPlot(wxCommandEvent& event);
+    void OnMarkPeakPositions(wxCommandEvent& event);
+    void OnPopupYZoom(wxCommandEvent& event);
+    void OnPopupYZoomFit(wxCommandEvent& event);
+    void OnAutoZoom(wxCommandEvent& event);
 
     void draw_diff (wxDC& dc, std::vector<Point>::const_iterator first,
                                 std::vector<Point>::const_iterator last);
     void draw_zoom_text(wxDC& dc, bool set_pen=true);
     void fit_y_zoom(Data const* data, Model const* model);
+    void change_plot_kind(AuxPlotKind kind);
 
     DECLARE_EVENT_TABLE()
 };

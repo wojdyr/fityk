@@ -1516,7 +1516,7 @@ void FFrame::OnShowPopupMenu(wxCommandEvent& ev)
     if (ev.GetId() == ID_G_C_MAIN)
         plot_pane->get_plot()->show_popup_menu(me);
     else
-        plot_pane->get_aux_plot(ev.GetId() - ID_G_C_A1)->OnRightDown(me);
+        plot_pane->get_aux_plot(ev.GetId() - ID_G_C_A1)->show_pref_dialog();
 }
 
 void FFrame::OnConfigureStatusBar(wxCommandEvent& event)
