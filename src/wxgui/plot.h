@@ -173,10 +173,5 @@ protected:
     void OnKeyDown(wxKeyEvent& event);
 };
 
-// utilities
-
-inline wxColour invert_colour(const wxColour& col)
-{ return wxColour(255 - col.Red(), 255 - col.Green(), 255 - col.Blue()); }
-
 #endif
 

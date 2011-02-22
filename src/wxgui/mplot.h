@@ -160,7 +160,6 @@ public:
 
     void OnPopupShowXX (wxCommandEvent& event);
     void OnPopupColor (wxCommandEvent& event);
-    void OnInvertColors (wxCommandEvent& event);
     void OnPopupRadius (wxCommandEvent& event);
     void OnConfigureAxes (wxCommandEvent& event);
     void OnConfigurePLabels (wxCommandEvent& event);

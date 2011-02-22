@@ -32,7 +32,6 @@ enum {
     ID_plot_popup_c_background             ,
     ID_plot_popup_c_inactive_data          ,
     ID_plot_popup_c_model                    ,
-    ID_plot_popup_c_inv                    ,
 
     ID_plot_popup_axes                     ,
     ID_plot_popup_plabels                  ,
@@ -228,7 +227,6 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
                                     MainPlot::OnPopupColor)
     EVT_MENU_RANGE (ID_plot_popup_pt_size, ID_plot_popup_pt_size + max_radius,
                                     MainPlot::OnPopupRadius)
-    EVT_MENU (ID_plot_popup_c_inv,  MainPlot::OnInvertColors)
     EVT_MENU (ID_plot_popup_axes,   MainPlot::OnConfigureAxes)
     EVT_MENU (ID_plot_popup_plabels,MainPlot::OnConfigurePLabels)
     EVT_MENU (ID_peak_popup_info,   MainPlot::OnPeakInfo)
@@ -698,8 +696,6 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
     color_menu->Append (ID_plot_popup_c_background, wxT("&Background"));
     color_menu->Append (ID_plot_popup_c_inactive_data, wxT("&Inactive Data"));
     color_menu->Append (ID_plot_popup_c_model, wxT("&Model"));
-    color_menu->AppendSeparator();
-    color_menu->Append (ID_plot_popup_c_inv, wxT("&Invert colors"));
     popup_menu.Append (wxNewId(), wxT("&Color"), color_menu);
 
     wxMenu *size_menu = new wxMenu;
@@ -1504,22 +1500,6 @@ void MainPlot::OnPopupColor(wxCommandEvent& event)
         }
         refresh();
     }
-}
-
-void MainPlot::OnInvertColors (wxCommandEvent&)
-{
-    set_bg_color(invert_colour(get_bg_color()));
-    for (int i = 0; i < max_data_cols; i++)
-        dataCol[i] = invert_colour(dataCol[i]);
-    inactiveDataCol = invert_colour(inactiveDataCol);
-    modelCol = invert_colour(modelCol);
-    xAxisCol = invert_colour(xAxisCol);
-    //for (int i = 0; i < max_group_cols; i++)
-    //    groupCol[i] = invert_colour(groupCol[i]);
-    for (int i = 0; i < max_peak_cols; i++)
-        peakCol[i] = invert_colour(peakCol[i]);
-    frame->update_data_pane();
-    refresh();
 }
 
 void MainPlot::OnPopupRadius (wxCommandEvent& event)
