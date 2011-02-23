@@ -1299,12 +1299,12 @@ wxString PowderBook::prepare_commands()
     if (ftk->get_tpm()->get_tp("PdXcorr") != NULL)
         s += wxT("undefine PdXcorr\n");
     wxString xc_args, xc_vargs, xc_def;
-    wxString xc_formulas[] = { wxT("p1/tan(x)"),
-                               wxT("p2/sin(x)"),
-                               wxT("p3/tan(x/2)"),
-                               wxT("p4*sin(x)"),
-                               wxT("p5*cos(x/2)"),
-                               wxT("p6") };
+    wxString xc_formulas[] = { wxT("p1/tan(x*pi/180)"),
+                               wxT("p2/sin(x*pi/180)"),
+                               wxT("p3/tan(x/2*pi/180)"),
+                               wxT("p4*sin(x*pi/180)"),
+                               wxT("p5*cos(x/2*pi/180)"),
+                               wxT("p6*pi/180") };
     for (int i = 0; i != (int) corr_ctrl.size(); ++i) {
         if (corr_ctrl[i]->is_nonzero()) {
             if (!xc_args.empty()) {
@@ -1406,11 +1406,12 @@ wxString PowderBook::prepare_commands()
             double h = h_mult * max(j->intensity, 1.);
             double lambda1 = get_lambda(0);
             double ctr = 180 / M_PI * 2 * asin(lambda1 / (2 * j->d));
-            s += hvar + wxString::Format(wxT(" = ~%.5g\n"), h);
+            s += wxT("\n") + hvar + wxString::Format(wxT(" = ~%.5g\n"), h);
 
             // we need to pre-define $pdXa_cHKL if wvar or svar depend on it
             wxString cvar_a = wxString::Format(wxT("$pd%da_c%s"),
                                                i, hkl_str.c_str());
+            wxString theta_rad = cvar_a + wxT("*pi/360");
             if (width_sel == 1 || (has_shape && shape_sel >= 1)) {
                 s += cvar_a + wxT(" = 0 # will be changed\n");
             }
@@ -1425,11 +1426,11 @@ wxString PowderBook::prepare_commands()
             else if (width_sel == 1 /*H2=Utan2T...*/) {
                 s +=  wvar + wxT(" = sqrt(");
                 if (has_u)
-                    s += wxT("$pd_u*tan(") + cvar_a + wxT("/2)^2");
+                    s += wxT("$pd_u*tan(") + theta_rad + wxT(")^2");
                 if (has_v) {
                     if (has_u)
                         s += wxT(" + ");
-                    s += wxT("$pd_v*tan(") + cvar_a + wxT("/2)");
+                    s += wxT("$pd_v*tan(") + theta_rad + wxT(")");
                 }
                 if (has_w) {
                     if (has_u || has_v)
@@ -1439,7 +1440,7 @@ wxString PowderBook::prepare_commands()
                 if (has_z) {
                     if (has_u || has_v || has_w)
                         s += wxT(" + ");
-                    s += wxT("$pd_z/cos(") + cvar_a + wxT("/2)^2");
+                    s += wxT("$pd_z/cos(") + theta_rad + wxT(")^2");
                 }
                 s += wxT(")\n");
             }
