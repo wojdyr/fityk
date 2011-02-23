@@ -264,19 +264,20 @@ wxPanel* PowderBook::PrepareIntroPanel()
     "is definitely more reliable.\n"
     "This is a stand-alone version of a dialog in fityk program.\n";
 #else
-    "Before you start, you should have:\n"
-    "  - data (powder diffraction pattern) loaded,\n"
-    "  - only interesting data range active,\n"
-    "  - baseline (background) either removed manually\n"
-    "    or modeled with polynomial or another function.\n"
+    "Before you start:\n"
+    " - load a powder diffraction pattern,\n"
+    " - if you want to analyze only a part of the pattern, deactivate the rest"
     "\n"
-    "This tool can build a model for powder diffraction data, "
-    "The model has constrained position of peaks "
-    "and not constrained intensities. "
-    "Then you can fit the model to your data (all variables at the same time). "
-    "This type of refinement is known as Pawley method.\n"
+    " - either remove the background manually\n"
+    "   or add a polynomial (or other function) to model it.\n"
     "\n"
-    "The CCTBX library have been used to generate space group data.\n"
+    "This tool constructs a model for powder diffraction data. "
+    "The model has constrained positions of peaks "
+    "and unconstrained intensities. "
+    "Fitting the model to the data optimizes all parameters at the same time. "
+    "This type of refinement is known as the Pawley method.\n"
+    "\n"
+    "Space group data have been generated using the CCTBX library.\n"
     "\n"
     "The size-strain analysis is not implemented yet.\n";
 #endif
@@ -314,7 +315,7 @@ wxPanel* PowderBook::PrepareIntroPanel()
     wxFlexGridSizer *legend = new wxFlexGridSizer(2, 5, 5);
     legend->Add(new wxStaticBitmap(panel, -1, wxBitmap(get_lock_xpm())),
                 wxSizerFlags().Center().Right());
-    legend->Add(new wxStaticText(panel, -1, wxT("constant parameter")),
+    legend->Add(new wxStaticText(panel, -1, wxT("parameter is known")),
                 wxSizerFlags().Center().Left());
     legend->Add(new wxStaticBitmap(panel, -1, wxBitmap(get_lock_open_xpm())),
                 wxSizerFlags().Center().Right());
