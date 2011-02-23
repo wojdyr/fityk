@@ -1304,7 +1304,7 @@ wxString PowderBook::prepare_commands()
                                wxT("p3/tan(x/2*pi/180)"),
                                wxT("p4*sin(x*pi/180)"),
                                wxT("p5*cos(x/2*pi/180)"),
-                               wxT("p6*pi/180") };
+                               wxT("p6") };
     for (int i = 0; i != (int) corr_ctrl.size(); ++i) {
         if (corr_ctrl[i]->is_nonzero()) {
             if (!xc_args.empty()) {
