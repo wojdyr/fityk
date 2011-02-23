@@ -160,7 +160,6 @@ public:
 
     void OnPopupShowXX (wxCommandEvent& event);
     void OnPopupColor (wxCommandEvent& event);
-    void OnPopupRadius (wxCommandEvent& event);
     void OnConfigureAxes (wxCommandEvent& event);
     void OnConfigurePLabels (wxCommandEvent& event);
     void OnZoomAll (wxCommandEvent& event);
@@ -205,8 +204,7 @@ private:
     //static const int max_group_cols = 8;
     static const int max_peak_cols = 32;
     static const int max_data_cols = 64;
-    static const int max_radius = 4; ///size of data point
-    bool peaks_visible_, groups_visible_, model_visible_,
+    bool peaks_visible_, /*groups_visible_,*/ model_visible_,
          plabels_visible_, x_reversed_;
     wxFont plabelFont;
     std::string plabel_format_;
@@ -232,7 +230,7 @@ private:
     void draw_y_axis (wxDC& dc, bool set_pen=true);
     void draw_background(wxDC& dc, bool set_pen=true);
     void draw_model (wxDC& dc, const Model* model, bool set_pen=true);
-    void draw_groups (wxDC& dc, const Model* model, bool set_pen=true);
+    //void draw_groups (wxDC& dc, const Model* model, bool set_pen=true);
     void draw_peaks (wxDC& dc, const Model* model, bool set_pen=true);
     void draw_peaktops (wxDC& dc, const Model* model);
     void draw_peaktop_selection(wxDC& dc, const Model* model);

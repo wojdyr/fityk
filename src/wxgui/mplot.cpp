@@ -25,19 +25,18 @@ using namespace std;
 
 enum {
     ID_plot_popup_za                = 25001,
-    ID_plot_popup_model               = 25011,
-    ID_plot_popup_groups                   ,
+    ID_plot_popup_model             = 25011,
+    //ID_plot_popup_groups                   ,
     ID_plot_popup_peak                     ,
 
     ID_plot_popup_c_background             ,
     ID_plot_popup_c_inactive_data          ,
-    ID_plot_popup_c_model                    ,
+    ID_plot_popup_c_model                  ,
 
     ID_plot_popup_axes                     ,
     ID_plot_popup_plabels                  ,
 
-    ID_plot_popup_pt_size           = 25210,// and next 10 ,
-    ID_peak_popup_info              = 25250,
+    ID_peak_popup_info                     ,
     ID_peak_popup_del                      ,
     ID_peak_popup_guess                    ,
 
@@ -225,8 +224,6 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
                                     MainPlot::OnPopupShowXX)
     EVT_MENU_RANGE (ID_plot_popup_c_background, ID_plot_popup_c_model,
                                     MainPlot::OnPopupColor)
-    EVT_MENU_RANGE (ID_plot_popup_pt_size, ID_plot_popup_pt_size + max_radius,
-                                    MainPlot::OnPopupRadius)
     EVT_MENU (ID_plot_popup_axes,   MainPlot::OnConfigureAxes)
     EVT_MENU (ID_plot_popup_plabels,MainPlot::OnConfigurePLabels)
     EVT_MENU (ID_peak_popup_info,   MainPlot::OnPeakInfo)
@@ -315,8 +312,8 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
 
     if (peaks_visible_)
         draw_peaks(dc, model, !monochrome);
-    if (groups_visible_)
-        draw_groups(dc, model, !monochrome);
+    //if (groups_visible_)
+    //    draw_groups(dc, model, !monochrome);
     if (model_visible_)
         draw_model(dc, model, !monochrome);
     if (x_axis_visible)
@@ -378,9 +375,9 @@ void MainPlot::draw_model(wxDC& dc, const Model* model, bool set_pen)
 
 
 //TODO draw groups
-void MainPlot::draw_groups (wxDC& /*dc*/, const Model*, bool)
-{
-}
+//void MainPlot::draw_groups (wxDC& /*dc*/, const Model*, bool)
+//{
+//}
 
 void MainPlot::draw_peaks(wxDC& dc, const Model* model, bool set_pen)
 {
@@ -606,7 +603,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
     cf->SetPath(wxT("/MainPlot/Visible"));
     peaks_visible_ = cfg_read_bool(cf, wxT("peaks"), true);
     plabels_visible_ = cfg_read_bool(cf, wxT("plabels"), false);
-    groups_visible_ = cfg_read_bool(cf, wxT("groups"), false);
+    //groups_visible_ = cfg_read_bool(cf, wxT("groups"), false);
     model_visible_ = cfg_read_bool(cf, wxT("model"), true);
     cf->SetPath(wxT("/MainPlot"));
     point_radius = cf->Read (wxT("point_radius"), 1);
@@ -663,7 +660,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->SetPath(wxT("/MainPlot/Visible"));
     cf->Write (wxT("peaks"), peaks_visible_);
     cf->Write (wxT("plabels"), plabels_visible_);
-    cf->Write (wxT("groups"), groups_visible_);
+    //cf->Write (wxT("groups"), groups_visible_);
     cf->Write (wxT("model"), model_visible_);
     cf->SetPath(wxT("/MainPlot"));
     FPlot::save_settings(cf);
@@ -697,16 +694,6 @@ void MainPlot::show_popup_menu (wxMouseEvent &event)
     color_menu->Append (ID_plot_popup_c_inactive_data, wxT("&Inactive Data"));
     color_menu->Append (ID_plot_popup_c_model, wxT("&Model"));
     popup_menu.Append (wxNewId(), wxT("&Color"), color_menu);
-
-    wxMenu *size_menu = new wxMenu;
-    size_menu->AppendCheckItem (ID_plot_popup_pt_size, wxT("&Line"), wxT(""));
-    size_menu->Check (ID_plot_popup_pt_size, line_between_points);
-    size_menu->AppendSeparator();
-    for (int i = 1; i <= max_radius; i++)
-        size_menu->AppendRadioItem (ID_plot_popup_pt_size + i,
-                                    wxString::Format (wxT("&%d"), i), wxT(""));
-    size_menu->Check (ID_plot_popup_pt_size + point_radius, true);
-    popup_menu.Append (wxNewId(), wxT("Data point si&ze"), size_menu);
 
     popup_menu.Append (ID_plot_popup_axes, wxT("Configure &Axes..."));
     popup_menu.Append (ID_plot_popup_plabels, wxT("Configure Peak &Labels..."));
@@ -1472,7 +1459,7 @@ void MainPlot::OnPopupShowXX (wxCommandEvent& event)
 {
     switch (event.GetId()) {
         case ID_plot_popup_model:  model_visible_ = !model_visible_;   break;
-        case ID_plot_popup_groups: groups_visible_ = !groups_visible_; break;
+        //case ID_plot_popup_groups: groups_visible_ = !groups_visible_; break;
         case ID_plot_popup_peak:   peaks_visible_ = !peaks_visible_;   break;
         default: assert(0);
     }
@@ -1500,16 +1487,6 @@ void MainPlot::OnPopupColor(wxCommandEvent& event)
         }
         refresh();
     }
-}
-
-void MainPlot::OnPopupRadius (wxCommandEvent& event)
-{
-    int nr = event.GetId() - ID_plot_popup_pt_size;
-    if (nr == 0)
-        line_between_points = !line_between_points;
-    else
-        point_radius = nr;
-    refresh();
 }
 
 void MainPlot::OnConfigureAxes (wxCommandEvent&)
