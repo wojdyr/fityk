@@ -1050,7 +1050,7 @@ void SideBar::on_parameter_lock_clicked(int n, int state)
         ftk->exec(vname + " = {" + vname + "}");
     else { // state == 2
         nb->SetSelection(2); // "variables" page
-        wxString vname_no_prefix = vname.substr(1);
+        wxString vname_no_prefix = s2wx(vname.substr(1));
         for (int i = 0; i != v->list->GetItemCount(); ++i) {
             if (v->list->GetItemText(i) == vname_no_prefix) {
                 v->list->Select(i, true);
