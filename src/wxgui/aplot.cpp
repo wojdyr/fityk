@@ -504,7 +504,9 @@ AuxPlotConfDlg::AuxPlotConfDlg(AuxPlot* ap)
              wxDEFAULT_DIALOG_STYLE),
     ap_(ap)
 {
-    wxBoxSizer *top_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer *hor_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxBoxSizer *left_sizer = new wxBoxSizer(wxVERTICAL);
     wxArrayString plot_choices;
     plot_choices.Add(wxT("&Empty"));
@@ -558,11 +560,14 @@ AuxPlotConfDlg::AuxPlotConfDlg(AuxPlot* ap)
     tics_fp_ = new wxFontPickerCtrl(this, -1, ap_->ticsFont);
     gsizer->Add(tics_fp_, cl);
 
-    top_sizer->Add(left_sizer, wxSizerFlags().Border());
-    top_sizer->Add(gsizer, wxSizerFlags().Border());
+    hor_sizer->Add(left_sizer, wxSizerFlags().Border());
+    hor_sizer->Add(gsizer, wxSizerFlags().Border());
 
+    top_sizer->Add(hor_sizer, 0);
+    top_sizer->Add(new wxButton(this, wxID_CLOSE),
+                   wxSizerFlags().Right().Border());
     SetSizerAndFit(top_sizer);
-    //SetEscapeId(wxID_CLOSE);
+    SetEscapeId(wxID_CLOSE);
 
     Connect(plot_rb->GetId(), wxEVT_COMMAND_RADIOBOX_SELECTED,
             wxCommandEventHandler(AuxPlotConfDlg::OnPlotKind));

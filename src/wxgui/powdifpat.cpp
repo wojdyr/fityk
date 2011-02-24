@@ -94,7 +94,7 @@ class PlotWithLines : public PlotWithTics
 public:
     PlotWithLines(wxWindow* parent, PhasePanel *phase_panel,
                   PowderBook *powder_book);
-    void draw(wxDC &dc, bool);
+    virtual void draw(wxDC &dc, bool);
 
 private:
     void draw_active_data(wxDC& dc);

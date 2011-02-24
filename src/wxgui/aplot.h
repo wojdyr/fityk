@@ -41,7 +41,7 @@ private:
     bool fit_y_once_;
 
     void OnPaint(wxPaintEvent &event);
-    void draw(wxDC &dc, bool monochrome=false);
+    virtual void draw(wxDC &dc, bool monochrome=false);
     void OnLeaveWindow (wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent &event);
     void OnLeftDown(wxMouseEvent &event);

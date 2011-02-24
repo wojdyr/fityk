@@ -10,8 +10,6 @@
 #include <wx/wx.h>
 #endif
 
-#include <wx/fontdlg.h>
-#include <wx/numdlg.h>
 #include <wx/confbase.h>
 
 #include "plot.h"
@@ -358,22 +356,6 @@ void FPlot::draw_data (wxDC& dc,
             int Y = Y_l + (Y_r - Y_l) * (X - X_l) / (X_r - X_l) - Y_offset;
             dc.DrawLine (X_, Y_, X, Y);
         }
-    }
-}
-
-void FPlot::change_tics_font()
-{
-    wxFontData data;
-    data.SetInitialFont(ticsFont);
-    data.SetColour(xAxisCol);
-
-    wxFontDialog dialog(0, data);
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        wxFontData retData = dialog.GetFontData();
-        ticsFont = retData.GetChosenFont();
-        xAxisCol = retData.GetColour();
-        refresh();
     }
 }
 

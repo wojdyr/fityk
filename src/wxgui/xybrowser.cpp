@@ -71,7 +71,7 @@ public:
         { set_bg_color(*wxBLACK); }
 
     void OnPaint(wxPaintEvent &event);
-    void draw(wxDC &dc, bool);
+    virtual void draw(wxDC &dc, bool);
     void load_dataset(string const& filename, string const& filetype,
                       string const& options);
     shared_ptr<const xylib::DataSet> get_data() const { return data; }

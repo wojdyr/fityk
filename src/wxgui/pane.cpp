@@ -3,7 +3,6 @@
 
 #include <wx/wx.h>
 
-#include <wx/fontdlg.h>
 #include <wx/treectrl.h>
 #include <wx/textdlg.h>
 #include <wx/image.h>

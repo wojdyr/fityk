@@ -145,7 +145,6 @@ protected:
                     wxColour const& inactive_color = wxNullColour,
                     int Y_offset = 0,
                     bool cumulative=false);
-    void change_tics_font();
 
     int get_pixel_width(wxDC const& dc) const
       //{ return dc.GetSize().GetWidth(); }

@@ -1,4 +1,10 @@
 
+* GUI: re-design gradient dialog
+
+* GUI: remove "alternate config", use named configs instead
+
+------
+
 * GUI: a single dialog for Model > Export... options and for "info models"
 
 * GUI: definition mgr - checkbox - show in the list on toolbar
@@ -19,6 +25,9 @@
 * add functions cot and coth
 
 * GUI: Help > Examples
+
+* GUI, main plot configuration: add option to change the width and style
+  of the sum (and perhaps also function lines)
 
 ---
 
@@ -78,9 +87,6 @@
   "peak" and "linear"). (GUI): drawing drafts for the new category.
 
 * GUI: add alpha channel to the toolbar icons
-
-* GUI: single dialog for configuration of the main plot
-  - add option to change the width of the sum line (and other lines)
 
 * user defined functions:
       - calculating limits, width, area, etc. for UDF
