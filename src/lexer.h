@@ -1,8 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-/// This lexer (scanner) is not used yet.
-/// In the future it will replace the current lexer/parser.
 /// Lexical analyser. Takes characters and yields tokens.
 
 #ifndef FITYK__LEXER__H__

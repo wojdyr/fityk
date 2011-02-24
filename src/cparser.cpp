@@ -1,7 +1,6 @@
 // This file is part of fityk program. Copyright 2009 Marcin Wojdyr.
 // Licence: GNU General Public License ver. 2+
 
-/// This parser is not used yet.
 /// Command parser.
 
 #include "cparser.h"
