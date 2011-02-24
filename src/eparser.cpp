@@ -894,6 +894,20 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
             case kTokenMinus:
                 if (expected_ == kOperator)
                     put_binary_op(OP_SUB);
+                else if (lex.peek_token().type == kTokenNumber) {
+                    // In '-3', '-3+5', '-3*5', 5*-3', etc. '-3' is parsed
+                    // as a number. The exception is '-3^5', where '-3'
+                    // is parsed as OP_NEG and number, because '^' has higher
+                    // precedence than '-'
+                    Token num = lex.get_token();
+                    if (lex.peek_token().type != kTokenPower) {
+                        put_number(-num.value.d);
+                    }
+                    else {
+                        put_unary_op(OP_NEG);
+                        put_number(num.value.d);
+                    }
+                }
                 else
                     put_unary_op(OP_NEG);
                 break;
