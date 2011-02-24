@@ -153,7 +153,7 @@ public:
     void SwitchStatbar(bool show);
     void OnSwitchStatbar(wxCommandEvent& ev) {SwitchStatbar(ev.IsChecked());}
     void SwitchCrosshair(bool show);
-    void OnShowPopupMenu(wxCommandEvent& ev);
+    void OnShowPrefDialog(wxCommandEvent& ev);
     void OnConfigureStatusBar(wxCommandEvent& event);
     void OnConfigureOutputWin(wxCommandEvent&);
     void OnSwitchCrosshair(wxCommandEvent& e) {SwitchCrosshair(e.IsChecked());}

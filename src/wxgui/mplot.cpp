@@ -3,7 +3,8 @@
 
 #include <wx/wx.h>
 
-#include <wx/fontdlg.h>
+#include <wx/clrpicker.h>
+#include <wx/fontpicker.h>
 #include <algorithm>
 #include <boost/scoped_ptr.hpp>
 
@@ -25,30 +26,115 @@ using namespace std;
 
 enum {
     ID_plot_popup_za                = 25001,
-    ID_plot_popup_model             = 25011,
-    //ID_plot_popup_groups                   ,
-    ID_plot_popup_peak                     ,
-
-    ID_plot_popup_c_background             ,
-    ID_plot_popup_c_inactive_data          ,
-    ID_plot_popup_c_model                  ,
-
-    ID_plot_popup_axes                     ,
-    ID_plot_popup_plabels                  ,
+    ID_plot_popup_prefs                    ,
 
     ID_peak_popup_info                     ,
     ID_peak_popup_del                      ,
     ID_peak_popup_guess                    ,
-
-    ID_CAD_COLOR,
-    ID_CAD_FONT,
-
-    ID_CPL_FONT,
-    ID_CPL_SHOW,
-    ID_CPL_RADIO,
-    ID_CPL_TEXT,
 };
 
+
+class MainPlotConfDlg: public wxDialog
+{
+public:
+    MainPlotConfDlg(MainPlot* mp);
+
+private:
+    MainPlot *mp_;
+    wxCheckBox *model_cb_, *func_cb_, *labels_cb_, *vertical_labels_cb_;
+    wxComboBox *label_combo_;
+    wxColourPickerCtrl *bg_cp_, *active_cp_, *inactive_cp_, *axis_cp_,
+                       *model_cp_, *func_cp_;
+    wxFontPickerCtrl *tics_fp_, *label_fp_;
+    wxCheckBox *x_show_axis_cb_, *x_show_tics_cb_, *x_show_minor_tics_cb_,
+               *x_show_grid_cb_, *x_reversed_cb_, *x_logarithm_cb_;
+    wxCheckBox *y_show_axis_cb_, *y_show_tics_cb_, *y_show_minor_tics_cb_,
+               *y_show_grid_cb_, *y_reversed_cb_, *y_logarithm_cb_;
+    wxSpinCtrl *x_max_tics_sc_, *x_tic_size_sc_;
+    wxSpinCtrl *y_max_tics_sc_, *y_tic_size_sc_;
+
+    void OnModelCheckbox(wxCommandEvent& event)
+        { mp_->model_visible_ = event.IsChecked(); mp_->refresh(); }
+
+    void OnFuncCheckbox(wxCommandEvent& event)
+        { mp_->peaks_visible_ = event.IsChecked(); mp_->refresh(); }
+
+    void OnLabelsCheckbox(wxCommandEvent& event)
+        { mp_->plabels_visible_ = event.IsChecked(); mp_->refresh(); }
+
+    void OnVerticalCheckbox(wxCommandEvent& event)
+    {
+        mp_->vertical_plabels_ = event.IsChecked();
+        if (mp_->plabels_visible_)
+            mp_->refresh();
+    }
+
+    void OnColor(wxColourPickerEvent& event);
+
+    void OnTicsFont(wxFontPickerEvent& event)
+        { mp_->ticsFont = event.GetFont(); mp_->refresh(); }
+
+    void OnLabelFont(wxFontPickerEvent& event)
+        { mp_->plabelFont = event.GetFont(); mp_->refresh(); }
+
+    void OnLabelTextChanged(wxCommandEvent&)
+    {
+        mp_->plabel_format_ = wx2s(label_combo_->GetValue());
+        if (mp_->plabels_visible_)
+            mp_->refresh();
+    }
+
+    void OnShowXAxis(wxCommandEvent& event)
+        { mp_->x_axis_visible = event.IsChecked(); mp_->refresh(); }
+    void OnShowYAxis(wxCommandEvent& event)
+        { mp_->y_axis_visible = event.IsChecked(); mp_->refresh(); }
+
+    void OnShowXTics(wxCommandEvent& event)
+        { mp_->xtics_visible = event.IsChecked(); mp_->refresh(); }
+    void OnShowYTics(wxCommandEvent& event)
+        { mp_->ytics_visible = event.IsChecked(); mp_->refresh(); }
+
+    void OnShowXMinorTics(wxCommandEvent& event)
+        { mp_->xminor_tics_visible = event.IsChecked(); mp_->refresh(); }
+    void OnShowYMinorTics(wxCommandEvent& event)
+        { mp_->yminor_tics_visible = event.IsChecked(); mp_->refresh(); }
+
+    void OnShowXGrid(wxCommandEvent& event)
+        { mp_->x_grid = event.IsChecked(); mp_->refresh(); }
+    void OnShowYGrid(wxCommandEvent& event)
+        { mp_->y_grid = event.IsChecked(); mp_->refresh(); }
+
+    void OnReversedX(wxCommandEvent& event)
+    {
+        mp_->xs.reversed = event.IsChecked();
+        frame->refresh_plots(false, kAllPlots);
+    }
+    void OnReversedY(wxCommandEvent& event)
+        { mp_->ys.reversed = event.IsChecked(); mp_->refresh(); }
+
+    void OnLogX(wxCommandEvent& event)
+    {
+        mp_->xs.logarithm = event.IsChecked();
+        ftk->view.set_log_scale(mp_->xs.logarithm, mp_->ys.logarithm);
+        frame->refresh_plots(false, kAllPlots);
+    }
+    void OnLogY(wxCommandEvent& event)
+    {
+        mp_->ys.logarithm = event.IsChecked();
+        ftk->view.set_log_scale(mp_->xs.logarithm, mp_->ys.logarithm);
+        mp_->refresh();
+    }
+
+    void OnMaxXTicsSpin(wxSpinEvent& event)
+        { mp_->x_max_tics = event.GetPosition(); mp_->refresh(); }
+    void OnMaxYTicsSpin(wxSpinEvent& event)
+        { mp_->y_max_tics = event.GetPosition(); mp_->refresh(); }
+
+    void OnXTicSize(wxSpinEvent& event)
+        { mp_->x_tic_size = event.GetPosition(); mp_->refresh(); }
+    void OnYTicSize(wxSpinEvent& event)
+        { mp_->y_tic_size = event.GetPosition(); mp_->refresh(); }
+};
 
 //---------------------- FunctionMouseDrag --------------------------------
 
@@ -220,12 +306,7 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_RIGHT_UP (        MainPlot::OnButtonUp)
     EVT_MIDDLE_UP (       MainPlot::OnButtonUp)
     EVT_MENU (ID_plot_popup_za,     MainPlot::OnZoomAll)
-    EVT_MENU_RANGE (ID_plot_popup_model, ID_plot_popup_peak,
-                                    MainPlot::OnPopupShowXX)
-    EVT_MENU_RANGE (ID_plot_popup_c_background, ID_plot_popup_c_model,
-                                    MainPlot::OnPopupColor)
-    EVT_MENU (ID_plot_popup_axes,   MainPlot::OnConfigureAxes)
-    EVT_MENU (ID_plot_popup_plabels,MainPlot::OnConfigurePLabels)
+    EVT_MENU (ID_plot_popup_prefs,  MainPlot::OnConfigure)
     EVT_MENU (ID_peak_popup_info,   MainPlot::OnPeakInfo)
     EVT_MENU (ID_peak_popup_del,    MainPlot::OnPeakDelete)
     EVT_MENU (ID_peak_popup_guess,  MainPlot::OnPeakGuess)
@@ -674,31 +755,12 @@ void MainPlot::OnLeaveWindow (wxMouseEvent&)
 
 void MainPlot::show_popup_menu (wxMouseEvent &event)
 {
-    wxMenu popup_menu; //("main plot menu");
-
+    wxMenu popup_menu;
     popup_menu.Append(ID_plot_popup_za, wxT("Zoom &All"));
     popup_menu.AppendSeparator();
+    popup_menu.Append(ID_plot_popup_prefs, wxT("Configure..."));
 
-    wxMenu *show_menu = new wxMenu;
-    show_menu->AppendCheckItem (ID_plot_popup_model, wxT("&Model"), wxT(""));
-    show_menu->Check (ID_plot_popup_model, model_visible_);
-    //show_menu->AppendCheckItem (ID_plot_popup_groups,
-    //                            wxT("Grouped peaks"), wxT(""));
-    //show_menu->Check (ID_plot_popup_groups, groups_visible_);
-    show_menu->AppendCheckItem (ID_plot_popup_peak, wxT("&Peaks"), wxT(""));
-    show_menu->Check (ID_plot_popup_peak, peaks_visible_);
-    popup_menu.Append (wxNewId(), wxT("&Show"), show_menu);
-
-    wxMenu *color_menu = new wxMenu;
-    color_menu->Append (ID_plot_popup_c_background, wxT("&Background"));
-    color_menu->Append (ID_plot_popup_c_inactive_data, wxT("&Inactive Data"));
-    color_menu->Append (ID_plot_popup_c_model, wxT("&Model"));
-    popup_menu.Append (wxNewId(), wxT("&Color"), color_menu);
-
-    popup_menu.Append (ID_plot_popup_axes, wxT("Configure &Axes..."));
-    popup_menu.Append (ID_plot_popup_plabels, wxT("Configure Peak &Labels..."));
-
-    PopupMenu (&popup_menu, event.GetX(), event.GetY());
+    PopupMenu(&popup_menu, event.GetX(), event.GetY());
 }
 
 void MainPlot::show_peak_menu (wxMouseEvent &event)
@@ -1455,49 +1517,9 @@ void MainPlot::draw_rect (int X1, int Y1, int X2, int Y2)
     dc.DrawRectangle (xmin, ymin, width, height);
 }
 
-void MainPlot::OnPopupShowXX (wxCommandEvent& event)
+void MainPlot::OnConfigure(wxCommandEvent&)
 {
-    switch (event.GetId()) {
-        case ID_plot_popup_model:  model_visible_ = !model_visible_;   break;
-        //case ID_plot_popup_groups: groups_visible_ = !groups_visible_; break;
-        case ID_plot_popup_peak:   peaks_visible_ = !peaks_visible_;   break;
-        default: assert(0);
-    }
-    refresh();
-}
-
-void MainPlot::OnPopupColor(wxCommandEvent& event)
-{
-    int n = event.GetId();
-    wxColour *color = 0;
-    wxColour bg_color = get_bg_color();
-    if (n == ID_plot_popup_c_background)
-        color = &bg_color;
-    else if (n == ID_plot_popup_c_inactive_data) {
-        color = &inactiveDataCol;
-    }
-    else if (n == ID_plot_popup_c_model)
-        color = &modelCol;
-    else
-        return;
-    if (change_color_dlg(*color)) {
-        if (n == ID_plot_popup_c_background) {
-            frame->update_data_pane();
-            set_bg_color(bg_color);
-        }
-        refresh();
-    }
-}
-
-void MainPlot::OnConfigureAxes (wxCommandEvent&)
-{
-    ConfigureAxesDlg dialog(NULL, -1, this);
-    dialog.ShowModal();
-}
-
-void MainPlot::OnConfigurePLabels (wxCommandEvent&)
-{
-    ConfigurePLabelsDlg dialog(NULL, -1, this);
+    MainPlotConfDlg dialog(this);
     dialog.ShowModal();
 }
 
@@ -1505,281 +1527,6 @@ void MainPlot::OnZoomAll(wxCommandEvent&)
 {
     frame->GViewAll();
 }
-
-//===============================================================
-//                     ConfigureAxesDlg
-//===============================================================
-
-BEGIN_EVENT_TABLE(ConfigureAxesDlg, wxDialog)
-    EVT_BUTTON(wxID_APPLY, ConfigureAxesDlg::OnApply)
-    EVT_BUTTON(ID_CAD_COLOR, ConfigureAxesDlg::OnChangeColor)
-    EVT_BUTTON(ID_CAD_FONT, ConfigureAxesDlg::OnChangeFont)
-END_EVENT_TABLE()
-
-ConfigureAxesDlg::ConfigureAxesDlg(wxWindow* parent, wxWindowID id,
-                                   MainPlot* plot_)
-    //explicit conversion of title to wxString() is neccessary
-  : wxDialog(parent, id, wxString(wxT("Configure Axes"))), plot(plot_),
-    axis_color(plot_->xAxisCol)
-{
-    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
-    wxBoxSizer *sizer1 = new wxBoxSizer(wxHORIZONTAL);
-    wxStaticBoxSizer *xsizer = new wxStaticBoxSizer(wxVERTICAL, this,
-                                                    wxT("X axis"));
-    x_show_axis = new wxCheckBox(this, -1, wxT("show axis"));
-    x_show_axis->SetValue(plot->x_axis_visible);
-    xsizer->Add(x_show_axis, 0, wxALL, 5);
-    x_show_tics = new wxCheckBox(this, -1, wxT("show tics"));
-    x_show_tics->SetValue(plot->xtics_visible);
-    xsizer->Add(x_show_tics, 0, wxALL, 5);
-    wxBoxSizer* xsizer_t = new wxBoxSizer(wxVERTICAL);
-    x_show_minor_tics = new wxCheckBox(this, -1, wxT("show minor tics"));
-    x_show_minor_tics->SetValue(plot->xminor_tics_visible);
-    xsizer_t->Add(x_show_minor_tics, 0, wxALL, 5);
-    x_show_grid = new wxCheckBox(this, -1, wxT("show grid"));
-    x_show_grid->SetValue(plot->x_grid);
-    xsizer_t->Add(x_show_grid, 0, wxALL, 5);
-    wxBoxSizer *xmt_sizer = new wxBoxSizer(wxHORIZONTAL);
-    xmt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")),
-                  0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    x_max_tics = new wxSpinCtrl (this, -1, wxT("7"),
-                                 wxDefaultPosition, wxSize(50, -1),
-                                 wxSP_ARROW_KEYS, 1, 30, 7);
-    x_max_tics->SetValue(plot->x_max_tics);
-    xmt_sizer->Add(x_max_tics, 0, wxALL, 5);
-    xsizer_t->Add(xmt_sizer);
-    wxBoxSizer *xts_sizer = new wxBoxSizer(wxHORIZONTAL);
-    xts_sizer->Add(new wxStaticText(this, -1, wxT("length of tics")),
-                  0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    x_tics_size = new wxSpinCtrl (this, -1, wxT("4"),
-                                  wxDefaultPosition, wxSize(50, -1),
-                                  wxSP_ARROW_KEYS, -10, 20, 4);
-    x_tics_size->SetValue(plot->x_tic_size);
-    xts_sizer->Add(x_tics_size, 0, wxALL, 5);
-    xsizer_t->Add(xts_sizer);
-    xsizer->Add(xsizer_t, 0, wxLEFT, 15);
-    x_reversed_cb = new wxCheckBox(this, -1, wxT("reversed axis"));
-    x_reversed_cb->SetValue(plot->xs.reversed);
-    xsizer->Add(x_reversed_cb, 0, wxALL, 5);
-    x_logarithm_cb = new wxCheckBox(this, -1, wxT("logarithmic scale"));
-    x_logarithm_cb->SetValue(plot->xs.logarithm);
-    xsizer->Add(x_logarithm_cb, 0, wxALL, 5);
-    sizer1->Add(xsizer, 0, wxALL, 5);
-
-    wxStaticBoxSizer *ysizer = new wxStaticBoxSizer(wxVERTICAL, this,
-                                                    wxT("Y axis"));
-    y_show_axis = new wxCheckBox(this, -1, wxT("show axis"));
-    y_show_axis->SetValue(plot->y_axis_visible);
-    ysizer->Add(y_show_axis, 0, wxALL, 5);
-    y_show_tics = new wxCheckBox(this, -1, wxT("show tics"));
-    y_show_tics->SetValue(plot->ytics_visible);
-    ysizer->Add(y_show_tics, 0, wxALL, 5);
-    wxBoxSizer* ysizer_t = new wxBoxSizer(wxVERTICAL);
-    y_show_minor_tics = new wxCheckBox(this, -1, wxT("show minor tics"));
-    y_show_minor_tics->SetValue(plot->yminor_tics_visible);
-    ysizer_t->Add(y_show_minor_tics, 0, wxALL, 5);
-    y_show_grid = new wxCheckBox(this, -1, wxT("show grid"));
-    y_show_grid->SetValue(plot->y_grid);
-    ysizer_t->Add(y_show_grid, 0, wxALL, 5);
-    wxBoxSizer *ymt_sizer = new wxBoxSizer(wxHORIZONTAL);
-    ymt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")),
-                  0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    y_max_tics = new wxSpinCtrl (this, -1, wxT("7"),
-                                 wxDefaultPosition, wxSize(50, -1),
-                                 wxSP_ARROW_KEYS, 1, 30, 7);
-    y_max_tics->SetValue(plot->y_max_tics);
-    ymt_sizer->Add(y_max_tics, 0, wxALL, 5);
-    ysizer_t->Add(ymt_sizer);
-    wxBoxSizer *yts_sizer = new wxBoxSizer(wxHORIZONTAL);
-    yts_sizer->Add(new wxStaticText(this, -1, wxT("length of tics")),
-                  0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    y_tics_size = new wxSpinCtrl (this, -1, wxT("4"),
-                                  wxDefaultPosition, wxSize(50, -1),
-                                  wxSP_ARROW_KEYS, 1, 20, 4);
-    y_tics_size->SetValue(plot->y_tic_size);
-    yts_sizer->Add(y_tics_size, 0, wxALL, 5);
-    ysizer_t->Add(yts_sizer);
-    ysizer->Add(ysizer_t, 0, wxLEFT, 15);
-    y_reversed_cb = new wxCheckBox(this, -1, wxT("reversed axis"));
-    y_reversed_cb->SetValue(plot->ys.reversed);
-    ysizer->Add(y_reversed_cb, 0, wxALL, 5);
-    y_logarithm_cb = new wxCheckBox(this, -1, wxT("logarithmic scale"));
-    y_logarithm_cb->SetValue(plot->ys.logarithm);
-    ysizer->Add(y_logarithm_cb, 0, wxALL, 5);
-    sizer1->Add(ysizer, 0, wxALL, 5);
-
-    top_sizer->Add(sizer1, 0);
-    wxBoxSizer *common_sizer = new wxBoxSizer(wxHORIZONTAL);
-    common_sizer->Add(new wxButton(this, ID_CAD_COLOR,
-                                   wxT("Change axes color...")),
-                      0, wxALL, 5);
-    common_sizer->Add(new wxButton(this, ID_CAD_FONT,
-                                   wxT("Change tics font...")),
-                      0, wxALL, 5);
-    top_sizer->Add(common_sizer, 0, wxALIGN_CENTER);
-    add_apply_close_buttons(this, top_sizer);
-    SetSizerAndFit(top_sizer);
-    SetEscapeId(wxID_CLOSE);
-}
-
-void ConfigureAxesDlg::OnApply (wxCommandEvent&)
-{
-    bool scale_changed = false;
-    plot->xAxisCol = axis_color;
-    plot->x_axis_visible = x_show_axis->GetValue();
-    plot->xtics_visible = x_show_tics->GetValue();
-    plot->xminor_tics_visible = x_show_minor_tics->GetValue();
-    plot->x_grid = x_show_grid->GetValue();
-    plot->x_max_tics = x_max_tics->GetValue();
-    plot->x_tic_size = x_tics_size->GetValue();
-    if (plot->xs.reversed != x_reversed_cb->GetValue()) {
-        plot->xs.reversed = x_reversed_cb->GetValue();
-        scale_changed = true;
-    }
-    if (plot->xs.logarithm != x_logarithm_cb->GetValue()) {
-        plot->xs.logarithm = x_logarithm_cb->GetValue();
-        scale_changed = true;
-    }
-    plot->y_axis_visible = y_show_axis->GetValue();
-    plot->ytics_visible = y_show_tics->GetValue();
-    plot->yminor_tics_visible = y_show_minor_tics->GetValue();
-    plot->y_grid = y_show_grid->GetValue();
-    plot->y_max_tics = y_max_tics->GetValue();
-    plot->y_tic_size = y_tics_size->GetValue();
-    plot->ys.reversed = y_reversed_cb->GetValue();
-    plot->ys.logarithm = y_logarithm_cb->GetValue();
-    ftk->view.set_log_scale(plot->xs.logarithm, plot->ys.logarithm);
-    frame->refresh_plots(false, scale_changed ? kAllPlots : kMainPlot);
-}
-
-void ConfigureAxesDlg::OnChangeFont (wxCommandEvent&)
-{
-    plot->change_tics_font();
-}
-
-//===============================================================
-//                     ConfigurePLabelsDlg
-//===============================================================
-
-BEGIN_EVENT_TABLE(ConfigurePLabelsDlg, wxDialog)
-    EVT_BUTTON(wxID_APPLY, ConfigurePLabelsDlg::OnApply)
-    EVT_BUTTON(ID_CPL_FONT, ConfigurePLabelsDlg::OnChangeLabelFont)
-    EVT_CHECKBOX(ID_CPL_SHOW, ConfigurePLabelsDlg::OnCheckShowLabel)
-    EVT_TEXT(ID_CPL_TEXT, ConfigurePLabelsDlg::OnChangeLabelText)
-    EVT_RADIOBOX(ID_CPL_RADIO, ConfigurePLabelsDlg::OnRadioLabel)
-END_EVENT_TABLE()
-
-ConfigurePLabelsDlg::ConfigurePLabelsDlg(wxWindow* parent, wxWindowID id,
-                                         MainPlot* plot_)
-    //explicit conversion of title to wxString() is neccessary
-  : wxDialog(parent, id, wxString(wxT("Configure Peak Labels"))), plot(plot_),
-    in_onradiolabel(false)
-{
-    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
-    show_plabels = new wxCheckBox(this, ID_CPL_SHOW, wxT("show peak labels"));
-    top_sizer->Add(show_plabels, 0, wxALL, 5);
-    wxBoxSizer *sizer1 = new wxBoxSizer(wxHORIZONTAL);
-    vector<string> label_radio_choice;
-    label_radio_choice.push_back("area");
-    label_radio_choice.push_back("height");
-    label_radio_choice.push_back("center");
-    label_radio_choice.push_back("fwhm");
-    label_radio_choice.push_back("name");
-    label_radio_choice.push_back("custom");
-    label_radio = new wxRadioBox(this, ID_CPL_RADIO, wxT("labels with:"),
-                                 wxDefaultPosition, wxDefaultSize,
-                                 stl2wxArrayString(label_radio_choice),
-                                 1, wxRA_SPECIFY_COLS);
-    sizer1->Add(label_radio, 0, wxALL|wxEXPAND, 5);
-    wxStaticBoxSizer *xsizer = new wxStaticBoxSizer(wxVERTICAL, this,
-                                            wxT("list of replaceable tokens"));
-    xsizer->Add(new wxStaticText(this, -1, wxT("<area>   area of peak\n")
-                                           wxT("<height> height of peak\n")
-                                           wxT("<center> center of peak\n")
-                                           wxT("<fwhm>   FWHM of peak\n")
-                                       wxT("<ib>    integral breadth of peak\n")
-                                           wxT("<name>   name of function\n")
-                                           wxT("<br>     line break\n")),
-                0, wxALL|wxEXPAND, 5);
-    sizer1->Add(xsizer, 0, wxALL, 5);
-    top_sizer->Add(sizer1, 0);
-    label_text = new wxTextCtrl(this, ID_CPL_TEXT, wxT(""));
-    top_sizer->Add(label_text, 0, wxALL|wxEXPAND, 5);
-
-    vertical_rb = new wxRadioBox(this, ID_CPL_RADIO, wxT("label direction"),
-                                 wxDefaultPosition, wxDefaultSize,
-                                 stl2wxArrayString(vector2(string("horizontal"),
-                                                           string("vertical"))),
-                                 2);
-    top_sizer->Add(vertical_rb, 0, wxALL|wxEXPAND, 5);
-
-    top_sizer->Add(new wxButton(this, ID_CPL_FONT, wxT("Change label font...")),
-                   0, wxALL|wxALIGN_CENTER, 5);
-    top_sizer->Add(new wxStaticText(this, -1,
-                                   wxT("Labels have the same colors as peaks")),
-                   0, wxALL, 5);
-
-    add_apply_close_buttons(this, top_sizer);
-    SetSizerAndFit(top_sizer);
-
-    //set initial values
-    show_plabels->SetValue(plot->plabels_visible_);
-    label_text->SetValue(s2wx(plot->plabel_format_));
-    vertical_rb->SetSelection(plot->vertical_plabels_ ? 1 : 0);
-    label_radio->SetStringSelection(wxT("custom"));
-    label_text->Enable(plot->plabels_visible_);
-    label_radio->Enable(plot->plabels_visible_);
-    vertical_rb->Enable(plot->plabels_visible_);
-    SetEscapeId(wxID_CLOSE);
-}
-
-void ConfigurePLabelsDlg::OnChangeLabelText (wxCommandEvent&)
-{
-    // don't change radio if this event is triggered by label_text->SetValue()
-    // from radiobox event handler
-    if (!in_onradiolabel)
-        label_radio->SetStringSelection(wxT("custom"));
-}
-
-void ConfigurePLabelsDlg::OnCheckShowLabel (wxCommandEvent& event)
-{
-    bool checked = event.IsChecked();
-    label_radio->Enable(checked);
-    label_text->Enable(checked);
-    vertical_rb->Enable(checked);
-}
-
-void ConfigurePLabelsDlg::OnRadioLabel (wxCommandEvent&)
-{
-    in_onradiolabel = true;
-    wxString s = label_radio->GetStringSelection();
-    if (s != wxT("custom"))
-        label_text->SetValue(wxT("<") + s + wxT(">"));
-    in_onradiolabel = false;
-}
-
-void ConfigurePLabelsDlg::OnApply (wxCommandEvent&)
-{
-    plot->plabels_visible_ = show_plabels->GetValue();
-    plot->plabel_format_ = wx2s(label_text->GetValue());
-    plot->vertical_plabels_ = vertical_rb->GetSelection() != 0;
-    plot->refresh();
-}
-
-void ConfigurePLabelsDlg::OnChangeLabelFont (wxCommandEvent&)
-{
-    wxFontData data;
-    data.SetInitialFont(plot->plabelFont);
-    wxFontDialog dialog(NULL, data);
-    if (dialog.ShowModal() == wxID_OK)
-    {
-        wxFontData retData = dialog.GetFontData();
-        plot->plabelFont = retData.GetChosenFont();
-        plot->refresh();
-    }
-}
-
-
 
 //===============================================================
 //           BgManager (for interactive background setting)
@@ -2046,5 +1793,284 @@ void BgManager::read_recent_baselines()
             recent_bg_.push_back(make_pair(name, q));
         }
     }
+}
+
+//===============================================================
+
+MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
+  : wxDialog(NULL, -1, wxString(wxT("Configure Main Plot")),
+             wxDefaultPosition, wxDefaultSize,
+             wxDEFAULT_DIALOG_STYLE),
+    mp_(mp)
+{
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+
+    wxBoxSizer *hor_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxFlexGridSizer *gsizer = new wxFlexGridSizer(2, 5, 5);
+    wxSizerFlags cl = wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL),
+             cr = wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL|wxALIGN_RIGHT);
+
+    gsizer->Add(new wxStaticText(this, -1, wxT("background")), cr);
+    bg_cp_ = new wxColourPickerCtrl(this, -1, mp_->get_bg_color());
+    gsizer->Add(bg_cp_, cl);
+
+    gsizer->Add(new wxStaticText(this, -1, wxT("active data")), cr);
+    active_cp_ = new wxColourPickerCtrl(this, -1, mp_->dataCol[0]);
+    gsizer->Add(active_cp_, cl);
+
+    gsizer->Add(new wxStaticText(this, -1, wxT("inactive data")), cr);
+    inactive_cp_ = new wxColourPickerCtrl(this, -1, mp_->inactiveDataCol);
+    gsizer->Add(inactive_cp_, cl);
+
+    model_cb_ = new wxCheckBox(this, -1, wxT("model (sum)"));
+    model_cb_->SetValue(mp_->model_visible_);
+    gsizer->Add(model_cb_, cr);
+    model_cp_ = new wxColourPickerCtrl(this, -1, mp_->modelCol);
+    gsizer->Add(model_cp_, cl);
+
+    func_cb_ = new wxCheckBox(this, -1, wxT("functions"));
+    func_cb_->SetValue(mp_->peaks_visible_);
+    gsizer->Add(func_cb_, cr);
+    func_cp_ = new wxColourPickerCtrl(this, -1, mp_->peakCol[0]);
+    gsizer->Add(func_cp_, cl);
+
+    labels_cb_ = new wxCheckBox(this, -1, wxT("function labels"));
+    labels_cb_->SetValue(mp_->plabels_visible_);
+    gsizer->Add(labels_cb_, cr);
+    label_fp_ = new wxFontPickerCtrl(this, -1, mp_->plabelFont);
+    gsizer->Add(label_fp_, cl);
+
+    gsizer->Add(new wxStaticText(this, -1, wxEmptyString), cr);
+    vertical_labels_cb_ = new wxCheckBox(this, -1, wxT("vertical"));
+    vertical_labels_cb_->SetValue(mp_->vertical_plabels_);
+    gsizer->Add(vertical_labels_cb_, cl);
+
+    gsizer->Add(new wxStaticText(this, -1, wxEmptyString), cr);
+    wxArrayString label_choices;
+    label_choices.Add(wxT("<area>"));
+    label_choices.Add(wxT("<height>"));
+    label_choices.Add(wxT("<center>"));
+    label_choices.Add(wxT("<fwhm>"));
+    label_choices.Add(wxT("<ib>"));
+    label_choices.Add(wxT("<name>"));
+    label_choices.Add(wxT("<name>  <area>"));
+    label_choices.Add(wxT("<name><br><area>"));
+    label_combo_ = new wxComboBox(this, -1, s2wx(mp_->plabel_format_),
+                                  wxDefaultPosition, wxDefaultSize,
+                                  label_choices);
+    label_combo_->SetToolTip(wxT("Labels can show the following properties:\n")
+                             wxT("<area>   area\n")
+                             wxT("<height> height\n")
+                             wxT("<center> center\n")
+                             wxT("<fwhm>   peak FWHM\n")
+                             wxT("<ib>     integral breadth (area/FWHM)\n")
+                             wxT("<name>   function's name\n")
+                             wxT("<br>     line break\n"));
+    vertical_labels_cb_->SetValue(mp_->vertical_plabels_);
+    gsizer->Add(label_combo_, cl);
+
+    gsizer->Add(new wxStaticText(this, -1, wxT("axis & tics color")), cr);
+    axis_cp_ = new wxColourPickerCtrl(this, -1, mp_->xAxisCol);
+    gsizer->Add(axis_cp_, cl);
+
+    gsizer->Add(new wxStaticText(this, -1, wxT("tic label font")), cr);
+    tics_fp_ = new wxFontPickerCtrl(this, -1, mp_->ticsFont);
+    gsizer->Add(tics_fp_, cl);
+
+    hor_sizer->Add(gsizer, wxSizerFlags().Border());
+
+    wxStaticBoxSizer *xsizer = new wxStaticBoxSizer(wxVERTICAL, this,
+                                                    wxT("X axis"));
+    x_show_axis_cb_ = new wxCheckBox(this, -1, wxT("show axis"));
+    x_show_axis_cb_->SetValue(mp_->x_axis_visible);
+    xsizer->Add(x_show_axis_cb_, 0, wxALL, 5);
+    x_show_tics_cb_ = new wxCheckBox(this, -1, wxT("show tics"));
+    x_show_tics_cb_->SetValue(mp_->xtics_visible);
+    xsizer->Add(x_show_tics_cb_, 0, wxALL, 5);
+    wxBoxSizer* xsizer_t = new wxBoxSizer(wxVERTICAL);
+    x_show_minor_tics_cb_ = new wxCheckBox(this, -1, wxT("show minor tics"));
+    x_show_minor_tics_cb_->SetValue(mp_->xminor_tics_visible);
+    xsizer_t->Add(x_show_minor_tics_cb_, 0, wxALL, 5);
+    x_show_grid_cb_ = new wxCheckBox(this, -1, wxT("show grid"));
+    x_show_grid_cb_->SetValue(mp_->x_grid);
+    xsizer_t->Add(x_show_grid_cb_, 0, wxALL, 5);
+    wxBoxSizer *xmt_sizer = new wxBoxSizer(wxHORIZONTAL);
+    xmt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")),
+                  0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
+    x_max_tics_sc_ = new wxSpinCtrl(this, -1, wxT("7"),
+                                    wxDefaultPosition, wxSize(50, -1),
+                                    wxSP_ARROW_KEYS, 1, 30, 7);
+    x_max_tics_sc_->SetValue(mp_->x_max_tics);
+    xmt_sizer->Add(x_max_tics_sc_, 0, wxALL, 5);
+    xsizer_t->Add(xmt_sizer);
+    wxBoxSizer *xts_sizer = new wxBoxSizer(wxHORIZONTAL);
+    xts_sizer->Add(new wxStaticText(this, -1, wxT("length of tics")),
+                  0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
+    x_tic_size_sc_ = new wxSpinCtrl(this, -1, wxT("4"),
+                                    wxDefaultPosition, wxSize(50, -1),
+                                    wxSP_ARROW_KEYS, -10, 20, 4);
+    x_tic_size_sc_->SetValue(mp_->x_tic_size);
+    xts_sizer->Add(x_tic_size_sc_, 0, wxALL, 5);
+    xsizer_t->Add(xts_sizer);
+    xsizer->Add(xsizer_t, 0, wxLEFT, 15);
+    x_reversed_cb_ = new wxCheckBox(this, -1, wxT("reversed axis"));
+    x_reversed_cb_->SetValue(mp_->xs.reversed);
+    xsizer->Add(x_reversed_cb_, 0, wxALL, 5);
+    x_logarithm_cb_ = new wxCheckBox(this, -1, wxT("logarithmic scale"));
+    x_logarithm_cb_->SetValue(mp_->xs.logarithm);
+    xsizer->Add(x_logarithm_cb_, 0, wxALL, 5);
+    hor_sizer->Add(xsizer, 0, wxALL, 5);
+
+    wxStaticBoxSizer *ysizer = new wxStaticBoxSizer(wxVERTICAL, this,
+                                                    wxT("Y axis"));
+    y_show_axis_cb_ = new wxCheckBox(this, -1, wxT("show axis"));
+    y_show_axis_cb_->SetValue(mp_->y_axis_visible);
+    ysizer->Add(y_show_axis_cb_, 0, wxALL, 5);
+    y_show_tics_cb_ = new wxCheckBox(this, -1, wxT("show tics"));
+    y_show_tics_cb_->SetValue(mp_->ytics_visible);
+    ysizer->Add(y_show_tics_cb_, 0, wxALL, 5);
+    wxBoxSizer* ysizer_t = new wxBoxSizer(wxVERTICAL);
+    y_show_minor_tics_cb_ = new wxCheckBox(this, -1, wxT("show minor tics"));
+    y_show_minor_tics_cb_->SetValue(mp_->yminor_tics_visible);
+    ysizer_t->Add(y_show_minor_tics_cb_, 0, wxALL, 5);
+    y_show_grid_cb_ = new wxCheckBox(this, -1, wxT("show grid"));
+    y_show_grid_cb_->SetValue(mp_->y_grid);
+    ysizer_t->Add(y_show_grid_cb_, 0, wxALL, 5);
+    wxBoxSizer *ymt_sizer = new wxBoxSizer(wxHORIZONTAL);
+    ymt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")),
+                  0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
+    y_max_tics_sc_ = new wxSpinCtrl(this, -1, wxT("7"),
+                                    wxDefaultPosition, wxSize(50, -1),
+                                    wxSP_ARROW_KEYS, 1, 30, 7);
+    y_max_tics_sc_->SetValue(mp_->y_max_tics);
+    ymt_sizer->Add(y_max_tics_sc_, 0, wxALL, 5);
+    ysizer_t->Add(ymt_sizer);
+    wxBoxSizer *yts_sizer = new wxBoxSizer(wxHORIZONTAL);
+    yts_sizer->Add(new wxStaticText(this, -1, wxT("length of tics")),
+                  0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
+    y_tic_size_sc_ = new wxSpinCtrl(this, -1, wxT("4"),
+                                     wxDefaultPosition, wxSize(50, -1),
+                                     wxSP_ARROW_KEYS, 1, 20, 4);
+    y_tic_size_sc_->SetValue(mp_->y_tic_size);
+    yts_sizer->Add(y_tic_size_sc_, 0, wxALL, 5);
+    ysizer_t->Add(yts_sizer);
+    ysizer->Add(ysizer_t, 0, wxLEFT, 15);
+    y_reversed_cb_ = new wxCheckBox(this, -1, wxT("reversed axis"));
+    y_reversed_cb_->SetValue(mp_->ys.reversed);
+    ysizer->Add(y_reversed_cb_, 0, wxALL, 5);
+    y_logarithm_cb_ = new wxCheckBox(this, -1, wxT("logarithmic scale"));
+    y_logarithm_cb_->SetValue(mp_->ys.logarithm);
+    ysizer->Add(y_logarithm_cb_, 0, wxALL, 5);
+    hor_sizer->Add(ysizer, 0, wxALL, 5);
+
+    top_sizer->Add(hor_sizer, 0);
+    top_sizer->Add(new wxButton(this, wxID_CLOSE),
+                   wxSizerFlags().Right().Border());
+    SetSizerAndFit(top_sizer);
+    SetEscapeId(wxID_CLOSE);
+
+    Connect(model_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnModelCheckbox));
+    Connect(func_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnFuncCheckbox));
+    Connect(labels_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnLabelsCheckbox));
+    Connect(vertical_labels_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnVerticalCheckbox));
+    Connect(-1, wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            wxColourPickerEventHandler(MainPlotConfDlg::OnColor));
+    Connect(tics_fp_->GetId(), wxEVT_COMMAND_FONTPICKER_CHANGED,
+            wxFontPickerEventHandler(MainPlotConfDlg::OnTicsFont));
+    Connect(label_fp_->GetId(), wxEVT_COMMAND_FONTPICKER_CHANGED,
+            wxFontPickerEventHandler(MainPlotConfDlg::OnLabelFont));
+    Connect(label_combo_->GetId(), wxEVT_COMMAND_COMBOBOX_SELECTED,
+            wxCommandEventHandler(MainPlotConfDlg::OnLabelTextChanged));
+    Connect(label_combo_->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
+            wxCommandEventHandler(MainPlotConfDlg::OnLabelTextChanged));
+
+    Connect(x_show_axis_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnShowXAxis));
+    Connect(y_show_axis_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnShowYAxis));
+    Connect(x_show_tics_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnShowXTics));
+    Connect(y_show_tics_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnShowYTics));
+    Connect(x_show_minor_tics_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnShowXMinorTics));
+    Connect(y_show_minor_tics_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnShowYMinorTics));
+    Connect(x_show_grid_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnShowXGrid));
+    Connect(y_show_grid_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnShowYGrid));
+    Connect(x_reversed_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnReversedX));
+    Connect(y_reversed_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnReversedY));
+    Connect(x_logarithm_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnLogX));
+    Connect(y_logarithm_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnLogY));
+    Connect(x_max_tics_sc_->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
+            wxSpinEventHandler(MainPlotConfDlg::OnMaxXTicsSpin));
+    Connect(y_max_tics_sc_->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
+            wxSpinEventHandler(MainPlotConfDlg::OnMaxYTicsSpin));
+    Connect(x_tic_size_sc_->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
+            wxSpinEventHandler(MainPlotConfDlg::OnXTicSize));
+    Connect(y_tic_size_sc_->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
+            wxSpinEventHandler(MainPlotConfDlg::OnYTicSize));
+}
+
+/*
+void ConfigureAxesDlg::OnApply (wxCommandEvent&)
+{
+    bool scale_changed = false;
+    plot->x_axis_visible = x_show_axis_cb_->GetValue();
+    plot->xtics_visible = x_show_tics_cb_->GetValue();
+    plot->xminor_tics_visible = x_show_minor_tics_cb_->GetValue();
+    plot->x_grid = x_show_grid_cb_->GetValue();
+    plot->x_max_tics = x_max_tics_sc_->GetValue();
+    plot->x_tic_size = x_tic_size_sc_->GetValue();
+    if (plot->xs.reversed != x_reversed_cb_->GetValue()) {
+        plot->xs.reversed = x_reversed_cb_->GetValue();
+        scale_changed = true;
+    }
+    if (plot->xs.logarithm != x_logarithm_cb_->GetValue()) {
+        plot->xs.logarithm = x_logarithm_cb_->GetValue();
+        scale_changed = true;
+    }
+    plot->y_axis_visible = y_show_axis_cb_->GetValue();
+    plot->ytics_visible = y_show_tics_cb_->GetValue();
+    plot->yminor_tics_visible = y_show_minor_tics_cb_->GetValue();
+    plot->y_grid = y_show_grid_cb_->GetValue();
+    plot->y_max_tics = y_max_tics_sc_->GetValue();
+    plot->y_tic_size = y_tic_size_sc_->GetValue();
+    plot->ys.reversed = y_reversed_cb_->GetValue();
+    plot->ys.logarithm = y_logarithm_cb_->GetValue();
+    ftk->view.set_log_scale(plot->xs.logarithm, plot->ys.logarithm);
+    frame->refresh_plots(false, scale_changed ? kAllPlots : kMainPlot);
+}
+*/
+
+
+void MainPlotConfDlg::OnColor(wxColourPickerEvent& event)
+{
+    int id = event.GetId();
+    if (id == bg_cp_->GetId()) {
+        frame->update_data_pane();
+        mp_->set_bg_color(event.GetColour());
+    }
+    else if (id == active_cp_->GetId())
+        mp_->dataCol[0] = event.GetColour();
+    else if (id == inactive_cp_->GetId())
+        mp_->inactiveDataCol = event.GetColour();
+    else if (id == axis_cp_->GetId())
+        mp_->xAxisCol = event.GetColour();
+    else if (id == model_cp_->GetId())
+        mp_->modelCol = event.GetColour();
+    else if (id == func_cp_->GetId())
+        mp_->peakCol[0] = event.GetColour();
+    mp_->refresh();
 }
 

@@ -330,7 +330,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_S_IO,        FFrame::OnSwitchIOPane)
     EVT_MENU (ID_G_S_TOOLBAR,   FFrame::OnSwitchToolbar)
     EVT_MENU (ID_G_S_STATBAR,   FFrame::OnSwitchStatbar)
-    EVT_MENU_RANGE (ID_G_C_MAIN, ID_G_C_A2, FFrame::OnShowPopupMenu)
+    EVT_MENU_RANGE (ID_G_C_MAIN, ID_G_C_A2, FFrame::OnShowPrefDialog)
     EVT_MENU (ID_G_C_OUTPUT,    FFrame::OnConfigureOutputWin)
     EVT_MENU (ID_G_C_SB,        FFrame::OnConfigureStatusBar)
     EVT_MENU (ID_G_CROSSHAIR,   FFrame::OnSwitchCrosshair)
@@ -1508,13 +1508,10 @@ void FFrame::SwitchIOPane (bool show)
     //if (toolbar) toolbar->ToggleTool(ID_T_..., show);
 }
 
-void FFrame::OnShowPopupMenu(wxCommandEvent& ev)
+void FFrame::OnShowPrefDialog(wxCommandEvent& ev)
 {
-    wxMouseEvent me(wxEVT_RIGHT_DOWN);
-    me.m_x = wxGetMousePosition().x;
-    me.m_y = 5;
     if (ev.GetId() == ID_G_C_MAIN)
-        plot_pane->get_plot()->show_popup_menu(me);
+        plot_pane->get_plot()->OnConfigure(ev);
     else
         plot_pane->get_aux_plot(ev.GetId() - ID_G_C_A1)->show_pref_dialog();
 }

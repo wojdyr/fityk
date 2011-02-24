@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__WX_MPLOT__H__
-#define FITYK__WX_MPLOT__H__
+#ifndef FITYK_WX_MPLOT_H_
+#define FITYK_WX_MPLOT_H_
 
 #include "plot.h"
 #include "cmn.h"
@@ -81,13 +81,12 @@ protected:
 };
 
 
-class ConfigureAxesDlg;
-
 /// utility used in MainPlot for dragging function
 class FunctionMouseDrag
 {
 public:
-    enum drag_type {
+    enum drag_type
+    {
         no_drag,
         relative_value, //eg. for area
         absolute_value,  //eg. for width
@@ -141,8 +140,7 @@ private:
 /// main plot, single in application, displays data, fitted peaks etc.
 class MainPlot : public FPlot
 {
-    friend class ConfigureAxesDlg;
-    friend class ConfigurePLabelsDlg;
+    friend class MainPlotConfDlg;
 public:
     BgManager bgm;
     enum Kind { kLinear, kPeak };
@@ -150,7 +148,7 @@ public:
     MainPlot(wxWindow *parent);
     ~MainPlot() {}
     void OnPaint(wxPaintEvent &event);
-    void draw(wxDC &dc, bool monochrome=false);
+    virtual void draw(wxDC &dc, bool monochrome=false);
     void OnLeaveWindow (wxMouseEvent& event);
     void OnMouseMove(wxMouseEvent &event);
     void OnButtonDown (wxMouseEvent &event);
@@ -158,14 +156,11 @@ public:
     void OnButtonUp (wxMouseEvent &event);
     void OnKeyDown (wxKeyEvent& event);
 
-    void OnPopupShowXX (wxCommandEvent& event);
-    void OnPopupColor (wxCommandEvent& event);
-    void OnConfigureAxes (wxCommandEvent& event);
-    void OnConfigurePLabels (wxCommandEvent& event);
-    void OnZoomAll (wxCommandEvent& event);
-    void PeakInfo ();
-    void OnPeakInfo (wxCommandEvent&) { PeakInfo(); }
-    void OnPeakDelete (wxCommandEvent& event);
+    void OnConfigure(wxCommandEvent&);
+    void OnZoomAll(wxCommandEvent& event);
+    void PeakInfo();
+    void OnPeakInfo(wxCommandEvent&) { PeakInfo(); }
+    void OnPeakDelete(wxCommandEvent& event);
     void OnPeakGuess(wxCommandEvent &event);
     // function called when Esc is pressed
     virtual void cancel_action() { cancel_mouse_press(); }
@@ -252,44 +247,5 @@ private:
 
     DECLARE_EVENT_TABLE()
 };
-
-class ConfigureAxesDlg: public wxDialog
-{
-public:
-    ConfigureAxesDlg(wxWindow* parent, wxWindowID id, MainPlot* plot_);
-    void OnApply (wxCommandEvent& event);
-    void OnChangeColor (wxCommandEvent&) { change_color_dlg(axis_color); }
-    void OnChangeFont (wxCommandEvent& event);
-private:
-    MainPlot *plot;
-    wxColour axis_color;
-    wxCheckBox *x_show_axis, *x_show_tics, *x_show_minor_tics,
-               *x_show_grid, *x_reversed_cb, *x_logarithm_cb;
-    wxCheckBox *y_show_axis, *y_show_tics, *y_show_minor_tics,
-               *y_show_grid, *y_reversed_cb, *y_logarithm_cb;
-    wxSpinCtrl *x_max_tics, *x_tics_size;
-    wxSpinCtrl *y_max_tics, *y_tics_size;
-    DECLARE_EVENT_TABLE()
-};
-
-
-class ConfigurePLabelsDlg: public wxDialog
-{
-public:
-    ConfigurePLabelsDlg(wxWindow* parent, wxWindowID id, MainPlot* plot_);
-    void OnApply (wxCommandEvent& event);
-    void OnChangeLabelFont (wxCommandEvent& event);
-    void OnChangeLabelText (wxCommandEvent& event);
-    void OnCheckShowLabel (wxCommandEvent& event);
-    void OnRadioLabel (wxCommandEvent& event);
-private:
-    MainPlot *plot;
-    bool in_onradiolabel;
-    wxCheckBox *show_plabels;
-    wxRadioBox *label_radio, *vertical_rb;
-    wxTextCtrl *label_text;
-    DECLARE_EVENT_TABLE()
-};
-
 
 #endif

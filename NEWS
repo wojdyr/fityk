@@ -1,3 +1,11 @@
+User-visible changes in version 1.0.0  (2011-0 -  ):
+* requires wxWidgets >= 2.9.2
+
+User-visible changes in version 0.9.8  (not yet):
+* bug fixes: corrected Caglioti equation in the powder diffraction add-on,
+  fixed problem with negative simple-variables
+* GUI: new configuration dialogs for plots
+
 User-visible changes in version 0.9.7  (2011-02-08):
 * bug fixes: UDFs (user-defined functions) did not work in ver. 0.9.5-6,
   a few fixes in the powder diffraction add-on and in other places
