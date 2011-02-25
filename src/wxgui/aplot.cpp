@@ -313,8 +313,15 @@ void AuxPlot::save_settings(wxConfigBase *cf) const
     cfg_write_color(cf, wxT("bg"), get_bg_color());
     cfg_write_color(cf, wxT("active_data"), activeDataCol);
     cfg_write_color(cf, wxT("inactive_data"),inactiveDataCol);
+
+    // We don't call FPlot::save_settings() to not clutter the config,
+    // the only configurable settings from FPlot are xAxisCol and ticsFont.
+    //cf->SetPath(wxT(".."));
+    //FPlot::save_settings(cf);
+
+    cfg_write_color (cf, wxT("xAxis"), xAxisCol);
     cf->SetPath(wxT(".."));
-    FPlot::save_settings(cf);
+    cfg_write_font (cf, wxT("ticsFont"), ticsFont);
 }
 
 void AuxPlot::OnLeftDown (wxMouseEvent &event)
