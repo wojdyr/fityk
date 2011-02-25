@@ -70,39 +70,19 @@ void cfg_write_color(wxConfigBase *config, const wxString& key,
 wxFont cfg_read_font(wxConfigBase const *config, wxString const& key,
                              wxFont const &default_value)
 {
-    if (!default_value.Ok()) {
-        if (config->HasEntry(key+wxT("/pointSize"))
-              && config->HasEntry(key+wxT("/family"))
-              && config->HasEntry(key+wxT("/style"))
-              && config->HasEntry(key+wxT("/weight"))
-              && config->HasEntry(key+wxT("/faceName")))
-            return wxFont (config->Read(key+wxT("/pointSize"), 0L),
-                           config->Read(key+wxT("/family"), 0L),
-                           config->Read(key+wxT("/style"), 0L),
-                           config->Read(key+wxT("/weight"), 0L),
-                           false, //underline
-                           config->Read(key+wxT("/faceName"), wxT("")));
-        else
-            return wxNullFont;
-    }
-    return wxFont (config->Read(key+wxT("/pointSize"),
-                                               default_value.GetPointSize()),
-                   config->Read(key+wxT("/family"), default_value.GetFamily()),
-                   config->Read(key+wxT("/style"), default_value.GetStyle()),
-                   config->Read(key+wxT("/weight"), default_value.GetWeight()),
-                   false, //underline
-                   config->Read(key+wxT("/faceName"),
-                                default_value.GetFaceName()));
+    wxString str = config->Read(key, wxEmptyString);
+    if (str.empty())
+        return default_value;
+    wxFont font;
+    bool ok = font.SetNativeFontInfo(str);
+    return ok ? font : default_value;
 }
 
 void cfg_write_font (wxConfigBase *config, const wxString& key,
                            const wxFont& value)
 {
-    config->Write (key + wxT("/pointSize"), value.GetPointSize());
-    config->Write (key + wxT("/family"), (int) value.GetFamily());
-    config->Write (key + wxT("/style"), (int) value.GetStyle());
-    config->Write (key + wxT("/weight"), (int) value.GetWeight());
-    config->Write (key + wxT("/faceName"), value.GetFaceName());
+    config->Write(key, value.IsOk() ? value.GetNativeFontInfoDesc()
+                                    : wxString());
 }
 
 bool change_color_dlg(wxColour& col)
