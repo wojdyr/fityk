@@ -197,25 +197,28 @@ bool FApp::OnInit(void)
                                             get_conf_file("wxoptions"));
     wxConfig::Set(config);
 
-    // default and alternative config names
-    conf_filename = "config";
-    alt_conf_filename = "alt-config";
-
-    // directory for other configs (Save current config > as ...)
+    // directory for configs
     config_dir = fityk_dir + wxFILE_SEP_PATH + wxT("configs") + wxFILE_SEP_PATH;
     if (!wxDirExists(config_dir))
         wxMkdir(config_dir);
+
+    // moving configs from ver. <= 0.9.7 to the current locations
+    wxString old_config = get_conf_file("config");
+    if (wxFileExists(old_config))
+        wxRenameFile(old_config, config_dir + wxT("default"), false);
+    wxString old_alt_config = get_conf_file("alt-config");
+    if (wxFileExists(old_alt_config))
+        wxRenameFile(old_alt_config, config_dir + wxT("alt-config"), false);
 
     EditTransDlg::read_transforms(false);
 
     // Create the main frame window
     frame = new FFrame(NULL, -1, wxT("fityk"), wxDEFAULT_FRAME_STYLE);
 
-    wxString g_config;
-    bool has_g = cmdLineParser.Found(wxT("g"), &g_config);
-    wxString ini_conf = (has_g ? config_dir + g_config
-                               : get_conf_file(conf_filename));
-    wxConfigBase *cf = new wxFileConfig(wxT(""), wxT(""), ini_conf);
+    wxString ini_conf = wxT("default");
+    // if the -g option was given, it replaces default config
+    cmdLineParser.Found(wxT("g"), &ini_conf);
+    wxConfigBase *cf = new wxFileConfig(wxT(""), wxT(""), config_dir+ini_conf);
     frame->read_all_settings(cf);
 
     frame->Show(true);

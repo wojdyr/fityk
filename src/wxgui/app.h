@@ -12,10 +12,6 @@ class wxCmdLineParser;
 class FApp: public wxApp
 {
 public:
-    // default config name
-    std::string conf_filename;
-    // alternative config name
-    std::string alt_conf_filename;
     // directory for (named by user) config files
     wxString config_dir;
 

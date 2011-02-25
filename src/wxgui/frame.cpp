@@ -214,15 +214,12 @@ enum {
     ID_G_V_EXTH                ,
     ID_G_V_ZOOM_PREV           ,
     ID_G_V_ZOOM_PREV_END = ID_G_V_ZOOM_PREV+50 ,
-    ID_G_LCONF1                ,
-    ID_G_LCONF2                ,
     ID_G_LCONF                 ,
     ID_G_LCONFB                ,
     ID_G_LCONF_X               ,
     ID_G_LCONF_X_END = ID_G_LCONF_X+50,
     ID_G_SCONF                 ,
-    ID_G_SCONF1                ,
-    ID_G_SCONF2                ,
+    ID_G_SCONFD                ,
     ID_G_SCONFAS               ,
 
     // toolbar
@@ -344,13 +341,10 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_V_EXTH,      FFrame::OnGExtendH)
     EVT_MENU_RANGE (ID_G_V_ZOOM_PREV+1, ID_G_V_ZOOM_PREV_END,
                                 FFrame::OnPreviousZoom)
-    EVT_MENU (ID_G_LCONF1,      FFrame::OnConfigRead)
-    EVT_MENU (ID_G_LCONF2,      FFrame::OnConfigRead)
     EVT_MENU (ID_G_LCONFB,      FFrame::OnConfigBuiltin)
     EVT_MENU_RANGE (ID_G_LCONF_X, ID_G_LCONF_X_END, FFrame::OnConfigX)
-    EVT_MENU (ID_G_SCONF1,      FFrame::OnConfigSave)
-    EVT_MENU (ID_G_SCONF2,      FFrame::OnConfigSave)
-    EVT_MENU (ID_G_SCONFAS,     FFrame::OnConfigSaveAs)
+    EVT_MENU (ID_G_SCONFD,      FFrame::OnSaveDefaultConfig)
+    EVT_MENU (ID_G_SCONFAS,     FFrame::OnSaveConfigAs)
 
     EVT_MENU (ID_H_MANUAL,      FFrame::OnShowHelp)
     EVT_MENU (ID_H_WEBSITE,     FFrame::OnOnline)
@@ -786,10 +780,6 @@ void FFrame::set_menubar()
     gui_menu->Append(ID_G_V_ZOOM_PREV, wxT("&Previous Zooms"),
                      gui_menu_zoom_prev);
     gui_menu->AppendSeparator();
-    gui_menu->Append(ID_G_LCONF1, wxT("Load &Default Config"),
-                                            wxT("Default configuration file"));
-    gui_menu->Append(ID_G_LCONF2, wxT("Load &Alt. Config"),
-                                        wxT("Alternative configuration file"));
     wxMenu* gui_menu_lconfig = new wxMenu;
     gui_menu_lconfig->Append(ID_G_LCONFB, wxT("&built-in"),
                                                wxT("Built-in configuration"));
@@ -797,10 +787,8 @@ void FFrame::set_menubar()
     update_config_menu(gui_menu_lconfig);
     gui_menu->Append(ID_G_LCONF, wxT("&Load Config..."), gui_menu_lconfig);
     wxMenu* gui_menu_sconfig = new wxMenu;
-    gui_menu_sconfig->Append(ID_G_SCONF1, wxT("As Default"),
+    gui_menu_sconfig->Append(ID_G_SCONFD, wxT("As Default"),
                      wxT("Save current configuration to default config file"));
-    gui_menu_sconfig->Append(ID_G_SCONF2, wxT("As Alternative"),
-                 wxT("Save current configuration to alternative config file"));
     gui_menu_sconfig->Append(ID_G_SCONFAS, wxT("As ..."),
                  wxT("Save current configuration to other config file"));
     gui_menu->Append(ID_G_SCONF, wxT("&Save Current Config"), gui_menu_sconfig);
@@ -1640,16 +1628,14 @@ void FFrame::scroll_view_horizontally(fp step)
 }
 
 
-void FFrame::OnConfigSave (wxCommandEvent& event)
+void FFrame::OnSaveDefaultConfig(wxCommandEvent&)
 {
-    string name = (event.GetId() == ID_G_SCONF1 ? wxGetApp().conf_filename
-                                                : wxGetApp().alt_conf_filename);
-    save_config_as(get_conf_file(name));
+    save_config_as(wxGetApp().config_dir + wxT("default"));
 }
 
-void FFrame::OnConfigSaveAs (wxCommandEvent&)
+void FFrame::OnSaveConfigAs(wxCommandEvent&)
 {
-    wxString const& dir = wxGetApp().config_dir;
+    const wxString& dir = wxGetApp().config_dir;
     wxString txt = wxGetTextFromUser(
                       wxT("Choose config name.\n")
                         wxT("This will be the name of file in directory:\n")
@@ -1659,8 +1645,6 @@ void FFrame::OnConfigSaveAs (wxCommandEvent&)
     if (!txt.IsEmpty())
         save_config_as(dir+txt);
 
-    wxMenu *config_menu = GetMenuBar()->FindItem(ID_G_LCONF)->GetSubMenu();
-    update_config_menu(config_menu);
 }
 
 void FFrame::save_config_as(wxString const& name)
@@ -1669,13 +1653,8 @@ void FFrame::save_config_as(wxString const& name)
                                             wxCONFIG_USE_LOCAL_FILE);
     save_all_settings(config);
     delete config;
-}
-
-void FFrame::OnConfigRead (wxCommandEvent& event)
-{
-    string name = (event.GetId() == ID_G_LCONF1 ? wxGetApp().conf_filename
-                                                : wxGetApp().alt_conf_filename);
-    read_config(get_conf_file(name));
+    wxMenu *config_menu = GetMenuBar()->FindItem(ID_G_LCONF)->GetSubMenu();
+    update_config_menu(config_menu);
 }
 
 void FFrame::read_config(wxString const& name)

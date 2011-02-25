@@ -137,12 +137,11 @@ public:
     void OnGScrollUp     (wxCommandEvent& event);
     void OnGExtendH      (wxCommandEvent& event);
     void OnPreviousZoom  (wxCommandEvent& event);
-    void OnConfigRead    (wxCommandEvent& event);
     void OnConfigBuiltin (wxCommandEvent& event);
     void OnConfigX (wxCommandEvent& event);
-    void OnConfigSave    (wxCommandEvent& event);
-    void OnConfigSaveAs  (wxCommandEvent&);
-    void OnMenuShowAuxUpdate (wxUpdateUIEvent& event);
+    void OnSaveDefaultConfig(wxCommandEvent& event);
+    void OnSaveConfigAs(wxCommandEvent&);
+    void OnMenuShowAuxUpdate(wxUpdateUIEvent& event);
     void SwitchSideBar(bool show);
     void OnSwitchSideBar(wxCommandEvent& ev) {SwitchSideBar(ev.IsChecked());}
     void OnSwitchAuxPlot(wxCommandEvent& ev);
