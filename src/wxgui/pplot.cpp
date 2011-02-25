@@ -105,8 +105,6 @@ bool PlotPane::is_background_white()
     return true;
 }
 
-BgManager* PlotPane::get_bg_manager() { return &plot->bgm; }
-
 bool PlotPane::aux_visible(int n) const
 {
     return IsSplit() && (aux_split->GetWindow1() == aux_plot[n]

@@ -35,6 +35,7 @@
 #include "plot.h"
 #include "mplot.h"
 #include "aplot.h"
+#include "bgm.h"
 #include "dialogs.h"
 #include "exportd.h"
 #include "history.h"
@@ -846,7 +847,7 @@ void FFrame::update_menu_recent_baselines()
         menu->Delete(menu->GetMenuItems().GetLast()->GetData());
 
     for (int i = 0; i < 10; ++i) {
-        wxString name = plot_pane->get_bg_manager()->get_recent_bg_name(i);
+        wxString name = get_main_plot()->bgm()->get_recent_bg_name(i);
         if (name.empty())
             break;
         if (i == 0)
@@ -1252,7 +1253,7 @@ void FFrame::OnReset (wxCommandEvent&)
                          wxT("Are you sure?"),
                          wxYES_NO | wxCANCEL | wxCENTRE | wxICON_QUESTION);
     if (r == wxYES) {
-        plot_pane->get_bg_manager()->clear_background();
+        get_main_plot()->bgm()->clear_background();
         ftk->exec("reset");
     }
 }
@@ -1386,34 +1387,34 @@ void FFrame::OnChangePeakType(wxCommandEvent& event)
 
 void FFrame::OnMenuBgStripUpdate(wxUpdateUIEvent& event)
 {
-    event.Enable(plot_pane->get_bg_manager()->can_strip());
+    event.Enable(get_main_plot()->bgm()->can_strip());
 }
 
 void FFrame::OnMenuBgUndoUpdate(wxUpdateUIEvent& event)
 {
-    event.Enable(plot_pane->get_bg_manager()->has_fn());
+    event.Enable(get_main_plot()->bgm()->has_fn());
 }
 
 void FFrame::OnMenuBgClearUpdate(wxUpdateUIEvent& event)
 {
-    BgManager* bgm = plot_pane->get_bg_manager();
+    BgManager* bgm = get_main_plot()->bgm();
     event.Enable(bgm->can_strip() || bgm->has_fn());
 }
 
 void FFrame::OnStripBg(wxCommandEvent&)
 {
-    plot_pane->get_bg_manager()->strip_background();
+    get_main_plot()->bgm()->strip_background();
     update_menu_recent_baselines();
 }
 
 void FFrame::OnUndoBg(wxCommandEvent&)
 {
-    plot_pane->get_bg_manager()->add_background();
+    get_main_plot()->bgm()->add_background();
 }
 
 void FFrame::OnClearBg(wxCommandEvent&)
 {
-    plot_pane->get_bg_manager()->clear_background();
+    get_main_plot()->bgm()->clear_background();
     refresh_plots(false, kMainPlot);
 }
 
@@ -1421,21 +1422,21 @@ void FFrame::OnRecentBg(wxCommandEvent& event)
 {
     int n = event.GetId() - (ID_G_BG_RECENT + 1);
     change_mouse_mode(mmd_bg);
-    plot_pane->get_bg_manager()->update_focused_data(get_focused_data_index());
-    plot_pane->get_bg_manager()->set_as_recent(n);
+    get_main_plot()->bgm()->update_focused_data(get_focused_data_index());
+    get_main_plot()->bgm()->set_as_recent(n);
     refresh_plots(false, kMainPlot);
 }
 void FFrame::OnConvexHullBg(wxCommandEvent&)
 {
     change_mouse_mode(mmd_bg);
-    plot_pane->get_bg_manager()->update_focused_data(get_focused_data_index());
-    plot_pane->get_bg_manager()->set_as_convex_hull();
+    get_main_plot()->bgm()->update_focused_data(get_focused_data_index());
+    get_main_plot()->bgm()->set_as_convex_hull();
     refresh_plots(false, kMainPlot);
 }
 
 void FFrame::OnSplineBg(wxCommandEvent& event)
 {
-    plot_pane->get_bg_manager()->set_spline_bg(event.IsChecked());
+    get_main_plot()->bgm()->set_spline_bg(event.IsChecked());
     refresh_plots(false, kMainPlot);
 }
 
@@ -1829,7 +1830,7 @@ void FFrame::update_toolbar()
 {
     if (!toolbar)
         return;
-    BgManager* bgm = plot_pane->get_bg_manager();
+    BgManager* bgm = get_main_plot()->bgm();
     toolbar->ToggleTool(ID_T_STRIP, bgm->has_fn() && bgm->stripped());
     toolbar->EnableTool(ID_T_RUN, !ftk->parameters().empty());
     toolbar->EnableTool(ID_T_UNDO, ftk->get_fit_container()->can_undo());
@@ -2106,7 +2107,7 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             frame->OnPreviousZoom(dummy_cmd_event);
             break;
         case ID_T_STRIP: {
-            BgManager* bgm = frame->plot_pane->get_bg_manager();
+            BgManager* bgm = frame->get_main_plot()->bgm();
             if (event.IsChecked()) {
                 if (bgm->can_strip()) {
                     bgm->strip_background();

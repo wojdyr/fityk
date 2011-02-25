@@ -12,6 +12,7 @@
 #include "frame.h"
 #include "sidebar.h"
 #include "statbar.h" // HintReceiver
+#include "bgm.h"
 #include "../data.h"
 #include "../logic.h"
 #include "../model.h"
@@ -313,7 +314,8 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
 END_EVENT_TABLE()
 
 MainPlot::MainPlot (wxWindow *parent)
-    : FPlot(parent), bgm(xs),
+    : FPlot(parent),
+      bgm_(new BgManager(xs)),
       basic_mode_(mmd_zoom), mode_(mmd_zoom),
       pressed_mouse_button_(0),
       over_peak_(-1), limit1_(INT_MIN), limit2_(INT_MIN),
@@ -323,6 +325,11 @@ MainPlot::MainPlot (wxWindow *parent)
       auto_freeze_(false)
 {
     set_cursor();
+}
+
+MainPlot::~MainPlot()
+{
+    delete bgm_;
 }
 
 void MainPlot::OnPaint(wxPaintEvent&)
@@ -405,7 +412,7 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
     if (visible_peaktops(mode_) && !monochrome)
         draw_peaktops(dc, model);
     if (mode_ == mmd_bg) {
-        bgm.update_focused_data(focused_data);
+        bgm_->update_focused_data(focused_data);
         draw_background(dc);
     }
     else {
@@ -647,7 +654,7 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
     // bg line
     int X = -1, Y = -1;
     int width = get_pixel_width(dc);
-    vector<int> bgline = bgm.calculate_bgline(width, ys);
+    vector<int> bgline = bgm_->calculate_bgline(width, ys);
     for (int i = 0; i < width; ++i) {
         int X_ = X, Y_ = Y;
         X = i;
@@ -657,7 +664,7 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
     }
 
     // bg points (circles)
-    v_foreach (PointQ, i, bgm.get_bg()) {
+    v_foreach (PointQ, i, bgm_->get_bg()) {
         dc.DrawCircle(xs.px(i->x), ys.px(i->y), 3);
         dc.DrawCircle(xs.px(i->x), ys.px(i->y), 4);
     }
@@ -842,7 +849,7 @@ void MainPlot::set_mouse_mode(MouseModeEnum m)
     update_mouse_hints();
     set_cursor();
     if (old == mmd_bg)
-        bgm.define_bg_func();
+        bgm_->define_bg_func();
     if (old == mmd_bg || mode_ == mmd_bg
                         || visible_peaktops(old) != visible_peaktops(mode_))
         refresh();
@@ -1065,11 +1072,11 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
                                 + "...");
     }
     else if (mouse_op_ == kAddBgPoint) {
-        bgm.add_background_point(x, y);
+        bgm_->add_background_point(x, y);
         refresh();
     }
     else if (mouse_op_ == kDeleteBgPoint) {
-        bgm.rm_background_point(x);
+        bgm_->rm_background_point(x);
         refresh();
     }
     else if (mouse_op_ == kAddPeakTriangle) {
@@ -1534,272 +1541,6 @@ void MainPlot::OnZoomAll(wxCommandEvent&)
     frame->GViewAll();
 }
 
-//===============================================================
-//           BgManager (for interactive background setting)
-//===============================================================
-
-BgManager::BgManager(const Scale& x_scale)
-    : x_scale_(x_scale), spline_(true), data_idx_(-1)
-{
-    read_recent_baselines();
-}
-
-BgManager::~BgManager()
-{
-    write_recent_baselines();
-}
-
-void BgManager::update_focused_data(int idx)
-{
-    if (data_idx_ == idx)
-        return;
-    define_bg_func();
-    data_idx_ = idx;
-    bg_from_func();
-    frame->update_toolbar();
-}
-
-string BgManager::get_bg_name() const
-{
-    return "bg" + S(data_idx_);
-}
-
-void BgManager::set_stripped(bool value)
-{
-    stripped_.resize(ftk->get_dm_count());
-    stripped_[data_idx_] = value;
-}
-
-bool BgManager::stripped() const
-{
-    return is_index(data_idx_, stripped_) && stripped_[data_idx_];
-}
-
-const wxString& BgManager::get_recent_bg_name(int n) const
-{
-    static const wxString empty;
-    int idx = recent_bg_.size() - 1 - n;
-    return (is_index(idx, recent_bg_) ? recent_bg_[idx].first : empty);
-}
-
-void BgManager::bg_from_func()
-{
-    if (data_idx_ == -1 || stripped()) {
-        bg_.clear();
-        return;
-    }
-    string name = get_bg_name();
-    int nr = ftk->find_function_nr(name);
-    if (nr == -1) {
-        bg_.clear();
-        return;
-    }
-    const Function *f = ftk->get_function(nr);
-    if (f->tp()->name != "Spline" && f->tp()->name != "Polyline") {
-        bg_.clear();
-        return;
-    }
-    int len = f->nv() / 2;
-    bg_.resize(len);
-    for (int i = 0; i < len; ++i) {
-        bg_[i].x = f->av()[2*i];
-        bg_[i].y = f->av()[2*i+1];
-    }
-}
-
-void BgManager::add_background_point(fp x, fp y)
-{
-    if (bg_.empty() && ftk->find_function_nr(get_bg_name()) >= 0) {
-        int r = wxMessageBox(wxT("Function %") + s2wx(get_bg_name())
-                             + wxT(" already exists\n")
-                             wxT("and your actions may overwrite it.\n")
-                             wxT("Continue?"),
-                             wxT("Start a new background?"),
-                             wxICON_QUESTION|wxYES_NO);
-        if (r != wxYES)
-            return;
-        set_stripped(false);
-        frame->update_toolbar();
-
-    }
-    rm_background_point(x);
-    PointQ t(x, y);
-    vector<PointQ>::iterator l = lower_bound(bg_.begin(), bg_.end(), t);
-    bg_.insert (l, t);
-}
-
-void BgManager::rm_background_point (fp x)
-{
-    int X = x_scale_.px(x);
-    fp lower = x_scale_.val(X - min_dist);
-    fp upper = x_scale_.val(X + min_dist);
-    if (lower > upper)
-        swap(lower, upper);
-    vector<PointQ>::iterator l = lower_bound(bg_.begin(), bg_.end(),
-                                             PointQ(lower, 0));
-    vector<PointQ>::iterator u = upper_bound(bg_.begin(), bg_.end(),
-                                             PointQ(upper, 0));
-    if (u > l)
-        bg_.erase(l, u);
-}
-
-void BgManager::clear_background()
-{
-    bg_.clear();
-    string name = get_bg_name();
-    int nr = ftk->find_function_nr(name);
-    if (nr != -1)
-        ftk->exec("delete %" + name);
-}
-
-void BgManager::define_bg_func()
-{
-    if (bg_.empty())
-        return;
-
-    string name = get_bg_name();
-    string ftype = (spline_ ? "Spline" : "Polyline");
-
-    // if the function already exists and if it's exactly the same, return
-    int nr = ftk->find_function_nr(name);
-    if (nr != -1) {
-        const Function *f = ftk->get_function(nr);
-        if (f->tp()->name == ftype && f->nv() == 2 * (int) bg_.size()) {
-            bool the_same = true;
-            for (size_t i = 0; i != bg_.size(); ++i) {
-                const Variable *vx = ftk->find_variable(f->get_var_name(2*i));
-                const Variable *vy = ftk->find_variable(f->get_var_name(2*i+1));
-                if (!vx->is_auto_delete() || !vx->is_constant() ||
-                        S(vx->get_value()) != S(bg_[i].x) ||
-                    !vy->is_auto_delete() || !vy->is_constant() ||
-                        S(vy->get_value()) != S(bg_[i].y)) {
-                    the_same = false;
-                    break;
-                }
-            }
-            if (the_same)
-                return;
-        }
-    }
-
-    string cmd = "%" + name + " = " + ftype + "(";
-    v_foreach (PointQ, i, bg_)
-        cmd += S(i->x) + "," + S(i->y) + (i+1 == bg_.end() ? ")" : ", ");
-    ftk->exec(cmd);
-}
-
-void BgManager::strip_background()
-{
-    if (bg_.empty())
-        return;
-    wxString name = wxDateTime::Now().Format(wxT("%Y-%m-%d %T"));
-    name += wxString::Format(wxT(" (%d points)"), (int) bg_.size());
-    recent_bg_.push_back(make_pair(name, bg_));
-    define_bg_func();
-    bg_.clear();
-    set_stripped(true);
-    ftk->exec(frame->get_datasets() + "Y = y - %" + get_bg_name() + "(x)");
-}
-
-void BgManager::add_background()
-{
-    string name = get_bg_name();
-    int nr = ftk->find_function_nr(name);
-    if (nr == -1)
-        return;
-    set_stripped(false);
-    bg_from_func();
-    ftk->exec(frame->get_datasets() + "Y = y + %" + name + "(x)");
-}
-
-vector<int> BgManager::calculate_bgline(int window_width, const Scale& y_scale)
-{
-    vector<int> bgline(window_width);
-    if (spline_)
-        prepare_spline_interpolation(bg_);
-    for (int i = 0; i < window_width; i++) {
-        fp x = x_scale_.val(i);
-        fp y = spline_ ? get_spline_interpolation(bg_, x)
-                       : get_linear_interpolation(bg_, x);
-        bgline[i] = y_scale.px(y);
-    }
-    return bgline;
-}
-
-void BgManager::set_as_recent(int n)
-{
-    int idx = recent_bg_.size() - 1 - n;
-    if (!is_index(idx, recent_bg_))
-        return;
-    bg_ = recent_bg_[idx].second;
-}
-
-void BgManager::set_as_convex_hull()
-{
-    SimplePolylineConvex convex;
-    const Data* data = ftk->get_data(data_idx_);
-    for (int i = 0; i < data->get_n(); ++i)
-        convex.push_point(data->get_x(i), data->get_y(i));
-    const vector<PointD>& vertices = convex.get_vertices();
-    bg_.resize(vertices.size());
-    for (size_t i = 0; i != bg_.size(); ++i) {
-        bg_[i].x = vertices[i].x;
-        bg_[i].y = vertices[i].y;
-    }
-}
-
-bool BgManager::has_fn() const
-{
-    string name = get_bg_name();
-    return ftk->find_function_nr(name) != -1;
-}
-
-void BgManager::write_recent_baselines()
-{
-    wxConfigBase *c = wxConfig::Get();
-    if (!c)
-        return;
-    wxString t = wxT("/RecentBaselines");
-    if (c->HasGroup(t))
-        c->DeleteGroup(t);
-
-    int len = recent_bg_.size();
-    int start = max(len-10, 0);
-    for (int i = start; i < len; ++i) {
-        wxString group = t + wxString::Format(wxT("/%d"), i-start);
-        c->Write(group + wxT("/Name"), recent_bg_[i].first);
-        wxString points;
-        for (size_t j = 0; j != recent_bg_[i].second.size(); ++j) {
-            const PointQ& p = recent_bg_[i].second[j];
-            points += wxString::Format(wxT("%g %g "), p.x, p.y);
-        }
-        c->Write(group + wxT("/Points"), points);
-    }
-}
-
-void BgManager::read_recent_baselines()
-{
-    recent_bg_.clear();
-    wxConfigBase *c = wxConfig::Get();
-    wxString t = wxT("/RecentBaselines");
-    if (!c || !c->HasGroup(t))
-        return;
-    for (int i = 0; i < 10; i++) {
-        wxString group = t + wxString::Format(wxT("/%d"), i);
-        if (c->HasEntry(group + wxT("/Name"))) {
-            wxString name = c->Read(group + wxT("/Name"), wxT("?"));
-            wxString points = c->Read(group + wxT("/Points"), wxT(""));
-            vector<string> pp = split_string(wx2s(points), ' ');
-            vector<PointQ> q;
-            for (size_t j = 0; j < pp.size() / 2; ++j) {
-                double x = strtod(pp[2*j].c_str(), NULL);
-                double y = strtod(pp[2*j+1].c_str(), NULL);
-                q.push_back(PointQ(x, y));
-            }
-            recent_bg_.push_back(make_pair(name, q));
-        }
-    }
-}
 
 //===============================================================
 

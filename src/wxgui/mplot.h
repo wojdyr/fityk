@@ -5,8 +5,6 @@
 #define FITYK_WX_MPLOT_H_
 
 #include "plot.h"
-#include "cmn.h"
-#include "../numfuncs.h" // PointQ definition
 #include "../guess.h" // enum Guess::Kind
 
 
@@ -15,6 +13,7 @@
 
 class Function;
 class HintReceiver;
+class BgManager;
 
 // operation started by pressing mouse button
 enum MouseOperation
@@ -38,48 +37,6 @@ enum MouseOperation
     // nothing
     kNoMouseOp
 };
-
-class BgManager
-{
-public:
-    //minimal distance in X between bg points
-    static const int min_dist = 8;
-
-    BgManager(const Scale& x_scale);
-    ~BgManager();
-    void update_focused_data(int idx);
-    void add_background_point(fp x, fp y);
-    void rm_background_point(fp x);
-    void clear_background();
-    void strip_background();
-    // reverses strip_background(), unless %bgX was changed in the meantime  
-    void add_background();
-    void define_bg_func();
-    void bg_from_func();
-    bool can_strip() const { return !bg_.empty(); }
-    bool has_fn() const;
-    void set_spline_bg(bool s) { spline_ = s; }
-    void set_as_recent(int n);
-    void set_as_convex_hull();
-    std::vector<int> calculate_bgline(int window_width, const Scale& y_scale);
-    const std::vector<PointQ>& get_bg() const { return bg_; }
-    bool stripped() const;
-    const wxString& get_recent_bg_name(int n) const;
-    void read_recent_baselines();
-    void write_recent_baselines();
-
-protected:
-    const Scale& x_scale_;
-    bool spline_;
-    std::vector<PointQ> bg_;
-    std::vector<std::pair<wxString, std::vector<PointQ> > > recent_bg_;
-    std::vector<bool> stripped_;
-    int data_idx_;
-
-    std::string get_bg_name() const;
-    void set_stripped(bool value);
-};
-
 
 /// utility used in MainPlot for dragging function
 class FunctionMouseDrag
@@ -142,11 +99,10 @@ class MainPlot : public FPlot
 {
     friend class MainPlotConfDlg;
 public:
-    BgManager bgm;
     enum Kind { kLinear, kPeak };
 
     MainPlot(wxWindow *parent);
-    ~MainPlot() {}
+    ~MainPlot();
     void OnPaint(wxPaintEvent &event);
     virtual void draw(wxDC &dc, bool monochrome=false);
     void OnLeaveWindow (wxMouseEvent& event);
@@ -192,8 +148,10 @@ public:
     void set_hint_receiver(HintReceiver *hr)
         { hint_receiver_ = hr; update_mouse_hints(); }
     void set_auto_freeze(bool value) { auto_freeze_ = value; }
+    BgManager* bgm() { return bgm_; }
 
 private:
+    BgManager* bgm_;
     MouseModeEnum basic_mode_,
                   mode_;  ///actual mode -- either basic_mode_ or mmd_peak
     //static const int max_group_cols = 8;
