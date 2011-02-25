@@ -256,6 +256,11 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     func_page->SetSizerAndFit(func_sizer);
     nb->AddPage(func_page, wxT("functions"));
 
+    // "=W" and "=S" buttons look better with the same size as other buttons
+    wxSize size = FindWindow(ID_FP_COL)->GetSize();
+    func_buttons_sizer->SetItemMinSize(0u, size.GetWidth(), size.GetHeight());
+    func_buttons_sizer->SetItemMinSize(1, size.GetWidth(), size.GetHeight());
+
     //-----  variables page  -----
     var_page = new wxPanel(nb, -1);
     wxBoxSizer *var_sizer = new wxBoxSizer(wxVERTICAL);
