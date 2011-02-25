@@ -2028,38 +2028,6 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
             wxSpinEventHandler(MainPlotConfDlg::OnYTicSize));
 }
 
-/*
-void ConfigureAxesDlg::OnApply (wxCommandEvent&)
-{
-    bool scale_changed = false;
-    plot->x_axis_visible = x_show_axis_cb_->GetValue();
-    plot->xtics_visible = x_show_tics_cb_->GetValue();
-    plot->xminor_tics_visible = x_show_minor_tics_cb_->GetValue();
-    plot->x_grid = x_show_grid_cb_->GetValue();
-    plot->x_max_tics = x_max_tics_sc_->GetValue();
-    plot->x_tic_size = x_tic_size_sc_->GetValue();
-    if (plot->xs.reversed != x_reversed_cb_->GetValue()) {
-        plot->xs.reversed = x_reversed_cb_->GetValue();
-        scale_changed = true;
-    }
-    if (plot->xs.logarithm != x_logarithm_cb_->GetValue()) {
-        plot->xs.logarithm = x_logarithm_cb_->GetValue();
-        scale_changed = true;
-    }
-    plot->y_axis_visible = y_show_axis_cb_->GetValue();
-    plot->ytics_visible = y_show_tics_cb_->GetValue();
-    plot->yminor_tics_visible = y_show_minor_tics_cb_->GetValue();
-    plot->y_grid = y_show_grid_cb_->GetValue();
-    plot->y_max_tics = y_max_tics_sc_->GetValue();
-    plot->y_tic_size = y_tic_size_sc_->GetValue();
-    plot->ys.reversed = y_reversed_cb_->GetValue();
-    plot->ys.logarithm = y_logarithm_cb_->GetValue();
-    ftk->view.set_log_scale(plot->xs.logarithm, plot->ys.logarithm);
-    frame->refresh_plots(false, scale_changed ? kAllPlots : kMainPlot);
-}
-*/
-
-
 void MainPlotConfDlg::OnColor(wxColourPickerEvent& event)
 {
     int id = event.GetId();
