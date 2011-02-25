@@ -667,19 +667,21 @@ void MainPlot::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/MainPlot/Colors"));
     set_bg_color(cfg_read_color(cf, wxT("bg"), wxColour(48, 48, 48)));
-    for (int i = 0; i < max_data_cols; i++)
+    dataCol[0] = cfg_read_color(cf, wxT("data/0"), wxColour(0, 255, 0));
+    for (int i = 1; i < max_data_cols; i++)
         dataCol[i] = cfg_read_color(cf, wxString::Format(wxT("data/%i"), i),
-                                               wxColour(0, 255, 0));
-    inactiveDataCol = cfg_read_color(cf,wxT("inactive_data"),
+                                    dataCol[0]);
+    inactiveDataCol = cfg_read_color(cf, wxT("inactive_data"),
                                                       wxColour (128, 128, 128));
     modelCol = cfg_read_color (cf, wxT("model"), wxColour(wxT("YELLOW")));
     bg_pointsCol = cfg_read_color(cf, wxT("BgPoints"), wxColour(wxT("RED")));
     //for (int i = 0; i < max_group_cols; i++)
     //    groupCol[i] = cfg_read_color(cf, wxString::Format(wxT("group/%i"), i),
     //                                 wxColour(173, 216, 230));
+    peakCol[0] = cfg_read_color(cf, wxT("peak/0"), wxColour(255, 0, 0));
     for (int i = 0; i < max_peak_cols; i++)
         peakCol[i] = cfg_read_color(cf, wxString::Format(wxT("peak/%i"), i),
-                                    wxColour(255, 0, 0));
+                                    peakCol[0]);
 
     cf->SetPath(wxT("/MainPlot/Visible"));
     peaks_visible_ = cfg_read_bool(cf, wxT("peaks"), true);
@@ -728,15 +730,19 @@ void MainPlot::save_settings(wxConfigBase *cf) const
 
     cf->SetPath(wxT("/MainPlot/Colors"));
     cfg_write_color(cf, wxT("bg"), get_bg_color());
-    for (int i = 0; i < max_data_cols; i++)
-        cfg_write_color(cf, wxString::Format(wxT("data/%i"), i), dataCol[i]);
+    cfg_write_color(cf, wxT("data/0"), dataCol[0]);
+    for (int i = 1; i < max_data_cols; i++)
+        if (dataCol[i] != dataCol[0])
+            cfg_write_color(cf, wxString::Format(wxT("data/%i"),i), dataCol[i]);
     cfg_write_color (cf, wxT("inactive_data"), inactiveDataCol);
     cfg_write_color (cf, wxT("model"), modelCol);
     cfg_write_color (cf, wxT("BgPoints"), bg_pointsCol);
     //for (int i = 0; i < max_group_cols; i++)
     //    cfg_write_color(cf, wxString::Format(wxT("group/%i"), i), groupCol[i]);
-    for (int i = 0; i < max_peak_cols; i++)
-        cfg_write_color(cf, wxString::Format(wxT("peak/%i"), i), peakCol[i]);
+    cfg_write_color(cf, wxT("peak/0"), peakCol[0]);
+    for (int i = 1; i < max_peak_cols; i++)
+        if (peakCol[i] != peakCol[0])
+            cfg_write_color(cf, wxString::Format(wxT("peak/%i"),i), peakCol[i]);
 
     cf->SetPath(wxT("/MainPlot/Visible"));
     cf->Write (wxT("peaks"), peaks_visible_);
