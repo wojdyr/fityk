@@ -721,7 +721,7 @@ void FFrame::set_menubar()
                                    wxT("&Spline Interpolation"),
                                    wxT("Cubic spline interpolation of points"));
     baseline_menu->Check(ID_G_BG_SPLINE, true);
-    gui_menu->Append(ID_G_BG_SUB, wxT("Baseline Handling"), baseline_menu);
+    gui_menu->Append(ID_G_BG_SUB, wxT("&Baseline Handling"), baseline_menu);
     gui_menu->AppendSeparator();
 
     wxMenu* gui_menu_show = new wxMenu;
@@ -762,20 +762,24 @@ void FFrame::set_menubar()
     gui_menu->AppendCheckItem(ID_G_FULLSCRN, wxT("&Full Screen\tF11"),
                                               wxT("Switch full screen"));
     gui_menu->AppendSeparator();
-    append_mi(gui_menu, ID_G_V_ALL, GET_BMP(zoom_fit16),
+
+    wxMenu* gui_menu_zoom = new wxMenu;
+    append_mi(gui_menu_zoom, ID_G_V_ALL, GET_BMP(zoom_fit16),
               wxT("Zoom &All\tCtrl-A"), wxT("View whole data"));
-    gui_menu->Append (ID_G_V_VERT, wxT("Fit &Vertically\tCtrl-V"),
-                      wxT("Adjust vertical zoom"));
+    gui_menu_zoom->Append(ID_G_V_VERT, wxT("Fit &Vertically\tCtrl-V"),
+                          wxT("Adjust vertical zoom"));
+    gui_menu_zoom->Append(ID_G_V_SCROLL_L, wxT("Scroll &Left\tCtrl-["),
+                          wxT("Scroll view left"));
+    gui_menu_zoom->Append(ID_G_V_SCROLL_R, wxT("Scroll &Right\tCtrl-]"),
+                          wxT("Scroll view right"));
+    gui_menu_zoom->Append(ID_G_V_SCROLL_U, wxT("Extend Zoom &Up\tCtrl--"),
+                          wxT("Double vertical range"));
+    gui_menu_zoom->Append(ID_G_V_EXTH, wxT("Extend &Horizontally\tCtrl-;"),
+                          wxT("Extend zoom horizontally"));
+    gui_menu->Append(-1, wxT("Plot &Range"), gui_menu_zoom);
+
     gui_menu->AppendCheckItem(ID_G_SHOWY0, wxT("Zoom All Shows Y=&0"),
-                        wxT("Tend to include Y=0 when adjusting view."));
-    gui_menu->Append (ID_G_V_SCROLL_L, wxT("Scroll &Left\tCtrl-["),
-                      wxT("Scroll view left"));
-    gui_menu->Append (ID_G_V_SCROLL_R, wxT("Scroll &Right\tCtrl-]"),
-                      wxT("Scroll view right"));
-    gui_menu->Append (ID_G_V_SCROLL_U, wxT("Extend Zoom &Up\tCtrl--"),
-                      wxT("Double vertical range"));
-    gui_menu->Append (ID_G_V_EXTH, wxT("Extend &Horizontally\tCtrl-;"),
-                      wxT("Extend zoom horizontally"));
+                              wxT("Tend to include Y=0 when adjusting view."));
 
     wxMenu* gui_menu_zoom_prev = new wxMenu;
     gui_menu->Append(ID_G_V_ZOOM_PREV, wxT("&Previous Zooms"),
