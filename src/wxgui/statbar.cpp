@@ -39,6 +39,12 @@ FStatusBar::FStatusBar(wxWindow *parent)
     font.SetFamily(wxFONTFAMILY_TELETYPE);
     coords->SetFont(font);
 
+    // using sizer here should not be necessary, but on wxGTK 2.8 `coords'
+    // sometimes disappears, and these 3 lines are a workaround
+    wxBoxSizer *coords_sizer = new wxBoxSizer(wxHORIZONTAL);
+    coords_sizer->Add(coords, 1);
+    panel_coords->SetSizerAndFit(coords_sizer);
+
     split->SplitVertically(panel_text, panel_coords);
     split->SetSashGravity(1.0);
     split->SetMinimumPaneSize(150);
