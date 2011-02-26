@@ -165,9 +165,12 @@ bool FStatusBar::set_extra_value(wxString const& s)
     if (!s.empty()) {
         string as = wx2s(s);
         Lexer lex(as.c_str());
+        extra_parser.clear_vm();
         bool r = extra_parser.parse_full(lex, 0, &names);
-        if (!r)
+        if (!r) {
+            extra_value.clear();
             return false;
+        }
     }
     extra_value = s;
     return true;

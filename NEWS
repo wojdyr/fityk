@@ -2,9 +2,11 @@ User-visible changes in version 1.0.0  (2011-0 -  ):
 * requires wxWidgets >= 2.9.2
 
 User-visible changes in version 0.9.8  (not yet):
-* bug fixes: corrected Caglioti equation in the powder diffraction add-on,
-  fixed problem with negative simple-variables
+* fixed bugs: incorrect Caglioti equation in the powder diffraction add-on,
+  problem with negative simple-variables, crash when the status bar has an
+  extra value set
 * GUI: new configuration dialogs for plots
+* GUI: all configs including the default one are now stored in .fityk/configs/
 
 User-visible changes in version 0.9.7  (2011-02-08):
 * bug fixes: UDFs (user-defined functions) did not work in ver. 0.9.5-6,
