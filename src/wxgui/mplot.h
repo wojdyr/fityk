@@ -128,11 +128,11 @@ public:
     void set_mouse_mode(MouseModeEnum m);
     MouseModeEnum get_mouse_mode() const { return mode_; }
     const wxColour& get_data_color(int n) const
-        { return dataCol[n % max_data_cols]; }
+        { return data_colors_[n % data_colors_.size()]; }
     const wxColour& get_func_color(int n) const
         { return peakCol[n % max_peak_cols]; }
     void set_data_color(int n, const wxColour& col)
-        { dataCol[n % max_data_cols] = col; }
+        { data_colors_[n % data_colors_.size()] = col; }
     void set_data_point_size(int /*n*/, int r) { point_radius = r; }
     void set_data_with_line(int /*n*/, bool b) { line_between_points = b; }
     void set_data_with_sigma(int /*n*/, bool b) { draw_sigma = b; }
@@ -156,7 +156,6 @@ private:
                   mode_;  ///actual mode -- either basic_mode_ or mmd_peak
     //static const int max_group_cols = 8;
     static const int max_peak_cols = 32;
-    static const int max_data_cols = 64;
     bool peaks_visible_, /*groups_visible_,*/ model_visible_,
          plabels_visible_, x_reversed_;
     wxFont plabelFont;
@@ -166,7 +165,7 @@ private:
     wxColour modelCol, bg_pointsCol;
     //wxColour groupCol[max_group_cols];
     wxColour peakCol[max_peak_cols];
-    wxColour dataCol[max_data_cols];
+    std::vector<wxColour> data_colors_;
     int pressed_mouse_button_;
     MouseOperation mouse_op_;
     int over_peak_; /// the cursor is over peaktop of this peak

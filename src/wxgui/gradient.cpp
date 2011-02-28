@@ -2,17 +2,11 @@
 // Licence: GNU General Public License ver. 2+
 ///  Gradient Dialog (GradientDlg) and helpers
 
-#include <wx/wxprec.h>
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
-#ifndef WX_PRECOMP
 #include <wx/wx.h>
-#endif
 #include <wx/spinctrl.h>
 
 #include "gradient.h"
-#include "cmn.h" //SpinCtrl, change_color_dlg, add_apply_close_buttons, iround
+#include "cmn.h" //SpinCtrl, change_color_dlg, add_apply_close_buttons
 #include "../common.h" //iround()
 
 using namespace std;
@@ -25,8 +19,8 @@ BEGIN_EVENT_TABLE(ColorSpinSelector, wxPanel)
     EVT_BUTTON (-1, ColorSpinSelector::OnSelector)
 END_EVENT_TABLE()
 
-ColorSpinSelector::ColorSpinSelector(wxWindow *parent, wxString const& title,
-                                     wxColour const& col)
+ColorSpinSelector::ColorSpinSelector(wxWindow *parent, const wxString& title,
+                                     const wxColour& col)
     : wxPanel(parent, -1)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
@@ -68,7 +62,7 @@ BEGIN_EVENT_TABLE(GradientDlg, wxDialog)
 END_EVENT_TABLE()
 
 GradientDlg::GradientDlg(wxWindow *parent, wxWindowID id,
-                         wxColour const& first_col, wxColour const& last_col)
+                         const wxColour& first_col, const wxColour& last_col)
     : wxDialog(parent, id, wxT("Select color gradient"),
                wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE/*|wxRESIZE_BORDER*/)
@@ -194,5 +188,141 @@ wxColour GradientDlg::get_value(float x)
                         from->b->GetValue());
     }
     return c;
+}
+
+
+const wxColour MultiColorCombo::palette[21] =
+{
+    wxColour(0x00, 0xCC, 0x00), // green
+    wxColour(0x00, 0xBB, 0xFF), // light blue
+    wxColour(0xFF, 0xBB, 0x00), // orange
+    wxColour(0xEE, 0xEE, 0xBB), // beige
+    wxColour(0x55, 0x88, 0x00), // dark green
+    wxColour(0x00, 0x44, 0x99), // dark blue
+    wxColour(0xDD, 0x00, 0x00), // red
+    wxColour(0xFF, 0x00, 0xFF), // magenta
+    wxColour(0xEE, 0xEE, 0x00), // yellow
+    wxColour(0x00, 0x80, 0x80), // dark cyan
+    wxColour(0xC0, 0xDC, 0xC0), // money green
+    wxColour(0xFF, 0xFB, 0xF0), // cream
+    wxColour(0x80, 0x00, 0x00), // dark red
+    wxColour(0x00, 0x80, 0x00), // dark green
+    wxColour(0x80, 0x80, 0x00), // dark yellow
+    wxColour(0x00, 0x00, 0x80), // dark blue
+    wxColour(0x80, 0x00, 0x80), // dark magenta
+    wxColour(0x00, 0x00, 0xFF), // blue
+    wxColour(0x00, 0xFF, 0xFF), // cyan
+    wxColour(0xA6, 0xCA, 0xF0), // sky blue
+    wxColour(0x00, 0xFF, 0x00), // green
+};
+
+
+MultiColorCombo::MultiColorCombo(wxWindow* parent, const wxColour* bg_color,
+                                 vector<wxColour>& colors)
+    : bg_color_(bg_color), colors_(colors)
+{
+    wxString choices[8] = {
+        wxT(""), // current colors
+        wxT(""), // palette
+        wxT(""), // this and the next empty items are predefined color maps
+        wxT(""),
+        wxT(""),
+        wxT(""),
+        wxT(""),
+        wxT("single color..."),
+    };
+    wxOwnerDrawnComboBox::Create(parent, -1, wxEmptyString,
+                                 wxDefaultPosition, wxDefaultSize,
+                                 8, choices, wxCB_READONLY);
+    Connect(wxEVT_COMMAND_COMBOBOX_SELECTED,
+            wxCommandEventHandler(MultiColorCombo::OnSelection));
+}
+
+static wxColour jet_color(int t)
+{
+    if (t < 32) // blue
+        return wxColour(0, 0, 127 + 4 * t);
+    else if (t < 3*32) // cyan
+        return wxColour(0, 4 * (t - 32), 255);
+    else if (t < 5*32) // yellow
+        return wxColour(4 * (t - 3*32), 255, 255 - 4 * (t - 3*32));
+    else if (t < 7*32) // orange
+        return wxColour(255, 255 - 4 * (t - 5*32), 0);
+    else // red
+        return wxColour(255 - 4 * (t - 7*32), 0,  0);
+}
+
+// t - position in gradient/palette (0 <= t <= 255)
+wxColour MultiColorCombo::get_color(int selection, int i) const
+{
+    int t = 255 * i / (colors_.size() - 1);
+    // some color maps here are copied from AtomEye (public domain code)
+    switch (selection) {
+        case 0: // current colors
+            return colors_[i];
+        case 1: // palette
+            return palette[i < 21 ? i : 0];
+        case 2: // from cyan to magenta
+            return wxColour(t, 255-t, 255);
+        case 3: // from green to blue
+            return wxColour(0, 255-t, (255+t)/2);
+        case 4: // from copper orange to black
+            return wxColour(min(iround(1.25*(255-t)), 255),
+                            iround(0.7812*(255-t)),
+                            iround(0.4975*(255-t)));
+        case 5: // hsv from blue to red
+            return jet_color(t);
+        case 6: // hsv from green to green
+            return hsv2wxColour((t+64) % 255, 255, 255);
+        default:
+            assert(0);
+            return wxColour();
+    }
+}
+
+void MultiColorCombo::OnSelection(wxCommandEvent& event)
+{
+    int n = event.GetSelection();
+    if (n == 0) // current colors, nothing changes
+        return;
+    if (n == 7) { // single color...
+        if (change_color_dlg(colors_[0]))
+            for (size_t i = 1; i < colors_.size(); ++i)
+                colors_[i] = colors_[0];
+    }
+    else
+        for (size_t i = 0; i < colors_.size(); ++i)
+            colors_[i] = get_color(n, i);
+    SetSelection(0);
+    event.Skip();
+}
+
+
+void MultiColorCombo::OnDrawItem(wxDC& dc, const wxRect& rect,
+                                 int item, int /*flags*/) const
+{
+    if (item == wxNOT_FOUND)
+        return;
+    if (item >= 7) {
+        dc.DrawText(GetString(item), rect.x + 3,
+                    rect.y + (rect.height - dc.GetCharHeight()) / 2);
+        return;
+    }
+    wxRect bg_rect(rect);
+    bg_rect.Deflate(2);
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.SetBrush(wxBrush(*bg_color_));
+    //dc.SetPen(bg_pen);
+    dc.DrawRectangle(bg_rect.x, bg_rect.y, bg_rect.width, bg_rect.height);
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+    int y1 = bg_rect.y + 3;
+    int y2 = bg_rect.y + bg_rect.height - 3;
+    for (size_t i = 0; i < colors_.size(); ++i) {
+        dc.SetPen(get_color(item, i));
+        int x = bg_rect.x + 3 + 2*i;
+        dc.DrawLine(x, y1, x, y2);
+        ++x;
+        dc.DrawLine(x, y1, x, y2);
+    }
 }
 

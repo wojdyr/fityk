@@ -91,13 +91,10 @@ bool change_color_dlg(wxColour& col)
     col_data.SetCustomColour(0, col);
     col_data.SetColour(col);
     wxColourDialog dialog(0, &col_data);
-    if (dialog.ShowModal() == wxID_OK
-            && col != dialog.GetColourData().GetColour()) {
+    bool ok = (dialog.ShowModal() == wxID_OK);
+    if (ok)
         col = dialog.GetColourData().GetColour();
-        return true;
-    }
-    else
-        return false;
+    return ok;
 }
 
 void add_apply_close_buttons(wxWindow *parent, wxSizer *top_sizer)

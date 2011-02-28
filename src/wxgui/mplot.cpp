@@ -13,6 +13,7 @@
 #include "sidebar.h"
 #include "statbar.h" // HintReceiver
 #include "bgm.h"
+#include "gradient.h"
 #include "../data.h"
 #include "../logic.h"
 #include "../model.h"
@@ -44,8 +45,9 @@ private:
     MainPlot *mp_;
     wxCheckBox *model_cb_, *func_cb_, *labels_cb_, *vertical_labels_cb_;
     wxComboBox *label_combo_;
-    wxColourPickerCtrl *bg_cp_, *active_cp_, *inactive_cp_, *axis_cp_,
-                       *model_cp_, *func_cp_;
+    wxColourPickerCtrl *bg_cp_, *inactive_cp_, *axis_cp_, *model_cp_, *func_cp_;
+    wxSpinCtrl *data_colors_sc_;
+    MultiColorCombo *data_color_combo_;
     wxFontPickerCtrl *tics_fp_, *label_fp_;
     wxCheckBox *x_show_axis_cb_, *x_show_tics_cb_, *x_show_minor_tics_cb_,
                *x_show_grid_cb_, *x_reversed_cb_, *x_logarithm_cb_;
@@ -72,6 +74,20 @@ private:
 
     void OnColor(wxColourPickerEvent& event);
 
+    void OnDataColorsSpin(wxSpinEvent& event)
+    {
+        mp_->data_colors_.resize(event.GetPosition(), mp_->data_colors_[0]);
+        data_color_combo_->Refresh();
+        frame->update_data_pane();
+        mp_->refresh();
+    }
+
+    void OnDataColorSelection(wxCommandEvent&)
+    {
+        frame->update_data_pane();
+        mp_->refresh();
+    }
+
     void OnTicsFont(wxFontPickerEvent& event)
         { mp_->ticsFont = event.GetFont(); mp_->refresh(); }
 
@@ -84,6 +100,7 @@ private:
         if (mp_->plabels_visible_)
             mp_->refresh();
     }
+
 
     void OnShowXAxis(wxCommandEvent& event)
         { mp_->x_axis_visible = event.IsChecked(); mp_->refresh(); }
@@ -672,14 +689,18 @@ void MainPlot::draw_background(wxDC& dc, bool set_pen)
 
 void MainPlot::read_settings(wxConfigBase *cf)
 {
+    cf->SetPath(wxT("/MainPlot"));
+    int data_colors_count = cf->Read(wxT("data_colors_count"), 16);
+    data_colors_count = min(max(data_colors_count, 2), 64);
+    data_colors_.resize(data_colors_count);
     cf->SetPath(wxT("/MainPlot/Colors"));
     set_bg_color(cfg_read_color(cf, wxT("bg"), wxColour(48, 48, 48)));
-    dataCol[0] = cfg_read_color(cf, wxT("data/0"), wxColour(0, 255, 0));
-    for (int i = 1; i < max_data_cols; i++)
-        dataCol[i] = cfg_read_color(cf, wxString::Format(wxT("data/%i"), i),
-                                    dataCol[0]);
+    data_colors_[0] = cfg_read_color(cf, wxT("data/0"), wxColour(0, 255, 0));
+    for (int i = 1; i < (int) data_colors_.size(); i++)
+        data_colors_[i] = cfg_read_color(cf, wxT("data/") + s2wx(S(i)),
+                                         data_colors_[0]);
     inactiveDataCol = cfg_read_color(cf, wxT("inactive_data"),
-                                                      wxColour (128, 128, 128));
+                                                      wxColour(128, 128, 128));
     modelCol = cfg_read_color (cf, wxT("model"), wxColour(wxT("YELLOW")));
     bg_pointsCol = cfg_read_color(cf, wxT("BgPoints"), wxColour(wxT("RED")));
     //for (int i = 0; i < max_group_cols; i++)
@@ -735,12 +756,13 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("xLogarithm"), xs.logarithm);
     cf->Write(wxT("yLogarithm"), ys.logarithm);
 
+    cf->Write(wxT("data_colors_count"), (long) data_colors_.size());
     cf->SetPath(wxT("/MainPlot/Colors"));
     cfg_write_color(cf, wxT("bg"), get_bg_color());
-    cfg_write_color(cf, wxT("data/0"), dataCol[0]);
-    for (int i = 1; i < max_data_cols; i++)
-        if (dataCol[i] != dataCol[0])
-            cfg_write_color(cf, wxString::Format(wxT("data/%i"),i), dataCol[i]);
+    cfg_write_color(cf, wxT("data/0"), data_colors_[0]);
+    for (size_t i = 1; i < data_colors_.size(); i++)
+        if (data_colors_[i] != data_colors_[0])
+            cfg_write_color(cf, wxT("data/") + s2wx(S(i)), data_colors_[i]);
     cfg_write_color (cf, wxT("inactive_data"), inactiveDataCol);
     cfg_write_color (cf, wxT("model"), modelCol);
     cfg_write_color (cf, wxT("BgPoints"), bg_pointsCol);
@@ -1561,9 +1583,16 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
     bg_cp_ = new wxColourPickerCtrl(this, -1, mp_->get_bg_color());
     gsizer->Add(bg_cp_, cl);
 
-    gsizer->Add(new wxStaticText(this, -1, wxT("active data")), cr);
-    active_cp_ = new wxColourPickerCtrl(this, -1, mp_->dataCol[0]);
-    gsizer->Add(active_cp_, cl);
+    wxBoxSizer *data_col_sizer = new wxBoxSizer(wxHORIZONTAL);
+    data_colors_sc_ = new SpinCtrl(this, -1, mp_->data_colors_.size(), 2, 64);
+    data_col_sizer->Add(data_colors_sc_, cl);
+    data_col_sizer->Add(new wxStaticText(this, -1, wxT("colors for datasets")),
+                        cl.Border(wxLEFT));
+    gsizer->Add(data_col_sizer, cr);
+    data_color_combo_ = new MultiColorCombo(this, &mp_->get_bg_color(),
+                                            mp_->data_colors_);
+    data_color_combo_->SetSelection(0);
+    gsizer->Add(data_color_combo_, cl);
 
     gsizer->Add(new wxStaticText(this, -1, wxT("inactive data")), cr);
     inactive_cp_ = new wxColourPickerCtrl(this, -1, mp_->inactiveDataCol);
@@ -1734,6 +1763,10 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
             wxCommandEventHandler(MainPlotConfDlg::OnLabelTextChanged));
     Connect(label_combo_->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
             wxCommandEventHandler(MainPlotConfDlg::OnLabelTextChanged));
+    Connect(data_colors_sc_->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
+            wxSpinEventHandler(MainPlotConfDlg::OnDataColorsSpin));
+    Connect(data_color_combo_->GetId(), wxEVT_COMMAND_COMBOBOX_SELECTED,
+            wxCommandEventHandler(MainPlotConfDlg::OnDataColorSelection));
 
     Connect(x_show_axis_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
             wxCommandEventHandler(MainPlotConfDlg::OnShowXAxis));
@@ -1773,19 +1806,20 @@ void MainPlotConfDlg::OnColor(wxColourPickerEvent& event)
 {
     int id = event.GetId();
     if (id == bg_cp_->GetId()) {
-        frame->update_data_pane();
         mp_->set_bg_color(event.GetColour());
+        frame->update_data_pane();
+        data_color_combo_->Refresh();
     }
-    else if (id == active_cp_->GetId())
-        mp_->dataCol[0] = event.GetColour();
     else if (id == inactive_cp_->GetId())
         mp_->inactiveDataCol = event.GetColour();
     else if (id == axis_cp_->GetId())
         mp_->xAxisCol = event.GetColour();
     else if (id == model_cp_->GetId())
         mp_->modelCol = event.GetColour();
-    else if (id == func_cp_->GetId())
-        mp_->peakCol[0] = event.GetColour();
+    else if (id == func_cp_->GetId()) {
+        for (int i = 0; i < MainPlot::max_peak_cols; ++i)
+            mp_->peakCol[i] = event.GetColour();
+    }
     mp_->refresh();
 }
 
