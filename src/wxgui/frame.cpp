@@ -1859,7 +1859,7 @@ string FFrame::get_datasets()
     if (ftk->get_dm_count() == size(sel))
         return "@*: ";
     else
-        return "@" + join_vector(sel, ", @") + ": ";
+        return "@" + join_vector(sel, " @") + ": ";
 }
 
 string FFrame::get_guess_string(const std::string& name)
