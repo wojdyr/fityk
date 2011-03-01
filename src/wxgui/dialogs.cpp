@@ -253,3 +253,19 @@ string MergePointsDlg::get_command()
 }
 
 
+
+TextComboDlg::TextComboDlg(wxWindow *parent, const wxString& message,
+                           const wxString& caption)
+    : wxDialog(parent, -1, caption)
+{
+    wxBoxSizer *topsizer = new wxBoxSizer(wxVERTICAL);
+    topsizer->Add(CreateTextSizer(message), wxSizerFlags().DoubleBorder());
+    combo = new wxComboBox(this, -1);
+    topsizer->Add(combo, wxSizerFlags().Expand().TripleBorder(wxLEFT|wxRIGHT));
+    wxSizer *buttonSizer = CreateSeparatedButtonSizer(wxOK|wxCANCEL);
+    if (buttonSizer)
+        topsizer->Add(buttonSizer, wxSizerFlags().DoubleBorder().Expand());
+    SetSizerAndFit(topsizer);
+    combo->SetFocus();
+}
+

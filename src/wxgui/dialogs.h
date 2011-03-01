@@ -48,5 +48,14 @@ private:
 };
 
 
+// similar to wxTextEntryDialog, but uses wxComboBox instead of wxTextCtrl
+class TextComboDlg : public wxDialog
+{
+public:
+    TextComboDlg(wxWindow *parent, const wxString& message,
+                 const wxString& caption);
+    wxComboBox *combo;
+};
+
 #endif
 

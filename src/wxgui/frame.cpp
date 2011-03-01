@@ -1641,15 +1641,16 @@ void FFrame::OnSaveDefaultConfig(wxCommandEvent&)
 void FFrame::OnSaveConfigAs(wxCommandEvent&)
 {
     const wxString& dir = wxGetApp().config_dir;
-    wxString txt = wxGetTextFromUser(
-                      wxT("Choose config name.\n")
-                        wxT("This will be the name of file in directory:\n")
-                        + dir,
-                      wxT("config name"),
-                      wxT("other"));
-    if (!txt.IsEmpty())
-        save_config_as(dir+txt);
-
+    wxString msg = wxT("Choose config name.\n")
+                   wxT("This will be the name of file in:\n")
+                   + dir;
+    TextComboDlg dlg(NULL, msg, wxT("Save configuration as..."));
+    wxArrayString filenames;
+    int n = wxDir::GetAllFiles(wxGetApp().config_dir, &filenames);
+    for (int i = 0; i < n; ++i)
+        dlg.combo->Append(wxFileName(filenames[i]).GetFullName());
+    if (dlg.ShowModal() == wxID_OK && !dlg.combo->GetValue().empty())
+        save_config_as(dir + dlg.combo->GetValue());
 }
 
 void FFrame::save_config_as(wxString const& name)
