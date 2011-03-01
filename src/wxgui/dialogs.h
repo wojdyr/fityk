@@ -30,8 +30,6 @@ private:
 };
 
 
-class DataListPlusText;
-
 class MergePointsDlg : public wxDialog
 {
 public:

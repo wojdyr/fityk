@@ -187,10 +187,7 @@ inline wxBitmap GetBitmapFromMemory_(const unsigned char *data, int length)
 #define GET_BMP(name) \
             GetBitmapFromMemory_(name##_png, sizeof(name##_png))
 
-// add note in static box
-wxSizer* note_sizer(wxWindow *parent, wxString const& title,
-                    wxString const& msg);
 // add persistance note (use GUI > Save...)
-wxSizer* persistance_note_sizer(wxWindow *parent);
+wxStaticText* persistance_note(wxWindow *parent);
 
 #endif // FITYK_WX_CMN_H_

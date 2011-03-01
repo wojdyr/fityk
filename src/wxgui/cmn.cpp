@@ -257,20 +257,14 @@ void updateControlWithItems(wxControlWithItems *cwi, vector<string> const& v)
 }
 
 
-wxSizer* note_sizer(wxWindow *parent, wxString const& title,
-                    wxString const& msg)
+wxStaticText* persistance_note(wxWindow *parent)
 {
-    wxStaticBoxSizer *t = new wxStaticBoxSizer(wxVERTICAL, parent, title);
-    t->Add(new wxStaticText(parent, -1, msg), wxSizerFlags().Center().Border());
-    return t;
-}
-
-wxSizer* persistance_note_sizer(wxWindow *parent)
-{
-    return note_sizer(parent, wxT("persistance note"),
-                      wxT("To have values above remained after restart use")
-                      wxT("\nGUI > Save current config")
-                     );
+    wxStaticText *text = new wxStaticText(parent, -1,
+        wxT("To save preferences use GUI \u2023 Save current config"));
+    wxFont font = text->GetFont();
+    font.SetPointSize(font.GetPointSize() - 2);
+    text->SetFont(font);
+    return text;
 }
 
 DialogCloser* DialogCloser::instance_ = NULL;

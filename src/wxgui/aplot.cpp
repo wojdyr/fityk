@@ -382,7 +382,7 @@ void AuxPlot::OnRightDown (wxMouseEvent &event)
         return;
 
     wxMenu popup_menu;
-    popup_menu.Append(ID_aux_prefs, wxT("&Configure"), wxT(""));
+    popup_menu.Append(ID_aux_prefs, wxT("&Configure..."), wxT(""));
     popup_menu.AppendSeparator();
     popup_menu.Append (ID_aux_yz_fit, wxT("&Fit to window"));
     popup_menu.Enable(ID_aux_yz_fit, is_zoomable());
@@ -571,6 +571,7 @@ AuxPlotConfDlg::AuxPlotConfDlg(AuxPlot* ap)
     hor_sizer->Add(gsizer, wxSizerFlags().Border());
 
     top_sizer->Add(hor_sizer, 0);
+    top_sizer->Add(persistance_note(this), wxSizerFlags().Center().Border());
     top_sizer->Add(new wxButton(this, wxID_CLOSE),
                    wxSizerFlags().Right().Border());
     SetSizerAndFit(top_sizer);

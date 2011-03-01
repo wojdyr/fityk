@@ -194,7 +194,7 @@ void OutputWin::OnRightDown (wxMouseEvent& event)
     if (selection_.empty())
         popup_menu.Enable(ID_OUTPUT_EDITLINE, false);
     popup_menu.Append (ID_OUTPUT_CLEAR, wxT("Clea&r"));
-    popup_menu.Append (ID_OUTPUT_CONFIGURE, wxT("&Configure"));
+    popup_menu.Append (ID_OUTPUT_CONFIGURE, wxT("&Configure..."));
     PopupMenu (&popup_menu, event.GetX(), event.GetY());
 }
 
@@ -273,8 +273,7 @@ OutputWinConfDlg::OutputWinConfDlg(wxWindow* parent, wxWindowID id,
 
     top_sizer->Add(hsizer, wxSizerFlags(1).Expand().Border());
 
-    top_sizer->Add(persistance_note_sizer(this),
-                   wxSizerFlags().Expand().Border());
+    top_sizer->Add(persistance_note(this), wxSizerFlags().Border());
 
     top_sizer->Add(new wxButton(this, wxID_CLOSE),
                    wxSizerFlags().Right().Border());

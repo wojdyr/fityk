@@ -254,8 +254,7 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     f_sizer->Add(gsizer, wxSizerFlags(1).Expand().Border());
     top_sizer->Add(f_sizer, wxSizerFlags(1).Expand().Border());
 
-    top_sizer->Add(persistance_note_sizer(this),
-                   wxSizerFlags().Expand().Border());
+    top_sizer->Add(persistance_note(this), wxSizerFlags().Border());
 
     top_sizer->Add(new wxButton(this, wxID_CLOSE),
                    wxSizerFlags().Right().Border());

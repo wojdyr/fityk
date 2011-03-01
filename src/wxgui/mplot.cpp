@@ -1740,6 +1740,7 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
     hor_sizer->Add(ysizer, 0, wxALL, 5);
 
     top_sizer->Add(hor_sizer, 0);
+    top_sizer->Add(persistance_note(this), wxSizerFlags().Center().Border());
     top_sizer->Add(new wxButton(this, wxID_CLOSE),
                    wxSizerFlags().Right().Border());
     SetSizerAndFit(top_sizer);
