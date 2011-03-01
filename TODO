@@ -5,8 +5,6 @@
 
 * GUI: optionally use wxGCDC for plotting
 
-* toolbar: outdated item "view and transform current dataset"
-
 ------
 
 * peak finding: optionally use weights for finding peak positions

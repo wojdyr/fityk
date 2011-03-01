@@ -218,7 +218,7 @@ void EditTransDlg::init()
 #endif
           ;
     wxHyperlinkCtrl *help_ctrl = new wxHyperlinkCtrl(right_panel, -1,
-                                                  wxT("see syntax reference"),
+                                                  wxT("syntax reference"),
                                                   help_url);
     cl_sizer->AddStretchSpacer();
     cl_sizer->Add(help_ctrl, wxSizerFlags().Center().Border(wxRIGHT));

@@ -2024,17 +2024,17 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
             wxT("Extend zoom up [Ctrl+-]"), wxT("Double vertical range"));
     AddTool(ID_T_PZ, wxT("Back"), wxBitmap(zoom_prev_xpm), wxNullBitmap,
             wxITEM_NORMAL, wxT("Previous view"),
-            wxT("Go to previous View"));
+            wxT("Go to the previous view"));
     AddSeparator();
     //file
     AddTool(ID_SESSION_INCLUDE, wxT("Execute"),
             wxBitmap(run_script_xpm), wxNullBitmap, wxITEM_NORMAL,
             wxT("Execute script [Ctrl+X]"),
             wxT("Execute (include) script from file"));
-    AddTool(ID_SESSION_DUMP, wxT("Dump"),
+    AddTool(ID_SESSION_DUMP, wxT("Save Session"),
             wxBitmap(save_script_xpm), wxNullBitmap, wxITEM_NORMAL,
             wxT("Save session to file"),
-            wxT("Dump current session to file"));
+            wxT("Save current session to file"));
     AddSeparator();
     //data
     AddTool(ID_D_QLOAD, wxT("Load"), wxBitmap(open_data_xpm), wxNullBitmap,
@@ -2043,10 +2043,10 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddTool(ID_D_XLOAD, wxT("Load2"),
             wxBitmap(open_data_custom_xpm), wxNullBitmap, wxITEM_NORMAL,
             wxT("Load file (custom)"), wxT("Load data from file"));
-    AddTool(ID_D_EDITOR, wxT("Edit data"),
+    AddTool(ID_D_EDITOR, wxT("Tranform"),
             wxBitmap(edit_data_xpm), wxNullBitmap, wxITEM_NORMAL,
-            wxT("View and transform current dataset"),
-            wxT("Save data to file"));
+            wxT("Transform selected datasets"),
+            wxT("Data transformations"));
     AddTool(ID_D_EXPORT, wxT("Save"), wxBitmap(save_data_xpm), wxNullBitmap,
             wxITEM_NORMAL, wxT("Save data as..."),
             wxT("Save data to file"));
