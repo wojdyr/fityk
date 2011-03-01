@@ -258,7 +258,8 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
 
     // "=W" and "=S" buttons look better with the same size as other buttons
     wxSize size = FindWindow(ID_FP_COL)->GetSize();
-    func_buttons_sizer->SetItemMinSize(0u, size.GetWidth(), size.GetHeight());
+    func_buttons_sizer->SetItemMinSize((size_t) 0,
+                                        size.GetWidth(), size.GetHeight());
     func_buttons_sizer->SetItemMinSize(1, size.GetWidth(), size.GetHeight());
 
     //-----  variables page  -----
