@@ -26,6 +26,7 @@ private:
                    *lm_stop, *lm_max_lambda,
                    *nm_convergence, *nm_move_factor;
     wxCheckBox *nm_move_all, *fit_replot_cb;
+    wxTextCtrl *format_tc;
     wxTextCtrl *dir_ld_tc, *dir_xs_tc, *dir_ex_tc;
 
     void add_persistence_note(wxWindow *parent, wxSizer *sizer);

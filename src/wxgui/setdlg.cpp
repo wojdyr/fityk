@@ -50,6 +50,18 @@ RealNumberCtrl *addRealNumberCtrl(wxWindow *parent, const wxString& label,
     return ctrl;
 }
 
+wxTextCtrl *addTextCtrl(wxWindow *parent, const wxString& label,
+                        const string& value, wxSizer *sizer)
+{
+    wxStaticText *st = new wxStaticText(parent, -1, label);
+    wxTextCtrl *ctrl = new wxTextCtrl(parent, -1, s2wx(value));
+    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+    hsizer->Add(st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    hsizer->Add(ctrl, 0, wxALL, 5);
+    sizer->Add(hsizer, 0, wxEXPAND);
+    return ctrl;
+}
+
 wxCheckBox *addCheckbox(wxWindow *parent, wxString const& label,
                         bool value, wxSizer *sizer)
 {
@@ -137,6 +149,12 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
                                wxT("epsilon for floating-point comparison"),
                                settings->epsilon,
                                sizer_general);
+
+    format_tc = addTextCtrl(page_general,
+                            wxT("numeric format used by info/print"),
+                            settings->numeric_format,
+                            sizer_general);
+
     add_persistence_note(page_general, sizer_general);
     page_general->SetSizerAndFit(sizer_general);
 
@@ -328,6 +346,7 @@ void SettingsDlg::exec_set_command()
     assign += add("exit_on_warning", exit_cb->GetValue() ? "1" : "0");
     assign += add("pseudo_random_seed", S(seed_sp->GetValue()));
     assign += add("epsilon", wx2s(eps_rc->GetValue()));
+    assign += add("numeric_format", "'" + wx2s(format_tc->GetValue()) + "'");
     assign += add("height_correction", wx2s(height_correction->GetValue()));
     assign += add("width_correction", wx2s(width_correction->GetValue()));
     assign += add("max_wssr_evaluations", S(mwssre_sp->GetValue()));
