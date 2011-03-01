@@ -32,7 +32,7 @@ public:
     void OnDataButtonDel (wxCommandEvent&) { delete_selected_items(); }
     void OnDataButtonCopyF (wxCommandEvent& event);
     void OnDataButtonCol (wxCommandEvent& event);
-    void OnDataColorsChanged(GradientDlg *gd);
+    void OnDataColorsChanged(wxCommandEvent& event);
     void OnDataLookChanged (wxCommandEvent& event);
     void OnDataPSizeChanged (wxSpinEvent& event);
     void OnDataPLineChanged (wxCommandEvent& event);

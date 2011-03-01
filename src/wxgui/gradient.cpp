@@ -11,102 +11,82 @@
 
 using namespace std;
 
-enum {
-    ID_CGD_RADIO               = 27900
+/// displays colors from data member from left to right (one pixel - one color)
+class ColorGradientDisplay : public wxPanel
+{
+public:
+    ColorGradientDisplay(GradientDlg *parent)
+        : wxPanel(parent, -1), gradient_dlg_(parent)
+    {
+        Connect(wxEVT_PAINT,
+                wxPaintEventHandler(ColorGradientDisplay::OnPaint));
+    }
+
+    void OnPaint(wxPaintEvent&)
+    {
+        wxPaintDC dc(this);
+        wxSize size = GetClientSize();
+        wxPen pen;
+        for (int i = 0; i < size.GetWidth(); ++i) {
+            float d = i / (size.GetWidth() - 1.0);
+            pen.SetColour(gradient_dlg_->get_value(d));
+            dc.SetPen(pen);
+            dc.DrawLine(i, 0, i, size.GetHeight());
+        }
+    }
+
+private:
+    GradientDlg *gradient_dlg_;
 };
 
-BEGIN_EVENT_TABLE(ColorSpinSelector, wxPanel)
-    EVT_BUTTON (-1, ColorSpinSelector::OnSelector)
-END_EVENT_TABLE()
 
-ColorSpinSelector::ColorSpinSelector(wxWindow *parent, const wxString& title,
-                                     const wxColour& col)
-    : wxPanel(parent, -1)
-{
-    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
-    wxStaticBoxSizer *sizer = new wxStaticBoxSizer(wxHORIZONTAL, this, title);
-    sizer->Add(new wxStaticText(this, -1, wxT("R")),
-                    0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-    r = new SpinCtrl(this, -1, col.Red(), 0, 255);
-    sizer->Add(r, 0, wxALL, 5);
-    sizer->Add(new wxStaticText(this, -1, wxT("G")),
-                    0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-    g = new SpinCtrl(this, -1, col.Green(), 0, 255);
-    sizer->Add(g, 0, wxALL, 5);
-    sizer->Add(new wxStaticText(this, -1, wxT("B")),
-                    0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-    b = new SpinCtrl(this, -1, col.Blue(), 0, 255);
-    sizer->Add(b, 0, wxALL, 5);
-    sizer->Add(new wxButton(this, -1, wxT("Selector...")), 0, wxALL, 5);
-    top_sizer->Add(sizer, 1, wxEXPAND);
-    SetSizerAndFit(top_sizer);
-}
-
-void ColorSpinSelector::OnSelector(wxCommandEvent &)
-{
-    wxColour c(r->GetValue(), g->GetValue(), b->GetValue());
-    if (change_color_dlg(c)) {
-        r->SetValue(c.Red());
-        g->SetValue(c.Green());
-        b->SetValue(c.Blue());
-    }
-    // parent is notified about changes by handling all wxSpinCtrl events
-    wxSpinEvent event(wxEVT_COMMAND_SPINCTRL_UPDATED);
-    wxPostEvent(this, event);
-}
-
-
-BEGIN_EVENT_TABLE(GradientDlg, wxDialog)
-    EVT_SPINCTRL (-1, GradientDlg::OnSpinEvent)
-    EVT_RADIOBOX (ID_CGD_RADIO, GradientDlg::OnRadioChanged)
-END_EVENT_TABLE()
 
 GradientDlg::GradientDlg(wxWindow *parent, wxWindowID id,
                          const wxColour& first_col, const wxColour& last_col)
     : wxDialog(parent, id, wxT("Select color gradient"),
-               wxDefaultPosition, wxDefaultSize,
-               wxDEFAULT_DIALOG_STYLE/*|wxRESIZE_BORDER*/)
+               wxDefaultPosition, wxDefaultSize, wxDEFAULT_DIALOG_STYLE)
 {
     wxBoxSizer* top_sizer = new wxBoxSizer(wxVERTICAL);
 
-    from = new ColorSpinSelector(this, wxT("from"), first_col);
-    top_sizer->Add(from, 0, wxALL, 5);
+    from_cp_ = new wxColourPickerCtrl(this, -1, first_col,
+                                      wxDefaultPosition, wxDefaultSize,
+                                      wxCLRP_USE_TEXTCTRL);
+    top_sizer->Add(from_cp_, 0, wxALL|wxEXPAND, 5);
 
-    to = new ColorSpinSelector(this, wxT("to"), last_col);
-    top_sizer->Add(to, 0, wxALL, 5);
+    to_cp_ = new wxColourPickerCtrl(this, -1, last_col,
+                                    wxDefaultPosition, wxDefaultSize,
+                                    wxCLRP_USE_TEXTCTRL);
+    top_sizer->Add(to_cp_, 0, wxALL|wxEXPAND, 5);
 
-    wxArrayString choices;
-    choices.Add(wxT("HSV gradient, clockwise hue"));
-    choices.Add(wxT("HSV gradient, counter-clockwise"));
-    choices.Add(wxT("RGB gradient"));
-    choices.Add(wxT("one color"));
-    kind_rb = new wxRadioBox(this, ID_CGD_RADIO, wxT("how to extrapolate..."),
-                             wxDefaultPosition, wxDefaultSize, choices,
-                             1, wxRA_SPECIFY_COLS);
-    top_sizer->Add(kind_rb, 0, wxALL|wxEXPAND, 5);
-    display = new ColorGradientDisplay<GradientDlg>(this,
-                                 this, &GradientDlg::update_gradient_display);
-    display->SetMinSize(wxSize(-1, 15));
-    top_sizer->Add(display, 0, wxALL|wxEXPAND, 5);
+    rb1_ = new wxRadioButton(this, -1, wxT("HSV gradient, clockwise hue"),
+                             wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
+    rb2_ = new wxRadioButton(this, -1, wxT("HSV gradient, counter-clockwise"));
+    rb3_ = new wxRadioButton(this, -1, wxT("RGB gradient"));
+    rb4_ = new wxRadioButton(this, -1, wxT("one color"));
+    top_sizer->Add(rb1_, 0, wxLEFT|wxRIGHT|wxTOP, 5);
+    top_sizer->Add(rb2_, 0, wxLEFT|wxRIGHT|wxTOP, 5);
+    top_sizer->Add(rb3_, 0, wxLEFT|wxRIGHT|wxTOP, 5);
+    top_sizer->Add(rb4_, 0, wxALL, 5);
+    display_ = new ColorGradientDisplay(this);
+    display_->SetMinSize(wxSize(-1, 15));
+    top_sizer->Add(display_, 0, wxALL|wxEXPAND, 5);
 
     add_apply_close_buttons(this, top_sizer);
     SetSizerAndFit(top_sizer);
-    update_gradient_display();
     SetEscapeId(wxID_CLOSE);
+
+    Connect(-1, wxEVT_COMMAND_COLOURPICKER_CHANGED,
+            wxColourPickerEventHandler(GradientDlg::OnColor));
+    Connect(-1, wxEVT_COMMAND_RADIOBUTTON_SELECTED,
+            wxCommandEventHandler(GradientDlg::OnRadioChanged));
 }
 
-void GradientDlg::update_gradient_display()
+static void wxColour2hsv(const wxColour& color,
+                         unsigned char &h, unsigned char &s, unsigned char &v)
 {
-    int display_width = display->GetClientSize().GetWidth();
-    display->data.resize(display_width);
-    for (int i = 0; i < display_width; ++i)
-        display->data[i] = get_value(i / (display_width-1.0));
-    display->Refresh();
-}
-
-static void rgb2hsv(unsigned char r, unsigned char g, unsigned char b,
-                    unsigned char &h, unsigned char &s, unsigned char &v)
-{
+    int r = color.Red();
+    int g = color.Green();
+    int b = color.Blue();
     v = max(max(r, g), b);
     h = s = 0;
     if (v == 0)
@@ -161,31 +141,28 @@ wxColour GradientDlg::get_value(float x)
         x = 0;
     if (x > 1)
         x = 1;
-    int kind = kind_rb->GetSelection();
-    if (kind == 0 || kind == 1) { //hsv
+    if (rb1_->GetValue() || rb2_->GetValue()) { // hsv
         unsigned char h1, s1, v1, h2, s2, v2;
-        rgb2hsv(from->r->GetValue(), from->g->GetValue(), from->b->GetValue(),
-                h1, s1, v1);
-        rgb2hsv(to->r->GetValue(), to->g->GetValue(), to->b->GetValue(),
-                h2, s2, v2);
+        wxColour2hsv(from_cp_->GetColour(), h1, s1, v1);
+        wxColour2hsv(to_cp_->GetColour(), h2, s2, v2);
         int corr = 0;
-        if (kind == 0 && h1 > h2)
+        if (rb1_->GetValue() && h1 > h2)
             corr = 256;
-        else if (kind == 1 && h1 < h2)
+        else if (rb2_->GetValue() && h1 < h2)
             corr = -256;
         c = hsv2wxColour(iround(h1 * (1-x) + (h2 + corr) * x),
                          iround(s1 * (1-x) + s2 * x),
                          iround(v1 * (1-x) + v2 * x));
     }
-    else if (kind == 2) { //rgb
-        c = wxColour(
-                iround(from->r->GetValue() * (1-x) + to->r->GetValue() * x),
-                iround(from->g->GetValue() * (1-x) + to->g->GetValue() * x),
-                iround(from->b->GetValue() * (1-x) + to->b->GetValue() * x));
+    else if (rb3_->GetValue()) { // rgb
+        wxColour c1 = from_cp_->GetColour();
+        wxColour c2 = to_cp_->GetColour();
+        c = wxColour(iround(c1.Red() * (1-x) + c2.Red() * x),
+                     iround(c1.Green() * (1-x) + c2.Green() * x),
+                     iround(c1.Blue() * (1-x) + c2.Blue() * x));
     }
-    else { //one color
-        c = wxColour(from->r->GetValue(), from->g->GetValue(),
-                        from->b->GetValue());
+    else { // one color
+        c = from_cp_->GetColour();
     }
     return c;
 }

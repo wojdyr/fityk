@@ -372,14 +372,21 @@ void SideBar::OnDataButtonCol (wxCommandEvent&)
             last_sel = i;
         wxColour first_col = frame->get_main_plot()->get_data_color(first_sel);
         wxColour last_col = frame->get_main_plot()->get_data_color(last_sel);
-        GradientDlgWithApply<SideBar> gd(this, -1, first_col, last_col,
-                                         this, &SideBar::OnDataColorsChanged);
+        GradientDlg gd(this, -1, first_col, last_col);
+        gd.FindWindow(wxID_APPLY)->Connect(wxEVT_COMMAND_BUTTON_CLICKED,
+                        wxCommandEventHandler(SideBar::OnDataColorsChanged),
+                        NULL, this);
         gd.ShowModal();
     }
 }
 
-void SideBar::OnDataColorsChanged(GradientDlg *gd)
+void SideBar::OnDataColorsChanged(wxCommandEvent& event)
 {
+    wxWindow* object = wxDynamicCast(event.GetEventObject(), wxWindow);
+    if (object == NULL || object->GetId() != wxID_APPLY)
+        return;
+    GradientDlg *gd = static_cast<GradientDlg*>(object->GetParent());
+
     vector<int> selected;
     for (int i = d->list->GetFirstSelected(), c = 0; i != -1;
                                         i = d->list->GetNextSelected(i), ++c) {
