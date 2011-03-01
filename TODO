@@ -1,17 +1,21 @@
 
-* GUI: re-design gradient dialog
+* GUI, settings: move directories to GUI > Configure ...
 
-* GUI: remove "alternate config", use named configs instead
+* GUI: replace XOR drawing with wxOverlay
+
+* GUI: optionally use wxGCDC for plotting
+
+* toolbar: outdated item "view and transform current dataset"
 
 ------
+
+* peak finding: optionally use weights for finding peak positions
 
 * GUI: a single dialog for Model > Export... options and for "info models"
 
 * GUI: definition mgr - checkbox - show in the list on toolbar
 
 * GUI: definition mgr - show formula images from the manual, if available
-
-* GUI: pre-defined alternative GUI configuration
 
 * handle gzipped fit files
 
@@ -25,6 +29,8 @@
 * add functions cot and coth
 
 * GUI: Help > Examples
+
+* GUI: pre-defined GUI configuration `black-on-white`
 
 * GUI, main plot configuration: add option to change the width and style
   of the sum (and perhaps also function lines)
@@ -59,8 +65,6 @@
   function should also be changed (to the function that was active last time
   this dataset was active)
 
-* GUI: redesign the gradient dialog
-
 * GUI: plot horizontal/vertical lines
      can be used to show theoretical peak positions in XRD
      (or to mark simulation restarts in data from MD)
@@ -73,6 +77,9 @@
 * confidence intervals of model parameters (95%, 99%)
   http://www.boost.org/doc/libs/1_42_0/libs/math/doc/sf_and_dist/html/math_toolkit/dist/stat_tut/weg/st_eg/tut_mean_intervals.html
   p.103 in the GraphPad book
+
+* plot histogram of resiudals:
+  http://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm
 
 * ? confidence intervals for data
 
