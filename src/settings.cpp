@@ -162,6 +162,10 @@ void SettingsMgr::set_as_string(string const& k, string const& v)
                                               time_now().c_str());
             fclose(f);
         }
+        else if (k == "numeric_format") {
+            if (count(v.begin(), v.end(), '%') != 1)
+                throw ExecuteError("Exactly one `%' expected, e.g. '%.9g'");
+        }
         m_.*opt.val.s.ptr = v;
     }
     else { // if (opt.vtype == kEnum)
