@@ -526,17 +526,14 @@ void MainPlot::draw_peaktops (wxDC& dc, const Model* model)
 
 void MainPlot::draw_peaktop_selection (wxDC& dc, const Model* model)
 {
+    // using the same pen
     int n = frame->get_sidebar()->get_active_function();
     if (n == -1)
         return;
     const vector<int>& idx = model->get_ff().idx;
-    vector<int>::const_iterator t = find(idx.begin(), idx.end(), n);
-    if (t != idx.end()) {
-        const wxPoint& p = special_points[t-idx.begin()];
-        dc.SetLogicalFunction (wxINVERT);
-        dc.SetPen(*wxBLACK_PEN);
-        dc.DrawCircle(p.x, p.y, 4);
-    }
+    int t = index_of_element(idx, n);
+    if (t != -1)
+        dc.DrawCircle(special_points[t].x, special_points[t].y, 4);
 }
 
 void MainPlot::draw_plabels (wxDC& dc, const Model* model, bool set_pen)
