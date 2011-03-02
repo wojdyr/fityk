@@ -16,21 +16,6 @@
 
 using namespace std;
 
-
-enum {
-    ID_SET_LDBUT           = 26400,
-    ID_SET_XSBUT                  ,
-    ID_SET_EXBUT                  ,
-};
-
-
-BEGIN_EVENT_TABLE(SettingsDlg, wxDialog)
-    EVT_BUTTON (ID_SET_LDBUT, SettingsDlg::OnChangeButton)
-    EVT_BUTTON (ID_SET_XSBUT, SettingsDlg::OnChangeButton)
-    EVT_BUTTON (ID_SET_EXBUT, SettingsDlg::OnChangeButton)
-    EVT_BUTTON (wxID_OK, SettingsDlg::OnOK)
-END_EVENT_TABLE()
-
 namespace {
 
 RealNumberCtrl *addRealNumberCtrl(wxWindow *parent, const wxString& label,
@@ -107,7 +92,7 @@ SpinCtrl* addSpinCtrl(wxWindow *parent, wxString const& label,
 } //anonymous namespace
 
 SettingsDlg::SettingsDlg(wxWindow* parent)
-    : wxDialog(parent, -1, wxT("Settings"),
+    : wxDialog(parent, -1, wxT("Engine Settings"),
                wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
@@ -119,8 +104,6 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
     nb->AddPage(page_peakfind, wxT("peak-finding"));
     wxNotebook *page_fitting = new wxNotebook(nb, -1);
     nb->AddPage(page_fitting, wxT("fitting"));
-    wxPanel *page_dirs = new wxPanel(nb, -1);
-    nb->AddPage(page_dirs, wxT("directories"));
 
     // page general
     wxBoxSizer *sizer_general = new wxBoxSizer(wxVERTICAL);
@@ -155,7 +138,6 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
                             settings->numeric_format,
                             sizer_general);
 
-    add_persistence_note(page_general, sizer_general);
     page_general->SetSizerAndFit(sizer_general);
 
     // page peak-finding
@@ -170,7 +152,6 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
                            settings->width_correction,
                            sizer_pf);
 
-    add_persistence_note(page_peakfind, sizer_pf);
     page_peakfind->SetSizerAndFit(sizer_pf);
 
     // page fitting
@@ -185,13 +166,6 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
 
     // sub-page common
     wxBoxSizer *sizer_fcmn = new wxBoxSizer(wxVERTICAL);
-    wxStaticBoxSizer *sizer_fcstop = new wxStaticBoxSizer(wxHORIZONTAL,
-                                page_fit_common, wxT("termination criteria"));
-    mwssre_sp = addSpinCtrl(page_fit_common, wxT("max. WSSR evaluations"),
-                            settings->max_wssr_evaluations, 0, 999999,
-                            sizer_fcstop);
-    sizer_fcmn->Add(sizer_fcstop, 0, wxEXPAND|wxALL, 5);
-
     domain_p = addRealNumberCtrl(page_fit_common,
                                  wxT("default domain of variable is +/-"),
                                  settings->domain_percent,
@@ -207,7 +181,13 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
                            settings->refresh_period, -1, 9999,
                            sizer_fcmn);
 
-    add_persistence_note(page_fit_common, sizer_fcmn);
+    wxStaticBoxSizer *sizer_fcstop = new wxStaticBoxSizer(wxHORIZONTAL,
+                                page_fit_common, wxT("termination criteria"));
+    mwssre_sp = addSpinCtrl(page_fit_common, wxT("max. WSSR evaluations"),
+                            settings->max_wssr_evaluations, 0, 999999,
+                            sizer_fcstop);
+    sizer_fcmn->Add(sizer_fcstop, 0, wxEXPAND|wxALL, 5);
+
     page_fit_common->SetSizerAndFit(sizer_fcmn);
 
     // sub-page Lev-Mar
@@ -228,7 +208,6 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
     lm_max_lambda = addRealNumberCtrl(page_fit_LM, wxT("max. value of lambda"),
                          settings->lm_max_lambda, sizer_flmstop);
     sizer_flm->Add(sizer_flmstop, 0, wxEXPAND|wxALL, 5);
-    add_persistence_note(page_fit_LM, sizer_flm);
     page_fit_LM->SetSizerAndFit(sizer_flm);
 
     // sub-page N-M
@@ -253,79 +232,27 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
                          wxT("relative difference between vertices"),
                          settings->nm_convergence, sizer_fnmstop);
     sizer_fnm->Add(sizer_fnmstop, 0, wxEXPAND|wxALL, 5);
-    add_persistence_note(page_fit_NM, sizer_fnm);
     page_fit_NM->SetSizerAndFit(sizer_fnm);
 
     // TODO: sub-page GA
 
-    // page directories
-    wxBoxSizer *sizer_dirs = new wxBoxSizer(wxVERTICAL);
-    wxStaticBoxSizer *sizer_dirs_data = new wxStaticBoxSizer(wxHORIZONTAL,
-                     page_dirs, wxT("default directory for load data dialog"));
-    dir_ld_tc = new wxTextCtrl(page_dirs, -1,
-                           wxConfig::Get()->Read(wxT("/loadDataDir"), wxT("")));
-    sizer_dirs_data->Add(dir_ld_tc, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sizer_dirs_data->Add(new wxButton(page_dirs, ID_SET_LDBUT, wxT("Change")),
-                         0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sizer_dirs->Add(sizer_dirs_data, 0, wxEXPAND|wxALL, 5);
-
-    wxStaticBoxSizer *sizer_dirs_script = new wxStaticBoxSizer(wxHORIZONTAL,
-                page_dirs, wxT("default directory for execute script dialog"));
-    dir_xs_tc = new wxTextCtrl(page_dirs, -1,
-                         wxConfig::Get()->Read(wxT("/execScriptDir"), wxT("")));
-    sizer_dirs_script->Add(dir_xs_tc, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sizer_dirs_script->Add(new wxButton(page_dirs, ID_SET_XSBUT, wxT("Change")),
-                           0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sizer_dirs->Add(sizer_dirs_script, 0, wxEXPAND|wxALL, 5);
-
-    wxStaticBoxSizer *sizer_dirs_export = new wxStaticBoxSizer(wxHORIZONTAL,
-                page_dirs, wxT("default directory for save/export dialogs"));
-    dir_ex_tc = new wxTextCtrl(page_dirs, -1,
-                         wxConfig::Get()->Read(wxT("/exportDir"), wxT("")));
-    sizer_dirs_export->Add(dir_ex_tc, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sizer_dirs_export->Add(new wxButton(page_dirs, ID_SET_EXBUT, wxT("Change")),
-                           0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sizer_dirs->Add(sizer_dirs_export, 0, wxEXPAND|wxALL, 5);
-
-    sizer_dirs->Add(new wxStaticText(page_dirs, -1,
-                 wxT("Directories given above are used when the dialogs\n")
-                 wxT("are displayed first time after launching the program.")),
-                 0, wxALL|wxEXPAND, 5);
-    page_dirs->SetSizerAndFit(sizer_dirs);
-
     //finish layout
     wxBoxSizer *top_sizer = new wxBoxSizer (wxVERTICAL);
-    top_sizer->Add(nb, 1, wxALL|wxEXPAND, 10);
-    top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
+    top_sizer->Add(nb, 1, wxLEFT|wxRIGHT|wxTOP|wxEXPAND, 10);
+    wxStaticText *note = new wxStaticText(this, -1,
+      wxT("These settings can be saved in the init script")
+      wxT(" (Session \u2023 Edit Init File).")
+      wxT("\nThe interface can be configured in GUI \u2023 Configure."));
+    wxFont font = note->GetFont();
+    font.SetPointSize(font.GetPointSize() - 2);
+    note->SetFont(font);
+    top_sizer->Add(note, 0, wxALL|wxALIGN_CENTER, 10);
     top_sizer->Add (CreateButtonSizer (wxOK|wxCANCEL),
                     0, wxALL|wxALIGN_CENTER, 5);
     SetSizerAndFit(top_sizer);
-}
 
-void SettingsDlg::add_persistence_note(wxWindow *parent, wxSizer *sizer)
-{
-    wxStaticBoxSizer *persistence = new wxStaticBoxSizer(wxHORIZONTAL,
-                                           parent, wxT("note"));
-    persistence->Add(new wxStaticText(parent, -1,
-      wxT("If you want to save the values above as default, copy commands")
-      wxT("\nfrom the output to the init file: Session > Edit Init File")),
-                     0, wxALL|wxALIGN_CENTER, 5);
-    sizer->AddStretchSpacer();
-    sizer->Add(persistence, 0, wxEXPAND|wxALL, 5);
-}
-
-void SettingsDlg::OnChangeButton(wxCommandEvent& event)
-{
-    wxTextCtrl *tc = 0;
-    if (event.GetId() == ID_SET_LDBUT)
-        tc = dir_ld_tc;
-    else if (event.GetId() == ID_SET_XSBUT)
-        tc = dir_xs_tc;
-    else if (event.GetId() == ID_SET_EXBUT)
-        tc = dir_ex_tc;
-    wxString dir = wxDirSelector(wxT("Choose a folder"), tc->GetValue());
-    if (!dir.empty())
-        tc->SetValue(dir);
+    Connect(wxID_OK, wxEVT_COMMAND_BUTTON_CLICKED,
+            wxCommandEventHandler(SettingsDlg::OnOK));
 }
 
 static
@@ -371,10 +298,18 @@ void SettingsDlg::exec_set_command()
 void SettingsDlg::OnOK(wxCommandEvent&)
 {
     exec_set_command();
-    wxConfig::Get()->Write(wxT("/loadDataDir"), dir_ld_tc->GetValue());
-    wxConfig::Get()->Write(wxT("/execScriptDir"), dir_xs_tc->GetValue());
-    wxConfig::Get()->Write(wxT("/exportDir"), dir_ex_tc->GetValue());
     EndModal(wxID_OK);
 }
 
+/*
+We used to have Directories tab in the Settings dialog,
+but probably the settings there were rarely useful and confusing,
+so it was removed.
+
+The settings are still read from .fityk/wxoption, and can be changed
+by editing the config file. The keys are:
+/loadDataDir - default directory for load-data dialogs
+/execScriptDir - default directory for execute-script dialogs
+/exportDir - default directory for export dialogs
+*/
 
