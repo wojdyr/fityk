@@ -11,9 +11,7 @@ if DOC_DIR
 SUBDIRS += doc
 endif
 SUBDIRS += src
-if SAMPLES_DIR
 SUBDIRS += samples
-endif
 if SWIG_DIR
 SUBDIRS += swig
 endif

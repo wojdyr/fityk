@@ -131,6 +131,9 @@ enum {
     ID_H_WIKI                  ,
     ID_H_DISCUSSIONS           ,
     ID_H_FEEDBACK              ,
+    ID_H_EXAMPLE1              ,
+    ID_H_EXAMPLE2              ,
+    ID_H_EXAMPLE3              ,
     ID_D_QLOAD                 ,
     ID_D_XLOAD                 ,
     ID_D_RECENT                , //and next ones
@@ -352,6 +355,9 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_H_WIKI,        FFrame::OnOnline)
     EVT_MENU (ID_H_DISCUSSIONS, FFrame::OnOnline)
     EVT_MENU (ID_H_FEEDBACK,    FFrame::OnOnline)
+    EVT_MENU (ID_H_EXAMPLE1,    FFrame::OnExample)
+    EVT_MENU (ID_H_EXAMPLE2,    FFrame::OnExample)
+    EVT_MENU (ID_H_EXAMPLE3,    FFrame::OnExample)
     EVT_MENU (wxID_ABOUT,       FFrame::OnAbout)
     EVT_MENU (wxID_EXIT,        FFrame::OnQuit)
 END_EVENT_TABLE()
@@ -811,6 +817,15 @@ void FFrame::set_menubar()
               wxT("&Visit Discussions"), discussions_url);
     append_mi(help_menu, ID_H_FEEDBACK, GET_BMP(web16),
               wxT("&Anonymous Feedback"), feedback_url);
+    wxMenu* help_menu_examples = new wxMenu;
+    help_menu_examples->Append(ID_H_EXAMPLE1, wxT("&Single Peak"),
+                               wxT("nacl01.fit"));
+    help_menu_examples->Append(ID_H_EXAMPLE2, wxT("&Multiple Peaks"),
+                               wxT("SiC_Zn.fit"));
+    //help_menu_examples->Append(ID_H_EXAMPLE3, wxT("&Custom Function"),
+    //                  wxT("SiC_Zn.fit"));
+    help_menu->Append(-1, wxT("&Examples"), help_menu_examples);
+
     help_menu->Append(wxID_ABOUT, wxT("&About..."), wxT("Show about dialog"));
 
     wxMenuBar *menu_bar = new wxMenuBar();
@@ -893,6 +908,26 @@ void FFrame::OnOnline(wxCommandEvent& event)
         wxMessageBox(wxT("Can not open URL in browser,")
                      wxT("\nplease open it manually:\n") + *url,
                      wxT("Browser Launch Failed"), wxOK);
+}
+
+void FFrame::OnExample(wxCommandEvent& event)
+{
+    int id = event.GetId();
+    wxString filename = GetMenuBar()->FindItem(id)->GetHelp();
+    wxString path = get_sample_path(filename);
+    if (path.empty()) {
+        wxMessageBox(wxT("Example files not found."),
+                     wxT("Sorry"), wxOK|wxICON_ERROR);
+        return;
+    }
+    int r = wxMessageBox(wxT("This will reset current session.\n")
+                           wxT("Do you want to continue?"),
+                         wxT("Are you sure?"),
+                         wxYES_NO | wxCENTRE | wxICON_QUESTION);
+    if (r == wxYES) {
+        get_main_plot()->bgm()->clear_background();
+        ftk->exec("reset; exec " + wx2s(path));
+    }
 }
 
 void FFrame::OnDataQLoad (wxCommandEvent&)
@@ -1255,7 +1290,7 @@ void FFrame::OnReset (wxCommandEvent&)
     int r = wxMessageBox(wxT("Do you really want to reset current session \n")
                       wxT("and lose everything you have done in this session?"),
                          wxT("Are you sure?"),
-                         wxYES_NO | wxCANCEL | wxCENTRE | wxICON_QUESTION);
+                         wxYES_NO | wxCENTRE | wxICON_QUESTION);
     if (r == wxYES) {
         get_main_plot()->bgm()->clear_background();
         ftk->exec("reset");

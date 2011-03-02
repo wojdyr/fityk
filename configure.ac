@@ -38,9 +38,6 @@ AC_ARG_ENABLE(lua,
 #AC_ARG_ENABLE(perl,
 #[  --enable-perl           build Perl bindings to libfityk])
 
-AC_ARG_WITH(samples,
-[  --with-samples          install samples as documentation])
-
 # The GNU readline library
 AC_ARG_WITH(readline,
 [  --without-readline      do not use the GNU readline library for cfityk])
@@ -130,8 +127,6 @@ AC_COMPILE_IFELSE(
   ])],
   [], [AC_MSG_ERROR([xylib >= 0.6 is not installed])])
 
-
-AM_CONDITIONAL([SAMPLES_DIR], [test "$with_samples" = yes])
 
 SRCSUBDIRS=
 # Checks for version specific libraries and headers.

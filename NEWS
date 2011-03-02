@@ -7,6 +7,8 @@ User-visible changes in version 0.9.8  (not yet):
   extra value set
 * GUI: new configuration dialogs for plots
 * GUI: all configs including the default one are now stored in .fityk/configs/
+* samples are always installed, removed configure option --with-samples,
+  added menu Help > Examples in the GUI
 
 User-visible changes in version 0.9.7  (2011-02-08):
 * bug fixes: UDFs (user-defined functions) did not work in ver. 0.9.5-6,

@@ -23,7 +23,8 @@ private:
     void process_argv(wxCmdLineParser &cmdLineParser);
 };
 
-wxString get_help_url(wxString const& name);
+wxString get_help_url(const wxString& name);
+wxString get_sample_path(const wxString& name);
 
 DECLARE_APP(FApp)
 

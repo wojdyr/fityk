@@ -320,7 +320,7 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
 //                        on Win: dir where executable is
 //   HELP_DIR = $(pkgdatadir), not defined on Win
 //   {exedir}/../../doc/ and {exedir}/../../../doc/ - for uninstalled program
-wxString get_help_url(wxString const& name)
+wxString get_help_url(const wxString& name)
 {
     wxString dir = wxFILE_SEP_PATH + wxString(wxT("html"));
     wxPathList paths;
@@ -332,11 +332,10 @@ wxString get_help_url(wxString const& name)
     paths.Add(wxT(HELP_DIR) + dir);
 #endif
     // uninstalled paths, relative to executable
-    paths.Add(wxPathOnly(wxGetApp().argv[0]) + wxFILE_SEP_PATH + wxT("..")
-              + wxFILE_SEP_PATH + wxT("..") + wxFILE_SEP_PATH + wxT("doc")
-              + dir);
-    paths.Add(wxPathOnly(wxGetApp().argv[0]) + wxFILE_SEP_PATH + wxT("..")
-              + wxFILE_SEP_PATH + wxT("..") + wxFILE_SEP_PATH + wxT("..")
+    wxString up = wxFILE_SEP_PATH + wxString(wxT(".."));
+    paths.Add(wxPathOnly(wxGetApp().argv[0]) + up + up
+              + wxFILE_SEP_PATH + wxT("doc") + dir);
+    paths.Add(wxPathOnly(wxGetApp().argv[0]) + up + up + up
               + wxFILE_SEP_PATH + wxT("doc") + dir);
 
     wxString path = paths.FindAbsoluteValidPath(name);
@@ -346,4 +345,22 @@ wxString get_help_url(wxString const& name)
         return wxT("http://fityk.nieto.pl/") + name;
 }
 
+wxString get_sample_path(const wxString& name)
+{
+    wxString dir = wxFILE_SEP_PATH + wxString(wxT("samples"));
+    wxPathList paths;
+    // installed path
+#if defined(__WXMAC__) || defined(__WXMSW__)
+    paths.Add(wxStandardPaths::Get().GetResourcesDir() + dir);
+#endif
+#ifdef HELP_DIR
+    paths.Add(wxT(HELP_DIR) + dir);
+#endif
+    // uninstalled paths, relative to executable
+    wxString up = wxFILE_SEP_PATH + wxString(wxT(".."));
+    paths.Add(wxPathOnly(wxGetApp().argv[0]) + up + up + dir);
+    paths.Add(wxPathOnly(wxGetApp().argv[0]) + up + up + up + dir);
+
+    return paths.FindAbsoluteValidPath(name);
+}
 

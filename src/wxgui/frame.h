@@ -61,6 +61,7 @@ public:
     void OnShowHelp(wxCommandEvent& event);
     void OnAbout(wxCommandEvent& event);
     void OnOnline(wxCommandEvent& event);
+    void OnExample(wxCommandEvent& event);
     void OnQuit(wxCommandEvent& event);
 
     void OnDataRevertUpdate (wxUpdateUIEvent& event);
