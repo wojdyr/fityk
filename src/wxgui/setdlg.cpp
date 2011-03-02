@@ -20,17 +20,19 @@ namespace {
 
 RealNumberCtrl *addRealNumberCtrl(wxWindow *parent, const wxString& label,
                                   double value, wxSizer *sizer,
-                                  const wxString& label_after=wxString())
+                                  int indentation=0,
+                                  bool percent=false)
 {
     wxStaticText *st = new wxStaticText(parent, -1, label);
     RealNumberCtrl *ctrl = new RealNumberCtrl(parent, -1, value);
     wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+    if (indentation)
+        hsizer->AddSpacer(indentation);
     hsizer->Add(st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     hsizer->Add(ctrl, 0, wxALL, 5);
-    if (!label_after.IsEmpty()) {
-        wxStaticText *sta = new wxStaticText(parent, -1, label_after);
-        hsizer->Add(sta, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    }
+    if (percent)
+        hsizer->Add(new wxStaticText(parent, -1, wxT("%")),
+                    0, wxRIGHT|wxALIGN_CENTER_VERTICAL, 5);
     sizer->Add(hsizer, 0, wxEXPAND);
     return ctrl;
 }
@@ -47,22 +49,29 @@ wxTextCtrl *addTextCtrl(wxWindow *parent, const wxString& label,
     return ctrl;
 }
 
-wxCheckBox *addCheckbox(wxWindow *parent, wxString const& label,
-                        bool value, wxSizer *sizer)
+wxCheckBox *addCheckbox(wxWindow *parent, const wxString& label,
+                        bool value, wxSizer *sizer,
+                        int indentation=0)
 {
     wxCheckBox *ctrl = new wxCheckBox(parent, -1, label);
     ctrl->SetValue(value);
-    if (sizer)
-        sizer->Add(ctrl, 0, wxEXPAND|wxALL, 5);
+    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+    if (indentation)
+        hsizer->AddSpacer(indentation);
+    hsizer->Add(ctrl);
+    sizer->Add(hsizer, 0, wxEXPAND|wxALL, 5);
     return ctrl;
 }
 
-wxChoice *addEnumSetting(wxWindow *parent, wxString const& label,
-                         string const& option, wxSizer* sizer)
+wxChoice *addEnumSetting(wxWindow *parent, const wxString& label,
+                         const string& option, wxSizer* sizer,
+                         int indentation=0)
 {
-    wxBoxSizer *siz = new wxBoxSizer(wxHORIZONTAL);
+    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+    if (indentation)
+        hsizer->AddSpacer(indentation);
     wxStaticText *st = new wxStaticText(parent, -1, label);
-    siz->Add(st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    hsizer->Add(st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     wxArrayString array;
     const char** values = SettingsMgr::get_allowed_values(option);
     while (*values != NULL) {
@@ -72,21 +81,33 @@ wxChoice *addEnumSetting(wxWindow *parent, wxString const& label,
     wxChoice *ctrl = new wxChoice(parent, -1, wxDefaultPosition, wxDefaultSize,
                                   array);
     ctrl->SetStringSelection(s2wx(ftk->settings_mgr()->get_as_string(option)));
-    siz->Add(ctrl, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sizer->Add(siz, 0, wxEXPAND);
+    hsizer->Add(ctrl, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sizer->Add(hsizer, 0, wxEXPAND);
     return ctrl;
 }
 
-SpinCtrl* addSpinCtrl(wxWindow *parent, wxString const& label,
-                      int value, int min_v, int max_v, wxSizer *sizer)
+SpinCtrl* addSpinCtrl(wxWindow *parent, const wxString& label,
+                      int value, int min_v, int max_v, wxSizer *sizer,
+                      int indentation=0)
 {
     wxStaticText *st = new wxStaticText(parent, -1, label);
     SpinCtrl *spin = new SpinCtrl(parent, -1, value, min_v, max_v, 70);
     wxBoxSizer *box = new wxBoxSizer(wxHORIZONTAL);
+    if (indentation)
+        box->AddSpacer(indentation);
     box->Add(st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     box->Add(spin, 0, wxTOP|wxBOTTOM, 5);
     sizer->Add(box, 0, wxEXPAND);
     return spin;
+}
+
+wxStaticText* new_bold_text(wxWindow *parent, const wxString& label)
+{
+    wxStaticText *fcterm = new wxStaticText(parent, -1, label);
+    wxFont bold_font = fcterm->GetFont();
+    bold_font.SetWeight(wxFONTWEIGHT_BOLD);
+    fcterm->SetFont(bold_font);
+    return fcterm;
 }
 
 } //anonymous namespace
@@ -169,8 +190,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
     domain_p = addRealNumberCtrl(page_fit_common,
                                  wxT("default domain of variable is +/-"),
                                  settings->domain_percent,
-                                 sizer_fcmn,
-                                 wxT("%"));
+                                 sizer_fcmn, 0, /*percent=*/true);
 
     fit_replot_cb = addCheckbox(page_fit_common,
                               wxT("refresh plot after each iteration"),
@@ -181,57 +201,57 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
                            settings->refresh_period, -1, 9999,
                            sizer_fcmn);
 
-    wxStaticBoxSizer *sizer_fcstop = new wxStaticBoxSizer(wxHORIZONTAL,
-                                page_fit_common, wxT("termination criteria"));
+    //wxStaticBoxSizer *sizer_fcstop = new wxStaticBoxSizer(wxHORIZONTAL,
+    //                            page_fit_common, wxT("termination criteria"));
+    sizer_fcmn->AddSpacer(10);
+    sizer_fcmn->Add(new_bold_text(page_fit_common, wxT("termination criteria")),
+                    wxSizerFlags().Border());
     mwssre_sp = addSpinCtrl(page_fit_common, wxT("max. WSSR evaluations"),
                             settings->max_wssr_evaluations, 0, 999999,
-                            sizer_fcstop);
-    sizer_fcmn->Add(sizer_fcstop, 0, wxEXPAND|wxALL, 5);
+                            sizer_fcmn, 10);
+    //sizer_fcmn->Add(sizer_fcstop, 0, wxEXPAND|wxALL, 5);
 
     page_fit_common->SetSizerAndFit(sizer_fcmn);
 
     // sub-page Lev-Mar
     wxBoxSizer *sizer_flm = new wxBoxSizer(wxVERTICAL);
-    wxStaticBoxSizer *sizer_flmlambda = new wxStaticBoxSizer(wxVERTICAL,
-                                page_fit_LM, wxT("lambda parameter"));
+    sizer_flm->Add(new_bold_text(page_fit_LM, wxT("lambda parameter")),
+                   wxSizerFlags().Border());
     lm_lambda_ini = addRealNumberCtrl(page_fit_LM, wxT("initial value"),
-                         settings->lm_lambda_start, sizer_flmlambda);
+                         settings->lm_lambda_start, sizer_flm, 10);
     lm_lambda_up = addRealNumberCtrl(page_fit_LM, wxT("increasing factor"),
-                         settings->lm_lambda_up_factor, sizer_flmlambda);
+                         settings->lm_lambda_up_factor, sizer_flm, 10);
     lm_lambda_down = addRealNumberCtrl(page_fit_LM, wxT("decreasing factor"),
-                         settings->lm_lambda_down_factor, sizer_flmlambda);
-    sizer_flm->Add(sizer_flmlambda, 0, wxEXPAND|wxALL, 5);
-    wxStaticBoxSizer *sizer_flmstop = new wxStaticBoxSizer(wxVERTICAL,
-                                page_fit_LM, wxT("termination criteria"));
+                         settings->lm_lambda_down_factor, sizer_flm, 10);
+    sizer_flm->AddSpacer(10);
+    sizer_flm->Add(new_bold_text(page_fit_LM, wxT("termination criteria")),
+                   wxSizerFlags().Border());
     lm_stop = addRealNumberCtrl(page_fit_LM, wxT("WSSR relative change <"),
-                         settings->lm_stop_rel_change, sizer_flmstop);
+                                settings->lm_stop_rel_change, sizer_flm, 10);
     lm_max_lambda = addRealNumberCtrl(page_fit_LM, wxT("max. value of lambda"),
-                         settings->lm_max_lambda, sizer_flmstop);
-    sizer_flm->Add(sizer_flmstop, 0, wxEXPAND|wxALL, 5);
+                                      settings->lm_max_lambda, sizer_flm, 10);
     page_fit_LM->SetSizerAndFit(sizer_flm);
 
     // sub-page N-M
     wxBoxSizer *sizer_fnm = new wxBoxSizer(wxVERTICAL);
 
-    wxStaticBoxSizer *sizer_fnmini = new wxStaticBoxSizer(wxVERTICAL,
-                              page_fit_NM, wxT("simplex initialization"));
-
+    sizer_fnm->Add(new_bold_text(page_fit_NM, wxT("simplex initialization")),
+                   wxSizerFlags().Border());
     nm_move_all = addCheckbox(page_fit_NM,
                        wxT("randomize all vertices (otherwise one is left)"),
-                       settings->nm_move_all, sizer_fnmini);
+                       settings->nm_move_all, sizer_fnm, 10);
     nm_distrib = addEnumSetting(page_fit_NM, wxT("distribution type"),
-                                "nm_distribution", sizer_fnmini);
+                                "nm_distribution", sizer_fnm, 10);
     nm_move_factor = addRealNumberCtrl(page_fit_NM,
                          wxT("factor by which domain is expanded"),
-                         settings->nm_move_factor, sizer_fnmini);
-    sizer_fnm->Add(sizer_fnmini, 0, wxEXPAND|wxALL, 5);
+                         settings->nm_move_factor, sizer_fnm, 10);
 
-    wxStaticBoxSizer *sizer_fnmstop = new wxStaticBoxSizer(wxVERTICAL,
-                                page_fit_NM, wxT("termination criteria"));
+    sizer_fnm->AddSpacer(10);
+    sizer_fnm->Add(new_bold_text(page_fit_NM, wxT("termination criteria")),
+                   wxSizerFlags().Border());
     nm_convergence = addRealNumberCtrl(page_fit_NM,
-                         wxT("relative difference between vertices"),
-                         settings->nm_convergence, sizer_fnmstop);
-    sizer_fnm->Add(sizer_fnmstop, 0, wxEXPAND|wxALL, 5);
+                                 wxT("relative difference between vertices"),
+                                 settings->nm_convergence, sizer_fnm, 10);
     page_fit_NM->SetSizerAndFit(sizer_fnm);
 
     // TODO: sub-page GA
