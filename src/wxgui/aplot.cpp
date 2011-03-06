@@ -10,6 +10,7 @@
 
 #include "aplot.h"
 #include "frame.h"
+#include "pplot.h"
 #include "../model.h"
 #include "../func.h"
 #include "../data.h"
@@ -67,12 +68,19 @@ BEGIN_EVENT_TABLE (AuxPlot, FPlot)
     EVT_MENU (ID_aux_yz_auto, AuxPlot::OnAutoZoom)
 END_EVENT_TABLE()
 
+AuxPlot::AuxPlot(wxWindow *parent, FPlot *master, wxString const& name)
+    : FPlot(parent), master_(master), name_(name),
+      y_zoom_(1.), y_zoom_base_(1.), fit_y_once_(false)
+{
+    overlay.switch_mode(Overlay::kVLine);
+}
+
 void AuxPlot::OnPaint(wxPaintEvent&)
 {
-    frame->update_crosshair(-1, -1);
+    overlay.reset();
     update_buffer_and_blit();
-    //draw, if necessary, vertical or horizontal lines
-    line_following_cursor(mat_redraw);
+    //draw, if necessary, vertical lines
+    overlay.draw();
 }
 
 namespace {
@@ -212,22 +220,28 @@ void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
 void AuxPlot::OnMouseMove(wxMouseEvent &event)
 {
     int X = event.GetX();
-    line_following_cursor(mat_move, X);
     frame->set_status_coords(xs.valr(X), ys.valr(event.GetY()), pte_aux);
-    if (X < move_plot_margin_width)
-        SetCursor(wxCURSOR_POINT_LEFT);
-    else if (X > GetClientSize().GetWidth() - move_plot_margin_width)
-        SetCursor(wxCURSOR_POINT_RIGHT);
-    else {
-        frame->update_crosshair(X, -1);
-        SetCursor(wxCURSOR_CROSS);
+    if (downX == INT_MIN) {
+        if (X < move_plot_margin_width) {
+            SetCursor(wxCURSOR_POINT_LEFT);
+            X = -1; // don't draw lines
+        }
+        else if (X > GetClientSize().GetWidth() - move_plot_margin_width) {
+            SetCursor(wxCURSOR_POINT_RIGHT);
+            X = -1; // don't draw lines
+        }
+        else
+            SetCursor(wxCURSOR_CROSS);
     }
+    overlay.change_pos(X, 0);
+    frame->plot_pane()->draw_vertical_lines(X, downX, this);
 }
 
 void AuxPlot::OnLeaveWindow (wxMouseEvent&)
 {
     frame->clear_status_coords();
-    frame->update_crosshair(-1, -1);
+    overlay.change_pos(-1, -1);
+    frame->plot_pane()->draw_vertical_lines(-1, -1, this);
 }
 
 bool AuxPlot::is_zoomable()
@@ -326,60 +340,73 @@ void AuxPlot::save_settings(wxConfigBase *cf) const
 
 void AuxPlot::OnLeftDown (wxMouseEvent &event)
 {
-    cancel_mouse_left_press();
+    if (downX != INT_MIN)
+        cancel_mouse_left_press();
     if (event.ShiftDown()) { // the same as OnMiddleDown()
         frame->GViewAll();
         return;
     }
-    int X = event.GetPosition().x;
+    int X = event.GetX();
     // if mouse pointer is near to left or right border, move view
     if (X < move_plot_margin_width)
         frame->scroll_view_horizontally(-0.33);  // <--
     else if (X > GetClientSize().GetWidth() - move_plot_margin_width)
         frame->scroll_view_horizontally(+0.33); // -->
     else {
-        mouse_press_X = X;
-        start_line_following_cursor(mouse_press_X, kVerticalLine);
+        downX = X;
+        overlay.start_mode(Overlay::kVRange, downX, 0);
+        overlay.draw();
         SetCursor(wxCURSOR_SIZEWE);
         frame->set_status_text("Select x range and release button to zoom...");
         CaptureMouse();
+        connect_esc_to_cancel(true);
     }
 }
 
-bool AuxPlot::cancel_mouse_left_press()
+void AuxPlot::cancel_mouse_left_press()
 {
-    if (mouse_press_X != INT_MIN) {
-        line_following_cursor(mat_stop);
-        ReleaseMouse();
-        mouse_press_X = INT_MIN;
-        SetCursor(wxCURSOR_CROSS);
-        frame->set_status_text("");
-        return true;
-    }
-    else
-        return false;
+    if (downX == INT_MIN)
+        return;
+    ReleaseMouse();
+    connect_esc_to_cancel(false);
+    downX = INT_MIN;
+    SetCursor(wxCURSOR_CROSS);
+
+    frame->set_status_text("");
+    overlay.switch_mode(Overlay::kVLine);
+    overlay.draw();
+    frame->plot_pane()->draw_vertical_lines(-1, -1, this);
 }
 
 void AuxPlot::OnLeftUp (wxMouseEvent &event)
 {
-    if (mouse_press_X == INT_MIN)
+    if (downX == INT_MIN)
         return;
-    if (abs(event.GetX() - mouse_press_X) < 5) { //cancel
-        cancel_mouse_left_press();
-        return;
-    }
     fp x1 = xs.val(event.GetX());
-    fp x2 = xs.val(mouse_press_X);
-    cancel_mouse_left_press();
-    RealRange all;
-    frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)), all);
+    fp x2 = xs.val(downX); // must be called before cancel_mouse...()
+    ReleaseMouse();
+    connect_esc_to_cancel(false);
+    downX = INT_MIN;
+    SetCursor(wxCURSOR_CROSS);
+    overlay.switch_mode(Overlay::kVLine);
+    if (abs(event.GetX() - downX) >= 5) {
+        RealRange all;
+        frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)), all);
+    }
+    else {
+        frame->set_status_text("");
+        overlay.draw();
+        frame->plot_pane()->draw_vertical_lines(event.GetX(), -1, this);
+    }
 }
 
 //popup-menu
 void AuxPlot::OnRightDown (wxMouseEvent &event)
 {
-    if (cancel_mouse_left_press())
+    if (downX != INT_MIN) {
+        cancel_mouse_left_press();
         return;
+    }
 
     wxMenu popup_menu;
     popup_menu.Append(ID_aux_prefs, wxT("&Configure..."), wxT(""));
@@ -408,9 +435,10 @@ void AuxPlot::OnRightDown (wxMouseEvent &event)
 
 void AuxPlot::OnMiddleDown (wxMouseEvent&)
 {
-    if (cancel_mouse_left_press())
-        return;
-    frame->GViewAll();
+    if (downX == INT_MIN)
+        frame->GViewAll();
+    else
+        cancel_mouse_left_press();
 }
 
 void AuxPlot::show_pref_dialog()

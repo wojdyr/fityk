@@ -9,6 +9,7 @@
 #include <boost/scoped_ptr.hpp>
 
 #include "mplot.h"
+#include "pplot.h"
 #include "frame.h"
 #include "sidebar.h"
 #include "statbar.h" // HintReceiver
@@ -125,7 +126,7 @@ private:
     void OnReversedX(wxCommandEvent& event)
     {
         mp_->xs.reversed = event.IsChecked();
-        frame->refresh_plots(false, kAllPlots);
+        frame->plot_pane()->refresh_plots(false, kAllPlots);
     }
     void OnReversedY(wxCommandEvent& event)
         { mp_->ys.reversed = event.IsChecked(); mp_->refresh(); }
@@ -134,7 +135,7 @@ private:
     {
         mp_->xs.logarithm = event.IsChecked();
         ftk->view.set_log_scale(mp_->xs.logarithm, mp_->ys.logarithm);
-        frame->refresh_plots(false, kAllPlots);
+        frame->plot_pane()->refresh_plots(false, kAllPlots);
     }
     void OnLogY(wxCommandEvent& event)
     {
@@ -155,6 +156,63 @@ private:
 };
 
 //---------------------- FunctionMouseDrag --------------------------------
+
+/// utility used in MainPlot for dragging function
+class FunctionMouseDrag
+{
+public:
+    enum drag_type
+    {
+        no_drag,
+        relative_value, //eg. for area
+        absolute_value,  //eg. for width
+        absolute_pixels
+    };
+
+    class Drag
+    {
+    public:
+        drag_type how;
+        int parameter_idx;
+        std::string parameter_name;
+        std::string variable_name; /// name of variable that are to be changed
+        fp value; /// current value of parameter
+        fp ini_value; /// initial value of parameter
+        fp multiplier; /// increases or decreases changing rate
+        fp ini_x;
+
+        Drag() : how(no_drag) {}
+        void set(const Function* p, int idx, drag_type how_, fp multiplier_);
+        void change_value(fp x, fp dx, int dX);
+        std::string get_cmd() const;
+    };
+
+    FunctionMouseDrag() : sidebar_dirty(false) {}
+    void start(const Function* p, int X, int Y, fp x, fp y);
+    void move(bool shift, int X, int Y, fp x, fp y);
+    void stop();
+    const std::vector<fp>& get_values() const { return values; }
+    const std::string& get_status() const { return status; }
+    std::string get_cmd() const;
+
+private:
+    Drag drag_x; ///for horizontal dragging (x axis)
+    Drag drag_y; /// y axis
+    Drag drag_shift_x; ///x with [shift]
+    Drag drag_shift_y; ///y with [shift]
+    fp px, py;
+    int pX, pY;
+    std::vector<fp> values;
+    std::string status;
+    bool sidebar_dirty;
+
+    void set_defined_drags();
+    bool bind_parameter_to_drag(Drag &drag, const std::string& name,
+                          const Function* p, drag_type how, fp multiplier=1.);
+    void set_drag(Drag &drag, const Function* p, int idx,
+                  drag_type how, fp multiplier=1.);
+};
+
 
 void FunctionMouseDrag::Drag::change_value(fp x, fp dx, int dX)
 {
@@ -333,12 +391,12 @@ END_EVENT_TABLE()
 MainPlot::MainPlot (wxWindow *parent)
     : FPlot(parent),
       bgm_(new BgManager(xs)),
+      fmd_(new FunctionMouseDrag),
       basic_mode_(mmd_zoom), mode_(mmd_zoom),
+      crosshair_cursor_(false),
       pressed_mouse_button_(0),
-      over_peak_(-1), limit1_(INT_MIN), limit2_(INT_MIN),
+      over_peak_(-1),
       hint_receiver_(NULL),
-      draw_xor_peak_n_(0),
-      draw_xor_peak_points_(NULL),
       auto_freeze_(false)
 {
     set_cursor();
@@ -347,17 +405,14 @@ MainPlot::MainPlot (wxWindow *parent)
 MainPlot::~MainPlot()
 {
     delete bgm_;
+    delete fmd_;
 }
 
 void MainPlot::OnPaint(wxPaintEvent&)
 {
-    frame->update_crosshair(-1, -1);
-    limit1_ = limit2_ = INT_MIN;
     update_buffer_and_blit();
     // if necessary, redraw inverted lines
-    line_following_cursor(mat_redraw);
-    peak_draft(mat_redraw);
-    draw_moving_func(mat_redraw);
+    // TODO
 }
 
 fp y_of_data_for_draw_data(vector<Point>::const_iterator i,
@@ -396,7 +451,7 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
 
     set_scale(get_pixel_width(dc), get_pixel_height(dc));
 
-    frame->update_crosshair(-1, -1); //erase crosshair before redrawing plot
+    overlay.reset();
 
     int Ymax = get_pixel_height(dc);
     prepare_peaktops(model, Ymax);
@@ -782,7 +837,8 @@ void MainPlot::save_settings(wxConfigBase *cf) const
 void MainPlot::OnLeaveWindow (wxMouseEvent&)
 {
     frame->clear_status_coords();
-    frame->update_crosshair(-1, -1);
+    overlay.change_pos(-1, -1);
+    frame->plot_pane()->draw_vertical_lines(-1, -1, this);
 }
 
 void MainPlot::show_popup_menu (wxMouseEvent &event)
@@ -858,7 +914,12 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
 
 void MainPlot::set_mouse_mode(MouseModeEnum m)
 {
-    if (pressed_mouse_button_) cancel_mouse_press();
+    if (pressed_mouse_button_) {
+        fmd_->stop();
+        downX = downY = INT_MIN;
+        pressed_mouse_button_ = 0;
+        frame->set_status_text("");
+    }
     MouseModeEnum old = mode_;
     if (old == m)
         return;
@@ -867,11 +928,15 @@ void MainPlot::set_mouse_mode(MouseModeEnum m)
     mode_ = m;
     update_mouse_hints();
     set_cursor();
+    overlay.switch_mode(mode_ == mmd_activate ? Overlay::kVLine
+                                              : get_normal_ovmode());
     if (old == mmd_bg)
         bgm_->define_bg_func();
     if (old == mmd_bg || mode_ == mmd_bg
                         || visible_peaktops(old) != visible_peaktops(mode_))
         refresh();
+    else
+        overlay.draw();
 }
 
 // update mouse hint on status bar
@@ -934,26 +999,48 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
     int Y = event.GetY();
     frame->set_status_coords(xs.valr(X), ys.valr(Y), pte_main);
 
-    if (pressed_mouse_button_ != 0) {
-        line_following_cursor(mat_move, lfc_orient == kVerticalLine ? X : Y);
-        draw_moving_func(mat_move, X, Y, event.ShiftDown());
-        peak_draft(mat_move, X, Y);
-        draw_temporary_rect(mat_move, X, Y);
-    }
-    else { // no button pressed
+    if (pressed_mouse_button_ == 0) { // no button pressed
         if (visible_peaktops(mode_))
             look_for_peaktop(event);
-        int cY = Y; // cross-hair Y. If negative, only vertical line is drawn.
-        // In mmd_activate span mode, draw line following cursor
         if (mode_ == mmd_activate) {
-            if (!(event.AltDown() || event.CmdDown()))
-                cY = -1;
+            if (event.AltDown() || event.CmdDown()) {
+                if (overlay.mode() == Overlay::kVLine) {
+                    overlay.switch_mode(get_normal_ovmode());
+                    overlay.draw();
+                }
+            }
+            else
+                overlay.switch_mode(Overlay::kVLine);
         }
-        frame->update_crosshair(X, cY);
     }
+    else if (pressed_mouse_button_ == 1 && mouse_op_ == kDragPeak
+             && over_peak_ >= 0) {
+        fmd_->move(event.ShiftDown(), X, Y, xs.valr(X), ys.valr(Y));
+        frame->set_status_text(fmd_->get_status());
+        draw_overlay_func(ftk->get_function(over_peak_), fmd_->get_values());
+    }
+
+    overlay.change_pos(X, Y);
+    if (overlay.mode() == Overlay::kVLine
+            || overlay.mode() == Overlay::kCrossHair)
+        frame->plot_pane()->draw_vertical_lines(X, -1, this);
+    else if (overlay.mode() == Overlay::kVRange)
+        frame->plot_pane()->draw_vertical_lines(X, downX, this);
 }
 
-void MainPlot::look_for_peaktop (wxMouseEvent& event)
+// peak description shown on the status bar
+static string get_peak_description(int n)
+{
+    if (n < 0)
+        return "";
+    const Function* f = ftk->get_function(n);
+    string s = "%" + f->name + " " + f->tp()->name + " ";
+    for (int i = 0; i < f->nv(); ++i)
+        s += " " + f->get_param(i) + "=" + S(f->av()[i]);
+    return s;
+}
+
+void MainPlot::look_for_peaktop(wxMouseEvent& event)
 {
     int focused_data = frame->get_sidebar()->get_focused_data();
     const Model* model = ftk->get_model(focused_data);
@@ -963,48 +1050,22 @@ void MainPlot::look_for_peaktop (wxMouseEvent& event)
     int n = get_special_point_at_pointer(event);
     int nearest = n == -1 ? -1 : idx[n];
 
-    if (over_peak_ == nearest)
-        return;
-
-    // if we are here, over_peak_ != nearest; changing cursor and statusbar text
-    // and show limits
-    over_peak_ = nearest;
-    if (nearest != -1) {
-        const Function* f = ftk->get_function(over_peak_);
-        string s = "%" + f->name + " " + f->tp()->name + " ";
-        for (int i = 0; i < f->nv(); ++i)
-            s += " " + f->get_param(i) + "=" + S(f->av()[i]);
-        frame->set_status_text(s);
-        set_mouse_mode(mmd_peak);
-        fp x1=0., x2=0.;
-        bool r = f->get_nonzero_range(ftk->get_settings()->function_cutoff,
-                                      x1, x2);
-        if (r) {
-            limit1_ = xs.px(x1);
-            limit2_ = xs.px(x2);
-            draw_inverted_line(limit1_, wxPENSTYLE_DOT_DASH, kVerticalLine);
-            draw_inverted_line(limit2_, wxPENSTYLE_DOT_DASH, kVerticalLine);
-        }
-        else
-            limit1_ = limit2_ = INT_MIN;
-    }
-    else { //was over peak, but now is not
-        frame->set_status_text("");
-        set_mouse_mode(basic_mode_);
-        draw_inverted_line(limit1_, wxPENSTYLE_DOT_DASH, kVerticalLine);
-        draw_inverted_line(limit2_, wxPENSTYLE_DOT_DASH, kVerticalLine);
-        limit1_ = limit2_ = INT_MIN;
+    if (over_peak_ != nearest) {
+        // change cursor, statusbar text and draw limits
+        over_peak_ = nearest;
+        frame->set_status_text(get_peak_description(nearest));
+        set_mouse_mode(nearest == -1 ? basic_mode_ : mmd_peak);
     }
 }
 
 void MainPlot::cancel_mouse_press()
 {
     if (pressed_mouse_button_) {
-        draw_temporary_rect(mat_stop);
-        draw_moving_func(mat_stop);
-        peak_draft(mat_stop);
-        line_following_cursor(mat_stop);
-        mouse_press_X = mouse_press_Y = INT_MIN;
+        overlay.switch_mode(get_normal_ovmode());
+        fmd_->stop();
+        ReleaseMouse();
+        connect_esc_to_cancel(false);
+        downX = downY = INT_MIN;
         pressed_mouse_button_ = 0;
         frame->set_status_text("");
         update_mouse_hints();
@@ -1051,42 +1112,55 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     if (pressed_mouse_button_) {
         // if one button is already down, pressing other button cancels action
         cancel_mouse_press();
+        overlay.change_pos(event.GetX(), event.GetY());
+        overlay.draw();
+        frame->plot_pane()->draw_vertical_lines(-1, -1, this);
         return;
     }
 
-    frame->update_crosshair(-1, -1);
     pressed_mouse_button_ = event.GetButton();
-    mouse_press_X = event.GetX();
-    mouse_press_Y = event.GetY();
+    downX = event.GetX();
+    downY = event.GetY();
     fp x = xs.valr(event.GetX());
     fp y = ys.valr(event.GetY());
     mouse_op_ = what_mouse_operation(event);
     if (mouse_op_ == kRectangularZoom) {
-        draw_temporary_rect(mat_start, event.GetX(), event.GetY());
         SetCursor(wxCURSOR_MAGNIFIER);
+        CaptureMouse();
+        connect_esc_to_cancel(true);
+        overlay.start_mode(Overlay::kRect, downX, downY);
         frame->set_status_text("Select second corner to zoom...");
     }
     else if (mouse_op_ == kShowPlotMenu) {
         show_popup_menu(event);
-        cancel_mouse_press();
+        pressed_mouse_button_ = 0;
     }
     else if (mouse_op_ == kShowPeakMenu) {
         show_peak_menu(event);
-        cancel_mouse_press();
+        pressed_mouse_button_ = 0;
     }
     else if (mouse_op_ == kVerticalZoom) {
         SetCursor(wxCURSOR_SIZENS);
-        start_line_following_cursor(mouse_press_Y, kHorizontalLine);
+        CaptureMouse();
+        connect_esc_to_cancel(true);
+        overlay.start_mode(Overlay::kHRange, downX, downY);
         frame->set_status_text("Select vertical span...");
     }
     else if (mouse_op_ == kHorizontalZoom) {
         SetCursor(wxCURSOR_SIZEWE);
-        start_line_following_cursor(mouse_press_X, kVerticalLine);
+        CaptureMouse();
+        connect_esc_to_cancel(true);
+        overlay.start_mode(Overlay::kVRange, downX, downY);
         frame->set_status_text("Select horizontal span...");
     }
     else if (mouse_op_ == kDragPeak) {
         frame->get_sidebar()->activate_function(over_peak_);
-        draw_moving_func(mat_start, event.GetX(), event.GetY());
+        SetCursor(wxCURSOR_SIZENWSE);
+        connect_esc_to_cancel(true);
+        const Function* p = ftk->get_function(over_peak_);
+        fmd_->start(p, downX, downY, x, y);
+        overlay.start_mode(Overlay::kFunction, downX, downY);
+        draw_overlay_limits(p);
         frame->set_status_text("Moving %" + ftk->get_function(over_peak_)->name
                                 + "...");
     }
@@ -1102,14 +1176,22 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         const Tplate* tp = ftk->get_tpm()->get_tp(frame->get_peak_type());
         if (tp == NULL)
             return;
-        func_draft_kind_ = tp->peak_d ? kPeak : kLinear;
-        peak_draft (mat_start, event.GetX(), event.GetY());
+        if (tp->peak_d) {
+            func_draft_kind_ = kPeak;
+            overlay.start_mode(Overlay::kPeakDraft, downX, ys.px(0));
+        }
+        else {
+            func_draft_kind_ = kLinear;
+            overlay.start_mode(Overlay::kLinearDraft, downX, downY);
+        }
         SetCursor(wxCURSOR_SIZING);
+        connect_esc_to_cancel(true);
         frame->set_status_text("Add drawed peak...");
     }
     else if (mouse_op_ == kAddPeakInRange) {
-        start_line_following_cursor(mouse_press_X, kVerticalLine);
         SetCursor(wxCURSOR_SIZEWE);
+        connect_esc_to_cancel(true);
+        overlay.start_mode(Overlay::kVRange, downX, downY);
         frame->set_status_text("Select range to add a peak in it...");
     }
     else if (mouse_op_ == kActivateSpan || mouse_op_ == kDisactivateSpan ||
@@ -1117,14 +1199,12 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         string act_str;
         if (mouse_op_ == kActivateSpan || mouse_op_ == kActivateRect) {
             if (!can_activate()) {
-                cancel_mouse_press();
+                pressed_mouse_button_ = 0;
                 wxMessageBox(
                  wxT("You pressed the left mouse button in data-range mode,")
                  wxT("\nbut all data points are already active.")
-                 wxT("\n\nYou can see mouse hints at the status bar: the left")
-                 wxT("\nbutton activates, and the right disactivates points.")
-                 wxT("\n\nExtra hint: to activate/disactivate points in")
-                 wxT(" a rectangle,\npress Shift"),
+                 wxT("\n\nThe left button activates,")
+                 wxT("\nand the right disactivates points."),
                              wxT("How to use mouse..."),
                              wxOK|wxICON_INFORMATION);
                 return;
@@ -1134,14 +1214,16 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         else
             act_str = "disactivate";
         string status_beginning;
+        CaptureMouse();
+        connect_esc_to_cancel(true);
         if (mouse_op_ == kActivateRect || mouse_op_ == kDisactivateRect) {
             SetCursor(wxCURSOR_SIZENWSE);
-            draw_temporary_rect(mat_start, event.GetX(), event.GetY());
+            overlay.start_mode(Overlay::kRect, downX, downY);
             status_beginning = "Select data in rectangle to ";
         }
         else {
             SetCursor(wxCURSOR_SIZEWE);
-            start_line_following_cursor(mouse_press_X, kVerticalLine);
+            overlay.start_mode(Overlay::kVRange, downX, downY);
             status_beginning = "Select data range to ";
         }
         frame->set_status_text(status_beginning + act_str + "...");
@@ -1193,124 +1275,114 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         pressed_mouse_button_ = 0;
         return;
     }
-    int dist_X = abs(event.GetX() - mouse_press_X);
-    int dist_Y = abs(event.GetY() - mouse_press_Y);
-    // if Down and Up events are at the same position -> cancel
+
+    overlay.switch_mode(get_normal_ovmode());
+    ReleaseMouse();
+    connect_esc_to_cancel(false);
+    pressed_mouse_button_ = 0;
+    update_mouse_hints();
+    set_cursor();
+
+    // some actions are cancelled when Down and Up events are in the same place
+    if (abs(event.GetX() - downX) + abs(event.GetY() - downY) < 5 &&
+            (mouse_op_ == kRectangularZoom ||
+             mouse_op_ == kVerticalZoom || mouse_op_ == kHorizontalZoom ||
+             mouse_op_ == kActivateSpan || mouse_op_ == kDisactivateSpan ||
+             mouse_op_ == kActivateRect || mouse_op_ == kDisactivateRect ||
+             mouse_op_ == kAddPeakTriangle || mouse_op_ == kAddPeakInRange)) {
+        frame->set_status_text("");
+        overlay.draw();
+        return;
+    }
 
     // zoom
     if (mouse_op_ == kRectangularZoom) {
-        draw_temporary_rect(mat_stop);
-        if (dist_X + dist_Y >= 10) {
-            fp x1 = xs.valr(mouse_press_X);
-            fp x2 = xs.valr(event.GetX());
-            fp y1 = ys.valr(mouse_press_Y);
-            fp y2 = ys.valr(event.GetY());
-            frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)),
-                               RealRange(min(y1,y2), max(y1,y2)));
-        }
-        else
-            frame->set_status_text("");
+        fp x1 = xs.valr(downX);
+        fp x2 = xs.valr(event.GetX());
+        fp y1 = ys.valr(downY);
+        fp y2 = ys.valr(event.GetY());
+        frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)),
+                           RealRange(min(y1,y2), max(y1,y2)));
     }
     else if (mouse_op_ == kVerticalZoom) {
-        line_following_cursor(mat_stop);
-        if (dist_Y >= 5) {
-            fp y1 = ys.valr(mouse_press_Y);
-            fp y2 = ys.valr(event.GetY());
-            frame->change_zoom(ftk->view.hor,
-                               RealRange(min(y1,y2), max(y1,y2)));
-        }
-        else
-            frame->set_status_text("");
+        fp y1 = ys.valr(downY);
+        fp y2 = ys.valr(event.GetY());
+        frame->change_zoom(ftk->view.hor,
+                           RealRange(min(y1,y2), max(y1,y2)));
     }
     else if (mouse_op_ == kHorizontalZoom) {
-        line_following_cursor(mat_stop);
-        if (dist_X >= 5) {
-            fp x1 = xs.valr(mouse_press_X);
-            fp x2 = xs.valr(event.GetX());
-            frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)),
-                               ftk->view.ver);
-        }
-        else
-            frame->set_status_text("");
+        fp x1 = xs.valr(downX);
+        fp x2 = xs.valr(event.GetX());
+        frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)),
+                           ftk->view.ver);
     }
     // drag peak
     else if (mouse_op_ == kDragPeak) {
-        if (dist_X + dist_Y >= 2) {
-            string cmd = fmd_.get_cmd();
-            if (!cmd.empty())
-                ftk->exec(cmd);
+        fmd_->stop();
+        string cmd = fmd_->get_cmd();
+        if (!cmd.empty())
+            ftk->exec(cmd);
+        else {
+            overlay.draw();
+            frame->set_status_text("");
         }
-        draw_moving_func(mat_stop);
-        frame->set_status_text("");
     }
     // activate or disactivate data
     else if (mouse_op_ == kActivateSpan || mouse_op_ == kDisactivateSpan ||
              mouse_op_ == kActivateRect || mouse_op_ == kDisactivateRect) {
-        line_following_cursor(mat_stop);
-        draw_temporary_rect(mat_stop);
         bool rect = (mouse_op_ == kActivateRect ||
                      mouse_op_ == kDisactivateRect);
-        bool ok = (!rect && dist_X >= 5) ||
-                  (rect && dist_X + dist_Y >= 10);
-        if (ok) {
-            bool activate = (mouse_op_== kActivateSpan ||
-                             mouse_op_ == kActivateRect);
-            string c = (activate ? "A = a or" : "A = a and not");
-            fp x1 = xs.valr(mouse_press_X);
-            fp x2 = xs.valr(event.GetX());
-            if (x1 > x2)
-                swap(x1, x2);
-            string cond = eS(x1) + " < x and x < " + eS(x2);
-            if (rect) {
-                fp y1 = ys.valr(mouse_press_Y);
-                fp y2 = ys.valr(event.GetY());
-                cond += " and "
-                        + eS(min(y1,y2)) + " < y and y < " + eS(max(y1,y2));
-            }
-            ftk->exec(frame->get_datasets() + c + " (" + cond + ")");
-
-            if (auto_freeze_ && !rect)
-                freeze_functions_in_range(x1, x2, !activate);
+        bool activate = (mouse_op_== kActivateSpan ||
+                         mouse_op_ == kActivateRect);
+        string c = (activate ? "A = a or" : "A = a and not");
+        fp x1 = xs.valr(downX);
+        fp x2 = xs.valr(event.GetX());
+        if (x1 > x2)
+            swap(x1, x2);
+        string cond = eS(x1) + " < x and x < " + eS(x2);
+        if (rect) {
+            fp y1 = ys.valr(downY);
+            fp y2 = ys.valr(event.GetY());
+            cond += " and "
+                    + eS(min(y1,y2)) + " < y and y < " + eS(max(y1,y2));
         }
-        frame->set_status_text("");
+        ftk->exec(frame->get_datasets() + c + " (" + cond + ")");
+
+        if (auto_freeze_ && !rect)
+            freeze_functions_in_range(x1, x2, !activate);
     }
     // add peak (left button)
     else if (mouse_op_ == kAddPeakTriangle) {
-        frame->set_status_text("");
-        peak_draft(mat_stop, event.GetX(), event.GetY());
-        if (dist_X + dist_Y >= 5)
-            add_peak_from_draft(event.GetX(), event.GetY());
+        add_peak_from_draft(event.GetX(), event.GetY());
     }
     // add peak (in range)
     else if (mouse_op_ == kAddPeakInRange) {
-        frame->set_status_text("");
-        if (dist_X >= 5) {
-            fp x1 = xs.valr(mouse_press_X);
-            fp x2 = xs.valr(event.GetX());
-            ftk->exec(frame->get_datasets() + "guess "
-                      + frame->get_guess_string(frame->get_peak_type())
-                      + " [" + eS(min(x1,x2)) + " : " + eS(max(x1,x2)) + "]");
-        }
-        line_following_cursor(mat_stop);
+        fp x1 = xs.valr(downX);
+        fp x2 = xs.valr(event.GetX());
+        ftk->exec(frame->get_datasets() + "guess "
+                  + frame->get_guess_string(frame->get_peak_type())
+                  + " [" + eS(min(x1,x2)) + " : " + eS(max(x1,x2)) + "]");
     }
     else {
         ;// nothing - action done in OnButtonDown()
     }
-    pressed_mouse_button_ = 0;
-    update_mouse_hints();
-    set_cursor();
 }
 
 void MainPlot::add_peak_from_draft(int X, int Y)
 {
     string args;
-    if (func_draft_kind_ == kLinear) {
-        fp y = ys.valr(Y);
-        args = "slope=~0, intercept=~" + eS(y) + ", avgy=~" + eS(y);
+    if (func_draft_kind_ == kLinear && downY != Y) {
+        fp x1 = xs.valr(downX);
+        fp y1 = ys.valr(downY);
+        fp x2 = xs.valr(X);
+        fp y2 = ys.valr(Y);
+        fp m = (y2 - y1) / (x2 - x1);
+        args = "slope=~" + eS(m) + ", intercept=~" + eS(y1-m*x1)
+               + ", avgy=~" + eS((y1+y2)/2);
     }
     else {
         fp height = ys.valr(Y);
-        fp center = xs.valr(mouse_press_X);
+        fp center = xs.valr(downX);
         fp hwhm = fabs(center - xs.valr(X));
         fp area = 2 * height * hwhm;
         args = "height=~" + eS(height) + ", center=~" + eS(center)
@@ -1335,56 +1407,10 @@ void MainPlot::add_peak_from_draft(int X, int Y)
     ftk->exec(cmd);
 }
 
-
-bool MainPlot::draw_moving_func(MouseActEnum ma, int X, int Y, bool shift)
-{
-    static wxCursor old_cursor = wxNullCursor;
-    static int func_nr = -1;
-
-    if (over_peak_ == -1)
-        return false;
-
-    const Function* p = ftk->get_function(over_peak_);
-
-    if (ma != mat_start && func_nr != over_peak_)
-            return false;
-
-
-    if (ma == mat_redraw)
-        redraw_xor_peak();
-    else if (ma == mat_start) {
-        func_nr = over_peak_;
-        fmd_.start(p, X, Y, xs.valr(X), ys.valr(Y));
-        bool erase_previous = false;
-        draw_xor_peak(p, fmd_.get_values(), erase_previous);
-        old_cursor = GetCursor();
-        SetCursor(wxCURSOR_SIZENWSE);
-        connect_esc_to_cancel(true);
-    }
-    else if (ma == mat_move) {
-        fmd_.move(shift, X, Y, xs.valr(X), ys.valr(Y));
-        frame->set_status_text(fmd_.get_status());
-        bool erase_previous = true;
-        draw_xor_peak(p, fmd_.get_values(), erase_previous);
-    }
-    else if (ma == mat_stop) {
-        redraw_xor_peak();
-        func_nr = -1;
-        if (old_cursor.Ok()) {
-            SetCursor(old_cursor);
-            old_cursor = wxNullCursor;
-        }
-        fmd_.stop();
-        connect_esc_to_cancel(false);
-    }
-    return true;
-}
-
 static
 void calculate_values(const vector<fp>& xx, vector<fp>& yy,
                       const Tplate::Ptr& tp, const vector<fp>& p_values)
 {
-    // clone function
     int len = p_values.size();
     vector<string> varnames(len);
     for (int i = 0; i != len; ++i)
@@ -1410,143 +1436,42 @@ void calculate_values(const vector<fp>& xx, vector<fp>& yy,
     purge_all_elements(variables);
 }
 
-void MainPlot::draw_xor_peak(const Function* func, const vector<fp>& p_values,
-                             bool erase_previous)
+void MainPlot::draw_overlay_func(const Function* f, const vector<fp>& p_values)
 {
-    wxClientDC dc(this);
-    dc.SetLogicalFunction (wxINVERT);
-    dc.SetPen(*wxBLACK_DASHED_PEN);
-
-    int n = get_pixel_width(dc);
+    int n = GetClientSize().GetWidth();
     if (n <= 0)
         return;
     vector<fp> xx(n), yy(n, 0);
     for (int i = 0; i < n; ++i)
         xx[i] = xs.val(i);
-    calculate_values(xx, yy, func->tp(), p_values);
-
-    if (erase_previous && draw_xor_peak_points_ != NULL)
-        dc.DrawLines(draw_xor_peak_n_, draw_xor_peak_points_);
-    if (n != draw_xor_peak_n_) {
-        draw_xor_peak_n_ = n;
-        delete draw_xor_peak_points_;
-        draw_xor_peak_points_ = new wxPoint[n];
-        for (int i = 0; i < n; ++i)
-            draw_xor_peak_points_[i].x = i;
+    calculate_values(xx, yy, f->tp(), p_values);
+    wxPoint *points = new wxPoint[n];
+    for (int i = 0; i < n; ++i) {
+        points[i].x = i;
+        points[i].y = ys.px(yy[i]);
     }
-
-    for (int i = 0; i < n; ++i)
-        draw_xor_peak_points_[i].y = ys.px(yy[i]);
-    dc.DrawLines(n, draw_xor_peak_points_);
+    overlay.draw_lines(n, points);
+    delete points;
 }
 
-void MainPlot::redraw_xor_peak(bool clear)
+void MainPlot::draw_overlay_limits(const Function* f)
 {
-    if (draw_xor_peak_n_ == 0 || draw_xor_peak_points_ == NULL)
+    double cutoff = ftk->get_settings()->function_cutoff;
+    if (cutoff == 0)
         return;
-    wxClientDC dc(this);
-    dc.SetLogicalFunction (wxINVERT);
-    dc.SetPen(*wxBLACK_DASHED_PEN);
-    dc.DrawLines(draw_xor_peak_n_, draw_xor_peak_points_);
-    if (clear) {
-        delete draw_xor_peak_points_;
-        draw_xor_peak_points_ = NULL;
-        draw_xor_peak_n_ = 0;
+    fp x1, x2;
+    bool r = f->get_nonzero_range(cutoff, x1, x2);
+    if (r) {
+        int xleft = xs.px(x1);
+        int xright = xs.px(x2);
+        wxPoint lim[4] = {
+            wxPoint(xleft, 0),
+            wxPoint(xleft, ys.px(cutoff)),
+            wxPoint(xright, ys.px(cutoff)),
+            wxPoint(xright, 0)
+        };
+        overlay.draw_lines(4, lim);
     }
-}
-
-
-void MainPlot::peak_draft(MouseActEnum ma, int X_, int Y_)
-{
-    static wxPoint prev(INT_MIN, INT_MIN);
-    if (ma != mat_start) {
-        if (prev.x == INT_MIN)
-            return;
-        //clear/redraw old peak-draft
-        draw_peak_draft(mouse_press_X, abs(mouse_press_X - prev.x), prev.y);
-    }
-    switch (ma) {
-        case mat_start:
-            connect_esc_to_cancel(true);
-            // no break
-        case mat_move:
-            prev.x = X_, prev.y = Y_;
-            draw_peak_draft(mouse_press_X, abs(mouse_press_X-prev.x), prev.y);
-            break;
-        case mat_stop:
-            prev.x = prev.y = INT_MIN;
-            connect_esc_to_cancel(false);
-            break;
-        case mat_redraw: //already redrawn
-            break;
-        default: assert(0);
-    }
-}
-
-void MainPlot::draw_peak_draft(int Ctr, int Hwhm, int Y)
-{
-    if (Ctr == INT_MIN || Hwhm == INT_MIN || Y == INT_MIN)
-        return;
-    wxClientDC dc(this);
-    dc.SetLogicalFunction (wxINVERT);
-    dc.SetPen(*wxBLACK_DASHED_PEN);
-    int Y0 = ys.px(0);
-    if (func_draft_kind_ == kLinear) {
-        //TODO draw linear draft with slope
-        dc.DrawLine (0, Y, get_pixel_width(dc), Y);
-    }
-    else {
-        dc.DrawLine (Ctr, Y0, Ctr, Y); //vertical line
-        dc.DrawLine (Ctr - Hwhm, (Y+Y0)/2, Ctr + Hwhm, (Y+Y0)/2); //horizontal
-        dc.DrawLine (Ctr, Y, Ctr - 2 * Hwhm, Y0); //left slope
-        dc.DrawLine (Ctr, Y, Ctr + 2 * Hwhm, Y0); //right slope
-    }
-}
-
-void MainPlot::draw_temporary_rect(MouseActEnum ma, int X_, int Y_)
-{
-    static int X1 = INT_MIN, Y1 = INT_MIN, X2 = INT_MIN, Y2 = INT_MIN;
-
-    if (ma != mat_start && X1 == INT_MIN)
-        return;
-    switch (ma) {
-        case mat_start:
-            X1 = X2 = X_;
-            Y1 = Y2 = Y_;
-            draw_rect (X1, Y1, X2, Y2);
-            CaptureMouse();
-            connect_esc_to_cancel(true);
-            break;
-        case mat_move:
-            draw_rect (X1, Y1, X2, Y2); //clear old rectangle
-            X2 = X_;
-            Y2 = Y_;
-            draw_rect (X1, Y1, X2, Y2);
-            break;
-        case mat_stop:
-            draw_rect (X1, Y1, X2, Y2); //clear old rectangle
-            X1 = INT_MIN;
-            ReleaseMouse();
-            connect_esc_to_cancel(false);
-            break;
-        case mat_redraw: //unused
-            break;
-    }
-}
-
-void MainPlot::draw_rect (int X1, int Y1, int X2, int Y2)
-{
-    if (X1 == INT_MIN || Y1 == INT_MIN || X2 == INT_MIN || Y2 == INT_MIN)
-        return;
-    wxClientDC dc(this);
-    dc.SetLogicalFunction (wxINVERT);
-    dc.SetPen(*wxBLACK_DASHED_PEN);
-    dc.SetBrush (*wxTRANSPARENT_BRUSH);
-    int xmin = min (X1, X2);
-    int width = max (X1, X2) - xmin;
-    int ymin = min (Y1, Y2);
-    int height = max (Y1, Y2) - ymin;
-    dc.DrawRectangle (xmin, ymin, width, height);
 }
 
 void MainPlot::OnConfigure(wxCommandEvent&)

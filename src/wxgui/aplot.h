@@ -20,9 +20,7 @@ class AuxPlot : public FPlot
 {
     friend class AuxPlotConfDlg;
 public:
-    AuxPlot(wxWindow *parent, FPlot *master, wxString const& name)
-        : FPlot(parent), master_(master), name_(name),
-          y_zoom_(1.), y_zoom_base_(1.), fit_y_once_(false) {}
+    AuxPlot(wxWindow *parent, FPlot *master, wxString const& name);
     ~AuxPlot() {}
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
@@ -50,7 +48,7 @@ private:
     void OnMiddleDown(wxMouseEvent &event);
     // function called when Esc is pressed
     virtual void cancel_action() { cancel_mouse_left_press(); }
-    bool cancel_mouse_left_press();
+    void cancel_mouse_left_press();
     void set_scale(int pixel_width, int pixel_height);
     bool is_zoomable(); //false if kind is eg. empty or peak-position
     void OnPrefs(wxCommandEvent&) { show_pref_dialog(); }

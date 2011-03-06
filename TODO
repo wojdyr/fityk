@@ -86,9 +86,6 @@
 
 * data smoothing (Savitzky-Golay and/or other methods)
 
-* GUI: refactor MainPlot - mouse event handling based on subscriptions,
-       a clean interface to XOR-drawing 
-
 * GUI: constraining parameters of two peak using the peak-top menu
 
 * add a new function category: sigmoids/steps (now function can be guessed as

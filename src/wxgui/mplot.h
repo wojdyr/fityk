@@ -14,6 +14,7 @@
 class Function;
 class HintReceiver;
 class BgManager;
+class FunctionMouseDrag;
 
 // operation started by pressing mouse button
 enum MouseOperation
@@ -36,62 +37,6 @@ enum MouseOperation
     kDeleteBgPoint,
     // nothing
     kNoMouseOp
-};
-
-/// utility used in MainPlot for dragging function
-class FunctionMouseDrag
-{
-public:
-    enum drag_type
-    {
-        no_drag,
-        relative_value, //eg. for area
-        absolute_value,  //eg. for width
-        absolute_pixels
-    };
-
-    class Drag
-    {
-    public:
-        drag_type how;
-        int parameter_idx;
-        std::string parameter_name;
-        std::string variable_name; /// name of variable that are to be changed
-        fp value; /// current value of parameter
-        fp ini_value; /// initial value of parameter
-        fp multiplier; /// increases or decreases changing rate
-        fp ini_x;
-
-        Drag() : how(no_drag) {}
-        void set(const Function* p, int idx, drag_type how_, fp multiplier_);
-        void change_value(fp x, fp dx, int dX);
-        std::string get_cmd() const;
-    };
-
-    FunctionMouseDrag() : sidebar_dirty(false) {}
-    void start(const Function* p, int X, int Y, fp x, fp y);
-    void move(bool shift, int X, int Y, fp x, fp y);
-    void stop();
-    const std::vector<fp>& get_values() const { return values; }
-    const std::string& get_status() const { return status; }
-    std::string get_cmd() const;
-
-private:
-    Drag drag_x; ///for horizontal dragging (x axis)
-    Drag drag_y; /// y axis
-    Drag drag_shift_x; ///x with [shift]
-    Drag drag_shift_y; ///y with [shift]
-    fp px, py;
-    int pX, pY;
-    std::vector<fp> values;
-    std::string status;
-    bool sidebar_dirty;
-
-    void set_defined_drags();
-    bool bind_parameter_to_drag(Drag &drag, const std::string& name,
-                          const Function* p, drag_type how, fp multiplier=1.);
-    void set_drag(Drag &drag, const Function* p, int idx,
-                  drag_type how, fp multiplier=1.);
 };
 
 /// main plot, single in application, displays data, fitted peaks etc.
@@ -119,7 +64,7 @@ public:
     void OnPeakDelete(wxCommandEvent& event);
     void OnPeakGuess(wxCommandEvent &event);
     // function called when Esc is pressed
-    virtual void cancel_action() { cancel_mouse_press(); }
+    virtual void cancel_action() { cancel_mouse_press(); overlay.draw(); }
     void cancel_mouse_press();
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
@@ -141,19 +86,26 @@ public:
     void set_func_color(int n, const wxColour& col)
         { peakCol[n % max_peak_cols] = col; }
     bool get_x_reversed() const { return x_reversed_; }
-    void draw_xor_peak(const Function* func, const std::vector<fp>& p_values,
-                       bool erase_previous);
-    void redraw_xor_peak(bool clear=false);
     void show_popup_menu(wxMouseEvent &event);
     void set_hint_receiver(HintReceiver *hr)
         { hint_receiver_ = hr; update_mouse_hints(); }
     void set_auto_freeze(bool value) { auto_freeze_ = value; }
     BgManager* bgm() { return bgm_; }
+    void draw_overlay_func(const Function* f, const std::vector<fp>& p_values);
+    void draw_overlay_limits(const Function* f);
+    bool crosshair_cursor() const { return crosshair_cursor_; }
+    void set_crosshair_cursor(bool c)
+        { crosshair_cursor_ = c; overlay.switch_mode(get_normal_ovmode()); }
+    Overlay::Mode get_normal_ovmode() const
+        { return crosshair_cursor_ ? Overlay::kCrossHair : Overlay::kNone; }
 
 private:
     BgManager* bgm_;
+    FunctionMouseDrag *fmd_; //for function dragging
     MouseModeEnum basic_mode_,
                   mode_;  ///actual mode -- either basic_mode_ or mmd_peak
+
+    // plot properties stored in config
     //static const int max_group_cols = 8;
     static const int max_peak_cols = 32;
     bool peaks_visible_, /*groups_visible_,*/ model_visible_,
@@ -161,21 +113,18 @@ private:
     wxFont plabelFont;
     std::string plabel_format_;
     bool vertical_plabels_;
-    std::vector<std::string> plabels_;
     wxColour modelCol, bg_pointsCol;
     //wxColour groupCol[max_group_cols];
     wxColour peakCol[max_peak_cols];
     std::vector<wxColour> data_colors_;
+    bool crosshair_cursor_;
+
+    std::vector<std::string> plabels_; // peak labels
     int pressed_mouse_button_;
     MouseOperation mouse_op_;
     int over_peak_; /// the cursor is over peaktop of this peak
-    int limit1_, limit2_; /// for drawing function limits (vertical lines)
-    FunctionMouseDrag fmd_; //for function dragging
     Kind func_draft_kind_; // for function adding (with drawing draft)
     HintReceiver *hint_receiver_; // used to set mouse hints, probably statusbar
-    // variables used in draw_xor_peak() and redraw_xor_peak()
-    int draw_xor_peak_n_;
-    wxPoint* draw_xor_peak_points_;
     bool auto_freeze_;
 
     void draw_x_axis (wxDC& dc, bool set_pen=true);
@@ -192,11 +141,6 @@ private:
     void prepare_peak_labels(const Model* model);
     void look_for_peaktop (wxMouseEvent& event);
     void show_peak_menu (wxMouseEvent &event);
-    void peak_draft (MouseActEnum ma, int X_=0, int Y_=0);
-    bool draw_moving_func(MouseActEnum ma, int X=0, int Y=0, bool shift=false);
-    void draw_peak_draft (int X_mid, int X_hwhm, int Y);
-    void draw_temporary_rect(MouseActEnum ma, int X_=0, int Y_=0);
-    void draw_rect (int X1, int Y1, int X2, int Y2);
     static bool visible_peaktops(MouseModeEnum mode);
     void add_peak_from_draft(int X, int Y);
     bool can_activate();

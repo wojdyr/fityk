@@ -23,7 +23,6 @@ public:
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
     void refresh_plots(bool now, WhichPlot which_plot);
-    void set_mouse_mode(MouseModeEnum m);
     bool is_background_white();
     std::vector<std::string> const& get_zoom_hist() const { return zoom_hist; }
     MainPlot const* get_plot() const { return plot; }
@@ -32,16 +31,13 @@ public:
                      { assert(n>=0 && n<2); return aux_plot[n]; }
     void show_aux(int n, bool show);
     bool aux_visible(int n) const;
-    void update_crosshair(int X, int Y);
+    void draw_vertical_lines(int X1, int X2, FPlot* skip);
 
-    bool crosshair_cursor;
 private:
     MainPlot *plot;
     ProportionalSplitter *aux_split;
     AuxPlot *aux_plot[2];
     std::vector<std::string> zoom_hist;
-
-    void do_draw_crosshair(int X, int Y);
 };
 
 #endif // FITYK_WX_PPLOT_H_

@@ -50,10 +50,119 @@ double Scale::valr(int px) const
     }
 }
 
+//TODO: pen color should depend on background color
+void Overlay::set_pen_and_brush(wxDC& dc)
+{
+#ifdef __WXMAC__
+    dc.SetPen(*wxGREY_PEN);
+    dc.SetBrush(wxColour(192,192,192,64));
+#else
+    dc.SetPen(wxPen(*wxLIGHT_GREY, 1, wxPENSTYLE_SHORT_DASH));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+#endif
+}
+
+void Overlay::draw()
+{
+    if (mode_ == kFunction)
+        // function is drawn by calling draw_lines()
+        return;
+
+    wxClientDC dc(window_) ;
+    window_->PrepareDC(dc) ;
+    wxDCOverlay overlaydc(wxoverlay_, &dc);
+    overlaydc.Clear();
+    set_pen_and_brush(dc);
+    switch (mode_) {
+        case kRect:
+            if (x1_ != x2_ || y1_ != y2_) {
+                int width = abs(x1_ - x2_);
+                int height = abs(y1_ - y2_);
+                dc.DrawRectangle(min(x1_, x2_), min(y1_, y2_), width, height);
+            }
+            break;
+        case kPeakDraft: {
+            int ctr = x1_;
+            int hwhm = abs(x1_ - x2_);
+            int ymid = (y2_ + y1_) / 2;
+            dc.DrawLine(ctr, y1_, ctr, y2_); // vertical line
+            dc.DrawLine(ctr - hwhm, ymid, ctr + hwhm, ymid); // horizontal
+            dc.DrawLine(ctr, y2_, ctr - 2 * hwhm, y1_); // left slope
+            dc.DrawLine(ctr, y2_, ctr + 2 * hwhm, y1_); // right slope
+            break;
+        }
+        case kLinearDraft: {
+            int width = dc.GetSize().GetWidth();
+            int height = dc.GetSize().GetHeight();
+            int dy = y2_ - y1_;
+            int dx = x2_ - x1_;
+            if (abs(dy) < abs(dx)) {
+                double m = (double) dy / dx;
+                dc.DrawLine(0, y1_ - m * x1_,
+                            width, y1_ + m * (width - x1_));
+            }
+            else {
+                double im = (double) dx / dy;
+                dc.DrawLine(x1_ - y1_ * im, 0,
+                            x1_ + (height - y1_) * im, height);
+            }
+            break;
+        }
+        case kCrossHair:
+            dc.CrossHair(x2_, y2_);
+            break;
+        case kVLine:
+            dc.DrawLine(x2_, 0, x2_, dc.GetSize().GetHeight());
+            break;
+        case kHLine:
+            dc.DrawLine(0, y2_, dc.GetSize().GetWidth(), y2_);
+            break;
+        case kVRange:
+            dc.DrawLine(x1_, 0, x1_, dc.GetSize().GetHeight());
+            dc.DrawLine(x2_, 0, x2_, dc.GetSize().GetHeight());
+            break;
+        case kHRange:
+            dc.DrawLine(0, y1_, dc.GetSize().GetWidth(), y1_);
+            dc.DrawLine(0, y2_, dc.GetSize().GetWidth(), y2_);
+            break;
+        case kFunction:
+            assert(0);
+            break;
+        case kNone:
+            break;
+    }
+}
+
+void Overlay::draw_lines(int n, wxPoint points[])
+{
+    wxClientDC dc(window_) ;
+    window_->PrepareDC(dc) ;
+    wxDCOverlay overlaydc(wxoverlay_, &dc);
+    overlaydc.Clear();
+    if (n <= 0)
+        return;
+    set_pen_and_brush(dc);
+    dc.DrawLines(n, points);
+}
+
 
 //===============================================================
 //                FPlot (plot with data and fitted curves)
 //===============================================================
+
+FPlot::FPlot(wxWindow *parent)
+   : BufferedPanel(parent),
+     overlay(this),
+     pen_width(1),
+     draw_sigma(false),
+     downX(INT_MIN), downY(INT_MIN),
+     esc_source_(NULL)
+{
+}
+
+FPlot::~FPlot()
+{
+}
 
 void FPlot::set_font(wxDC &dc, wxFont const& font)
 {
@@ -66,74 +175,6 @@ void FPlot::set_font(wxDC &dc, wxFont const& font)
         dc.SetFont(font);
 }
 
-void FPlot::draw_inverted_line(int X, wxPenStyle style, LineOrientation orient)
-{
-    if (X != INT_MIN) {
-        wxClientDC dc(this);
-        dc.SetLogicalFunction (wxINVERT);
-        if (style == wxPENSTYLE_SHORT_DASH)
-            dc.SetPen(*wxBLACK_DASHED_PEN);
-        else {
-            wxPen pen = *wxBLACK_DASHED_PEN;
-            pen.SetStyle(style);
-            dc.SetPen(pen);
-        }
-        if (orient == kVerticalLine) {
-            int h = get_pixel_height(dc);
-            dc.DrawLine(X, 0, X, h);
-        }
-        else { // orient == kHorizontalLine
-            int w = get_pixel_width(dc);
-            dc.DrawLine(0, X, w, X);
-        }
-    }
-}
-
-void FPlot::draw_crosshair(int X, int Y)
-{
-    wxClientDC dc(this);
-    dc.SetLogicalFunction(wxINVERT);
-    dc.SetPen(*wxBLACK_DASHED_PEN);
-    dc.CrossHair(X, Y);
-}
-
-void FPlot::start_line_following_cursor(int X0, LineOrientation orient)
-{
-    lfc_orient = orient;
-    lfc_prev_X0 = X0;
-    lfc_prev_X = X0+1;
-    draw_inverted_line(lfc_prev_X0, wxPENSTYLE_SHORT_DASH, lfc_orient);
-    draw_inverted_line(lfc_prev_X, wxPENSTYLE_SHORT_DASH, lfc_orient);
-    connect_esc_to_cancel(true);
-}
-
-bool FPlot::line_following_cursor(MouseActEnum ma, int X)
-{
-    if (lfc_prev_X == INT_MIN)
-        return false;
-    //clear (or draw again) old line
-    draw_inverted_line(lfc_prev_X, wxPENSTYLE_SHORT_DASH, lfc_orient);
-    switch (ma) {
-        case mat_move:
-            draw_inverted_line(X, wxPENSTYLE_SHORT_DASH, lfc_orient);
-            lfc_prev_X = X;
-            break;
-        case mat_redraw:
-            draw_inverted_line(lfc_prev_X0, wxPENSTYLE_SHORT_DASH, lfc_orient);
-            break;
-        case mat_stop:
-            // clear
-            draw_inverted_line(lfc_prev_X0, wxPENSTYLE_SHORT_DASH, lfc_orient);
-            lfc_prev_X = lfc_prev_X0 = INT_MIN;
-            connect_esc_to_cancel(false);
-            break;
-        default:
-            assert(0);
-    }
-    return true;
-}
-
-
 void draw_line_with_style(wxDC& dc, wxPenStyle style,
                           wxCoord X1, wxCoord Y1, wxCoord X2, wxCoord Y2)
 {
@@ -144,6 +185,22 @@ void draw_line_with_style(wxDC& dc, wxPenStyle style,
     dc.DrawLine (X1, Y1, X2, Y2);
     pen.SetStyle(old_style);
     dc.SetPen(pen);
+}
+
+void FPlot::draw_vertical_lines_on_overlay(int X1, int X2)
+{
+    wxPoint pp[4] = {
+        wxPoint(X1, 0),
+        wxPoint(X1, GetClientSize().GetHeight() + 1),
+        wxPoint(X2, GetClientSize().GetHeight() + 1),
+        wxPoint(X2, 0)
+    };
+    if (X1 < 0)
+        overlay.draw_lines(0, pp);
+    else if (X2 < 0)
+        overlay.draw_lines(2, pp);
+    else
+        overlay.draw_lines(4, pp);
 }
 
 /// draw x axis tics
@@ -177,8 +234,15 @@ void FPlot::draw_xtics (wxDC& dc, Rect const &v, bool set_pen)
         dc.GetTextExtent (label, &w, 0);
         dc.DrawText (label, X - w/2, Y + 1);
         if (x_grid) {
+            wxPen pen = dc.GetPen();
+            pen.SetStyle(wxPENSTYLE_DOT);
+            wxDCPenChanger pen_changer(dc, pen);
+            dc.DrawLine(X, 0, X, Y);
+            dc.DrawLine(X, Y+1+h, X, pixel_height);
+            /*
             draw_line_with_style(dc, wxPENSTYLE_DOT, X, 0, X, Y);
             draw_line_with_style(dc, wxPENSTYLE_DOT, X, Y+1+h, X, pixel_height);
+            */
         }
     }
     //draw minor tics
@@ -433,17 +497,17 @@ void FPlot::OnKeyDown(wxKeyEvent& event)
 
 void FPlot::connect_esc_to_cancel(bool connect)
 {
-    if (esc_seed_ != NULL) {
-        esc_seed_->Disconnect(wxID_ANY, wxEVT_KEY_DOWN,
-                              wxKeyEventHandler(FPlot::OnKeyDown), 0, this);
-        esc_seed_ = NULL;
+    if (esc_source_ != NULL) {
+        esc_source_->Disconnect(wxID_ANY, wxEVT_KEY_DOWN,
+                                wxKeyEventHandler(FPlot::OnKeyDown), 0, this);
+        esc_source_ = NULL;
     }
 
     if (connect) {
         wxWindow *fw = wxWindow::FindFocus();
         if (fw == NULL || fw == this)
             return;
-        esc_seed_ = fw;
+        esc_source_ = fw;
         fw->Connect(wxID_ANY, wxEVT_KEY_DOWN,
                     wxKeyEventHandler(FPlot::OnKeyDown), 0, this);
     }

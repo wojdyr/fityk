@@ -173,8 +173,6 @@ public:
     void output_text(UserInterface::Style style, std::string const& str);
     void change_zoom(const RealRange& h, const RealRange& v);
     void scroll_view_horizontally(fp step);
-    void refresh_plots(bool now, WhichPlot which_plot);
-    void update_crosshair(int X, int Y);
     void focus_input(wxKeyEvent& event);
     void edit_in_input(std::string const& s);
     void after_cmd_updates();
@@ -185,6 +183,7 @@ public:
     std::vector<DataAndModel*> get_selected_dms();
     std::string get_datasets();
     std::string get_guess_string(const std::string& name);
+    PlotPane *plot_pane() { return plot_pane_; }
     MainPlot* get_main_plot();
     MainPlot const* get_main_plot() const;
     void update_data_pane();
@@ -202,7 +201,7 @@ public:
 
 private:
     ProportionalSplitter *main_pane;
-    PlotPane *plot_pane;
+    PlotPane *plot_pane_;
     IOPane *io_pane;
     SideBar *sidebar;
     FStatusBar *status_bar;

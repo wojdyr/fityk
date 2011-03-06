@@ -27,6 +27,7 @@
 #include "app.h"
 #include "cmn.h"
 #include "frame.h"
+#include "pplot.h"
 #include "dataedit.h" //DataEditorDlg::read_transforms()
 #include "sidebar.h" // initializations
 #include "statbar.h" // initializations
@@ -83,7 +84,7 @@ void gui_show_message(UserInterface::Style style, const string& s)
 void gui_do_draw_plot(UserInterface::RepaintMode mode)
 {
     bool now = (mode == UserInterface::kRepaintImmediately);
-    frame->refresh_plots(now, kAllPlots);
+    frame->plot_pane()->refresh_plots(now, kAllPlots);
 }
 
 void gui_wait(float seconds)

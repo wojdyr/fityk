@@ -384,9 +384,9 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
     v_splitter = new ProportionalSplitter(this);
     main_pane = new ProportionalSplitter(v_splitter);
-    plot_pane = new PlotPane(main_pane);
+    plot_pane_ = new PlotPane(main_pane);
     io_pane = new IOPane(main_pane);
-    main_pane->SplitHorizontally(plot_pane, io_pane);
+    main_pane->SplitHorizontally(plot_pane_, io_pane);
     sidebar = new SideBar(v_splitter);
     sidebar->Show(false);
     v_splitter->Initialize(main_pane);
@@ -406,12 +406,12 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     SetSizer(sizer);
     sizer->SetSizeHints(this);
 
-    print_mgr = new PrintManager(plot_pane);
+    print_mgr = new PrintManager(plot_pane_);
 
     update_menu_functions();
     update_menu_saved_transforms();
     update_menu_recent_baselines();
-    plot_pane->get_plot()->set_hint_receiver(status_bar);
+    get_main_plot()->set_hint_receiver(status_bar);
     io_pane->SetFocus();
 }
 
@@ -499,7 +499,7 @@ void FFrame::add_recent_data_file(string const& filename)
 void FFrame::read_all_settings(wxConfigBase *cf)
 {
     read_settings(cf);
-    plot_pane->read_settings(cf);
+    plot_pane_->read_settings(cf);
     io_pane->output_win->read_settings(cf);
     status_bar->read_settings(cf);
     sidebar->read_settings(cf);
@@ -534,7 +534,7 @@ void FFrame::save_all_settings(wxConfigBase *cf) const
 {
     cf->Write(wxT("/FitykVersion"), pchar2wx(VERSION));
     save_settings(cf);
-    plot_pane->save_settings(cf);
+    plot_pane_->save_settings(cf);
     io_pane->output_win->save_settings(cf);
     status_bar->save_settings(cf);
     sidebar->save_settings(cf);
@@ -549,7 +549,7 @@ void FFrame::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("ShowSideBar"), v_splitter->IsSplit());
     cf->Write(wxT("MainPaneProportion"), main_pane->GetProportion());
     cf->Write(wxT("ShowIOPane"), main_pane->IsSplit());
-    cf->Write(wxT("ShowCrosshair"), plot_pane->crosshair_cursor);
+    cf->Write(wxT("ShowCrosshair"), get_main_plot()->crosshair_cursor());
     cf->Write(wxT("ShowY0"), ftk->view.y0_factor());
     int w, h;
     GetSize(&w, &h);
@@ -845,7 +845,7 @@ void FFrame::set_menubar()
 void FFrame::update_menu_previous_zooms()
 {
     static vector<string> old_zoom_hist;
-    const vector<string> &zoom_hist = plot_pane->get_zoom_hist();
+    const vector<string> &zoom_hist = plot_pane_->get_zoom_hist();
     if (old_zoom_hist == zoom_hist)
         return;
     wxMenu *menu = GetMenuBar()->FindItem(ID_G_V_ZOOM_PREV)->GetSubMenu();
@@ -1135,7 +1135,7 @@ void FFrame::OnSPFInfo (wxCommandEvent&)
 
 void FFrame::OnAutoFreeze(wxCommandEvent& event)
 {
-    plot_pane->get_plot()->set_auto_freeze(event.IsChecked());
+    plot_pane_->get_plot()->set_auto_freeze(event.IsChecked());
 }
 
 void FFrame::OnSExport (wxCommandEvent& event)
@@ -1359,7 +1359,7 @@ void FFrame::change_mouse_mode(MouseModeEnum mode)
     if (toolbar)
         toolbar->ToggleTool(tool_ids[idx], true);
     toolbar->EnableTool(ID_T_STRIP, (mode == mmd_bg));
-    plot_pane->set_mouse_mode(mode);
+    get_main_plot()->set_mouse_mode(mode);
 }
 
 void FFrame::OnChangeMouseMode (wxCommandEvent& event)
@@ -1454,7 +1454,7 @@ void FFrame::OnUndoBg(wxCommandEvent&)
 void FFrame::OnClearBg(wxCommandEvent&)
 {
     get_main_plot()->bgm()->clear_background();
-    refresh_plots(false, kMainPlot);
+    plot_pane_->refresh_plots(false, kMainPlot);
 }
 
 void FFrame::OnRecentBg(wxCommandEvent& event)
@@ -1463,20 +1463,20 @@ void FFrame::OnRecentBg(wxCommandEvent& event)
     change_mouse_mode(mmd_bg);
     get_main_plot()->bgm()->update_focused_data(get_focused_data_index());
     get_main_plot()->bgm()->set_as_recent(n);
-    refresh_plots(false, kMainPlot);
+    plot_pane_->refresh_plots(false, kMainPlot);
 }
 void FFrame::OnConvexHullBg(wxCommandEvent&)
 {
     change_mouse_mode(mmd_bg);
     get_main_plot()->bgm()->update_focused_data(get_focused_data_index());
     get_main_plot()->bgm()->set_as_convex_hull();
-    refresh_plots(false, kMainPlot);
+    plot_pane_->refresh_plots(false, kMainPlot);
 }
 
 void FFrame::OnSplineBg(wxCommandEvent& event)
 {
     get_main_plot()->bgm()->set_spline_bg(event.IsChecked());
-    refresh_plots(false, kMainPlot);
+    plot_pane_->refresh_plots(false, kMainPlot);
 }
 
 void FFrame::SwitchToolbar(bool show)
@@ -1519,7 +1519,7 @@ void FFrame::SwitchSideBar(bool show)
 
 void FFrame::OnSwitchAuxPlot(wxCommandEvent& ev)
 {
-    plot_pane->show_aux(ev.GetId() - ID_G_S_A1, ev.IsChecked());
+    plot_pane_->show_aux(ev.GetId() - ID_G_S_A1, ev.IsChecked());
 }
 
 void FFrame::SwitchIOPane (bool show)
@@ -1527,7 +1527,7 @@ void FFrame::SwitchIOPane (bool show)
     //main_pane->IsSplit() means io_pane is visible
     if (show && !main_pane->IsSplit()) {
         io_pane->Show(true);
-        main_pane->SplitHorizontally(plot_pane, io_pane);
+        main_pane->SplitHorizontally(plot_pane_, io_pane);
     }
     else if (!show && main_pane->IsSplit()) {
         main_pane->Unsplit();
@@ -1539,9 +1539,9 @@ void FFrame::SwitchIOPane (bool show)
 void FFrame::OnShowPrefDialog(wxCommandEvent& ev)
 {
     if (ev.GetId() == ID_G_C_MAIN)
-        plot_pane->get_plot()->OnConfigure(ev);
+        plot_pane_->get_plot()->OnConfigure(ev);
     else
-        plot_pane->get_aux_plot(ev.GetId() - ID_G_C_A1)->show_pref_dialog();
+        plot_pane_->get_aux_plot(ev.GetId() - ID_G_C_A1)->show_pref_dialog();
 }
 
 void FFrame::OnConfigureStatusBar(wxCommandEvent& event)
@@ -1557,7 +1557,7 @@ void FFrame::OnConfigureOutputWin(wxCommandEvent&)
 
 void FFrame::SwitchCrosshair (bool show)
 {
-    plot_pane->crosshair_cursor = show;
+    get_main_plot()->set_crosshair_cursor(show);
     GetMenuBar()->Check(ID_G_CROSSHAIR, show);
 }
 
@@ -1569,7 +1569,7 @@ void FFrame::OnSwitchFullScreen(wxCommandEvent& event)
 
 void FFrame::OnMenuShowAuxUpdate (wxUpdateUIEvent& event)
 {
-    event.Check(plot_pane->aux_visible(event.GetId() - ID_G_S_A1));
+    event.Check(plot_pane_->aux_visible(event.GetId() - ID_G_S_A1));
 }
 
 void FFrame::GViewAll()
@@ -1602,7 +1602,7 @@ void FFrame::OnGScrollRight (wxCommandEvent&)
 void FFrame::OnGScrollUp (wxCommandEvent&)
 {
     View const& view = ftk->view;
-    Scale const& scale = plot_pane->get_plot()->get_y_scale();
+    Scale const& scale = plot_pane_->get_plot()->get_y_scale();
     fp top, bottom;
     if (scale.logarithm) {
         top = 10 * view.top();
@@ -1611,7 +1611,7 @@ void FFrame::OnGScrollUp (wxCommandEvent&)
     else {
         fp const factor = 2.;
         int Y0 = scale.px(0);
-        int H = plot_pane->get_plot()->GetSize().GetHeight();
+        int H = plot_pane_->get_plot()->GetSize().GetHeight();
         bool Y0_visible = (Y0 >= 0 && Y0 < H);
         double pivot = (Y0_visible ? 0. : (view.bottom() + view.top()) / 2);
         top = pivot + factor * (view.top() - pivot);
@@ -1633,7 +1633,7 @@ void FFrame::OnGExtendH (wxCommandEvent&)
 void FFrame::OnPreviousZoom(wxCommandEvent& event)
 {
     int id = event.GetId();
-    string s = plot_pane->zoom_backward(id ? id - ID_G_V_ZOOM_PREV : 1);
+    string s = plot_pane_->zoom_backward(id ? id - ID_G_V_ZOOM_PREV : 1);
     if (!s.empty())
         ftk->exec("plot " + s);
 }
@@ -1651,7 +1651,7 @@ string format_range(const RealRange& r)
 
 void FFrame::change_zoom(const RealRange& h, const RealRange& v)
 {
-    plot_pane->zoom_forward();
+    plot_pane_->zoom_forward();
     string cmd = "plot " + format_range(h) + " " + format_range(v);
     if (h.from_inf() || h.to_inf() || v.from_inf() || v.to_inf())
         cmd += sidebar->get_sel_datasets_as_string();
@@ -1661,7 +1661,7 @@ void FFrame::change_zoom(const RealRange& h, const RealRange& v)
 void FFrame::scroll_view_horizontally(fp step)
 {
     fp diff = ftk->view.width() * step;
-    if (plot_pane->get_plot()->get_x_reversed())
+    if (plot_pane_->get_plot()->get_x_reversed())
         diff = -diff;
     change_zoom(RealRange(ftk->view.left() + diff, ftk->view.right() + diff),
                 ftk->view.ver);
@@ -1832,16 +1832,6 @@ void FFrame::output_text(UserInterface::Style style, const string& str)
     io_pane->output_win->append_text(style, s2wx(str));
 }
 
-void FFrame::refresh_plots(bool now, WhichPlot which_plot)
-{
-    plot_pane->refresh_plots(now, which_plot);
-}
-
-void FFrame::update_crosshair(int X, int Y)
-{
-    plot_pane->update_crosshair(X, Y);
-}
-
 void FFrame::focus_input(wxKeyEvent& event)
 {
     if (should_focus_input(event))
@@ -1874,7 +1864,7 @@ void FFrame::update_toolbar()
     toolbar->ToggleTool(ID_T_STRIP, bgm->has_fn() && bgm->stripped());
     toolbar->EnableTool(ID_T_RUN, !ftk->parameters().empty());
     toolbar->EnableTool(ID_T_UNDO, ftk->get_fit_container()->can_undo());
-    toolbar->EnableTool(ID_T_PZ, !plot_pane->get_zoom_hist().empty());
+    toolbar->EnableTool(ID_T_PZ, !plot_pane_->get_zoom_hist().empty());
 }
 
 int FFrame::get_focused_data_index()
@@ -1948,12 +1938,12 @@ vector<DataAndModel*> FFrame::get_selected_dms()
 
 MainPlot* FFrame::get_main_plot()
 {
-    return plot_pane->get_plot();
+    return plot_pane_->get_plot();
 }
 
 MainPlot const* FFrame::get_main_plot() const
 {
-    return plot_pane->get_plot();
+    return plot_pane_->get_plot();
 }
 
 void FFrame::update_data_pane()
@@ -2019,8 +2009,8 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
 {
     SetToolBitmapSize(wxSize(24, 24));
     // mode
-    MouseModeEnum m = frame ? frame->plot_pane->get_plot()->get_mouse_mode()
-                              : mmd_zoom;
+    MouseModeEnum m = frame ? frame->get_main_plot()->get_mouse_mode()
+                            : mmd_zoom;
     AddRadioTool(ID_T_ZOOM, wxT("Zoom"),
                  wxBitmap(zoom_mode_xpm), wxNullBitmap,
                  wxT("Normal Mode [F1]"),

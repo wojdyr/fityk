@@ -15,8 +15,7 @@ using namespace std;
 
 
 PlotPane::PlotPane(wxWindow *parent, wxWindowID id)
-    : ProportionalSplitter(parent, id),
-      crosshair_cursor(false)
+    : ProportionalSplitter(parent, id)
 {
     plot = new MainPlot(this);
     aux_split = new ProportionalSplitter(this, -1, 0.5);
@@ -89,11 +88,6 @@ void PlotPane::refresh_plots(bool now, WhichPlot which_plot)
     }
 }
 
-void PlotPane::set_mouse_mode(MouseModeEnum m)
-{
-    plot->set_mouse_mode(m);
-}
-
 bool PlotPane::is_background_white()
 {
     //have all visible plots white background?
@@ -113,7 +107,8 @@ bool PlotPane::aux_visible(int n) const
 
 void PlotPane::show_aux(int n, bool show)
 {
-    if (aux_visible(n) == show) return;
+    if (aux_visible(n) == show)
+        return;
 
     if (show) {
         if (!IsSplit()) { //both where invisible
@@ -141,31 +136,12 @@ void PlotPane::show_aux(int n, bool show)
     }
 }
 
-
-/// draw "crosshair cursor" -> erase old and draw new;
-/// can be used to draw vertical line, by calling with Y=-1
-void PlotPane::update_crosshair(int X, int Y)
+void PlotPane::draw_vertical_lines(int X1, int X2, FPlot* skip)
 {
-    static bool drawn = false;
-    static int oldX = 0, oldY = 0;
-    if (drawn) {
-        do_draw_crosshair(oldX, oldY);
-        drawn = false;
-    }
-    // there is a 
-    if ((crosshair_cursor || Y == -1) && X >= 0) {
-        do_draw_crosshair(X, Y);
-        oldX = X;
-        oldY = Y;
-        drawn = true;
-    }
-}
-
-void PlotPane::do_draw_crosshair(int X, int Y)
-{
-    plot->draw_crosshair(X, Y);
+    if (plot != skip)
+        plot->draw_vertical_lines_on_overlay(X1, X2);
     for (int i = 0; i < 2; ++i)
-        if (aux_visible(i))
-            aux_plot[i]->draw_crosshair(X, -1);
+        if (aux_visible(i) && aux_plot[i] != skip)
+            aux_plot[i]->draw_vertical_lines_on_overlay(X1, X2);
 }
 

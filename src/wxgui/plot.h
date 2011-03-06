@@ -1,12 +1,13 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__WX_PLOT__H__
-#define FITYK__WX_PLOT__H__
+#ifndef FITYK_WX_PLOT_H_
+#define FITYK_WX_PLOT_H_
 
 #include <limits.h>
 #include <vector>
 #include <wx/config.h>
+#include <wx/overlay.h>
 #include "../data.h" //Point
 #include "uplot.h" //BufferedPanel
 #include "cmn.h" // compatibility with wx2.8 (defined wxPenStyle, etc.)
@@ -17,15 +18,25 @@
 // INT_MIN, given as coordinate, is invalid value, means "cancel drawing"
 
 class Model;
+class Function;
 class Data;
 class Rect;
 
-enum MouseActEnum  { mat_start, mat_stop, mat_move, mat_redraw };
+inline int get_pixel_width(wxDC const& dc)
+{
+      int w;
+      dc.GetClippingBox(NULL, NULL, &w, NULL);
+      if (w != 0) printf("Clipping On (width)\n");
+      return w != 0 ? w : dc.GetSize().GetWidth();
+}
+inline int get_pixel_height(wxDC const& dc)
+{
+      int h;
+      dc.GetClippingBox(NULL, NULL, NULL, &h);
+      if (h != 0) printf("Clipping On (height)\n");
+      return h != 0 ? h : dc.GetSize().GetHeight();
+}
 
-enum LineOrientation { kVerticalLine, kHorizontalLine };
-
-void draw_line_with_style(wxDC& dc, wxPenStyle style,
-                          wxCoord X1, wxCoord Y1, wxCoord X2, wxCoord Y2);
 
 
 /// convertion between pixels and logical values
@@ -74,6 +85,43 @@ double Scale::val(int px) const
 }
 
 
+
+class Overlay
+{
+public:
+    enum Mode
+    {
+        kNone,
+        kRect,
+        kPeakDraft,
+        kLinearDraft,
+        kFunction,
+        kCrossHair,
+        kVLine,
+        kHLine,
+        kVRange,
+        kHRange
+    };
+    Overlay(wxWindow *window) : window_(window), mode_(kNone) {}
+    void start_mode(Mode m, int x1, int y1) { mode_=m; x1_=x2_=x1; y1_=y2_=y1; }
+    void switch_mode(Mode m) { mode_=m; }
+    void change_pos(int x2,int y2) { x2_=x2; y2_=y2; if (mode_!=kNone) draw(); }
+    void draw();
+    void reset() { wxoverlay_.Reset(); }
+    void draw_lines(int n, wxPoint points[]);
+    Mode mode() const { return mode_; }
+
+private:
+    wxWindow *window_;
+    wxOverlay wxoverlay_;
+    Mode mode_;
+    int x1_, x2_, y1_, y2_;
+
+    void set_pen_and_brush(wxDC& dc);
+};
+
+
+
 /// This class has no instances, MainPlot and AuxPlot are derived from it
 /// It knows how to draw on wxDC. Note that wxDC:SetClippingRegion() should be
 /// used together with wxDC::SetDeviceOrigin(). Clipping box is used only in
@@ -84,22 +132,14 @@ double Scale::val(int px) const
 class FPlot : public BufferedPanel
 {
 public:
-    FPlot(wxWindow *parent)
-       : BufferedPanel(parent),
-         pen_width(1),
-         draw_sigma(false),
-         mouse_press_X(INT_MIN), mouse_press_Y(INT_MIN),
-         lfc_prev_X(INT_MIN), lfc_prev_X0(INT_MIN), lfc_orient(kVerticalLine),
-         esc_seed_(NULL) {}
-
-    virtual ~FPlot() {}
+    FPlot(wxWindow *parent);
+    virtual ~FPlot();
 
     // in wxGTK 2.9 it seems that changing this to true doesn't make
     // the window accept focus
     virtual bool AcceptsFocus() { return false; }
 
     void set_font(wxDC &dc, wxFont const& font);
-    void draw_crosshair(int X, int Y);
     void set_scale(int pixel_width, int pixel_height);
     int get_special_point_at_pointer(wxMouseEvent& event);
     Scale const& get_x_scale() const { return xs; }
@@ -107,9 +147,13 @@ public:
     virtual void save_settings(wxConfigBase *cf) const;
     virtual void read_settings(wxConfigBase *cf);
     void set_magnification(int m) { pen_width = m > 0 ? m : 1; }
+    void draw_vertical_lines_on_overlay(int X1, int X2);
 
 protected:
     Scale xs, ys;
+    Overlay overlay;
+
+    // properties stored in config
     int pen_width;
     wxColour activeDataCol, inactiveDataCol, xAxisCol;
     wxFont ticsFont;
@@ -120,15 +164,11 @@ protected:
          xminor_tics_visible, yminor_tics_visible;
     bool x_grid, y_grid;
     int x_max_tics, y_max_tics, x_tic_size, y_tic_size;
-    int mouse_press_X, mouse_press_Y;
-    int lfc_prev_X, lfc_prev_X0; // lines following cursor (either vert. or h.)
-    LineOrientation lfc_orient;
-    std::vector<wxPoint> special_points; //used to mark positions of peak tops
-    wxWindow *esc_seed_; // temporary source of OnKeyDown() events
 
-    void draw_inverted_line(int X, wxPenStyle style, LineOrientation orient);
-    void start_line_following_cursor(int X0, LineOrientation orient);
-    bool line_following_cursor(MouseActEnum ma, int X=0);
+    int downX, downY;
+    std::vector<wxPoint> special_points; //used to mark positions of peak tops
+    wxWindow *esc_source_; // temporary source of OnKeyDown() events
+
     void draw_xtics (wxDC& dc, Rect const& v, bool set_pen=true);
     void draw_ytics (wxDC& dc, Rect const &v, bool set_pen=true);
     double get_max_abs_y(double (*compute_y)(std::vector<Point>::const_iterator,
@@ -145,22 +185,6 @@ protected:
                     wxColour const& inactive_color = wxNullColour,
                     int Y_offset = 0,
                     bool cumulative=false);
-
-    int get_pixel_width(wxDC const& dc) const
-      //{ return dc.GetSize().GetWidth(); }
-    {
-          int w;
-          dc.GetClippingBox(NULL, NULL, &w, NULL);
-          return w != 0 ? w : dc.GetSize().GetWidth();
-    }
-    int get_pixel_height(wxDC const& dc) const
-    //  { return dc.GetSize().GetHeight(); }
-    {
-          int h;
-          dc.GetClippingBox(NULL, NULL, NULL, &h);
-          return h != 0 ? h : dc.GetSize().GetHeight();
-    }
-
 
     // if connect is true: connect, otherwise disconnect;
     // connect to the currently focused window and handle wxEVT_KEY_DOWN 

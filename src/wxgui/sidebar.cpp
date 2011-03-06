@@ -19,6 +19,7 @@
 #include "gradient.h"
 #include "cmn.h" //SpinCtrl, ProportionalSplitter, change_color_dlg, ...
 #include "frame.h" //frame
+#include "pplot.h"
 #include "mplot.h"
 #include "../common.h" //vector4, join_vector, S(), ...
 #include "../ui.h"
@@ -363,7 +364,7 @@ void SideBar::OnDataButtonCol (wxCommandEvent&)
         if (change_color_dlg(col)) {
             frame->get_main_plot()->set_data_color(n, col);
             update_lists();
-            frame->refresh_plots(false, kMainPlot);
+            frame->plot_pane()->refresh_plots(false, kMainPlot);
         }
     }
     else {//sel_size > 1
@@ -396,7 +397,7 @@ void SideBar::OnDataColorsChanged(wxCommandEvent& event)
         frame->get_main_plot()->set_data_color(i, col);
     }
     update_lists();
-    frame->refresh_plots(false, kMainPlot);
+    frame->plot_pane()->refresh_plots(false, kMainPlot);
     for (int i = 0; i != d->list->GetItemCount(); ++i)
         d->list->Select(i, contains_element(selected, i));
 }
@@ -404,12 +405,12 @@ void SideBar::OnDataColorsChanged(wxCommandEvent& event)
 
 void SideBar::OnDataLookChanged (wxCommandEvent&)
 {
-    frame->refresh_plots(false, kMainPlot);
+    frame->plot_pane()->refresh_plots(false, kMainPlot);
 }
 
 void SideBar::OnDataShiftUpChanged (wxSpinEvent&)
 {
-    frame->refresh_plots(false, kMainPlot);
+    frame->plot_pane()->refresh_plots(false, kMainPlot);
 }
 
 void SideBar::OnDataPSizeChanged (wxSpinEvent& event)
@@ -419,19 +420,19 @@ void SideBar::OnDataPSizeChanged (wxSpinEvent& event)
     //    frame->get_main_plot()->set_data_point_size(i, event.GetPosition());
     // now it is set globally
     frame->get_main_plot()->set_data_point_size(0, event.GetPosition());
-    frame->refresh_plots(false, kMainPlot);
+    frame->plot_pane()->refresh_plots(false, kMainPlot);
 }
 
 void SideBar::OnDataPLineChanged (wxCommandEvent& event)
 {
     frame->get_main_plot()->set_data_with_line(0, event.IsChecked());
-    frame->refresh_plots(false, kMainPlot);
+    frame->plot_pane()->refresh_plots(false, kMainPlot);
 }
 
 void SideBar::OnDataPSChanged (wxCommandEvent& event)
 {
     frame->get_main_plot()->set_data_with_sigma(0, event.IsChecked());
-    frame->refresh_plots(false, kMainPlot);
+    frame->plot_pane()->refresh_plots(false, kMainPlot);
 }
 
 void SideBar::OnFuncFilterChanged (wxCommandEvent&)
@@ -475,7 +476,7 @@ void SideBar::OnFuncButtonCol (wxCommandEvent&)
     if (change_color_dlg(col)) {
         frame->get_main_plot()->set_func_color(color_id, col);
         update_lists();
-        frame->refresh_plots(false, kMainPlot);
+        frame->plot_pane()->refresh_plots(false, kMainPlot);
     }
 }
 
@@ -769,7 +770,7 @@ void SideBar::do_activate_function()
         active_function_name = ftk->get_function(active_function)->name;
     else
         active_function_name = "";
-    frame->refresh_plots(false, kMainPlot);
+    frame->plot_pane()->refresh_plots(false, kMainPlot);
     update_func_inf();
     update_param_panel();
 }
@@ -797,14 +798,14 @@ void SideBar::OnDataFocusChanged(wxListEvent &)
         return;
     int length = ftk->get_dm_count();
     if (length > 1)
-        frame->refresh_plots(false, kAllPlots);
+        frame->plot_pane()->refresh_plots(false, kAllPlots);
     update_data_inf();
 }
 
 void SideBar::OnDataSelectionChanged(wxListEvent &/*event*/)
 {
     if (data_look->GetSelection() != 0) // ! all datasets
-        frame->refresh_plots(false, kAllPlots);
+        frame->plot_pane()->refresh_plots(false, kAllPlots);
     //bool selected= (event.GetEventType() == wxEVT_COMMAND_LIST_ITEM_SELECTED);
     //assert (selected
     //        || event.GetEventType() == wxEVT_COMMAND_LIST_ITEM_DESELECTED);
@@ -1043,13 +1044,11 @@ void SideBar::make_same_func_par(string const& p, bool checked)
 
 void SideBar::on_parameter_changing(const std::vector<double>& values)
 {
-    bool erase_previous = true;
-    frame->get_main_plot()->draw_xor_peak(pp_func, values, erase_previous);
+    frame->get_main_plot()->draw_overlay_func(pp_func, values);
 }
 
 void SideBar::on_parameter_changed(int n)
 {
-    frame->get_main_plot()->redraw_xor_peak(true); // erase xor line
     string vname = wx2s(param_panel->get_label2(n));
     ftk->exec(vname + " = ~" + eS(param_panel->get_value(n)));
 }
