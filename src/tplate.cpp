@@ -131,23 +131,23 @@ void TplateMgr::add_builtin_types(Parser* p)
         "a0 + a1 * x",
         /*linear_d=*/true, /*peak_d=*/false, &create_FuncLinear);
 
-    add("Quadratic", "a0,a1,a2", "avgy,0,0",
+    add("Quadratic", "a0,a1,a2", "intercept,slope,0",
         "a0 + a1*x + a2*x^2",
         /*linear_d=*/true, /*peak_d=*/false, &create_FuncQuadratic);
 
-    add("Cubic", "a0,a1,a2,a3", "avgy,0,0,0",
+    add("Cubic", "a0,a1,a2,a3", "intercept,slope,0,0",
         "a0 + a1*x + a2*x^2 + a3*x^3",
         /*linear_d=*/true, /*peak_d=*/false, &create_FuncCubic);
 
-    add("Polynomial4", "a0,a1,a2,a3,a4", "avgy,0,0,0,0",
+    add("Polynomial4", "a0,a1,a2,a3,a4", "intercept,slope,0,0,0",
         "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4",
         /*linear_d=*/true, /*peak_d=*/false, &create_FuncPolynomial4);
 
-    add("Polynomial5", "a0,a1,a2,a3,a4,a5", "avgy,0,0,0,0,0",
+    add("Polynomial5", "a0,a1,a2,a3,a4,a5", "intercept,slope,0,0,0,0",
         "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5",
         /*linear_d=*/true, /*peak_d=*/false, &create_FuncPolynomial5);
 
-    add("Polynomial6", "a0,a1,a2,a3,a4,a5,a6", "avgy,0,0,0,0,0,0",
+    add("Polynomial6", "a0,a1,a2,a3,a4,a5,a6", "intercept,slope,0,0,0,0,0",
         "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5 + a6*x^6",
         /*linear_d=*/true, /*peak_d=*/false, &create_FuncPolynomial6);
 
