@@ -465,7 +465,7 @@ string Data::range_as_string() const
         if (p_.begin() + *i != old_p + 1) {
             fp right = old_p->x;
             left = p_[*i].x;
-            s += S(right) + "], + [" + S(left) + " : ";
+            s += S(right) + "] + [" + S(left) + " : ";
         }
         old_p = p_.begin() + *i;
     }
