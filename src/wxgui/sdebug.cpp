@@ -156,6 +156,10 @@ void ScriptDebugDlg::exec_line(int n)
     // empty line gives "\n"+next line
     if (!line.empty() && line[0] == '\n') // wx bug
         line = wxT("");
+#if __WXMAC__
+    if (line.EndsWith(wxT("\n")))
+        line.resize(line.size() - 1);
+#endif
     string s = wx2s(line);
     replace_all(s, "_EXECUTED_SCRIPT_DIR_/", script_dir);
     ftk->exec(s);

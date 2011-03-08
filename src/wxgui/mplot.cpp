@@ -1063,7 +1063,8 @@ void MainPlot::cancel_mouse_press()
     if (pressed_mouse_button_) {
         overlay.switch_mode(get_normal_ovmode());
         fmd_->stop();
-        ReleaseMouse();
+        if (GetCapture() == this)
+            ReleaseMouse();
         connect_esc_to_cancel(false);
         downX = downY = INT_MIN;
         pressed_mouse_button_ = 0;
@@ -1277,7 +1278,8 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     }
 
     overlay.switch_mode(get_normal_ovmode());
-    ReleaseMouse();
+    if (GetCapture() == this)
+        ReleaseMouse();
     connect_esc_to_cancel(false);
     pressed_mouse_button_ = 0;
     update_mouse_hints();

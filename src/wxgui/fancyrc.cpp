@@ -85,15 +85,14 @@ void ValueChangingWidget::OnThumbTrack(wxScrollEvent&)
 class LockButton : public wxBitmapButton
 {
 public:
+    static void initialize_bitmaps();
+
     LockButton(wxWindow* parent, bool connect_default_handler)
         : wxBitmapButton(parent, -1, bitmaps[0],
                          wxDefaultPosition, wxDefaultSize, wxNO_BORDER),
           state_(0)
     {
-        if (!bitmaps[0].IsOk()) {
-            initialize_bitmaps();
-            SetBitmapLabel(bitmaps[0]);
-        }
+        assert(bitmaps[0].IsOk());
         if (connect_default_handler)
             Connect(GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
                     wxCommandEventHandler(LockButton::OnClick));
@@ -110,7 +109,6 @@ public:
 
 private:
     static wxBitmap bitmaps[3];
-    static void initialize_bitmaps();
 
     int state_;
     void OnClick(wxCommandEvent&) { set_state(state_ == 0 ? 1 : 0); }
@@ -121,6 +119,8 @@ wxBitmap LockButton::bitmaps[3];
 
 void LockButton::initialize_bitmaps()
 {
+    if (bitmaps[0].IsOk())
+        return;
 #ifdef __WXMAC__
     // wxOSX supports border-less image buttons only when using bitmap of
     // one of the standard sizes (128x128, 48x48, 24x24 or 16x16).
@@ -142,6 +142,7 @@ LockableRealCtrl::LockableRealCtrl(wxWindow* parent, bool percent)
         text = new KFTextCtrl(this, -1, wxT(""), 50, wxTE_RIGHT);
     else
         text = new KFTextCtrl(this, -1, wxT(""));
+    LockButton::initialize_bitmaps();
     lock = new LockButton(this, true);
     wxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(text, wxSizerFlags().Center());
@@ -315,6 +316,7 @@ void ParameterPanel::append_row()
 #endif
     data.text = new KFTextCtrl(this, -1, wxEmptyString, text_width);
     data.rsizer = new wxBoxSizer(wxHORIZONTAL);
+    LockButton::initialize_bitmaps();
     data.lock = new LockButton(this, false);
     data.arm = new ValueChangingWidget(this, -1, this);
     data.label2 = new wxStaticText(this, -1, wxEmptyString);

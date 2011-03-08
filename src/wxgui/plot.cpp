@@ -53,13 +53,8 @@ double Scale::valr(int px) const
 //TODO: pen color should depend on background color
 void Overlay::set_pen_and_brush(wxDC& dc)
 {
-#ifdef __WXMAC__
-    dc.SetPen(*wxGREY_PEN);
-    dc.SetBrush(wxColour(192,192,192,64));
-#else
     dc.SetPen(wxPen(*wxLIGHT_GREY, 1, wxPENSTYLE_SHORT_DASH));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
-#endif
 }
 
 void Overlay::draw()
@@ -398,9 +393,9 @@ void FPlot::draw_data (wxDC& dc,
             X_ = X;
 	    Y_ = Y;
         }
-        else {//no line_between_points
+        else { //no line_between_points
             if (point_radius == 1)
-                dc.DrawPoint (X, Y);
+                dc.DrawPoint(X, Y);
         }
 
         if (draw_sigma) {

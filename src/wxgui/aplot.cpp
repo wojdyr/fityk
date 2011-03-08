@@ -367,7 +367,8 @@ void AuxPlot::cancel_mouse_left_press()
 {
     if (downX == INT_MIN)
         return;
-    ReleaseMouse();
+    if (GetCapture() == this)
+        ReleaseMouse();
     connect_esc_to_cancel(false);
     downX = INT_MIN;
     SetCursor(wxCURSOR_CROSS);
@@ -384,7 +385,8 @@ void AuxPlot::OnLeftUp (wxMouseEvent &event)
         return;
     fp x1 = xs.val(event.GetX());
     fp x2 = xs.val(downX); // must be called before cancel_mouse...()
-    ReleaseMouse();
+    if (GetCapture() == this)
+        ReleaseMouse();
     connect_esc_to_cancel(false);
     downX = INT_MIN;
     SetCursor(wxCURSOR_CROSS);
