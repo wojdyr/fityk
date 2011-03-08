@@ -9,7 +9,7 @@
 #include <map>
 #include <vector>
 #include <string>
-#include <wx/listbook.h>
+#include <wx/toolbook.h>
 
 #include "ceria.h"
 
@@ -24,7 +24,7 @@ class LockableRealCtrl;
 class PhasePanel;
 class RealNumberCtrl;
 
-class PowderBook : public wxListbook
+class PowderBook : public wxToolbook
 {
     friend class PlotWithLines;
 #if STANDALONE_POWDIFPAT
@@ -35,19 +35,6 @@ public:
     std::map<std::string, CelFile> quick_phase_list;
 
     PowderBook(wxWindow* parent, wxWindowID id);
-    void OnXAxisSelected(wxCommandEvent& event);
-    void OnAnodeSelected(wxCommandEvent& event);
-    void OnQuickPhaseSelected(wxCommandEvent& event);
-    void OnQuickListRemove(wxCommandEvent&);
-    void OnQuickListImport(wxCommandEvent&);
-    void OnLambdaChange(wxCommandEvent& event);
-    void OnPageChanged(wxListbookEvent& event);
-    void OnPeakRadio(wxCommandEvent& event);
-    void OnPeakSplit(wxCommandEvent& event);
-    void OnWidthRadio(wxCommandEvent& event);
-    void OnShapeRadio(wxCommandEvent& event);
-    void OnDelButton(wxCommandEvent&);
-    void OnOk(wxCommandEvent&);
     PhasePanel *get_phase_panel(int n);
     PhasePanel *get_current_phase_panel();
     void deselect_phase_quick_list();
@@ -107,6 +94,20 @@ private:
     void fill_forms();
     wxString get_peak_name() const;
     void save_phase_desc();
+
+    void OnXAxisSelected(wxCommandEvent& event);
+    void OnAnodeSelected(wxCommandEvent& event);
+    void OnQuickPhaseSelected(wxCommandEvent& event);
+    void OnQuickListRemove(wxCommandEvent&);
+    void OnQuickListImport(wxCommandEvent&);
+    void OnLambdaChange(wxCommandEvent& event);
+    void OnPageChanged(wxBookCtrlEvent& event);
+    void OnPeakRadio(wxCommandEvent& event);
+    void OnPeakSplit(wxCommandEvent& event);
+    void OnWidthRadio(wxCommandEvent& event);
+    void OnShapeRadio(wxCommandEvent& event);
+    void OnDelButton(wxCommandEvent&);
+    void OnOk(wxCommandEvent&);
 };
 
 #if !STANDALONE_POWDIFPAT

@@ -173,11 +173,16 @@ LockableRealCtrl *addMaybeRealCtrl(wxWindow *parent, wxString const& label,
 
 } // anonymous namespace
 
+#ifndef wxTBK_BUTTONBAR // for wx < 2.9
+#define wxTBK_BUTTONBAR wxBK_BUTTONBAR
+#endif
+
 vector<PowderBook::PhasePanelExtraData> PowderBook::phase_desc;
 int PowderBook::xaxis_sel = 0;
 
 PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
-    : wxListbook(parent, id), x_min(10), x_max(150), y_max(1000), data(NULL)
+    : wxToolbook(parent, id, wxDefaultPosition, wxDefaultSize, wxTBK_BUTTONBAR),
+      x_min(10), x_max(150), y_max(1000), data(NULL)
 {
 #if !STANDALONE_POWDIFPAT
     int data_nr = frame->get_focused_data_index();
@@ -212,7 +217,7 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
     fill_forms();
 #endif
 
-    Connect(GetId(), wxEVT_COMMAND_LISTBOOK_PAGE_CHANGED,
+    Connect(GetId(), wxEVT_COMMAND_TOOLBOOK_PAGE_CHANGED,
             (wxObjectEventFunction) &PowderBook::OnPageChanged);
 }
 
@@ -1788,7 +1793,7 @@ void PowderBook::OnLambdaChange(wxCommandEvent&)
     anode_lb->SetSelection(wxNOT_FOUND);
 }
 
-void PowderBook::OnPageChanged(wxListbookEvent& event)
+void PowderBook::OnPageChanged(wxBookCtrlEvent& event)
 {
     if (event.GetSelection() == 2) { // sample
         for (size_t i = 0; i != sample_nb->GetPageCount(); ++i) {
