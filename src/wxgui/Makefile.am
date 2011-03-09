@@ -83,7 +83,6 @@ img/color.xpm \
 img/cont_fit.xpm \
 img/convert.xpm \
 img/copyfunc.xpm \
-img/down_arrow.xpm \
 img/edit_data.xpm \
 img/editf.xpm \
 img/exec_down.xpm \
@@ -111,7 +110,6 @@ img/strip_bg.xpm \
 img/sum.xpm \
 img/undo_fit.xpm \
 img/unused.xpm \
-img/up_arrow.xpm \
 img/zoom_all.xpm \
 img/zoom_left.xpm \
 img/zoom_mode.xpm \

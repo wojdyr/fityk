@@ -8,27 +8,20 @@
 #include "../logic.h"
 #include "../fit.h"
 
-#include "img/up_arrow.xpm"
-#include "img/down_arrow.xpm"
-
 using namespace std;
 
 enum {
     ID_SHIST_LC             = 26100,
-    ID_SHIST_UP                    ,
-    ID_SHIST_DOWN                  ,
     ID_SHIST_CWSSR                 ,
     ID_SHIST_V                     , // and next 3
 };
 
 BEGIN_EVENT_TABLE(SumHistoryDlg, wxDialog)
     EVT_ACTIVATE (SumHistoryDlg::OnActivate)
-    EVT_BUTTON      (ID_SHIST_UP,     SumHistoryDlg::OnUpButton)
-    EVT_BUTTON      (ID_SHIST_DOWN,   SumHistoryDlg::OnDownButton)
     EVT_BUTTON      (ID_SHIST_CWSSR,  SumHistoryDlg::OnComputeWssrButton)
     EVT_BUTTON      (wxID_CLEAR,      SumHistoryDlg::OnClearHistory)
     EVT_LIST_ITEM_SELECTED  (ID_SHIST_LC, SumHistoryDlg::OnSelectedItem)
-    EVT_LIST_ITEM_ACTIVATED (ID_SHIST_LC, SumHistoryDlg::OnActivatedItem)
+    EVT_LIST_ITEM_FOCUSED (ID_SHIST_LC, SumHistoryDlg::OnFocusedItem)
     EVT_SPINCTRL    (ID_SHIST_V+0,    SumHistoryDlg::OnViewSpinCtrlUpdate)
     EVT_SPINCTRL    (ID_SHIST_V+1,    SumHistoryDlg::OnViewSpinCtrlUpdate)
     EVT_SPINCTRL    (ID_SHIST_V+2,    SumHistoryDlg::OnViewSpinCtrlUpdate)
@@ -39,22 +32,17 @@ SumHistoryDlg::SumHistoryDlg (wxWindow* parent, wxWindowID id)
     : wxDialog(parent, id, wxT("Parameters History"),
                wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
-      lc(NULL), compute_wssr_button(NULL), wssr_done(false)
+      compute_wssr_button(NULL), wssr_done(false)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
 
     wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
-    initialize_lc(); //wxListCtrl
+    lc = new wxListView(this, ID_SHIST_LC,
+                        wxDefaultPosition, wxSize(450, 250),
+                        wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_HRULES|wxLC_VRULES
+                            |wxSIMPLE_BORDER);
+    initialize_lc();
     hsizer->Add (lc, 1, wxEXPAND);
-
-    wxBoxSizer *arrows_sizer = new wxBoxSizer(wxVERTICAL);
-    up_arrow = new wxBitmapButton (this, ID_SHIST_UP, wxBitmap (up_arrow_xpm));
-    arrows_sizer->Add (up_arrow, 0);
-    arrows_sizer->Add (10, 10, 1);
-    down_arrow = new wxBitmapButton (this, ID_SHIST_DOWN,
-                                     wxBitmap (down_arrow_xpm));
-    arrows_sizer->Add (down_arrow, 0);
-    hsizer->Add (arrows_sizer, 0, wxALIGN_CENTER);
     top_sizer->Add (hsizer, 1, wxEXPAND);
 
     wxBoxSizer *buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -79,21 +67,19 @@ SumHistoryDlg::SumHistoryDlg (wxWindow* parent, wxWindowID id)
     SetSizer (top_sizer);
     top_sizer->SetSizeHints (this);
 
-    update_selection();
+    int index = ftk->get_fit_container()->get_active_nr();
+    lc->Select(index, true);
+    lc->Focus(index);
+    lc->SetFocus();
     SetEscapeId(wxID_CLOSE);
 }
 
 void SumHistoryDlg::initialize_lc()
 {
-    assert (lc == 0);
     view_max = ftk->parameters().size() - 1;
     assert (view_max != -1);
     for (int i = 0; i < 4; i++)
         view[i] = min (i, view_max);
-    lc = new wxListCtrl (this, ID_SHIST_LC,
-                         wxDefaultPosition, wxSize(450, 250),
-                         wxLC_REPORT|wxLC_SINGLE_SEL|wxLC_HRULES|wxLC_VRULES
-                             |wxSIMPLE_BORDER);
     lc->InsertColumn(0, wxT("No."));
     lc->InsertColumn(1, wxT("parameters"));
     lc->InsertColumn(2, wxT("WSSR"));
@@ -118,36 +104,6 @@ void SumHistoryDlg::add_item_to_lc(int pos, vector<double> const& item)
         if (n < size(item))
             lc->SetItem(pos, 3 + j, wxString::Format(wxT("%g"), item[n]));
     }
-}
-
-void SumHistoryDlg::update_selection()
-{
-    FitMethodsContainer const* fmc = ftk->get_fit_container();
-    int index = fmc->get_active_nr();
-    lc->SetItemState (index, wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED,
-                             wxLIST_STATE_SELECTED|wxLIST_STATE_FOCUSED);
-    up_arrow->Enable (index != 0);
-    down_arrow->Enable (index != fmc->get_param_history_size() - 1);
-}
-
-void SumHistoryDlg::OnUpButton (wxCommandEvent&)
-{
-    ftk->exec("fit undo");
-
-    // undo can cause adding new item to the history
-    FitMethodsContainer const* fmc = ftk->get_fit_container();
-    int ps = fmc->get_param_history_size();
-    if (lc->GetItemCount() == ps - 1)
-        add_item_to_lc(ps - 1, fmc->get_item(ps - 1));
-    assert(lc->GetItemCount() == ps);
-
-    update_selection();
-}
-
-void SumHistoryDlg::OnDownButton (wxCommandEvent&)
-{
-    ftk->exec("fit redo");
-    update_selection();
 }
 
 void SumHistoryDlg::compute_wssr()
@@ -176,20 +132,17 @@ void SumHistoryDlg::clear_history()
     ftk->exec("fit clear_history");
     // we assume that the history is empty now and disable almost everything
     lc->DeleteAllItems();
-    up_arrow->Enable(false);
-    down_arrow->Enable(false);
 }
 
-void SumHistoryDlg::OnSelectedItem (wxListEvent&)
+void SumHistoryDlg::OnSelectedItem(wxListEvent&)
 {
-    update_selection();
 }
 
-void SumHistoryDlg::OnActivatedItem (wxListEvent& event)
+void SumHistoryDlg::OnFocusedItem(wxListEvent& event)
 {
     int n = event.GetIndex();
-    ftk->exec("fit history " + S(n));
-    update_selection();
+    if (n >= 0 && n != ftk->get_fit_container()->get_active_nr())
+        ftk->exec("fit history " + S(n));
 }
 
 void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)
