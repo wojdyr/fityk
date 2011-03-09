@@ -166,6 +166,7 @@ void EditTransDlg::init()
                     wxSizerFlags().Border(wxLEFT|wxRIGHT|wxTOP));
     wxBoxSizer *lh_sizer = new wxBoxSizer(wxHORIZONTAL);
     trans_list = new wxCheckListBox(left_panel, -1);
+    trans_list->SetMinSize(wxSize(200, -1));
     lh_sizer->Add(trans_list, wxSizerFlags(1).Expand().Border());
     // buttons on the right of the list
     wxBoxSizer *lbutton_sizer = new wxBoxSizer(wxVERTICAL);
@@ -179,16 +180,6 @@ void EditTransDlg::init()
     lbutton_sizer->Add(down_btn, wxSizerFlags().Border());
     lh_sizer->Add(lbutton_sizer, wxSizerFlags().Center());
     left_sizer->Add(lh_sizer, wxSizerFlags(1).Expand());
-    // buttons at the bottom of the list
-    wxBoxSizer *bb_sizer = new wxBoxSizer(wxHORIZONTAL);
-    save_btn = new wxButton(left_panel, wxID_SAVE);
-    bb_sizer->Add(save_btn, wxSizerFlags().Border());
-    revert_btn = new wxButton(left_panel, wxID_REVERT_TO_SAVED);
-    bb_sizer->Add(revert_btn, wxSizerFlags().Border());
-    todefault_btn = new wxButton(left_panel, -1, wxT("Restore &to Default"));
-    todefault_btn->SetToolTip(wxT("Load default transformations."));
-    bb_sizer->Add(todefault_btn, wxSizerFlags().Border());
-    left_sizer->Add(bb_sizer, wxSizerFlags());
     left_panel->SetSizerAndFit(left_sizer);
 
     // right side of the dialog
@@ -252,8 +243,20 @@ void EditTransDlg::init()
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     top_sizer->Add(splitter, wxSizerFlags(1).Expand());
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
-    top_sizer->Add(new wxButton(this, wxID_CLOSE, wxT("&Close")),
-                   wxSizerFlags().Border().Center());
+
+    // buttons at the bottom of the dialog
+    wxBoxSizer *bb_sizer = new wxBoxSizer(wxHORIZONTAL);
+    save_btn = new wxButton(this, wxID_SAVE);
+    bb_sizer->Add(save_btn, wxSizerFlags().Border());
+    revert_btn = new wxButton(this, wxID_REVERT_TO_SAVED);
+    bb_sizer->Add(revert_btn, wxSizerFlags().Border());
+    todefault_btn = new wxButton(this, -1, wxT("Restore &to Default"));
+    todefault_btn->SetToolTip(wxT("Load default transformations."));
+    bb_sizer->Add(todefault_btn, wxSizerFlags().Border());
+    bb_sizer->AddStretchSpacer();
+    bb_sizer->Add(new wxButton(this, wxID_CLOSE, wxT("&Close")),
+                  wxSizerFlags().Border().Right());
+    top_sizer->Add(bb_sizer, wxSizerFlags().Expand());
     SetSizerAndFit(top_sizer);
     SetEscapeId(wxID_CLOSE);
 
