@@ -259,6 +259,9 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
     //finish layout
     wxBoxSizer *top_sizer = new wxBoxSizer (wxVERTICAL);
     top_sizer->Add(nb, 1, wxLEFT|wxRIGHT|wxTOP|wxEXPAND, 10);
+#if __WXMAC__
+    nb->SetMinSize(wxSize(-1, 300));
+#endif
     wxStaticText *note = new wxStaticText(this, -1,
       wxT("These settings can be saved in the init script")
       wxT(" (Session \u2023 Edit Init File).")
