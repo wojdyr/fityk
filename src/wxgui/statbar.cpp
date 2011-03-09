@@ -66,7 +66,15 @@ FStatusBar::FStatusBar(wxWindow *parent)
     lmouse_hint = new wxStaticText(this, -1, long_hint);
     rmouse_hint = new wxStaticText(this, -1, long_hint,
                                    wxDefaultPosition, wxDefaultSize,
-                                   wxST_NO_AUTORESIZE);
+#ifdef __WXMAC__
+                                   // wxST_NO_AUTORESIZE breaks the layout
+                                   // on wxCarbon 2.9.2 (I haven't investigate
+                                   // it further)
+                                   0
+#else
+                                   wxST_NO_AUTORESIZE
+#endif
+                                   );
     mousebmp = new wxStaticBitmap(this, -1, GET_BMP(mouse16));
     wxBoxSizer *lmouse_sizer = new wxBoxSizer(wxHORIZONTAL);
     lmouse_sizer->AddStretchSpacer();
