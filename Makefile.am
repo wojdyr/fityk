@@ -1,9 +1,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = fityk.iss fityk.url fityk.svg \
-	     m4/readline.m4 \
-	     macosx/README.txt macosx/Makefile macosx/Info.plist.in \
-	     macosx/fityk.icns
+	     m4/readline.m4
 AUTOMAKE_OPTIONS = dist-bzip2
 
 SUBDIRS=
