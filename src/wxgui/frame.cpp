@@ -420,6 +420,12 @@ FFrame::~FFrame()
     write_recent_data_files();
     wxConfig::Get()->Write(wxT("/DefaultFunctionType"), peak_type_nr);
     delete print_mgr;
+#ifdef __WXMAC__
+    // On wxCarbon 2.9.2svn assertion pops up on exit
+    // (from wxObject::CreateRefData src/common/object.cpp:418).
+    // It's somehow related to the toolbar. This is a workaround:
+    SwitchToolbar(false);
+#endif
 }
 
 void FFrame::OnQuit(wxCommandEvent&)
