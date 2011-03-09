@@ -16,6 +16,11 @@
 #include "img/save_as.xpm"
 #include "img/close.xpm"
 
+#if __WXMAC__
+#include <wx/generic/buttonbar.h>
+#define wxToolBar wxButtonToolBar
+#endif
+
 using namespace std;
 
 enum {
@@ -83,6 +88,12 @@ ScriptDebugDlg::ScriptDebugDlg(wxWindow* parent)
     tb->AddSeparator();
     tb->AddTool(ID_SE_CLOSE, wxT("Close"), wxBitmap(close_xpm), wxNullBitmap,
                 wxITEM_NORMAL, wxT("Exit debugger"), wxT("Close debugger"));
+#if __WXMAC__
+    for (size_t i = 0; i < tb->GetToolsCount(); ++i) {
+        const wxToolBarToolBase *tool = tb->GetToolByPos(i);
+        tb->SetToolShortHelp(tool->GetId(), tool->GetLabel());
+    }
+#endif
     tb->Realize();
     top_sizer->Add(tb, 0, wxEXPAND);
     txt = new wxTextCtrl(this, ID_SE_TXT, wxT(""),

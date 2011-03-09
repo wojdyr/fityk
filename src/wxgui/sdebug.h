@@ -24,7 +24,7 @@ public:
     void save_file(const wxString& save_path);
     const wxString& get_path() const { return path_; }
 protected:
-    wxToolBar *tb;
+    wxToolBarBase *tb;
     wxTextCtrl *txt;
     wxString dir;
     wxString path_;
