@@ -303,6 +303,7 @@ void ParameterPanel::append_row()
         row.lock->Show(true);
         row.arm->Show(true);
         values_.push_back(0.);
+        return;
     }
 #endif
     ParameterRowData data;
@@ -379,6 +380,7 @@ void ParameterPanel::delete_row_range(int begin, int end)
         row.arm->Destroy();
         row.label2->Destroy();
     }
+    rows_.erase(rows_.begin() + begin, rows_.begin() + end);
 #else
     for (int i = begin; i < end; ++i) {
         ParameterRowData& row = rows_[i];
@@ -388,7 +390,9 @@ void ParameterPanel::delete_row_range(int begin, int end)
         row.arm->Show(false);
         row.label2->Show(false);
     }
-    rows_.erase(rows_.begin() + begin, rows_.begin() + end);
+#ifdef __WXMAC__
+    Refresh();
+#endif
 #endif
     values_.erase(values_.begin() + begin, values_.begin() + end);
 }
