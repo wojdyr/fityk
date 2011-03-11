@@ -182,9 +182,16 @@ MergePointsDlg::MergePointsDlg(wxWindow* parent, wxWindowID id)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     inf = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition, wxDefaultSize,
-                         wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
+                         wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE|wxNO_BORDER);
+#ifdef __WXGTK__
+    wxColour bg_col = wxStaticText::GetClassDefaultAttributes().colBg;
+#else
+    wxColour bg_col = GetBackgroundColour();
+#endif
+    inf->SetBackgroundColour(bg_col);
+    inf->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col));
     update_info();
-    top_sizer->Add(inf, 1, wxEXPAND|wxALL, 1);
+    top_sizer->Add(inf, 1, wxEXPAND|wxTOP|wxLEFT|wxRIGHT, 10);
     wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
     dx_cb = new wxCheckBox(this, -1, wxT("merge points with |x1-x2|<"));
     dx_cb->SetValue(true);
@@ -192,7 +199,7 @@ MergePointsDlg::MergePointsDlg(wxWindow* parent, wxWindowID id)
     dx_val = new RealNumberCtrl(this, -1, ftk->get_settings()->epsilon);
     hsizer->Add(dx_val, 0);
     top_sizer->Add(hsizer, 0, wxALL, 5);
-    y_rb = new wxRadioBox(this, -1, wxT("set y as ..."),
+    y_rb = new wxRadioBox(this, -1, wxT("y = "),
                           wxDefaultPosition, wxDefaultSize,
                           ArrayString(wxT("sum"), wxT("avg")),
                           1, wxRA_SPECIFY_ROWS);
@@ -204,7 +211,6 @@ MergePointsDlg::MergePointsDlg(wxWindow* parent, wxWindowID id)
                                ArrayString(fdstr, wxT("new dataset")),
                                1, wxRA_SPECIFY_ROWS);
     top_sizer->Add(output_rb, 0, wxEXPAND|wxALL, 5);
-    top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
     top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL),
                    0, wxALL|wxALIGN_CENTER, 5);
     SetSizerAndFit(top_sizer);
