@@ -41,9 +41,14 @@ AboutDlg::AboutDlg(wxWindow* parent)
                                      wxSize(-1,200),
 #endif
                          wxTE_MULTILINE|wxTE_RICH|wxNO_BORDER |wxTE_READONLY);
-    txt->SetBackgroundColour(GetBackgroundColour());
-    txt->SetDefaultStyle(wxTextAttr(wxNullColour, GetBackgroundColour(),
-                                    *wxITALIC_FONT));
+#ifdef __WXGTK__
+    //wxColour bg_col = wxStaticText::GetClassDefaultAttributes().colBg;
+    wxColour bg_col = name->GetDefaultAttributes().colBg;
+#else
+    wxColour bg_col = GetBackgroundColour();
+#endif
+    txt->SetBackgroundColour(bg_col);
+    txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxITALIC_FONT));
     txt->AppendText(wxT("powered by ") wxVERSION_STRING wxT("\n"));
     txt->AppendText(wxString::Format(wxT("powered by Boost %d.%d.%d\n"),
                                      BOOST_VERSION / 100000,
@@ -51,8 +56,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
                                      BOOST_VERSION % 100));
     txt->AppendText(wxT("powered by xylib ") + pchar2wx(xylib_get_version())
                     + wxT("\n"));
-    txt->SetDefaultStyle(wxTextAttr(wxNullColour, GetBackgroundColour(),
-                                    *wxNORMAL_FONT));
+    txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxNORMAL_FONT));
     txt->AppendText(wxT("\nCopyright (C) 2001 - 2011 Marcin Wojdyr\n\n"));
     txt->AppendText(
    wxT("This program is free software; you can redistribute it and/or modify ")
@@ -66,7 +70,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
     wxButton *button = new wxButton (this, wxID_CLOSE);
     SetEscapeId(wxID_CLOSE);
     //button->SetDefault();
-    sizer->Add (button, wxSizerFlags().Right().Border());
+    sizer->Add(button, wxSizerFlags().Right().Border());
     SetSizerAndFit(sizer);
 }
 
