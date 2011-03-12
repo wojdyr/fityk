@@ -2,7 +2,6 @@
 // Licence: GNU General Public License ver. 2+
 
 //TODO:
-// finish fill_forms()
 //
 // deconvolution of instrumental profile
 // buffer the plot with data
@@ -125,6 +124,7 @@ public:
     void OnAtomsChanged(wxCommandEvent& event);
     void set_phase(string const& name, CelFile const& cel);
     const Crystal& get_crystal() const { return cr_; }
+    Crystal& get_crystal() { return cr_; }
     bool editing_atoms() const { return editing_atoms_; }
     int get_selected_hkl() const { return hkl_list->GetSelection(); }
 
@@ -181,7 +181,8 @@ vector<PowderBook::PhasePanelExtraData> PowderBook::phase_desc;
 int PowderBook::xaxis_sel = 0;
 
 PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
-    : wxToolbook(parent, id, wxDefaultPosition, wxDefaultSize, wxTBK_BUTTONBAR),
+    : wxToolbook(parent, id, wxDefaultPosition, wxDefaultSize,
+                 wxBK_LEFT|wxTBK_BUTTONBAR),
       x_min(10), x_max(150), y_max(1000), data(NULL)
 {
 #if !STANDALONE_POWDIFPAT
@@ -216,6 +217,11 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
 #if !STANDALONE_POWDIFPAT
     fill_forms();
 #endif
+
+    wxColour c = GetToolBar()->GetBackgroundColour();
+    GetToolBar()->SetBackgroundColour(wxColour(max(0, c.Red() - 50),
+                                               max(0, c.Green() - 50),
+                                               c.Blue(), c.Alpha()));
 
     Connect(GetId(), wxEVT_COMMAND_TOOLBOOK_PAGE_CHANGED,
             (wxObjectEventFunction) &PowderBook::OnPageChanged);
@@ -355,7 +361,7 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
     xaxis_choices.Add(wxT("2\u03B8")); //\u03B8 = theta
     xaxis_choices.Add(wxT("Q"));
     xaxis_choices.Add(wxT("d"));
-    xaxis_rb = new wxRadioBox(panel, -1, wxT("data x axis"),
+    xaxis_rb = new wxRadioBox(panel, -1, wxT("x axis"),
                                           wxDefaultPosition, wxDefaultSize,
                                           xaxis_choices, 3);
     // \u03C0 = pi, \u03BB = lambda
@@ -1170,57 +1176,76 @@ wxString PowderBook::get_peak_name() const
     return split_cb->GetValue() ? wxT("Split") + s : s;
 }
 
+void PowderBook::set_peak_name(const string& name)
+{
+    string basename;
+    if (startswith(name, "Split")) {
+        split_cb->SetValue(true);
+        basename = name.substr(5);
+    }
+    else
+        basename = name;
+
+    int sel = 0;
+    if (basename == "Gaussian")
+        sel = 0;
+    else if (basename == "Lorentzian")
+        sel = 1;
+    else if (basename == "Pearson7")
+        sel = 2;
+    else if (basename == "PseudoVoigt")
+        sel = 3;
+    else if (basename == "Voigt")
+        sel = 4;
+    peak_rb->SetSelection(sel);
+}
+
+static
+bool has_old_variables()
+{
+    v_foreach (Variable*, i, ftk->variables())
+        if (startswith((*i)->name, "pd"))
+            return true;
+    return false;
+}
+
 wxPanel* PowderBook::PrepareActionPanel()
 {
     wxPanel *panel = new wxPanel(this);
 #if !STANDALONE_POWDIFPAT
     wxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 
-    wxStaticBoxSizer *action_del_sizer;
-    action_del_sizer = new wxStaticBoxSizer(wxHORIZONTAL, panel,
-                                            wxT("Delete the old XRPD model"));
-    action_del_txt = new wxTextCtrl(panel, -1,
-                                    wxT("delete %pd*, $pd*"),
-                                    wxDefaultPosition, wxDefaultSize,
-                                    wxTE_READONLY);
-    action_del_sizer->Add(action_del_txt, wxSizerFlags(1).Border());
-    wxButton *action_del_btn = new wxButton(panel, wxID_APPLY);
-    action_del_sizer->Add(action_del_btn, wxSizerFlags().Border());
-
-    vector<Variable*> const& vv = ftk->variables();
-    bool has_old_model = false;
-    v_foreach (Variable*, i, vv) {
-        if (startswith((*i)->name, "pd")) {
-            has_old_model = true;
-            break;
-        }
-    }
-    action_del_txt->Enable(has_old_model);
-    action_del_btn->Enable(has_old_model);
-    action_del_sizer->GetStaticBox()->Enable(has_old_model);
-    sizer->Add(action_del_sizer, wxSizerFlags().Expand().Border());
-
-    wxStaticBoxSizer *a_set_sizer = new wxStaticBoxSizer(wxVERTICAL, panel,
-                                                   wxT("Set the XRPD model"));
+    sizer->Add(new wxStaticText(panel, -1, wxT("Script that prepares model:")),
+               wxSizerFlags().Border());
     action_txt = new wxTextCtrl(panel, -1, wxEmptyString,
                                 wxDefaultPosition, wxSize(-1, 200),
                                 wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
-    //action_txt->SetBackgroundColour(GetBackgroundColour());
-    a_set_sizer->Add(action_txt, wxSizerFlags(1).Expand().Border());
-    a_set_sizer->Add(new wxStaticText(panel, -1,
-     wxT("Press OK to execute the script above that prepares the XRPD model.")
-     wxT("\nOK closes this window.")
-     wxT(" If the initial model is good, fit it to the data.")
-     wxT("\nThis window can be reopened at any time to modify the model.")),
-                     wxSizerFlags().Border());
-    wxButton *ok_btn = new wxButton(panel, wxID_OK);
-    a_set_sizer->Add(ok_btn, wxSizerFlags().Right().Border(wxLEFT|wxRIGHT));
+    sizer->Add(action_txt, wxSizerFlags(1).Expand().Border(wxLEFT|wxRIGHT));
 
-    sizer->Add(a_set_sizer, wxSizerFlags(1).Expand().Border());
+    wxStaticText *text = new wxStaticText(panel, -1,
+     wxT("Press OK to execute the script above and close this window.")
+     wxT("\nIf the initial model is good, fit it to the data.")
+     wxT("\nOtherwise, reopen this window and correct the model."));
+    wxFont font = text->GetFont();
+    font.SetPointSize(font.GetPointSize() - 1);
+    text->SetFont(font);
+    sizer->Add(text, wxSizerFlags().Border());
+
+    wxBoxSizer *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxButton *del_btn = new wxButton(panel, -1, wxT("Delete old model"));
+    del_btn->Enable(has_old_variables());
+    del_btn->SetToolTip(wxT("delete %pd*, $pd*"));
+    btn_sizer->Add(del_btn, wxSizerFlags().Border());
+    btn_sizer->AddStretchSpacer();
+    wxButton *cancel_btn = new wxButton(panel, wxID_CANCEL);
+    btn_sizer->Add(cancel_btn, wxSizerFlags().Border());
+    wxButton *ok_btn = new wxButton(panel, wxID_OK);
+    btn_sizer->Add(ok_btn, wxSizerFlags().Border());
+    sizer->Add(btn_sizer, wxSizerFlags().Expand());
 
     panel->SetSizerAndFit(sizer);
 
-    Connect(action_del_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
+    Connect(del_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             wxCommandEventHandler(PowderBook::OnDelButton));
     Connect(ok_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             wxCommandEventHandler(PowderBook::OnOk));
@@ -1272,6 +1297,8 @@ wxString hkl2wxstr(const Miller& hkl)
 wxString PowderBook::prepare_commands()
 {
     wxString s;
+    if (has_old_variables())
+        s = wxT("delete %pd*, $pd* # delete old model\n");
 
     wxString ds_pref;
     if (ftk->get_dm_count() > 1) {
@@ -1583,7 +1610,7 @@ void var2lockctrl(const string& varname, LockableRealCtrl* ctrl, double mult=1.)
 // fills the form using assigned previously $pd* and %pd functions 
 void PowderBook::fill_forms()
 {
-    //instrument page
+    // instrument page
     for (size_t i = 0; i != lambda_ctrl.size(); ++i) {
         char wave = 'a' + i;
         var2lockctrl("pd_lambda_" + S(wave), lambda_ctrl[i]);
@@ -1594,16 +1621,14 @@ void PowderBook::fill_forms()
         var2lockctrl("pd_" + S(i+1), corr_ctrl[i]);
     }
 
+    int first_func = -1;
     // sample page
     for (size_t i = 0; ; ++i) {
         string pre = "pd" + S(i) + "_";
         int k = ftk->find_variable_nr(pre + "a");
         if (k == -1)
             break;
-        if (i == sample_nb->GetPageCount()) {
-            PhasePanel *page = new PhasePanel(sample_nb, this);
-            sample_nb->AddPage(page, wxT("unknown"));
-        }
+        assert(i == sample_nb->GetPageCount() - 1);
         PhasePanel* p = get_phase_panel(i);
         var2lockctrl(pre+"a", p->par_a);
         var2lockctrl(pre+"b", p->par_b);
@@ -1613,16 +1638,52 @@ void PowderBook::fill_forms()
         var2lockctrl(pre+"gamma", p->par_gamma);
 
         if (i < phase_desc.size()) {
-            p->name_tc->SetValue(phase_desc[i].name);
+            p->name_tc->ChangeValue(phase_desc[i].name);
+            update_phase_labels(p, i);
             p->sg_tc->ChangeValue(phase_desc[i].sg);
             wxCommandEvent dummy;
             p->OnSpaceGroupChanged(dummy);
             p->atoms_tc->SetValue(phase_desc[i].atoms);
-            //TODO: deselect peaks
+        }
+        Crystal& cr = p->get_crystal();
+        assert(cr.bp.size() == p->hkl_list->GetCount());
+        int n = 0;
+        vm_foreach (PlanesWithSameD, j, cr.bp) {
+            wxString fname = wxString::Format(wxT("pd%da_"), (int) i)
+                             + hkl2wxstr(j->planes[0]);
+            int nr = ftk->find_function_nr(wx2s(fname));
+            j->enabled = (nr != -1);
+            p->hkl_list->Check(n, j->enabled);
+            ++n;
+            if (j->enabled && first_func == -1)
+                first_func = nr;
         }
     }
 
     // peak page
+    if (first_func != -1) {
+        const Function *f = ftk->get_function(first_func);
+        set_peak_name(f->tp()->name);
+        int w = index_of_element(f->tp()->fargs, "hwhm");
+        if (w == -1)
+            w = index_of_element(f->tp()->fargs, "hwhm1");
+        if (w != -1) {
+            Variable* hwhm = ftk->get_variable(f->get_var_idx(w));
+            if (!hwhm->is_simple() || hwhm->name == "pd_w")
+                width_rb->SetSelection(1);
+        }
+        int sh = index_of_element(f->tp()->fargs, "shape");
+        if (sh == -1)
+            sh = index_of_element(f->tp()->fargs, "shape1");
+        if (sh != -1) {
+            Variable* shape = ftk->get_variable(f->get_var_idx(sh));
+            if (!shape->is_simple() || shape->name == "pd_a") {
+                string formula = shape->get_formula(ftk->parameters());
+                bool has_div = contains_element(formula, '/');
+                shape_rb->SetSelection(has_div ? 2 : 1);
+            }
+        }
+    }
     var2lockctrl("pd_u", par_u);
     var2lockctrl("pd_v", par_v);
     var2lockctrl("pd_w", par_w);
@@ -1630,7 +1691,6 @@ void PowderBook::fill_forms()
     var2lockctrl("pd_a", par_a);
     var2lockctrl("pd_b", par_b);
     var2lockctrl("pd_c", par_c);
-    // TODO: peak function, peak width, peak shape
 }
 #endif //!STANDALONE_POWDIFPAT
 
@@ -1926,12 +1986,13 @@ void PowderBook::update_peak_parameters()
 
 // update wxNoteBook page labels: set the current page name to be the same
 // as the name in wxTextCtrl, make sure there is always one empty page.
-void PowderBook::update_phase_labels(PhasePanel* p)
+void PowderBook::update_phase_labels(PhasePanel* p, int active)
 {
     wxString name = p->name_tc->GetValue();
     bool valid = !name.empty();
     int last = sample_nb->GetPageCount() - 1;
-    int active = sample_nb->GetSelection();
+    if (active == -1)
+        active = sample_nb->GetSelection();
     wxString empty_label = wxT("+");
     bool last_empty = (sample_nb->GetPageText(last) == empty_label);
 
@@ -1957,8 +2018,7 @@ void PowderBook::update_phase_labels(PhasePanel* p)
 #if !STANDALONE_POWDIFPAT
 void PowderBook::OnDelButton(wxCommandEvent&)
 {
-    wxString script = action_del_txt->GetValue();
-    ftk->get_ui()->exec_string_as_script(script.mb_str());
+    ftk->exec("delete %pd*, $pd*");
 }
 
 void PowderBook::OnOk(wxCommandEvent&)

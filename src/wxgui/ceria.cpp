@@ -523,6 +523,8 @@ void set_F2(Plane& p, const vector<Atom>& atoms,
         }
     }
     p.F2 = F_real*F_real + F_img*F_img;
+    //printf("hkl=(%d %d %d) F=(%g, %g) F2=%g\n",
+    //       p.h, p.k, p.l, F_real, F_img, p.F2);
 }
 
 void set_lpf(PlanesWithSameD &bp, RadiationType radiation, double lambda)

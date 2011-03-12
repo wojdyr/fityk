@@ -44,7 +44,7 @@ public:
     double d2x(double d) const;
     bool is_d_active(double d) const;
     wxListBox *get_saved_phase_lb() { return saved_phase_lb; }
-    void update_phase_labels(PhasePanel* p);
+    void update_phase_labels(PhasePanel* p, int active=-1);
     double get_x_min() const { return x_min; }
     double get_x_max() const { return x_max; }
 #if STANDALONE_POWDIFPAT
@@ -80,7 +80,7 @@ private:
     wxCheckBox *split_cb;
     wxTextCtrl *peak_txt;
     LockableRealCtrl *par_u, *par_v, *par_w, *par_z, *par_a, *par_b, *par_c;
-    wxTextCtrl *action_del_txt, *action_txt;
+    wxTextCtrl *action_txt;
 
     wxPanel* PrepareIntroPanel();
     wxPanel* PrepareInstrumentPanel();
@@ -93,6 +93,7 @@ private:
     wxString prepare_commands();
     void fill_forms();
     wxString get_peak_name() const;
+    void set_peak_name(const std::string& name);
     void save_phase_desc();
 
     void OnXAxisSelected(wxCommandEvent& event);
