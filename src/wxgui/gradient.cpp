@@ -303,3 +303,13 @@ void MultiColorCombo::OnDrawItem(wxDC& dc, const wxRect& rect,
     }
 }
 
+// if the text is empty, wxComboCtrlBase::DoGetBestSize() sets text width
+// 150px. Let's decrease it to 142px.
+wxSize MultiColorCombo::DoGetBestSize() const
+{
+    wxSize s = wxComboCtrlBase::DoGetBestSize();
+    s.x -= 8;
+    CacheBestSize(s);
+    return s;
+}
+

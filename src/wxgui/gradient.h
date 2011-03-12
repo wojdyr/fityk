@@ -33,6 +33,7 @@ public:
     virtual wxCoord OnMeasureItem(size_t) const { return 24; }
     virtual wxCoord OnMeasureItemWidth(size_t) const
         { return colors_.size() * 2 + 8; }
+    virtual wxSize DoGetBestSize() const;
 
 private:
     static const wxColour palette[21];
