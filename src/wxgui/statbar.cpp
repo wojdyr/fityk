@@ -34,7 +34,7 @@ FStatusBar::FStatusBar(wxWindow *parent)
     text = new wxStaticText(panel_text, -1, wxT(""));
 
     coords = new wxStaticText(panel_coords, -1, wxT(""),
-                              wxDefaultPosition, wxSize(240, -1));
+                              wxDefaultPosition, wxSize(200, -1));
     wxFont font = coords->GetFont();
     font.SetFamily(wxFONTFAMILY_TELETYPE);
     coords->SetFont(font);
