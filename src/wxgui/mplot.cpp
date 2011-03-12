@@ -1507,16 +1507,15 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
     bg_cp_ = new wxColourPickerCtrl(this, -1, mp_->get_bg_color());
     gsizer->Add(bg_cp_, cl);
 
+    gsizer->Add(new wxStaticText(this, -1, wxT("colors for datasets")), cr);
     wxBoxSizer *data_col_sizer = new wxBoxSizer(wxHORIZONTAL);
     data_colors_sc_ = new SpinCtrl(this, -1, mp_->data_colors_.size(), 2, 64);
     data_col_sizer->Add(data_colors_sc_, cl);
-    data_col_sizer->Add(new wxStaticText(this, -1, wxT("colors for datasets")),
-                        cl.Border(wxLEFT));
-    gsizer->Add(data_col_sizer, cr);
     data_color_combo_ = new MultiColorCombo(this, &mp_->get_bg_color(),
                                             mp_->data_colors_);
     data_color_combo_->SetSelection(0);
-    gsizer->Add(data_color_combo_, cl);
+    data_col_sizer->Add(data_color_combo_, cl);
+    gsizer->Add(data_col_sizer, cr);
 
     gsizer->Add(new wxStaticText(this, -1, wxT("inactive data")), cr);
     inactive_cp_ = new wxColourPickerCtrl(this, -1, mp_->inactiveDataCol);
