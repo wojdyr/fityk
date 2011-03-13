@@ -1364,10 +1364,6 @@ wxString PowderBook::prepare_commands()
         s += ds_pref + wxT("Z = %pd_xcorr\n");
     }
 
-    double max_intensity = get_max_intensity(
-                                        get_phase_panel(0)->get_crystal().bp);
-    double h_mult = y_max / (max_intensity > 0 ? max_intensity : 2);
-
     bool has_u = par_u->is_nonzero();
     bool has_v = par_v->is_nonzero();
     bool has_w = par_w->is_nonzero();
@@ -1404,6 +1400,10 @@ wxString PowderBook::prepare_commands()
     for (int i = 0; i < (int) sample_nb->GetPageCount() - 1; ++i) {
         const PhasePanel* p = get_phase_panel(i);
         const Crystal& cr = p->get_crystal();
+
+        double max_intensity = get_max_intensity(cr.bp);
+        double h_mult = y_max / (max_intensity > 0 ? max_intensity : 2);
+
         s += wxT("\n# ") + p->name_tc->GetValue() + wxT("\n");
         wxString pre = wxString::Format(wxT("$pd%d_"), i);
         s += pre + wxT("a = ") + get_var(p->par_a) + wxT("\n");
@@ -2028,6 +2028,8 @@ void PowderBook::OnOk(wxCommandEvent&)
     save_phase_desc();
     wxDialog* dialog = static_cast<wxDialog*>(GetParent());
     dialog->EndModal(wxID_OK);
+    // unlike exec(), exec_string_as_script() does not call after_cmd_updates()
+    frame->after_cmd_updates();
 }
 #endif
 
