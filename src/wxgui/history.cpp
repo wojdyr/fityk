@@ -140,6 +140,8 @@ void SumHistoryDlg::OnSelectedItem(wxListEvent&)
 
 void SumHistoryDlg::OnFocusedItem(wxListEvent& event)
 {
+    if (!IsShown())
+        return;
     int n = event.GetIndex();
     if (n >= 0 && n != ftk->get_fit_container()->get_active_nr())
         ftk->exec("fit history " + S(n));
