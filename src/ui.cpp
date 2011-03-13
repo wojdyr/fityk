@@ -250,8 +250,15 @@ void UserInterface::exec_string_as_script(const char* s)
             --end;
         if (end > start) { // skip blank lines
             string line(start, end);
+            if (!F_->get_settings()->logfile.empty()) {
+                FILE* f = fopen(F_->get_settings()->logfile.c_str(), "a");
+                if (f) {
+                    fprintf(f, "    %s\n", line.c_str());
+                    fclose(f);
+                }
+            }
             if (F_->get_verbosity() >= 0)
-                show_message (kQuoted, "> " + line);
+                show_message(kQuoted, "> " + line);
             bool r = execute_line(line);
             if (r != kStatusOk)
                 break;
