@@ -1260,10 +1260,8 @@ void FFrame::OnLogStart (wxCommandEvent&)
     const string& logfile = ftk->get_settings()->logfile;
     if (!logfile.empty())
         fdlg.SetPath(s2wx(logfile));
-    if (fdlg.ShowModal() == wxID_OK) {
-        string plus = GetMenuBar()->IsChecked(ID_LOG_WITH_OUTPUT) ? "+" : "";
-        ftk->exec("commands" + plus + " > '" + wx2s(fdlg.GetPath()) + "'");
-    }
+    if (fdlg.ShowModal() == wxID_OK)
+        ftk->exec("set logfile='" + wx2s(fdlg.GetPath()) + "'");
     export_dir_ = fdlg.GetDirectory();
 }
 
