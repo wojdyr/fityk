@@ -704,6 +704,12 @@ const char* default_cel_files[][2] = {
 "rgnr 225"
 },
 
+{"Zn",
+"cell  2.665 2.665 4.946  90 90 120\n"
+"Zn   30  0.33333 0.66667 0.25\n"
+"rgnr 194"
+},
+
 {NULL, NULL}
 };
 
