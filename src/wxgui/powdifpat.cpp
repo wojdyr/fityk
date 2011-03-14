@@ -182,7 +182,12 @@ int PowderBook::xaxis_sel = 0;
 
 PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
     : wxToolbook(parent, id, wxDefaultPosition, wxDefaultSize,
-                 wxBK_LEFT|wxTBK_BUTTONBAR),
+#ifdef __WXMAC__
+                 wxTBK_BUTTONBAR
+#else
+                 wxBK_LEFT
+#endif
+                 ),
       x_min(10), x_max(150), y_max(1000), data(NULL)
 {
 #if !STANDALONE_POWDIFPAT
@@ -383,6 +388,9 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
         anode_lb->Append(pchar2wx(i->name) + wxT(" A1"));
         anode_lb->Append(pchar2wx(i->name) + wxT(" A12"));
     }
+#ifdef __WXMAC__
+    anode_lb->EnsureVisible(0);
+#endif
     wave_sizer->Add(anode_lb, wxSizerFlags(1).Border().Expand());
 
     wxSizer *lambda_sizer = new wxFlexGridSizer(2, 5, 5);
@@ -533,6 +541,8 @@ void PlotWithLines::draw_active_data(wxDC& dc)
     if (!powder_book_->data)
         return;
     int n = powder_book_->data->get_n();
+    if (n == 0)
+        return;
     wxPoint *points = new wxPoint[n];
     for (int i = 0; i != n; ++i) {
         points[i].x = getX(powder_book_->data->get_x(i));
@@ -1060,6 +1070,9 @@ wxPanel* PowderBook::PrepareSamplePanel()
                                             i != quick_phase_list.end(); ++i)
         saved_phase_lb->Append(s2wx(i->first));
 
+#ifdef __WXMAC__
+    saved_phase_lb->EnsureVisible(0);
+#endif
     left_sizer->Add(saved_phase_lb, wxSizerFlags(1).Border().Expand());
     wxButton *s_remove_btn = new wxButton(panel, wxID_REMOVE);
     left_sizer->Add(s_remove_btn,
@@ -1222,10 +1235,14 @@ wxPanel* PowderBook::PrepareActionPanel()
                                 wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
     sizer->Add(action_txt, wxSizerFlags(1).Expand().Border(wxLEFT|wxRIGHT));
 
+    // apparently Mac/Carbon does not like multi-line static texts
     wxStaticText *text = new wxStaticText(panel, -1,
      wxT("Press OK to execute the script above and close this window.")
+#ifndef __WXMAC__
      wxT("\nIf the initial model is good, fit it to the data.")
-     wxT("\nOtherwise, reopen this window and correct the model."));
+     wxT("\nOtherwise, reopen this window and correct the model.")
+#endif
+     );
     wxFont font = text->GetFont();
     font.SetPointSize(font.GetPointSize() - 1);
     text->SetFont(font);
@@ -2171,7 +2188,11 @@ PowderDiffractionDlg::PowderDiffractionDlg(wxWindow* parent, wxWindowID id)
     sizer->Add(pb, wxSizerFlags(1).Expand());
     SetSizerAndFit(sizer);
     if (GetClientSize().GetHeight() < 440)
+#ifdef __WXMAC__
+        SetClientSize(-1, 520);
+#else
         SetClientSize(-1, 440);
+#endif
 }
 
 #endif
