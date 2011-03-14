@@ -50,10 +50,15 @@ double Scale::valr(int px) const
     }
 }
 
-//TODO: pen color should depend on background color
 void Overlay::set_pen_and_brush(wxDC& dc)
 {
-    dc.SetPen(wxPen(*wxLIGHT_GREY, 1, wxPENSTYLE_SHORT_DASH));
+    wxColour bg = dc.GetBackground().GetColour();
+    wxColor c;
+    if (0.299*bg.Red() + 0.587*bg.Green() + 0.114*bg.Blue() < 128)
+        c.Set(192, 192, 192);
+    else
+        c.Set(64, 64, 64);
+    dc.SetPen(wxPen(c, 2, wxPENSTYLE_SHORT_DASH));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
 }
 
