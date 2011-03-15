@@ -1453,7 +1453,7 @@ void MainPlot::draw_overlay_func(const Function* f, const vector<fp>& p_values)
         points[i].y = ys.px(yy[i]);
     }
     overlay.draw_lines(n, points);
-    delete points;
+    delete [] points;
 }
 
 void MainPlot::draw_overlay_limits(const Function* f)
