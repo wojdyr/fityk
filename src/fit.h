@@ -18,40 +18,40 @@ class Variable;
 class Fit
 {
 public:
-    std::string const name;
+    const std::string name;
 
-    Fit(Ftk *F_, std::string const& m);
+    Fit(Ftk *F, const std::string& m);
     virtual ~Fit() {};
-    void fit(int max_iter, std::vector<DataAndModel*> const& dms);
+    void fit(int max_iter, const std::vector<DataAndModel*>& dms);
     void continue_fit(int max_iter);
     bool is_initialized() const { return !dmdm_.empty(); }
-    bool is_initialized(std::vector<DataAndModel*> const& dms) const
+    bool is_initialized(const std::vector<DataAndModel*>& dms) const
                                                     { return dms == dmdm_; }
-    std::string get_goodness_info(std::vector<DataAndModel*> const& dms);
-    int get_dof(std::vector<DataAndModel*> const& dms);
-    std::string get_error_info(std::vector<DataAndModel*> const& dms);
-    std::string get_cov_info(std::vector<DataAndModel*> const& dms);
+    std::string get_goodness_info(const std::vector<DataAndModel*>& dms);
+    int get_dof(const std::vector<DataAndModel*>& dms);
+    std::string get_error_info(const std::vector<DataAndModel*>& dms);
+    std::string get_cov_info(const std::vector<DataAndModel*>& dms);
     std::vector<fp>
-        get_covariance_matrix(std::vector<DataAndModel*> const& dms);
+        get_covariance_matrix(const std::vector<DataAndModel*>& dms);
     std::vector<fp>
-        get_standard_errors(std::vector<DataAndModel*> const& dms);
-    //std::vector<DataAndModel*> const& get_datsums() const { return dmdm_; }
-    static fp compute_wssr_for_data (DataAndModel const* dm, bool weigthed);
-    fp do_compute_wssr(std::vector<fp> const &A,
-                       std::vector<DataAndModel*> const& dms,
+        get_standard_errors(const std::vector<DataAndModel*>& dms);
+    //const std::vector<DataAndModel*>& get_datsums() const { return dmdm_; }
+    static fp compute_wssr_for_data (const DataAndModel* dm, bool weigthed);
+    fp do_compute_wssr(const std::vector<fp> &A,
+                       const std::vector<DataAndModel*>& dms,
                        bool weigthed);
-    static fp compute_r_squared_for_data(DataAndModel const* dm,
+    static fp compute_r_squared_for_data(const DataAndModel* dm,
                                          fp* sum_err, fp* sum_tot);
     void Jordan (std::vector<fp>& A, std::vector<fp>& b, int n);
     void reverse_matrix (std::vector<fp>&A, int n);
     // pretty-print matrix m x n stored in vec. `mname' is name/comment.
     std::string print_matrix (const std::vector<fp>& vec,
                                      int m, int n, const char *mname);
-    fp compute_r_squared(std::vector<fp> const &A,
-                         std::vector<DataAndModel*> const& dms);
+    fp compute_r_squared(const std::vector<fp> &A,
+                         const std::vector<DataAndModel*>& dms);
     bool is_param_used(int n) const { return par_usage[n]; }
 protected:
-    Ftk *F;
+    Ftk *F_;
     std::vector<DataAndModel*> dmdm_;
     int evaluations;
     int max_evaluations_;
@@ -65,44 +65,44 @@ protected:
     virtual fp init() = 0; // called before autoiter()
     virtual void autoiter() = 0;
     bool common_termination_criteria(int iter);
-    void compute_derivatives(std::vector<fp> const &A,
-                             std::vector<DataAndModel*> const& dms,
+    void compute_derivatives(const std::vector<fp> &A,
+                             const std::vector<DataAndModel*>& dms,
                              std::vector<fp>& alpha, std::vector<fp>& beta);
-    fp compute_wssr(std::vector<fp> const &A,
-                    std::vector<DataAndModel*> const& dms, bool weigthed=true)
+    fp compute_wssr(const std::vector<fp> &A,
+                    const std::vector<DataAndModel*>& dms, bool weigthed=true)
         { ++evaluations; return do_compute_wssr(A, dms, weigthed); }
     bool post_fit (const std::vector<fp>& aa, fp chi2);
     fp draw_a_from_distribution (int nr, char distribution = 'u', fp mult = 1.);
-    void iteration_plot(std::vector<fp> const &A, fp wssr);
+    void iteration_plot(const std::vector<fp> &A, fp wssr);
 private:
     time_t last_refresh_time_;
     clock_t start_time_;
 
-    void compute_derivatives_for(DataAndModel const *dm,
+    void compute_derivatives_for(const DataAndModel *dm,
                                  std::vector<fp>& alpha, std::vector<fp>& beta);
-    void update_parameters(std::vector<DataAndModel*> const& dms);
+    void update_parameters(const std::vector<DataAndModel*>& dms);
 };
 
 /// handles parameter history
 class ParameterHistoryMgr
 {
 public:
-    ParameterHistoryMgr(Ftk *F_) : F(F_), param_hist_ptr(0) {}
-    bool push_param_history(std::vector<fp> const& aa);
-    void clear_param_history() { param_history.clear(); param_hist_ptr = 0; }
-    int get_param_history_size() const { return param_history.size(); }
+    ParameterHistoryMgr(Ftk *F) : F_(F), param_hist_ptr_(0) {}
+    bool push_param_history(const std::vector<fp>& aa);
+    void clear_param_history() { param_history_.clear(); param_hist_ptr_ = 0; }
+    int get_param_history_size() const { return param_history_.size(); }
     void load_param_history(int item_nr, bool relative);
     bool has_param_history_rel_item(int rel_nr) const
-        { return is_index(param_hist_ptr + rel_nr, param_history); }
+        { return is_index(param_hist_ptr_ + rel_nr, param_history_); }
     bool can_undo() const;
     std::string param_history_info() const;
-    std::vector<fp> const& get_item(int n) const { return param_history[n]; }
-    int get_active_nr() const { return param_hist_ptr; }
+    const std::vector<fp>& get_item(int n) const { return param_history_[n]; }
+    int get_active_nr() const { return param_hist_ptr_; }
 protected:
-    Ftk *F;
+    Ftk *F_;
 private:
-    std::vector<std::vector<fp> > param_history; /// old parameter vectors
-    int param_hist_ptr; /// points to the current/last parameter vector
+    std::vector<std::vector<fp> > param_history_; /// old parameter vectors
+    int param_hist_ptr_; /// points to the current/last parameter vector
 };
 
 /// gives access to fitting methods, enables swithing between them

@@ -22,9 +22,9 @@ NMfit::~NMfit() {}
 
 fp NMfit::init()
 {
-    bool move_all = F->get_settings()->nm_move_all;
-    char distrib = F->get_settings()->nm_distribution[0];
-    fp factor = F->get_settings()->nm_move_factor;
+    bool move_all = F_->get_settings()->nm_move_all;
+    char distrib = F_->get_settings()->nm_distribution[0];
+    fp factor = F_->get_settings()->nm_move_factor;
 
     // 1. all n+1 vertices are the same
     Vertex v(a_orig);
@@ -73,9 +73,9 @@ void NMfit::find_best_worst()
 
 void NMfit::autoiter()
 {
-    fp convergence = F->get_settings()->nm_convergence;
+    fp convergence = F_->get_settings()->nm_convergence;
     wssr_before = compute_wssr(a_orig, dmdm_);
-    F->msg("WSSR before starting simplex fit: " + S(wssr_before));
+    F_->msg("WSSR before starting simplex fit: " + S(wssr_before));
     for (int iter = 0; !termination_criteria(iter, convergence); ++iter) {
         iter_nr++;
         change_simplex();
@@ -140,12 +140,12 @@ void NMfit::compute_coord_sum()
 
 bool NMfit::termination_criteria(int iter, fp convergence)
 {
-    F->vmsg("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:"
+    F_->vmsg("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:"
                 + S(best->wssr) + " worst:" + S(worst->wssr) + ", "
                 + S(s_worst->wssr) + " [V * |" + S(volume_factor) + "|]");
     bool stop = false;
     if (volume_factor == 1. && iter != 0) {
-        F->msg ("Simplex got stuck.");
+        F_->msg ("Simplex got stuck.");
         stop = true;
     }
     volume_factor = 1.;
@@ -154,19 +154,19 @@ bool NMfit::termination_criteria(int iter, fp convergence)
     string s = "WSSR:";
     for (vector<Vertex>::iterator i = vertices.begin(); i!=vertices.end(); i++)
         s += " " + S(i->wssr);
-    F->msg (s);
+    F_->msg (s);
 *DEBUG - END*/
     //checking stop conditions
     if (common_termination_criteria(iter))
         stop = true;
     if (is_zero(worst->wssr)) {
-        F->msg ("All vertices have WSSR < epsilon=" + S(epsilon));
+        F_->msg ("All vertices have WSSR < epsilon=" + S(epsilon));
         return true;
     }
     fp r_diff = 2 * (worst->wssr - best->wssr) / (best->wssr + worst->wssr);
     if (r_diff < convergence) {
-        F->msg ("Relative difference between worst and best vertex is only "
-                + S(r_diff) + ". Stop");
+        F_->msg ("Relative difference between worst and best vertex is only "
+                 + S(r_diff) + ". Stop");
         stop = true;
     }
     return stop;

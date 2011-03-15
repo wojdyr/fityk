@@ -92,10 +92,10 @@ fp GAfit::init()
 void GAfit::autoiter()
 {
     wssr_before = compute_wssr(a_orig, dmdm_);
-    F->msg ("WSSR before starting GA: " + S(wssr_before));
+    F_->msg ("WSSR before starting GA: " + S(wssr_before));
     assert (pop && opop);
     if (elitism >= popsize) {
-        F->warn ("hmm, now elitism >= popsize, setting elitism = 1");
+        F_->warn ("hmm, now elitism >= popsize, setting elitism = 1");
         elitism = 1;
     }
     for (int iter = 0; !termination_criteria_and_print_info(iter); iter++) {
@@ -168,8 +168,8 @@ void GAfit::crossover()
                     guaranteed_avarage_crossover (i, i2);
                     break;
                 default:
-                    F->warn ("No such crossover-type: " + S(crossover_type)
-                             + ". Setting to 'u'");
+                    F_->warn ("No such crossover-type: " + S(crossover_type)
+                              + ". Setting to 'u'");
                     crossover_type = 'u';
                     uniform_crossover (i, i2);
                     break;
@@ -251,8 +251,8 @@ void GAfit::pre_selection()
             deterministic_sampling_selection(next);
             break;
         default:
-            F->warn ("No such selection-type: " + S((char)selection_type)
-                     + ". Setting to 'r'");
+            F_->warn ("No such selection-type: " + S((char)selection_type)
+                      + ". Setting to 'r'");
             selection_type = 'r';
             pre_selection ();
             return;
@@ -455,7 +455,7 @@ bool GAfit::termination_criteria_and_print_info (int iter)
         generations_sum += i->generation;
     }
     fp std_dev = sq_sum > 0 ? sqrt (sq_sum / pop->size()) : 0;
-    F->msg("Population #" + S(iter_nr) + ": best " + S(min)
+    F_->msg("Population #" + S(iter_nr) + ": best " + S(min)
                 + ", avg " + S(avg) + ", worst " + S(tmp_max)
                 + ", std dev. " + S(std_dev));
     if (min < best_indiv.raw_score) {
@@ -471,12 +471,12 @@ bool GAfit::termination_criteria_and_print_info (int iter)
     if (common_termination_criteria(iter))
         stop = true;
     if (std_dev < std_dev_stop * avg) {
-        F->msg("Standard deviation of results is small enough to stop");
+        F_->msg("Standard deviation of results is small enough to stop");
         stop = true;
     }
     if (iter_with_no_progresss_stop > 0
           && no_progress_iters >= iter_with_no_progresss_stop) {
-        F->msg("No progress in " + S(no_progress_iters) + " iterations. Stop");
+        F_->msg("No progress in " + S(no_progress_iters) + " iterations. Stop");
         stop = true;
     }
     return stop;

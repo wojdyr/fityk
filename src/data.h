@@ -22,29 +22,29 @@ class Data
 {
 public :
     std::string title;
-    static int count_blocks(std::string const& fn,
-                            std::string const& format,
-                            std::string const& options);
-    static int count_columns(std::string const& fn,
-                             std::string const& format,
-                             std::string const& options,
+    static int count_blocks(const std::string& fn,
+                            const std::string& format,
+                            const std::string& options);
+    static int count_columns(const std::string& fn,
+                             const std::string& format,
+                             const std::string& options,
                              int first_block);
 
-    Data(Ftk const* F_)
-        : F(F_), given_x_(INT_MAX), given_y_(INT_MAX), given_s_(INT_MAX),
+    Data(const Ftk* F)
+        : F_(F), given_x_(INT_MAX), given_y_(INT_MAX), given_s_(INT_MAX),
                   x_step_(0.) {}
     ~Data() {}
     std::string get_info() const;
 
-    void load_file(std::string const& fn,
+    void load_file(const std::string& fn,
                    int idx_x, int idx_y, int idx_s,
-                   std::vector<int> const& blocks,
-                   std::string const& format, std::string const& options);
+                   const std::vector<int>& blocks,
+                   const std::string& format, const std::string& options);
 
-    int load_arrays(std::vector<fp> const& x, std::vector<fp> const& y,
-                   std::vector<fp> const& sigma, std::string const& data_title);
-    void load_data_sum(std::vector<Data const*> const& dd,
-                       std::string const& op);
+    int load_arrays(const std::vector<fp>& x, const std::vector<fp>& y,
+                   const std::vector<fp>& sigma, const std::string& data_title);
+    void load_data_sum(const std::vector<const Data*>& dd,
+                       const std::string& op);
     void set_points(const std::vector<Point>& p);
     void clear();
     //void add_point(Point const& pt) { p_.push_back(pt); }; //don't use it
@@ -61,8 +61,8 @@ public :
     std::string range_as_string () const;
     int get_lower_bound_ac (fp x) const;
     int get_upper_bound_ac (fp x) const;
-    std::string const& get_title() const { return title; }
-    std::string const& get_filename() const { return filename_; }
+    const std::string& get_title() const { return title; }
+    const std::string& get_filename() const { return filename_; }
 
     void find_step();
     void sort_points();
@@ -80,7 +80,7 @@ public :
     void revert();
 
 private:
-    Ftk const* F;
+    const Ftk* F_;
     std::string filename_;
     int given_x_, given_y_, given_s_;/// columns given when loading the file
     std::vector<int> given_blocks_;

@@ -25,7 +25,7 @@ using namespace std;
 #define DIR_SEPARATOR '/'
 #endif
 
-string get_file_basename(string const& path)
+string get_file_basename(const string& path)
 {
     string::size_type last_sep = path.rfind(DIR_SEPARATOR);
     string::size_type last_dot = path.rfind('.');
@@ -77,7 +77,7 @@ void Data::post_load()
         return;
     string inf = S(p_.size()) + " points.";
     if (!has_sigma_) {
-        string dds = F->get_settings()->default_sigma;
+        string dds = F_->get_settings()->default_sigma;
         if (dds == "sqrt") {
             for (vector<Point>::iterator i = p_.begin(); i < p_.end(); i++)
                 i->sigma = i->y > 1. ? sqrt (i->y) : 1.;
@@ -91,7 +91,7 @@ void Data::post_load()
         else
             assert(0);
     }
-    F->msg(inf);
+    F_->msg(inf);
     update_active_p();
 }
 
@@ -202,7 +202,7 @@ void shirley_bg(vector<Point> &pp, bool remove)
             pp[i].y = B[i];
 }
 
-void apply_operation(vector<Point> &pp, string const& op)
+void apply_operation(vector<Point> &pp, const string& op)
 {
     assert (!pp.empty());
     assert (!op.empty());
@@ -226,7 +226,7 @@ void apply_operation(vector<Point> &pp, string const& op)
 
 } // anonymous namespace
 
-void Data::load_data_sum(vector<Data const*> const& dd, string const& op)
+void Data::load_data_sum(const vector<const Data*>& dd, const string& op)
 {
     if (dd.empty()) {
         clear();
@@ -236,7 +236,7 @@ void Data::load_data_sum(vector<Data const*> const& dd, string const& op)
     string new_filename = dd.size() == 1 ? dd[0]->get_filename() : "";
     vector<Point> new_p;
     string new_title;
-    v_foreach (Data const*, i, dd) {
+    v_foreach (const Data*, i, dd) {
         new_title += (i == dd.begin() ? "" : " + ") + (*i)->get_title();
         new_p.insert(new_p.end(), (*i)->points().begin(), (*i)->points().end());
     }
@@ -302,16 +302,16 @@ static string tr_opt(string options)
     return options;
 }
 
-int Data::count_blocks(string const& fn,
-                       string const& format, string const& options)
+int Data::count_blocks(const string& fn,
+                       const string& format, const string& options)
 {
     shared_ptr<const xylib::DataSet> xyds(
                         xylib::cached_load_file(fn, format, tr_opt(options)));
     return xyds->get_block_count();
 }
 
-int Data::count_columns(string const& fn,
-                        string const& format, string const& options,
+int Data::count_columns(const string& fn,
+                        const string& format, const string& options,
                         int first_block)
 {
     shared_ptr<const xylib::DataSet> xyds(
@@ -320,10 +320,10 @@ int Data::count_columns(string const& fn,
 }
 
 // for column indices, INT_MAX is used as not given
-void Data::load_file (string const& fn,
+void Data::load_file (const string& fn,
                       int idx_x, int idx_y, int idx_s,
-                      vector<int> const& blocks,
-                      string const& format, string const& options)
+                      const vector<int>& blocks,
+                      const string& format, const string& options)
 {
     if (fn.empty())
         return;
@@ -337,14 +337,14 @@ void Data::load_file (string const& fn,
 
         v_foreach (int, b, bb) {
             assert(xyds);
-            xylib::Block const* block = xyds->get_block(*b);
-            xylib::Column const& xcol
+            const xylib::Block* block = xyds->get_block(*b);
+            const xylib::Column& xcol
                 = block->get_column(idx_x != INT_MAX ?  idx_x : 1);
-            xylib::Column const& ycol
+            const xylib::Column& ycol
                 = block->get_column(idx_y != INT_MAX ?  idx_y : 2);
             int n = block->get_point_count();
             if (n < 5 && bb.size() == 1)
-                F->warn("Only " + S(n) + " data points found in file.");
+                F_->warn("Only " + S(n) + " data points found in file.");
 
             if (idx_s == INT_MAX) {
                 for (int i = 0; i < n; ++i) {
@@ -352,7 +352,7 @@ void Data::load_file (string const& fn,
                 }
             }
             else {
-                xylib::Column const& scol
+                const xylib::Column& scol
                     = block->get_column(idx_s != INT_MAX ?  idx_s : 2);
                 for (int i = 0; i < n; ++i) {
                     p_.push_back(Point(xcol.get_value(i), ycol.get_value(i),
@@ -380,7 +380,7 @@ void Data::load_file (string const& fn,
                 block_name += block->get_name();
             }
         }
-    } catch (runtime_error const& e) {
+    } catch (const runtime_error& e) {
         throw ExecuteError(e.what());
     }
 
@@ -423,7 +423,7 @@ fp Data::get_y_at (fp x) const
 
 // std::is_sorted() is added C++0x
 template <typename T>
-bool is_vector_sorted(vector<T> const& v)
+bool is_vector_sorted(const vector<T>& v)
 {
     if (v.size() <= 1)
         return true;
@@ -456,7 +456,7 @@ void Data::update_active_p()
 string Data::range_as_string() const
 {
     if (active_.empty()) {
-        F->warn ("File not loaded or all points inactive.");
+        F_->warn ("File not loaded or all points inactive.");
         return "[]";
     }
     vector<Point>::const_iterator old_p = p_.begin() + active_[0];
