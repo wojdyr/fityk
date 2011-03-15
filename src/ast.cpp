@@ -980,18 +980,14 @@ vector<OpTree*> calculate_deriv(vector<int>::const_iterator &i, int len,
         int op = *i;
         vector<OpTree*> right = calculate_deriv(i, len, vm);
         vector<OpTree*> left = calculate_deriv(i, len, vm);
-        OpTree *d1, *d2;
-        if (op == OP_VOIGT) {
-            d1 = do_dvoigt_dx(left[len]->clone(), right[len]->clone());
-            d2 = do_dvoigt_dy(left[len]->clone(), right[len]->clone());
-            for (int k = 0; k < len; ++k) {
-                results[k] = do_add(do_multiply(d1->clone(), left[k]),
-                                    do_multiply(d2->clone(), right[k]));
-            }
-            results[len] = do_voigt(left[len], right[len]);
+        assert (op == OP_VOIGT);
+        OpTree *d1 = do_dvoigt_dx(left[len]->clone(), right[len]->clone());
+        OpTree *d2 = do_dvoigt_dy(left[len]->clone(), right[len]->clone());
+        for (int k = 0; k < len; ++k) {
+            results[k] = do_add(do_multiply(d1->clone(), left[k]),
+                                do_multiply(d2->clone(), right[k]));
         }
-        else
-            assert(0);
+        results[len] = do_voigt(left[len], right[len]);
         delete d1;
         delete d2;
         break;
