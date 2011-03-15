@@ -361,7 +361,8 @@ wxString get_sample_path(const wxString& name)
     wxString up = wxFILE_SEP_PATH + wxString(wxT(".."));
     paths.Add(wxPathOnly(wxGetApp().argv[0]) + up + up + dir);
     paths.Add(wxPathOnly(wxGetApp().argv[0]) + up + up + up + dir);
-
-    return paths.FindAbsoluteValidPath(name);
+    wxFileName path(paths.FindAbsoluteValidPath(name));
+    path.Normalize(wxPATH_NORM_DOTS);
+    return path.GetFullPath();
 }
 

@@ -932,7 +932,7 @@ void FFrame::OnExample(wxCommandEvent& event)
                          wxYES_NO | wxCENTRE | wxICON_QUESTION);
     if (r == wxYES) {
         get_main_plot()->bgm()->clear_background();
-        ftk->exec("reset; exec " + wx2s(path));
+        ftk->exec("reset; exec '" + wx2s(path) + "'");
     }
 }
 
