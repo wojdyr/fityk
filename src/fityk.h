@@ -1,12 +1,6 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-/// \par
-/// Public C++ API of libfityk: class Fityk and helpers.
-/// \par
-/// Minimal examples of using libfityk in C++, Python, Lua and Perl are in
-/// samples/hello.* files.
-
 #ifndef FITYK__API__H__
 #define FITYK__API__H__
 
@@ -27,6 +21,10 @@
 class Ftk;
 
 
+/// Public C++ API of libfityk: class Fityk and helpers.
+///
+/// Minimal examples of using libfityk in C++, Python, Lua and Perl are in
+/// samples/hello.* files.
 namespace fityk
 {
 

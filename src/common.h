@@ -204,12 +204,12 @@ inline std::vector<T> vector4 (T a, T b, T c, T d) {
 }
 
 /// Make n-element vector, e.g.: vector_of<int>(1)(2)(3)(4)(5)
-template <typename T>
-struct vector_of: public std::vector<T>
-{
-    vector_of(const T& t) { (*this)(t); }
-    vector_of& operator()(const T& t) { this->push_back(t); return *this; }
-};
+//template <typename T>
+//struct vector_of: public std::vector<T>
+//{
+//    vector_of(const T& t) { (*this)(t); }
+//    vector_of& operator()(const T& t) { this->push_back(t); return *this; }
+//};
 
 
 /// Make (u-l)-element vector, filled by numbers: l, l+1, ..., u-1.
