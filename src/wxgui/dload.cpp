@@ -53,28 +53,28 @@ public:
     virtual void draw(wxDC &dc, bool);
     void load_dataset(string const& filename, string const& filetype,
                       string const& options);
-    shared_ptr<const xylib::DataSet> get_data() const { return data; }
-    void make_outdated() { data_updated = false; }
+    shared_ptr<const xylib::DataSet> get_data() const { return data_; }
+    void make_outdated() { data_updated_ = false; }
 
 private:
-    shared_ptr<const xylib::DataSet> data;
-    bool data_updated; // if false, draw() doesn't do anything (plot is clear)
+    shared_ptr<const xylib::DataSet> data_;
+    bool data_updated_; // if false, draw() doesn't do anything (plot is clear)
 };
 
 PreviewPlot::PreviewPlot(wxWindow* parent)
     : PlotWithTics(parent), block_nr(0), idx_x(1), idx_y(2),
-      data_updated(false)
+      data_updated_(false)
 {
     set_bg_color(*wxBLACK);
 }
 
 void PreviewPlot::draw(wxDC &dc, bool)
 {
-    if (data.get() == NULL || !data_updated
-        || block_nr < 0 || block_nr >= data->get_block_count())
+    if (data_.get() == NULL || !data_updated_
+        || block_nr < 0 || block_nr >= data_->get_block_count())
         return;
 
-    xylib::Block const *block = data->get_block(block_nr);
+    xylib::Block const *block = data_->get_block(block_nr);
 
     if (idx_x < 0 || idx_x > block->get_column_count()
             || idx_y < 0 || idx_y > block->get_column_count())
@@ -99,10 +99,10 @@ void PreviewPlot::load_dataset(string const& filename,
                                string const& options)
 {
     try {
-        data = xylib::cached_load_file(filename, filetype, options);
-        data_updated = true;
+        data_ = xylib::cached_load_file(filename, filetype, options);
+        data_updated_ = true;
     } catch (runtime_error const& /*e*/) {
-        data_updated = false;
+        data_updated_ = false;
     }
 }
 
