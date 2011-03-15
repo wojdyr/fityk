@@ -818,7 +818,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                         int expected_n = get_function_narg(top);
                         if (n != expected_n)
                             lex.throw_syntax_error(
-                               S("function ") + function_name(top) + "expects "
+                               S("function ") + function_name(top) + " expects "
                                + S(expected_n) + " arguments, not " + S(n));
                         arg_cnt_.pop_back();
                         if (top==OP_FUNC || top==OP_SUM_F || top==OP_SUM_Z)
