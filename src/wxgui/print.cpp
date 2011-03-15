@@ -276,10 +276,8 @@ PrintManager::PrintManager(PlotPane* pane)
 PrintManager::~PrintManager()
 {
     save_settings(wxConfig::Get());
-    if (print_data)
-        delete print_data;
-    if (page_setup_data)
-        delete page_setup_data;
+    delete print_data;
+    delete page_setup_data;
 }
 
 void PrintManager::save_settings(wxConfigBase *cf) const

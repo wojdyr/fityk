@@ -147,7 +147,7 @@ const t_pse *find_in_pse(const char *label)
     char buf[3] = "\0\0\0";
 
     /* empty label */
-    if (!label || strlen(label) == 0)
+    if (label == NULL || *label == '\0')
         return NULL;
 
     buf[0] = toupper(label[0]);
@@ -155,7 +155,7 @@ const t_pse *find_in_pse(const char *label)
         buf[1] = tolower(label[1]);
 
     for (it = pse_table; it->Z != 0; it++)
-        if (strcmp(it->symbol, label) == 0)
+        if (strcmp(it->symbol, buf) == 0)
             return it;
     return NULL;
 }
@@ -859,7 +859,7 @@ int fix_label(char *buf)
 {
     int i;
 
-    if (!buf || strlen(buf) == 0)
+    if (buf == NULL || *buf == '\0')
         return 0;
     buf[0] = toupper(buf[0]);
     for (i = 1; isalpha(buf[i]); i++)
@@ -1006,7 +1006,7 @@ const t_nn92_record *find_in_nn92(const char *label)
     char buf[3] = "\0\0\0";
 
     /* empty label */
-    if (!label || strlen(label) == 0)
+    if (label == NULL || *label == '\0')
         return NULL;
 
     buf[0] = toupper(label[0]);
@@ -1014,7 +1014,7 @@ const t_nn92_record *find_in_nn92(const char *label)
         buf[1] = tolower(label[1]);
 
     for (it = nn92_table; it->symbol != NULL; it++)
-        if (strcmp(it->symbol, label) == 0)
+        if (strcmp(it->symbol, buf) == 0)
             return it;
     return NULL;
 }

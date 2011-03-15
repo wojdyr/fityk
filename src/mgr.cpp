@@ -432,6 +432,7 @@ int VariableManager::find_nr_var_handling_param(int p) const
     return 0;
 }
 
+/*
 int VariableManager::find_parameter_variable(int par) const
 {
     for (int i = 0; i < size(variables_); ++i)
@@ -439,6 +440,7 @@ int VariableManager::find_parameter_variable(int par) const
             return i;
     return -1;
 }
+*/
 
 void VariableManager::use_parameters()
 {

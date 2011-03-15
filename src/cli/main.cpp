@@ -368,7 +368,7 @@ char **my_completion (const char *text, int start, int end)
     }
 
     // %function completion
-    if (strlen(text) > 0 && text[0] == '%')
+    if (text[0] == '%')
         return rl_completion_matches(text, function_generator);
     // $variable completion
     if (start > 0 && rl_line_buffer[start-1] == '$')

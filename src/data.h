@@ -67,8 +67,8 @@ public :
     void find_step();
     void sort_points();
     void update_active_for_one_point(int idx);
-    fp get_y_at (fp x) const;
-    //return points at x (if any) or (usually) after it.
+    //fp get_y_at (fp x) const;
+    // return points at x (if any) or (usually) after it.
     std::vector<Point>::const_iterator get_point_at(fp x) const;
     fp get_x_min() const;
     fp get_x_max() const;

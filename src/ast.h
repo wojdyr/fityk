@@ -42,7 +42,7 @@ struct OpTree
     OpTree* remove_c1() { OpTree *t=c1; c1=0; return t; }
     OpTree* remove_c2() { OpTree *t=c2; c2=0; return t; }
     void change_op(int op_) { op=op_; }
-    bool operator==(const OpTree &t) {
+    bool operator==(const OpTree &t) const {
         return op == t.op && val == t.val
                && (c1 == t.c1 || (c1 && t.c1 && *c1 == *t.c1))
                && (c2 == t.c2 || (c2 && t.c2 && *c2 == *t.c2));

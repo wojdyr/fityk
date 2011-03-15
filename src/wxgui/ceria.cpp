@@ -574,6 +574,7 @@ double UnitCell::calculate_V() const
     return a*b*c * sqrt(t);
 }
 
+/*
 double UnitCell::calculate_d(int h, int k, int l) const
 {
     double sinA=sin(alpha), sinB=sin(beta), sinG=sin(gamma),
@@ -589,6 +590,7 @@ double UnitCell::calculate_d(int h, int k, int l) const
                 )
           );
 }
+*/
 
 //     [       1/a               0        0   ]
 // M = [  -cosG/(a sinG)    1/(b sinG)    0   ]

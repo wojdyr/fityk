@@ -44,7 +44,7 @@ public:
 
     /// search for "simple" variable which handles parameter par
     /// returns -1 if not found or idx in variables if found
-    int find_parameter_variable(int par) const;
+    //int find_parameter_variable(int par) const;
 
     /// remove unreffered variables and parameters
     void remove_unreferred();

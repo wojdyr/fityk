@@ -39,7 +39,6 @@ private:
     wxColourPickerCtrl *bg_cp_, *active_cp_, *inactive_cp_, *axis_cp_;
     wxFontPickerCtrl *tics_fp_;
 
-    void show_preview();
     void OnPlotKind(wxCommandEvent& event);
     void OnReversedDiff(wxCommandEvent& event);
     void OnMarkPeakPositions(wxCommandEvent& e) {ap_->OnMarkPeakPositions(e);}

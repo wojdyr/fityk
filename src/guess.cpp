@@ -118,7 +118,7 @@ array<double,4> Guess::estimate_peak_parameters()
 
 array<double,3> Guess::estimate_linear_parameters()
 {
-    double sx = 0, sy = 0, sxx = 0, syy = 0, sxy = 0;
+    double sx = 0, sy = 0, sxx = 0, /*syy = 0,*/ sxy = 0;
     int n = yy_.size();
     for (int i = 0; i != n; ++i) {
         double x = xx_[i];
@@ -126,7 +126,7 @@ array<double,3> Guess::estimate_linear_parameters()
         sx += x;
         sy += y;
         sxx += x*x;
-        syy += y*y;
+        //syy += y*y;
         sxy += x*y;
     }
     double slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);

@@ -407,6 +407,7 @@ void Data::load_file (string const& fn,
     post_load();
 }
 
+/*
 fp Data::get_y_at (fp x) const
 {
     int n = get_upper_bound_ac (x);
@@ -418,6 +419,7 @@ fp Data::get_y_at (fp x) const
     fp x2 = get_x (n);
     return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
 }
+*/
 
 // std::is_sorted() is added C++0x
 template <typename T>

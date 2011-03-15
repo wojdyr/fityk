@@ -79,7 +79,7 @@ public:
     double calculate_distance(double h, double k, double l) const;
 
     // calculate interplanar distance
-    double calculate_d(int h, int k, int l) const;
+    //double calculate_d(int h, int k, int l) const;
 };
 
 struct Miller
