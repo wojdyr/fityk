@@ -38,7 +38,7 @@ public:
     wxBitmap const& get_bitmap() const { return buffer_; }
 
     /// set background color
-    void set_bg_color(wxColour const& c);
+    virtual void set_bg_color(wxColour const& c);
     /// get background color
     wxColour const& get_bg_color() const { return bg_color_; }
 

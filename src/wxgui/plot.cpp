@@ -50,16 +50,12 @@ double Scale::valr(int px) const
     }
 }
 
-void Overlay::set_pen_and_brush(wxDC& dc)
+void Overlay::bg_color_updated(const wxColor& bg)
 {
-    wxColour bg = dc.GetBackground().GetColour();
-    wxColor c;
     if (0.299*bg.Red() + 0.587*bg.Green() + 0.114*bg.Blue() < 128)
-        c.Set(192, 192, 192);
+        color_.Set(192, 192, 192);
     else
-        c.Set(64, 64, 64);
-    dc.SetPen(wxPen(c, 2, wxPENSTYLE_SHORT_DASH));
-    dc.SetBrush(*wxTRANSPARENT_BRUSH);
+        color_.Set(64, 64, 64);
 }
 
 void Overlay::draw()
@@ -72,7 +68,8 @@ void Overlay::draw()
     window_->PrepareDC(dc) ;
     wxDCOverlay overlaydc(wxoverlay_, &dc);
     overlaydc.Clear();
-    set_pen_and_brush(dc);
+    dc.SetPen(wxPen(color_, 1, wxPENSTYLE_SHORT_DASH));
+    dc.SetBrush(*wxTRANSPARENT_BRUSH);
     switch (mode_) {
         case kRect:
             if (x1_ != x2_ || y1_ != y2_) {
@@ -141,7 +138,7 @@ void Overlay::draw_lines(int n, wxPoint points[])
     overlaydc.Clear();
     if (n <= 0)
         return;
-    set_pen_and_brush(dc);
+    dc.SetPen(wxPen(color_, 1, wxPENSTYLE_SHORT_DASH));
     dc.DrawLines(n, points);
 }
 
@@ -201,6 +198,12 @@ void FPlot::draw_vertical_lines_on_overlay(int X1, int X2)
         overlay.draw_lines(2, pp);
     else
         overlay.draw_lines(4, pp);
+}
+
+void FPlot::set_bg_color(wxColour const& c)
+{
+    BufferedPanel::set_bg_color(c);
+    overlay.bg_color_updated(c);
 }
 
 /// draw x axis tics
