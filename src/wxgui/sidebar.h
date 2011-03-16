@@ -87,7 +87,7 @@ public:
     std::string get_datasets_for_plot();
 
     // implementation of ParameterPanelObserver
-    virtual void on_parameter_changing(const std::vector<double>& values);
+    virtual void on_parameter_changing(const std::vector<realt>& values);
     virtual void on_parameter_changed(int n);
     virtual void on_parameter_lock_clicked(int n, int state);
 

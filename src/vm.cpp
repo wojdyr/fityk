@@ -15,6 +15,27 @@
 #include "func.h" // %f(...)
 #include "model.h" // F(...)
 
+#if QUAD_PRECISION
+#define pow powl
+#define floor floorl
+#define sqrt sqrtl
+#define exp expl
+#define erf erfl
+#define erfc erfcl
+#define log10 log10l
+#define log logl
+#define sin sinl
+#define cos cosl
+#define tan tanl
+#define asin asinl
+#define acos acosl
+#define atan atanl
+#define sinh sinhl
+#define cosh coshl
+#define tanh tanhl
+#define fabs fabsl
+#endif
+
 using namespace std;
 
 namespace {
@@ -38,7 +59,7 @@ skip_code(vector<int>::const_iterator i, int start_op, int finish_op)
 }
 
 template<typename T>
-double get_var_with_idx(double idx, vector<Point> const& points, T Point::*t)
+realt get_var_with_idx(realt idx, vector<Point> const& points, T Point::*t)
 {
     if (points.empty())
         return 0.;
@@ -50,14 +71,14 @@ double get_var_with_idx(double idx, vector<Point> const& points, T Point::*t)
         return points[iround(idx)].*t;
     else {
         int flo = int(floor(idx));
-        double fra = idx - flo;
-        return (1-fra) * double(points[flo].*t)
-               + fra * double(points[flo+1].*t);
+        realt fra = idx - flo;
+        return (1-fra) * realt(points[flo].*t)
+               + fra * realt(points[flo+1].*t);
     }
 }
 
 /// returns floating-point "index" of x in sorted vec of points
-double find_idx_in_sorted(vector<Point> const& pp, double x)
+realt find_idx_in_sorted(vector<Point> const& pp, realt x)
 {
     if (pp.empty())
         return 0;
@@ -112,7 +133,7 @@ string op2str(int op)
 };
 #undef OP_
 
-string vm2str(vector<int> const& code, vector<double> const& data)
+string vm2str(vector<int> const& code, vector<realt> const& data)
 {
     string s;
     v_foreach (int, i, code) {
@@ -133,7 +154,7 @@ string vm2str(vector<int> const& code, vector<double> const& data)
 }
 
 
-void VMData::append_number(double d)
+void VMData::append_number(realt d)
 {
     append_code(OP_NUMBER);
     int number_pos = numbers_.size();
@@ -141,14 +162,14 @@ void VMData::append_number(double d)
     numbers_.push_back(d);
 }
 
-void VMData::replace_symbols(const vector<double>& vv)
+void VMData::replace_symbols(const vector<realt>& vv)
 {
     vm_foreach (int, op, code_) {
         if (*op == OP_SYMBOL) {
             *op = OP_NUMBER;
             ++op;
-            double value = vv[*op];
-            vector<double>::iterator x =
+            realt value = vv[*op];
+            vector<realt>::iterator x =
                     find(numbers_.begin(), numbers_.end(), value);
             if (x != numbers_.end())
                 *op = x - numbers_.begin();
@@ -188,9 +209,9 @@ bool VMData::has_op(int op) const
 #define STACK_OFFSET_CHANGE(ch) stackPtr+=(ch)
 
 inline
-void run_const_op(const Ftk* F, const std::vector<double>& numbers,
+void run_const_op(const Ftk* F, const std::vector<realt>& numbers,
                   vector<int>::const_iterator& i,
-                  double*& stackPtr,
+                  realt*& stackPtr,
                   const int n,
                   const vector<Point>& old_points,
                   const vector<Point>& new_points)
@@ -416,11 +437,11 @@ void run_const_op(const Ftk* F, const std::vector<double>& numbers,
 
         case OP_Pn:
             STACK_OFFSET_CHANGE(+1);
-            *stackPtr = static_cast<double>(n);
+            *stackPtr = static_cast<realt>(n);
             break;
         case OP_PM:
             STACK_OFFSET_CHANGE(+1);
-            *stackPtr = static_cast<double>(old_points.size());
+            *stackPtr = static_cast<realt>(old_points.size());
             break;
 
         case OP_Px:
@@ -493,9 +514,9 @@ void run_const_op(const Ftk* F, const std::vector<double>& numbers,
 }
 
 inline
-void run_mutab_op(const Ftk* F, const std::vector<double>& numbers,
+void run_mutab_op(const Ftk* F, const std::vector<realt>& numbers,
                   vector<int>::const_iterator& i,
-                  double*& stackPtr,
+                  realt*& stackPtr,
                   const int n,
                   const vector<Point>& old_points,
                   vector<Point>& new_points)
@@ -525,8 +546,8 @@ void run_mutab_op(const Ftk* F, const std::vector<double>& numbers,
 }
 
 inline
-void run_func_op(const vector<double>& numbers, vector<int>::const_iterator &i,
-                 double*& stackPtr)
+void run_func_op(const vector<realt>& numbers, vector<int>::const_iterator &i,
+                 realt*& stackPtr)
 {
     switch (*i) {
         //unary operators
@@ -646,8 +667,8 @@ void ExprCalculator::transform_data(vector<Point>& points)
     if (points.empty())
         return;
 
-    double stack[16];
-    double* stackPtr = stack - 1; // will be ++'ed first
+    realt stack[16];
+    realt* stackPtr = stack - 1; // will be ++'ed first
     vector<Point> new_points = points;
 
     // do the time-consuming overflow checking only for the first point
@@ -666,10 +687,10 @@ void ExprCalculator::transform_data(vector<Point>& points)
     points.swap(new_points);
 }
 
-double ExprCalculator::calculate(int n, const vector<Point>& points) const
+realt ExprCalculator::calculate(int n, const vector<Point>& points) const
 {
-    double stack[16];
-    double* stackPtr = stack - 1; // will be ++'ed first
+    realt stack[16];
+    realt* stackPtr = stack - 1; // will be ++'ed first
     v_foreach (int, i, vm_.code()) {
         run_const_op(F_, vm_.numbers(), i, stackPtr, n, points, points);
         if (stackPtr - stack >= 16)
@@ -680,10 +701,10 @@ double ExprCalculator::calculate(int n, const vector<Point>& points) const
     return stack[0];
 }
 
-double ExprCalculator::calculate_custom(const vector<double>& custom_val) const
+realt ExprCalculator::calculate_custom(const vector<realt>& custom_val) const
 {
-    double stack[16];
-    double* stackPtr = stack - 1; // will be ++'ed first
+    realt stack[16];
+    realt* stackPtr = stack - 1; // will be ++'ed first
     const vector<Point> dummy;
     v_foreach (int, i, vm_.code()) {
         if (*i == OP_SYMBOL) {
@@ -704,12 +725,12 @@ double ExprCalculator::calculate_custom(const vector<double>& custom_val) const
 }
 
 /// executes VM code, sets derivatives and returns value
-double run_code_for_variable(const VMData& vm,
-                             const vector<Variable*> &variables,
-                             vector<double> &derivatives)
+realt run_code_for_variable(const VMData& vm,
+                            const vector<Variable*> &variables,
+                            vector<realt> &derivatives)
 {
-    double stack[16];
-    double* stackPtr = stack - 1; // will be ++'ed first
+    realt stack[16];
+    realt* stackPtr = stack - 1; // will be ++'ed first
     v_foreach (int, i, vm.code()) {
         if (*i == OP_SYMBOL) {
             STACK_OFFSET_CHANGE(+1);
@@ -732,11 +753,11 @@ double run_code_for_variable(const VMData& vm,
 }
 
 
-double run_code_for_custom_func(const VMData& vm, double x,
-                                vector<double> &derivatives)
+realt run_code_for_custom_func(const VMData& vm, realt x,
+                               vector<realt> &derivatives)
 {
-    double stack[16];
-    double* stackPtr = stack - 1; // will be ++'ed first
+    realt stack[16];
+    realt* stackPtr = stack - 1; // will be ++'ed first
     v_foreach (int, i, vm.code()) {
         if (*i == OP_X) {
             STACK_OFFSET_CHANGE(+1);
@@ -757,11 +778,11 @@ double run_code_for_custom_func(const VMData& vm, double x,
     return stack[0];
 }
 
-double run_code_for_custom_func_value(const VMData& vm, double x,
-                                      int code_offset)
+realt run_code_for_custom_func_value(const VMData& vm, realt x,
+                                     int code_offset)
 {
-    double stack[16];
-    double* stackPtr = stack - 1; // will be ++'ed first
+    realt stack[16];
+    realt* stackPtr = stack - 1; // will be ++'ed first
     for (vector<int>::const_iterator i = vm.code().begin() + code_offset;
                                                  i != vm.code().end(); ++i) {
         if (*i == OP_X) {

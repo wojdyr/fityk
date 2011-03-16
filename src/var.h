@@ -65,18 +65,18 @@ class Variable : public VariableUser
 public:
     RealRange domain;
 
-    struct ParMult { int p; fp mult; };
+    struct ParMult { int p; realt mult; };
     Variable(const std::string &name_, int nr_);
     Variable(const std::string &name_, const std::vector<std::string> &vars_,
              const std::vector<OpTree*> &op_trees_);
     ~Variable();
     void recalculate(const std::vector<Variable*> &variables,
-                     const std::vector<fp> &parameters);
+                     const std::vector<realt> &parameters);
 
     int get_nr() const { return nr_; };
     void erased_parameter(int k);
-    fp get_value() const { return value_; };
-    std::string get_formula(const std::vector<fp> &parameters) const;
+    realt get_value() const { return value_; };
+    std::string get_formula(const std::vector<realt> &parameters) const;
     bool is_visible() const { return true; } //for future use
     void set_var_idx(const std::vector<Variable*> &variables);
     const std::vector<ParMult>& recursive_derivatives() const
@@ -86,12 +86,12 @@ public:
 
     std::vector<OpTree*> const& get_op_trees() const { return op_trees_; }
     void set_original(const Variable* orig) { assert(nr_==-2); original_=orig; }
-    fp get_derivative(int n) const { return derivatives_[n]; }
+    realt get_derivative(int n) const { return derivatives_[n]; }
 
 private:
     int nr_; /// see description of this class in .h
-    fp value_;
-    std::vector<fp> derivatives_;
+    realt value_;
+    std::vector<realt> derivatives_;
     std::vector<ParMult> recursive_derivatives_;
     std::vector<OpTree*> op_trees_;
     VMData vm_;

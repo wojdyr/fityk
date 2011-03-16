@@ -168,11 +168,11 @@ public:
     const FToolBar* get_toolbar() const { return toolbar; }
     std::string get_peak_type() const;
     void set_status_text(std::string const& text);
-    void set_status_coords(fp x, fp y, PlotTypeEnum pte);
+    void set_status_coords(double x, double y, PlotTypeEnum pte);
     void clear_status_coords();
     void output_text(UserInterface::Style style, std::string const& str);
     void change_zoom(const RealRange& h, const RealRange& v);
-    void scroll_view_horizontally(fp step);
+    void scroll_view_horizontally(double step);
     void focus_input(wxKeyEvent& event);
     void edit_in_input(std::string const& s);
     void after_cmd_updates();

@@ -13,7 +13,7 @@ using namespace std;
 /// optimized for sequenced calling with slowly increasing x's
 template<typename T>
 typename vector<T>::iterator
-get_interpolation_segment(vector<T> &bb,  fp x)
+get_interpolation_segment(vector<T> &bb,  double x)
 {
     //optimized for sequence of x = x1, x2, x3, x1 < x2 < x3...
     static typename vector<T>::iterator pos = bb.begin();
@@ -47,11 +47,11 @@ void prepare_spline_interpolation (vector<PointQ> &bb)
         return;
         //find d2y/dx2 and put it in .q
     bb[0].q = 0; //natural spline
-    vector<fp> u(n);
+    vector<double> u(n);
     for (int k = 1; k <= n-2; k++) {
         PointQ *b = &bb[k];
-        fp sig = (b->x - (b-1)->x) / ((b+1)->x - (b-1)->x);
-        fp t = sig * (b-1)->q + 2.;
+        double sig = (b->x - (b-1)->x) / ((b+1)->x - (b-1)->x);
+        double t = sig * (b-1)->q + 2.;
         b->q = (sig - 1.) / t;
         u[k] = ((b+1)->y - b->y) / ((b+1)->x - b->x) - (b->y - (b-1)->y)
                             / (b->x - (b - 1)->x);
@@ -64,7 +64,7 @@ void prepare_spline_interpolation (vector<PointQ> &bb)
     }
 }
 
-fp get_spline_interpolation(vector<PointQ> &bb, fp x)
+double get_spline_interpolation(vector<PointQ> &bb, double x)
 {
     if (bb.empty())
         return 0.;
@@ -72,47 +72,47 @@ fp get_spline_interpolation(vector<PointQ> &bb, fp x)
         return bb[0].y;
     vector<PointQ>::iterator pos = get_interpolation_segment(bb, x);
     // based on Numerical Recipes www.nr.com
-    fp h = (pos+1)->x - pos->x;
-    fp a = ((pos+1)->x - x) / h;
-    fp b = (x - pos->x) / h;
-    fp t = a * pos->y + b * (pos+1)->y + ((a * a * a - a) * pos->q
-            + (b * b * b - b) * (pos+1)->q) * (h * h) / 6.;
+    double h = (pos+1)->x - pos->x;
+    double a = ((pos+1)->x - x) / h;
+    double b = (x - pos->x) / h;
+    double t = a * pos->y + b * (pos+1)->y + ((a * a * a - a) * pos->q
+               + (b * b * b - b) * (pos+1)->q) * (h * h) / 6.;
     return t;
 }
 
 template <typename T>
-fp get_linear_interpolation_(vector<T> &bb, fp x)
+double get_linear_interpolation_(vector<T> &bb, double x)
 {
     if (bb.empty())
         return 0.;
     if (bb.size() == 1)
         return bb[0].y;
     typename vector<T>::iterator pos = get_interpolation_segment(bb, x);
-    fp a = ((pos + 1)->y - pos->y) / ((pos + 1)->x - pos->x);
+    double a = ((pos + 1)->y - pos->y) / ((pos + 1)->x - pos->x);
     return pos->y + a * (x  - pos->x);
 }
 
-fp get_linear_interpolation(vector<PointQ> &bb, fp x)
+double get_linear_interpolation(vector<PointQ> &bb, double x)
 {
     return get_linear_interpolation_(bb, x);
 }
 
-fp get_linear_interpolation(vector<PointD> &bb, fp x)
+double get_linear_interpolation(vector<PointD> &bb, double x)
 {
     return get_linear_interpolation_(bb, x);
 }
 
 
 // random number utilities
-static const fp TINY = 1e-12; //only for rand_gauss() and rand_cauchy()
+static const double TINY = 1e-12; //only for rand_gauss() and rand_cauchy()
 
 /// normal distribution, mean=0, variance=1
-fp rand_gauss()
+double rand_gauss()
 {
     static bool is_saved = false;
-    static fp saved;
+    static double saved;
     if (!is_saved) {
-        fp rsq, x1, x2;
+        double rsq, x1, x2;
         while(1) {
             x1 = rand_1_1();
             x2 = rand_1_1();
@@ -120,7 +120,7 @@ fp rand_gauss()
             if (rsq >= TINY && rsq < 1)
                 break;
         }
-        fp f = sqrt(-2. * log(rsq) / rsq);
+        double f = sqrt(-2. * log(rsq) / rsq);
         saved = x1 * f;
         is_saved = true;
         return x2 * f;
@@ -131,12 +131,12 @@ fp rand_gauss()
     }
 }
 
-fp rand_cauchy()
+double rand_cauchy()
 {
     while (1) {
-        fp x1 = rand_1_1();
-        fp x2 = rand_1_1();
-        fp rsq = x1 * x1 + x2 * x2;
+        double x1 = rand_1_1();
+        double x2 = rand_1_1();
+        double rsq = x1 * x1 + x2 * x2;
         if (rsq >= TINY && rsq < 1 && fabs(x1) >= TINY)
             return (x2 / x1);
     }

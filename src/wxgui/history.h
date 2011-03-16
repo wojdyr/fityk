@@ -15,7 +15,7 @@ class SumHistoryDlg : public wxDialog
 {
 public:
     SumHistoryDlg(wxWindow* parent, wxWindowID id);
-protected:
+private:
     int view[4], view_max;
     wxListView *lc;
     wxButton *compute_wssr_button;
@@ -31,7 +31,6 @@ protected:
     void OnActivate(wxActivateEvent&) { compute_wssr(); };
 
     void initialize_lc();
-    void add_item_to_lc(int pos, std::vector<double> const& item);
     DECLARE_EVENT_TABLE()
 };
 

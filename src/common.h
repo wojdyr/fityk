@@ -27,8 +27,8 @@ using fityk::ExitRequestedException;
 // MS VC++ has no erf, erfc, trunc, snprintf functions
 #ifdef _MSC_VER
 #include <boost/math/special_functions/erf.hpp>
-using boost::math::erf
-using boost::math:erfc
+using boost::math::erf;
+using boost::math:erfc;
 inline double trunc(double a) { return a >= 0 ? floor(a) : ceil(a); }
 #define snprintf sprintf_s
 // disable warning about unsafe sprintf
@@ -49,23 +49,19 @@ struct RealRange
 
 //--------------------------  N U M E R I C  --------------------------------
 
-// we used to experiment with float and long double,
-// but now fp is always double
-typedef double fp;
-
 /// epsilon is used for comparision of real numbers
 /// defined in settings.cpp; it can be changed in Settings
-extern fp epsilon;
+extern double epsilon;
 
-inline bool is_eq(fp a, fp b) { return fabs(a-b) <= epsilon; }
-inline bool is_neq(fp a, fp b) { return fabs(a-b) > epsilon; }
-inline bool is_lt(fp a, fp b) { return a < b - epsilon; }
-inline bool is_gt(fp a, fp b) { return a > b + epsilon; }
-inline bool is_le(fp a, fp b) { return a <= b + epsilon; }
-inline bool is_ge(fp a, fp b) { return a >= b - epsilon; }
-inline bool is_zero(fp a) { return fabs(a) <= epsilon; }
+inline bool is_eq(double a, double b) { return fabs(a-b) <= epsilon; }
+inline bool is_neq(double a, double b) { return fabs(a-b) > epsilon; }
+inline bool is_lt(double a, double b) { return a < b - epsilon; }
+inline bool is_gt(double a, double b) { return a > b + epsilon; }
+inline bool is_le(double a, double b) { return a <= b + epsilon; }
+inline bool is_ge(double a, double b) { return a >= b - epsilon; }
+inline bool is_zero(double a) { return fabs(a) <= epsilon; }
 
-inline bool is_finite(fp a)
+inline bool is_finite(double a)
 #if HAVE_FINITE
     { return finite(a); }
 #else
@@ -84,7 +80,7 @@ inline bool is_finite(fp a)
 #endif
 
 /// Round real to integer.
-inline int iround(fp d) { return static_cast<int>(floor(d+0.5)); }
+inline int iround(double d) { return static_cast<int>(floor(d+0.5)); }
 
 //---------------------------  S T R I N G  --------------------------------
 
@@ -115,6 +111,7 @@ inline std::string S(size_t n)
 inline std::string S(double d) { return format1<double, 16>("%g", d); }
 // more exact version of S(); convert double number with 12 significant digits
 inline std::string eS(double d) { return format1<double, 24>("%.12g", d); }
+inline std::string S(long double d) { return S((double) d); }
 
 /// True if the string contains only a real number
 bool is_double (std::string const& s);

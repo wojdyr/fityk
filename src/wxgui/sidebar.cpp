@@ -583,7 +583,7 @@ void SideBar::update_func_list(bool nondata_changed)
         Function const* f = ftk->get_function(i);
         func_data.push_back(f->name);
         func_data.push_back(f->tp()->name);
-        fp a;
+        realt a;
         func_data.push_back(f->get_center(&a) ? S(a) : S("-"));
         func_data.push_back(f->get_area(&a)   ? S(a) : S("-"));
         func_data.push_back(f->get_height(&a) ? S(a) : S("-"));
@@ -894,9 +894,9 @@ void SideBar::update_func_inf()
     if (active_function < 0)
         return;
     Function const* func = ftk->get_function(active_function);
-    fp a;
+    realt a;
     if (func->get_center(&a))
-        inf->AppendText(wxString::Format(wxT("Center: %.10g"), a));
+        inf->AppendText(wxT("Center: ") + s2wx(format1<realt, 30>("%.10g", a)));
     if (func->get_area(&a))
         inf->AppendText(wxT("\nArea: ") + s2wx(S(a)));
     if (func->get_height(&a))
@@ -1019,7 +1019,7 @@ void SideBar::make_same_func_par(string const& p, bool checked)
     string varname = "_" + p;
     string val_str;
     if (checked) {
-        fp value = 0.;
+        double value = 0.;
         bool found = find_value_of_param(p, &value);
         if (!found)
             return;
@@ -1031,7 +1031,7 @@ void SideBar::make_same_func_par(string const& p, bool checked)
         int nr = ftk->find_variable_nr(varname);
         if (nr == -1)
             return;
-        fp value = ftk->get_variable(nr)->get_value();
+        double value = ftk->get_variable(nr)->get_value();
         val_str = S(value);
         // varname (_hwhm or _shape) will be auto-deleted
     }
@@ -1042,7 +1042,7 @@ void SideBar::make_same_func_par(string const& p, bool checked)
     ftk->exec(cmd);
 }
 
-void SideBar::on_parameter_changing(const std::vector<double>& values)
+void SideBar::on_parameter_changing(const std::vector<realt>& values)
 {
     frame->get_main_plot()->draw_overlay_func(pp_func, values);
 }

@@ -91,7 +91,8 @@ public:
         { hint_receiver_ = hr; update_mouse_hints(); }
     void set_auto_freeze(bool value) { auto_freeze_ = value; }
     BgManager* bgm() { return bgm_; }
-    void draw_overlay_func(const Function* f, const std::vector<fp>& p_values);
+    void draw_overlay_func(const Function* f,
+                           const std::vector<realt>& p_values);
     void draw_overlay_limits(const Function* f);
     bool crosshair_cursor() const { return crosshair_cursor_; }
     void set_crosshair_cursor(bool c)

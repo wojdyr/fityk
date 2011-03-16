@@ -120,7 +120,7 @@ int VariableManager::make_variable(const string &name, VMData* vd)
 
     // simple variable [OP_TILDE OP_NUMBER idx]
     if (code.size() == 3 && code[0] == OP_TILDE && code[1] == OP_NUMBER) {
-        fp val = vd->numbers()[code[2]];
+        realt val = vd->numbers()[code[2]];
         // avoid changing order of parameters in case of "$var = ~1.23"
         int old_pos = find_variable_nr(name);
         if (old_pos != -1 && variables_[old_pos]->is_simple()) {
@@ -272,7 +272,7 @@ string VariableManager::assign_variable_copy(const Variable* orig,
     string name = name_var_copy(orig);
     Variable *var;
     if (orig->is_simple()) {
-        fp val = orig->get_value();
+        realt val = orig->get_value();
         parameters_.push_back(val);
         int nr = parameters_.size() - 1;
         var = new Variable(name, nr);
@@ -447,7 +447,7 @@ void VariableManager::use_parameters()
     use_external_parameters(parameters_);
 }
 
-void VariableManager::use_external_parameters(const vector<fp> &ext_param)
+void VariableManager::use_external_parameters(const vector<realt> &ext_param)
 {
     vm_foreach (Variable*, i, variables_)
         (*i)->recalculate(variables_, ext_param);
@@ -455,7 +455,7 @@ void VariableManager::use_external_parameters(const vector<fp> &ext_param)
         (*i)->do_precomputations(variables_);
 }
 
-void VariableManager::put_new_parameters(const vector<fp> &aa)
+void VariableManager::put_new_parameters(const vector<realt> &aa)
 {
     for (size_t i = 0; i < min(aa.size(), parameters_.size()); ++i)
         parameters_[i] = aa[i];
@@ -557,7 +557,7 @@ void VariableManager::substitute_func_param(const string &name,
     remove_unreferred();
 }
 
-fp VariableManager::variation_of_a(int n, fp variat) const
+realt VariableManager::variation_of_a(int n, realt variat) const
 {
     assert (0 <= n && n < size(parameters()));
     const RealRange& dom = get_variable(n)->domain;

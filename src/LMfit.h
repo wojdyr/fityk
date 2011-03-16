@@ -15,14 +15,14 @@ class LMfit : public Fit
 public:
     LMfit(Ftk* F);
     ~LMfit();
-    fp init(); // called before do_iteration()/autoiter()
+    virtual void init(); // called before do_iteration()/autoiter()
     void autoiter();
 private:
-    std::vector<fp> alpha, alpha_;            // matrices
-    std::vector<fp> beta, beta_;   // and vectors
-    std::vector<fp> a;    // parameters table
-    fp chi2, chi2_;
-    fp lambda;
+    std::vector<realt> alpha, alpha_;            // matrices
+    std::vector<realt> beta, beta_;   // and vectors
+    std::vector<realt> a;    // parameters table
+    realt chi2, chi2_;
+    double lambda;
 
     bool do_iteration();
 };

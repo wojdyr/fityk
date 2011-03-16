@@ -83,7 +83,7 @@ void BgManager::bg_from_func()
     }
 }
 
-void BgManager::add_background_point(fp x, fp y)
+void BgManager::add_background_point(double x, double y)
 {
     if (bg_.empty() && ftk->find_function_nr(get_bg_name()) >= 0) {
         int r = wxMessageBox(wxT("Function %") + s2wx(get_bg_name())
@@ -104,11 +104,11 @@ void BgManager::add_background_point(fp x, fp y)
     bg_.insert (l, t);
 }
 
-void BgManager::rm_background_point (fp x)
+void BgManager::rm_background_point (double x)
 {
     int X = x_scale_.px(x);
-    fp lower = x_scale_.val(X - min_dist);
-    fp upper = x_scale_.val(X + min_dist);
+    double lower = x_scale_.val(X - min_dist);
+    double upper = x_scale_.val(X + min_dist);
     if (lower > upper)
         swap(lower, upper);
     vector<PointQ>::iterator l = lower_bound(bg_.begin(), bg_.end(),
@@ -194,9 +194,9 @@ vector<int> BgManager::calculate_bgline(int window_width, const Scale& y_scale)
     if (spline_)
         prepare_spline_interpolation(bg_);
     for (int i = 0; i < window_width; i++) {
-        fp x = x_scale_.val(i);
-        fp y = spline_ ? get_spline_interpolation(bg_, x)
-                       : get_linear_interpolation(bg_, x);
+        double x = x_scale_.val(i);
+        double y = spline_ ? get_spline_interpolation(bg_, x)
+                           : get_linear_interpolation(bg_, x);
         bgline[i] = y_scale.px(y);
     }
     return bgline;

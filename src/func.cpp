@@ -9,8 +9,8 @@
 
 using namespace std;
 
-vector<fp> Function::calc_val_xx(1);
-vector<fp> Function::calc_val_yy(1);
+vector<realt> Function::calc_val_xx(1);
+vector<realt> Function::calc_val_yy(1);
 
 Function::Function(const Settings* settings,
                    const string &name,
@@ -88,9 +88,9 @@ void Function::erased_parameter(int k)
 }
 
 
-void Function::calculate_value(const vector<fp> &x, vector<fp> &y) const
+void Function::calculate_value(const vector<realt> &x, vector<realt> &y) const
 {
-    fp left, right;
+    realt left, right;
     double cut_level = settings_->function_cutoff;
     bool r = get_nonzero_range(cut_level, left, right);
     if (r) {
@@ -102,7 +102,7 @@ void Function::calculate_value(const vector<fp> &x, vector<fp> &y) const
         this->calculate_value_in_range(x, y, 0, x.size());
 }
 
-fp Function::calculate_value(fp x) const
+realt Function::calculate_value(realt x) const
 {
     calc_val_xx[0] = x;
     calc_val_yy[0] = 0.;
@@ -110,12 +110,12 @@ fp Function::calculate_value(fp x) const
     return calc_val_yy[0];
 }
 
-void Function::calculate_value_deriv(const vector<fp> &x,
-                                     vector<fp> &y,
-                                     vector<fp> &dy_da,
+void Function::calculate_value_deriv(const vector<realt> &x,
+                                     vector<realt> &y,
+                                     vector<realt> &dy_da,
                                      bool in_dx) const
 {
-    fp left, right;
+    realt left, right;
     double cut_level = settings_->function_cutoff;
     bool r = get_nonzero_range(cut_level, left, right);
     if (r) {
@@ -127,7 +127,7 @@ void Function::calculate_value_deriv(const vector<fp> &x,
         this->calculate_value_deriv_in_range(x, y, dy_da, in_dx, 0, x.size());
 }
 
-bool Function::get_center(fp* a) const
+bool Function::get_center(realt* a) const
 {
     if (center_idx_ != -1) {
         *a = av_[center_idx_];
@@ -136,9 +136,9 @@ bool Function::get_center(fp* a) const
     return false;
 }
 
-bool Function::get_iwidth(fp* a) const
+bool Function::get_iwidth(realt* a) const
 {
-    fp area, height;
+    realt area, height;
     if (this->get_area(&area) && this->get_height(&height)) {
         *a = height != 0. ? area / height : 0.;
         return true;
@@ -158,7 +158,7 @@ string Function::get_basic_assignment() const
 
 /// return sth like: %f = Linear(a0=$foo, a1=~3.5)
 string Function::get_current_assignment(const vector<Variable*> &variables,
-                                        const vector<fp> &parameters) const
+                                        const vector<realt> &parameters) const
 {
     vector<string> vs;
     for (int i = 0; i < size(var_idx); ++i) {
@@ -194,9 +194,9 @@ int Function::get_param_nr(const string& param) const
     return n;
 }
 
-fp Function::get_param_value(const string& param) const
+realt Function::get_param_value(const string& param) const
 {
-    fp a;
+    realt a;
     if (!param.empty() && islower(param[0]))
         return av_[get_param_nr(param)];
     else if (param == "Center" && get_center(&a)) {
@@ -216,18 +216,18 @@ fp Function::get_param_value(const string& param) const
                            + ") has no parameter `" + param + "'");
 }
 
-fp Function::numarea(fp x1, fp x2, int nsteps) const
+realt Function::numarea(realt x1, realt x2, int nsteps) const
 {
     if (nsteps <= 1)
         return 0.;
-    fp xmin = min(x1, x2);
-    fp xmax = max(x1, x2);
-    fp h = (xmax - xmin) / (nsteps-1);
-    vector<fp> xx(nsteps), yy(nsteps);
+    realt xmin = min(x1, x2);
+    realt xmax = max(x1, x2);
+    realt h = (xmax - xmin) / (nsteps-1);
+    vector<realt> xx(nsteps), yy(nsteps);
     for (int i = 0; i < nsteps; ++i)
         xx[i] = xmin + i*h;
     calculate_value(xx, yy);
-    fp a = (yy[0] + yy[nsteps-1]) / 2.;
+    realt a = (yy[0] + yy[nsteps-1]) / 2.;
     for (int i = 1; i < nsteps-1; ++i)
         a += yy[i];
     return a*h;
@@ -236,10 +236,11 @@ fp Function::numarea(fp x1, fp x2, int nsteps) const
 /// search x in [x1, x2] for which %f(x)==val,
 /// x1, x2, val: f(x1) <= val <= f(x2) or f(x2) <= val <= f(x1)
 /// bisection + Newton-Raphson
-fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
+realt Function::find_x_with_value(realt x1, realt x2, realt val,
+                                  int max_iter) const
 {
-    fp y1 = calculate_value(x1) - val;
-    fp y2 = calculate_value(x2) - val;
+    realt y1 = calculate_value(x1) - val;
+    realt y2 = calculate_value(x2) - val;
     if ((y1 > 0 && y2 > 0) || (y1 < 0 && y2 < 0))
         throw ExecuteError("Value " + S(val) + " is not bracketed by "
                            + S(x1) + "(" + S(y1+val) + ") and "
@@ -247,14 +248,14 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
     int n = 0;
     v_foreach (Multi, j, multi_)
         n = max(j->p + 1, n);
-    vector<fp> dy_da(n+1);
+    vector<realt> dy_da(n+1);
     if (y1 == 0)
         return x1;
     if (y2 == 0)
         return x2;
     if (y1 > 0)
         swap(x1, x2);
-    fp t = (x1 + x2) / 2.;
+    realt t = (x1 + x2) / 2.;
     for (int i = 0; i < max_iter; ++i) {
         //check if converged
         if (is_eq(x1, x2))
@@ -265,8 +266,8 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
         calc_val_yy[0] = 0;
         dy_da.back() = 0;
         calculate_value_deriv(calc_val_xx, calc_val_yy, dy_da);
-        fp f = calc_val_yy[0] - val;
-        fp df = dy_da.back();
+        realt f = calc_val_yy[0] - val;
+        realt df = dy_da.back();
 
         // narrow range
         if (f == 0.)
@@ -277,7 +278,7 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
             x2 = t;
 
         // select new guess point
-        fp dx = -f/df * 1.02; // 1.02 is to jump to the other side of point
+        realt dx = -f/df * 1.02; // 1.02 is to jump to the other side of point
         if ((t+dx > x2 && t+dx > x1) || (t+dx < x2 && t+dx < x1)  // outside
                             || i % 20 == 19) {                 // precaution
             //bisection
@@ -292,23 +293,23 @@ fp Function::find_x_with_value(fp x1, fp x2, fp val, int max_iter) const
 }
 
 /// finds root of derivative, using bisection method
-fp Function::find_extremum(fp x1, fp x2, int max_iter) const
+realt Function::find_extremum(realt x1, realt x2, int max_iter) const
 {
     int n = 0;
     v_foreach (Multi, j, multi_)
         n = max(j->p + 1, n);
-    vector<fp> dy_da(n+1);
+    vector<realt> dy_da(n+1);
 
     // calculate df
     calc_val_xx[0] = x1;
     dy_da.back() = 0;
     calculate_value_deriv(calc_val_xx, calc_val_yy, dy_da);
-    fp y1 = dy_da.back();
+    realt y1 = dy_da.back();
 
     calc_val_xx[0] = x2;
     dy_da.back() = 0;
     calculate_value_deriv(calc_val_xx, calc_val_yy, dy_da);
-    fp y2 = dy_da.back();
+    realt y2 = dy_da.back();
 
     if ((y1 > 0 && y2 > 0) || (y1 < 0 && y2 < 0))
         throw ExecuteError("Derivatives at " + S(x1) + " and " + S(x2)
@@ -320,14 +321,13 @@ fp Function::find_extremum(fp x1, fp x2, int max_iter) const
     if (y1 > 0)
         swap(x1, x2);
     for (int i = 0; i < max_iter; ++i) {
-
-        fp t = (x1 + x2) / 2.;
+        realt t = (x1 + x2) / 2.;
 
         // calculate df
         calc_val_xx[0] = t;
         dy_da.back() = 0;
         calculate_value_deriv(calc_val_xx, calc_val_yy, dy_da);
-        fp df = dy_da.back();
+        realt df = dy_da.back();
 
         // narrow range
         if (df == 0.)

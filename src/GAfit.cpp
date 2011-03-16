@@ -71,7 +71,7 @@ GAfit::GAfit(Ftk* F)
 
 GAfit::~GAfit() {}
 
-fp GAfit::init()
+void GAfit::init()
 {
     pop = &pop1;
     opop = &pop2;
@@ -86,7 +86,6 @@ fp GAfit::init()
             best = i;
     }
     best_indiv = *best;
-    return 0;
 }
 
 void GAfit::autoiter()
@@ -207,7 +206,7 @@ void GAfit::two_points_crossover (vector<Individual>::iterator c1,
 void GAfit::arithmetic_crossover1 (vector<Individual>::iterator c1,
                                    vector<Individual>::iterator c2)
 {
-    fp a = rand_0_1();
+    realt a = rand_0_1();
     for (int j = 0; j < na; j++) {
         c1->g[j] = a * c1->g[j] + (1 - a) * c2->g[j];
         c2->g[j] = (1 - a) * c1->g[j] + a * c2->g[j]; ;
@@ -218,7 +217,7 @@ void GAfit::arithmetic_crossover2 (vector<Individual>::iterator c1,
                                    vector<Individual>::iterator c2)
 {
     for (int j = 0; j < na; j++) {
-        fp a = rand_0_1();
+        realt a = rand_0_1();
         c1->g[j] = a * c1->g[j] + (1 - a) * c2->g[j];
         c2->g[j] = (1 - a) * c1->g[j] + a * c2->g[j]; ;
     }
@@ -326,7 +325,7 @@ vector<int>::iterator
 GAfit::SRS_and_DS_common (vector<int>& next)
 {
     vector<int>::iterator r = next.begin();
-    fp f = 1.0 * next.size() / pop->size(); // rescaling for steady-state
+    realt f = 1.0 * next.size() / pop->size(); // rescaling for steady-state
     for (unsigned int i = 0; i < pop->size(); i++) {
         int n = static_cast<int>((*pop)[i].norm_score * f);
         fill (r, min (r + n, next.end()), i);
@@ -346,7 +345,7 @@ void GAfit::stochastic_remainder_sampling(vector<int>& next)
 
 struct Remainder_and_ptr {
     int ind;
-    fp r;
+    realt r;
     bool operator< (const Remainder_and_ptr &b) {
         return r < b.r;
     }
@@ -361,7 +360,7 @@ void GAfit::deterministic_sampling_selection(vector<int>& next)
     rem.resize(pop->size());
     for (unsigned int i = 0; i < pop->size(); i++) {
         rem[i].ind = i;
-        fp x = (*pop)[i].norm_score;
+        realt x = (*pop)[i].norm_score;
         rem[i].r = x - floor(x);
     }
     int rest = next.end() - r;
@@ -380,42 +379,42 @@ void GAfit::scale_score () //return value - are individuals varying?
             i->phase_2_score = i->raw_score;
 
     //scaling p -> q - p; p -> p / <p>
-    fp q = max_in_window();
+    realt q = max_in_window();
     if (q < 0)
         q = std_dev_based_q();
     q += linear_scaling_b;
-    fp sum = 0;
+    realt sum = 0;
     for (vector<Individual>::iterator i = pop->begin(); i != pop->end(); i++) {
-        i->reversed_score = max (q - i->phase_2_score, 0.);
+        i->reversed_score = max(q - i->phase_2_score, (realt) 0.);
         sum += i->reversed_score;
     }
     if (sum == 0) //to avoid x/0
         return;
-    fp avg_rev_sc = sum / pop->size();
+    realt avg_rev_sc = sum / pop->size();
     for (vector<Individual>::iterator i = pop->begin(); i != pop->end(); i++)
         i->norm_score = i->reversed_score / avg_rev_sc;
 }
 
-fp GAfit::std_dev_based_q()
+realt GAfit::std_dev_based_q()
 {
-    fp sum_p = 0, sum_p2 = 0;
+    realt sum_p = 0, sum_p2 = 0;
     for (vector<Individual>::iterator i = pop->begin(); i != pop->end(); i++) {
         sum_p += i->phase_2_score;
         sum_p2 += i->phase_2_score * i->phase_2_score;
     }
-    fp avg_p2 = sum_p2 / pop->size();
-    fp avg_p = sum_p / pop->size();
-    fp sq_sigma = avg_p2 - avg_p * avg_p;
-    fp sigma = sq_sigma > 0 ? sqrt (sq_sigma) : 0;  //because of problem with
+    realt avg_p2 = sum_p2 / pop->size();
+    realt avg_p = sum_p / pop->size();
+    realt sq_sigma = avg_p2 - avg_p * avg_p;
+    realt sigma = sq_sigma > 0 ? sqrt (sq_sigma) : 0;  //because of problem with
     return linear_scaling_a * avg_p + linear_scaling_c * sigma; // sqrt(0)
 }
 
-fp GAfit::max_in_window ()
+realt GAfit::max_in_window ()
 {
     // stores the worst raw_score in every of last hist_len generations
     // return the worst (max) raw_score in last window_size generations
     const int hist_len = 200;
-    static deque<fp> max_raw_history (hist_len, 0);
+    static deque<realt> max_raw_history (hist_len, 0);
     max_raw_history.push_front (tmp_max);
     max_raw_history.pop_back();
     assert (window_size <= hist_len);
@@ -433,8 +432,8 @@ fp GAfit::max_in_window ()
 bool GAfit::termination_criteria_and_print_info (int iter)
 {
     static int no_progress_iters = 0;
-    fp sum = 0;
-    fp min = pop->front().raw_score;
+    realt sum = 0;
+    realt min = pop->front().raw_score;
     tmp_max = min;
     vector<Individual>::iterator ibest = pop->begin();
     for (vector<Individual>::iterator i = pop->begin(); i != pop->end(); i++) {
@@ -446,15 +445,15 @@ bool GAfit::termination_criteria_and_print_info (int iter)
             tmp_max = i->raw_score;
         sum += i->raw_score;
     }
-    fp avg = sum / pop->size();
-    fp sq_sum = 0;
-    fp generations_sum = 0;
+    realt avg = sum / pop->size();
+    realt sq_sum = 0;
+    realt generations_sum = 0;
     for (vector<Individual>::iterator i = pop->begin(); i != pop->end(); i++) {
-        fp d = i->raw_score - avg;
+        realt d = i->raw_score - avg;
         sq_sum += d * d;
         generations_sum += i->generation;
     }
-    fp std_dev = sq_sum > 0 ? sqrt (sq_sum / pop->size()) : 0;
+    realt std_dev = sq_sum > 0 ? sqrt (sq_sum / pop->size()) : 0;
     F_->msg("Population #" + S(iter_nr) + ": best " + S(min)
                 + ", avg " + S(avg) + ", worst " + S(tmp_max)
                 + ", std dev. " + S(std_dev));

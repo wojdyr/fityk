@@ -44,7 +44,7 @@ class Ftk : public VariableManager
 public:
     View view;
     /// used for randomly drawing parameter values, in fitting methods like GA
-    fp default_relative_domain_width;
+    double default_relative_domain_width;
 
     Ftk();
     ~Ftk();

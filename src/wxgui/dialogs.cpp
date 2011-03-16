@@ -219,9 +219,9 @@ MergePointsDlg::MergePointsDlg(wxWindow* parent, wxWindowID id)
 void MergePointsDlg::update_info()
 {
     vector<int> dd = frame->get_selected_data_indices();
-    Data const* data = ftk->get_data(dd[0]);
-    fp x_min = data->get_x_min();
-    fp x_max = data->get_x_max();
+    const Data* data = ftk->get_data(dd[0]);
+    double x_min = data->get_x_min();
+    double x_max = data->get_x_max();
     int n = data->points().size();
     wxString dstr = wxString::Format(wxT("@%d"), dd[0]);
     for (size_t i = 1; i < dd.size(); ++i) {

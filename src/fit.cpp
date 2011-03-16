@@ -38,10 +38,10 @@ int Fit::get_dof(const vector<DataAndModel*>& dms)
 string Fit::get_goodness_info(const vector<DataAndModel*>& dms)
 {
     const SettingsMgr *sm = F_->settings_mgr();
-    const vector<fp>& pp = F_->parameters();
+    const vector<realt>& pp = F_->parameters();
     int dof = get_dof(dms);
     //update_parameters(dms);
-    fp wssr = do_compute_wssr(pp, dms, true);
+    realt wssr = do_compute_wssr(pp, dms, true);
     return "WSSR = " + sm->format_double(wssr)
            + ";  DoF = " + S(dof)
            + ";  WSSR/DoF = " + sm->format_double(wssr/dof)
@@ -49,12 +49,12 @@ string Fit::get_goodness_info(const vector<DataAndModel*>& dms)
            + ";  R-squared = " + sm->format_double(compute_r_squared(pp, dms));
 }
 
-vector<fp> Fit::get_covariance_matrix(const vector<DataAndModel*>& dms)
+vector<realt> Fit::get_covariance_matrix(const vector<DataAndModel*>& dms)
 {
-    const vector<fp> &pp = F_->parameters();
+    const vector<realt> &pp = F_->parameters();
     update_parameters(dms);
 
-    vector<fp> alpha(na*na), beta(na);
+    vector<realt> alpha(na*na), beta(na);
     compute_derivatives(pp, dms, alpha, beta);
 
     // To avoid singular matrix, put fake values corresponding to unused
@@ -89,14 +89,14 @@ vector<fp> Fit::get_covariance_matrix(const vector<DataAndModel*>& dms)
     return alpha;
 }
 
-vector<fp> Fit::get_standard_errors(const vector<DataAndModel*>& dms)
+vector<realt> Fit::get_standard_errors(const vector<DataAndModel*>& dms)
 {
-    const vector<fp> &pp = F_->parameters();
-    fp wssr = do_compute_wssr(pp, dms, true);
+    const vector<realt> &pp = F_->parameters();
+    realt wssr = do_compute_wssr(pp, dms, true);
     int dof = get_dof(dms);
-    vector<fp> alpha = get_covariance_matrix(dms);
+    vector<realt> alpha = get_covariance_matrix(dms);
     // `na' was set by functions above
-    vector<fp> errors(na);
+    vector<realt> errors(na);
     for (int i = 0; i < na; ++i)
         errors[i] = sqrt(wssr / dof * alpha[i*na + i]);
     return errors;
@@ -105,12 +105,12 @@ vector<fp> Fit::get_standard_errors(const vector<DataAndModel*>& dms)
 string Fit::get_error_info(const vector<DataAndModel*>& dms)
 {
     const SettingsMgr *sm = F_->settings_mgr();
-    vector<fp> errors = get_standard_errors(dms);
-    const vector<fp>& pp = F_->parameters();
+    vector<realt> errors = get_standard_errors(dms);
+    const vector<realt>& pp = F_->parameters();
     string s = "Standard errors:";
     for (int i = 0; i < na; i++) {
         if (par_usage[i]) {
-            fp err = errors[i];
+            realt err = errors[i];
             s += "\n$" + F_->find_variable_handling_param(i)->name
                 + " = " + sm->format_double(pp[i])
                 + " +- " + (err == 0. ? string("??") : sm->format_double(err));
@@ -123,7 +123,7 @@ string Fit::get_cov_info(const vector<DataAndModel*>& dms)
 {
     string s;
     const SettingsMgr *sm = F_->settings_mgr();
-    vector<fp> alpha = get_covariance_matrix(dms);
+    vector<realt> alpha = get_covariance_matrix(dms);
     s += "\nCovariance matrix\n    ";
     for (int i = 0; i < na; ++i)
         if (par_usage[i])
@@ -140,11 +140,11 @@ string Fit::get_cov_info(const vector<DataAndModel*>& dms)
     return s;
 }
 
-fp Fit::do_compute_wssr(const vector<fp> &A,
-                        const vector<DataAndModel*>& dms,
-                        bool weigthed)
+realt Fit::do_compute_wssr(const vector<realt> &A,
+                           const vector<DataAndModel*>& dms,
+                           bool weigthed)
 {
-    fp wssr = 0;
+    realt wssr = 0;
     F_->use_external_parameters(A); //that's the only side-effect
     v_foreach (DataAndModel*, i, dms) {
         wssr += compute_wssr_for_data(*i, weigthed);
@@ -153,18 +153,18 @@ fp Fit::do_compute_wssr(const vector<fp> &A,
 }
 
 //static
-fp Fit::compute_wssr_for_data(const DataAndModel* dm, bool weigthed)
+realt Fit::compute_wssr_for_data(const DataAndModel* dm, bool weigthed)
 {
     const Data* data = dm->data();
     int n = data->get_n();
-    vector<fp> xx(n);
+    vector<realt> xx(n);
     for (int j = 0; j < n; j++)
         xx[j] = data->get_x(j);
-    vector<fp> yy(n, 0.);
+    vector<realt> yy(n, 0.);
     dm->model()->compute_model(xx, yy);
-    double wssr = 0;
+    realt wssr = 0;
     for (int j = 0; j < n; j++) {
-        double dy = data->get_y(j) - yy[j];
+        realt dy = data->get_y(j) - yy[j];
         if (weigthed)
             dy /= data->get_sigma(j);
         wssr += dy * dy;
@@ -173,9 +173,10 @@ fp Fit::compute_wssr_for_data(const DataAndModel* dm, bool weigthed)
 }
 
 // R^2 for multiple datasets is calculated with separate mean y for each dataset
-fp Fit::compute_r_squared(const vector<fp> &A, const vector<DataAndModel*>& dms)
+realt Fit::compute_r_squared(const vector<realt> &A,
+                             const vector<DataAndModel*>& dms)
 {
-    fp sum_err = 0, sum_tot = 0, se = 0, st = 0;
+    realt sum_err = 0, sum_tot = 0, se = 0, st = 0;
     F_->use_external_parameters(A);
     v_foreach (DataAndModel*, i, dms) {
         compute_r_squared_for_data(*i, &se, &st);
@@ -186,28 +187,28 @@ fp Fit::compute_r_squared(const vector<fp> &A, const vector<DataAndModel*>& dms)
 }
 
 //static
-fp Fit::compute_r_squared_for_data(const DataAndModel* dm,
-                                   fp* sum_err, fp* sum_tot)
+realt Fit::compute_r_squared_for_data(const DataAndModel* dm,
+                                      realt* sum_err, realt* sum_tot)
 {
     const Data* data = dm->data();
     int n = data->get_n();
-    vector<fp> xx(n);
+    vector<realt> xx(n);
     for (int j = 0; j < n; j++)
         xx[j] = data->get_x(j);
-    vector<fp> yy(n, 0.);
+    vector<realt> yy(n, 0.);
     dm->model()->compute_model(xx, yy);
-    fp ysum = 0;
-    fp ss_err = 0; // Sum of squares of dist. between fitted curve and data
+    realt ysum = 0;
+    realt ss_err = 0; // Sum of squares of dist. between fitted curve and data
     for (int j = 0; j < n; j++) {
         ysum += data->get_y(j) ;
-        fp dy = data->get_y(j) - yy[j];
+        realt dy = data->get_y(j) - yy[j];
         ss_err += dy * dy ;
     }
-    fp mean = ysum / n;
+    realt mean = ysum / n;
 
-    fp ss_tot = 0;  // Sum of squares of distances between mean and data
+    realt ss_tot = 0;  // Sum of squares of distances between mean and data
     for (int j = 0; j < n; j++) {
-        fp dy = data->get_y(j) - mean;
+        realt dy = data->get_y(j) - mean;
         ss_tot += dy * dy;
     }
 
@@ -222,9 +223,9 @@ fp Fit::compute_r_squared_for_data(const DataAndModel* dm,
 }
 
 //results in alpha and beta
-void Fit::compute_derivatives(const vector<fp> &A,
+void Fit::compute_derivatives(const vector<realt> &A,
                               const vector<DataAndModel*>& dms,
-                              vector<fp>& alpha, vector<fp>& beta)
+                              vector<realt>& alpha, vector<realt>& beta)
 {
     assert (size(A) == na && size(alpha) == na * na && size(beta) == na);
     fill(alpha.begin(), alpha.end(), 0.0);
@@ -243,21 +244,21 @@ void Fit::compute_derivatives(const vector<fp> &A,
 //results in alpha and beta
 //it computes only half of alpha matrix
 void Fit::compute_derivatives_for(const DataAndModel* dm,
-                                  vector<fp>& alpha, vector<fp>& beta)
+                                  vector<realt>& alpha, vector<realt>& beta)
 {
     const Data* data = dm->data();
     int n = data->get_n();
-    vector<fp> xx(n);
+    vector<realt> xx(n);
     for (int j = 0; j < n; ++j)
         xx[j] = data->get_x(j);
-    vector<fp> yy(n, 0.);
+    vector<realt> yy(n, 0.);
     const int dyn = na+1;
-    vector<fp> dy_da(n*dyn, 0.);
+    vector<realt> dy_da(n*dyn, 0.);
     dm->model()->compute_model_with_derivs(xx, yy, dy_da);
     for (int i = 0; i != n; i++) {
-        fp inv_sig = 1.0 / data->get_sigma(i);
-        fp dy_sig = (data->get_y(i) - yy[i]) * inv_sig;
-        vector<fp>::iterator t = dy_da.begin() + i*dyn;
+        realt inv_sig = 1.0 / data->get_sigma(i);
+        realt dy_sig = (data->get_y(i) - yy[i]) * inv_sig;
+        vector<realt>::iterator t = dy_da.begin() + i*dyn;
         for (int j = 0; j != na; ++j) {
             if (par_usage[j]) {
                 *(t+j) *= inv_sig;
@@ -269,8 +270,8 @@ void Fit::compute_derivatives_for(const DataAndModel* dm,
     }
 }
 
-string Fit::print_matrix (const vector<fp>& vec, int m, int n,
-                          const char *mname)
+string Fit::print_matrix(const vector<realt>& vec, int m, int n,
+                         const char *mname)
     //m rows, n columns
 {
     if (F_->get_verbosity() <= 0)  //optimization (?)
@@ -297,7 +298,7 @@ string Fit::print_matrix (const vector<fp>& vec, int m, int n,
     return h;
 }
 
-bool Fit::post_fit(const vector<fp>& aa, fp chi2)
+bool Fit::post_fit(const vector<realt>& aa, realt chi2)
 {
     double elapsed = (clock() - start_time_) / (double) CLOCKS_PER_SEC;
     F_->msg(name + ": " + S(iter_nr) + " iterations, "
@@ -323,12 +324,12 @@ bool Fit::post_fit(const vector<fp>& aa, fp chi2)
     return better;
 }
 
-fp Fit::draw_a_from_distribution (int nr, char distribution, fp mult)
+realt Fit::draw_a_from_distribution (int nr, char distribution, realt mult)
 {
     assert (nr >= 0 && nr < na);
     if (!par_usage[nr])
         return a_orig[nr];
-    fp dv = 0;
+    realt dv = 0;
     switch (distribution) {
         case 'g':
             dv = rand_gauss();
@@ -443,7 +444,7 @@ bool Fit::common_termination_criteria(int iter)
     return stop;
 }
 
-void Fit::iteration_plot(const vector<fp> &A, fp wssr)
+void Fit::iteration_plot(const vector<realt> &A, realt wssr)
 {
     int p = F_->get_settings()->refresh_period;
     if (p < 0 || (p > 0 && time(0) - last_refresh_time_ < p))
@@ -471,18 +472,18 @@ void Fit::iteration_plot(const vector<fp> &A, fp wssr)
 ///
 /// A * x = b
 ///
-/// A is n x n matrix, fp A[n*n]
+/// A is n x n matrix, realt A[n*n]
 /// b is vector b[n],
 /// Function returns vector x[] in b[], and 1-matrix in A[].
 /// return value: true=OK, false=singular matrix
 ///   with special exception:
 ///     if i'th row, i'th column and i'th element in b all contains zeros,
 ///     it's just ignored,
-void Fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
+void Fit::Jordan(vector<realt>& A, vector<realt>& b, int n)
 {
     assert (size(A) == n*n && size(b) == n);
     for (int i = 0; i < n; i++) {
-        fp amax = 0;                    // looking for a pivot element
+        realt amax = 0;                    // looking for a pivot element
         int maxnr = -1;
         for (int j = i; j < n; j++)
             if (fabs (A[n*j+i]) > amax) {
@@ -507,13 +508,13 @@ void Fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
                 swap (A[n*maxnr+j], A[n*i+j]);
             swap (b[i], b[maxnr]);
         }
-        fp c = 1.0 / A[i*n+i];
+        realt c = 1.0 / A[i*n+i];
         for (int j = i; j < n; j++)
             A[i*n+j] *= c;
         b[i] *= c;
         for (int k = 0; k < n; k++)
             if (k != i) {
-                fp d = A[k * n + i];
+                realt d = A[k * n + i];
                 for (int j = i; j < n; j++)
                     A[k * n + j] -= A[i * n + j] * d;
                 b[k] -= b[i] * d;
@@ -522,14 +523,14 @@ void Fit::Jordan(vector<fp>& A, vector<fp>& b, int n)
 }
 
 /// A - matrix n x n; returns A^(-1) in A
-void Fit::reverse_matrix (vector<fp>&A, int n)
+void Fit::reverse_matrix (vector<realt>&A, int n)
 {
     //no need to optimize it
     assert (size(A) == n*n);
-    vector<fp> A_result(n*n);
+    vector<realt> A_result(n*n);
     for (int i = 0; i < n; i++) {
-        vector<fp> A_copy = A;
-        vector<fp> v(n, 0);
+        vector<realt> A_copy = A;
+        vector<realt> v(n, 0);
         v[i] = 1;
         Jordan(A_copy, v, n);
         for (int j = 0; j < n; j++)
@@ -554,7 +555,7 @@ FitMethodsContainer::~FitMethodsContainer()
     purge_all_elements(methods_);
 }
 
-fp FitMethodsContainer::get_standard_error(const Variable* var) const
+realt FitMethodsContainer::get_standard_error(const Variable* var) const
 {
     if (!var->is_simple())
         return -1.; // value signaling unknown standard error
@@ -594,7 +595,7 @@ bool ParameterHistoryMgr::can_undo() const
         && (param_hist_ptr_ > 0 || param_history_[0] != F_->parameters());
 }
 
-bool ParameterHistoryMgr::push_param_history(const vector<fp>& aa)
+bool ParameterHistoryMgr::push_param_history(const vector<realt>& aa)
 {
     param_hist_ptr_ = param_history_.size() - 1;
     if (param_history_.empty() || param_history_.back() != aa) {

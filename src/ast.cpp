@@ -20,6 +20,27 @@
 #include "lexer.h"
 #include "eparser.h"
 
+#if QUAD_PRECISION
+#define pow powl
+#define floor floorl
+#define sqrt sqrtl
+#define exp expl
+#define erf erfl
+#define erfc erfcl
+#define log10 log10l
+#define log logl
+#define sin sinl
+#define cos cosl
+#define tan tanl
+#define asin asinl
+#define acos acosl
+#define atan atanl
+#define sinh sinhl
+#define cosh coshl
+#define tanh tanhl
+#define fabs fabsl
+#endif
+
 using namespace std;
 
 
@@ -85,7 +106,7 @@ OpTree* do_multiply(OpTree *a, OpTree *b);
 OpTree* do_neg(OpTree *a)
 {
     if (a->op == 0) {
-        double val = - a->val;
+        realt val = - a->val;
         delete a;
         return new OpTree(val);
     }
@@ -101,7 +122,7 @@ OpTree* do_neg(OpTree *a)
 OpTree* do_add(int op, OpTree *a, OpTree *b)
 {
     if (a->op == 0 && b->op == 0) { // p + q
-        double val = (op == OP_ADD ? a->val + b->val : a->val - b->val);
+        realt val = (op == OP_ADD ? a->val + b->val : a->val - b->val);
         delete a;
         delete b;
         return new OpTree(val);
@@ -154,7 +175,7 @@ OpTree* do_multiply(OpTree *a, OpTree *b)
 {
     if (a->op == 0 && b->op == 0)  // const * const
     {
-        double val = a->val * b->val;
+        realt val = a->val * b->val;
         delete a;
         delete b;
         return new OpTree(val);
@@ -198,7 +219,7 @@ OpTree* do_divide(OpTree *a, OpTree *b)
     //no check for division by zero
     if (a->op == 0 && b->op == 0)
     {
-        double val = a->val / b->val;
+        realt val = a->val / b->val;
         delete a;
         delete b;
         return new OpTree(val);
@@ -233,7 +254,7 @@ template<typename T>
 OpTree* one_arg_func(OpTree *a, T func, int op)
 {
     if (a->op == 0) {
-        double val = func(a->val);
+        realt val = func(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -245,7 +266,7 @@ OpTree* one_arg_func(OpTree *a, T func, int op)
 OpTree* do_exp(OpTree *a)
 {
     if (a->op == 0) {
-        double val = exp(a->val);
+        realt val = exp(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -256,7 +277,7 @@ OpTree* do_exp(OpTree *a)
 OpTree* do_erf(OpTree *a)
 {
     if (a->op == 0) {
-        double val = erf(a->val);
+        realt val = erf(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -267,7 +288,7 @@ OpTree* do_erf(OpTree *a)
 OpTree* do_erfc(OpTree *a)
 {
     if (a->op == 0) {
-        double val = erfc(a->val);
+        realt val = erfc(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -278,7 +299,7 @@ OpTree* do_erfc(OpTree *a)
 OpTree* do_sqrt(OpTree *a)
 {
     if (a->op == 0) {
-        double val = sqrt(a->val);
+        realt val = sqrt(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -289,7 +310,7 @@ OpTree* do_sqrt(OpTree *a)
 OpTree* do_log10(OpTree *a)
 {
     if (a->op == 0) {
-        double val = log10(a->val);
+        realt val = log10(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -300,7 +321,7 @@ OpTree* do_log10(OpTree *a)
 OpTree* do_ln(OpTree *a)
 {
     if (a->op == 0) {
-        double val = log(a->val);
+        realt val = log(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -311,7 +332,7 @@ OpTree* do_ln(OpTree *a)
 OpTree* do_sinh(OpTree *a)
 {
     if (a->op == 0) {
-        double val = sinh(a->val);
+        realt val = sinh(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -322,7 +343,7 @@ OpTree* do_sinh(OpTree *a)
 OpTree* do_cosh(OpTree *a)
 {
     if (a->op == 0) {
-        double val = cosh(a->val);
+        realt val = cosh(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -333,7 +354,7 @@ OpTree* do_cosh(OpTree *a)
 OpTree* do_tanh(OpTree *a)
 {
     if (a->op == 0) {
-        double val = tanh(a->val);
+        realt val = tanh(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -344,7 +365,7 @@ OpTree* do_tanh(OpTree *a)
 OpTree* do_sin(OpTree *a)
 {
     if (a->op == 0) {
-        double val = sin(a->val);
+        realt val = sin(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -355,7 +376,7 @@ OpTree* do_sin(OpTree *a)
 OpTree* do_cos(OpTree *a)
 {
     if (a->op == 0) {
-        double val = cos(a->val);
+        realt val = cos(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -366,7 +387,7 @@ OpTree* do_cos(OpTree *a)
 OpTree* do_tan(OpTree *a)
 {
     if (a->op == 0) {
-        double val = tan(a->val);
+        realt val = tan(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -377,7 +398,7 @@ OpTree* do_tan(OpTree *a)
 OpTree* do_atan(OpTree *a)
 {
     if (a->op == 0) {
-        double val = atan(a->val);
+        realt val = atan(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -388,7 +409,7 @@ OpTree* do_atan(OpTree *a)
 OpTree* do_asin(OpTree *a)
 {
     if (a->op == 0) {
-        double val = asin(a->val);
+        realt val = asin(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -399,7 +420,7 @@ OpTree* do_asin(OpTree *a)
 OpTree* do_acos(OpTree *a)
 {
     if (a->op == 0) {
-        double val = acos(a->val);
+        realt val = acos(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -410,7 +431,7 @@ OpTree* do_acos(OpTree *a)
 OpTree* do_lgamma(OpTree *a)
 {
     if (a->op == 0) {
-        double val = boost::math::lgamma(a->val);
+        realt val = boost::math::lgamma(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -421,7 +442,7 @@ OpTree* do_lgamma(OpTree *a)
 OpTree* do_digamma(OpTree *a)
 {
     if (a->op == 0) {
-        double val = boost::math::digamma(a->val);
+        realt val = boost::math::digamma(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -432,7 +453,7 @@ OpTree* do_digamma(OpTree *a)
 OpTree* do_abs(OpTree *a)
 {
     if (a->op == 0) {
-        double val = fabs(a->val);
+        realt val = fabs(a->val);
         delete a;
         return new OpTree(val);
     }
@@ -443,7 +464,7 @@ OpTree* do_abs(OpTree *a)
 OpTree* do_pow(OpTree *a, OpTree *b)
 {
     if (a->op == 0 && b->op == 0) {
-        double val = pow(a->val, b->val);
+        realt val = pow(a->val, b->val);
         delete a;
         delete b;
         return new OpTree(val);
@@ -475,7 +496,7 @@ OpTree* do_pow(OpTree *a, OpTree *b)
 OpTree* do_voigt(OpTree *a, OpTree *b)
 {
     if (a->op == 0 && b->op == 0) {
-        double val = humlik(a->val, b->val) / sqrt(M_PI);
+        realt val = humlik(a->val, b->val) / sqrt(M_PI);
         delete a;
         return new OpTree(val);
     }
@@ -486,7 +507,7 @@ OpTree* do_voigt(OpTree *a, OpTree *b)
 OpTree* do_dvoigt_dx(OpTree *a, OpTree *b)
 {
     if (a->op == 0 && b->op == 0) {
-        double val = humdev_dkdx(a->val, b->val) / sqrt(M_PI);
+        realt val = humdev_dkdx(a->val, b->val) / sqrt(M_PI);
         delete a;
         return new OpTree(val);
     }
@@ -497,7 +518,7 @@ OpTree* do_dvoigt_dx(OpTree *a, OpTree *b)
 OpTree* do_dvoigt_dy(OpTree *a, OpTree *b)
 {
     if (a->op == 0 && b->op == 0) {
-        double val = humdev_dkdy(a->val, b->val) / sqrt(M_PI);
+        realt val = humdev_dkdy(a->val, b->val) / sqrt(M_PI);
         delete a;
         return new OpTree(val);
     }
@@ -520,7 +541,7 @@ struct MultFactor
 /// and builds list of nodes with factors, such that tree a is equal to
 /// (v[0]->t)^(v[0]->e) * (v[1]->t)^(v[1]->e) * ...
 void get_factors(OpTree *a, OpTree *expo,
-                 double &constant, vector<MultFactor>& v)
+                 realt &constant, vector<MultFactor>& v)
 {
     if (a->op == OP_ADD || a->op == OP_SUB)
         a = simplify_terms(a);
@@ -576,7 +597,7 @@ OpTree* simplify_factors(OpTree *a)
 #endif
     vector<MultFactor> v;
     OpTree expo(1.);
-    double constant = 1;
+    realt constant = 1;
     get_factors(a, &expo, constant, v); //deletes a
 #ifdef DEBUG_SIMPLIFY
     cout << "simplify_factors(): [.] {" << constant << "} ";
@@ -655,12 +676,12 @@ OpTree* simplify_factors(OpTree *a)
 struct MultTerm
 {
     OpTree *t;
-    double k;
-    MultTerm(OpTree *t_, double k_) : t(t_), k(k_) {}
+    realt k;
+    MultTerm(OpTree *t_, realt k_) : t(t_), k(k_) {}
     void clear() { delete t; t=0; }
 };
 
-void get_terms(OpTree *a, double multiplier, vector<MultTerm> &v)
+void get_terms(OpTree *a, realt multiplier, vector<MultTerm> &v)
 {
     if (a->op == OP_MUL || a->op == OP_DIV || a->op == OP_SQRT
             || a->op == OP_POW)
@@ -741,14 +762,14 @@ OpTree* simplify_terms(OpTree *a)
 #endif
 
     // sin^2(x) + cos^2(x) = 1
-    double to_add = 0.;
+    realt to_add = 0.;
     for (vector<MultTerm>::iterator i = v.begin(); i != v.end(); ++i)
         if (i->t && i->t->op == OP_POW && i->t->c1->op == OP_SIN
                 && i->t->c2->op == 0 && is_eq(i->t->c2->val, 2.))
             for (vector<MultTerm>::iterator j = v.begin(); j != v.end(); ++j)
                 if (j->t && j->t->op == OP_POW && j->t->c1->op == OP_COS
                         && j->t->c2->op == 0 && is_eq(j->t->c2->val, 2.)) {
-                    double k = j->k;
+                    realt k = j->k;
                     i->k -= k;
                     j->clear();
                     to_add += k;
@@ -839,7 +860,7 @@ vector<OpTree*> calculate_deriv(vector<int>::const_iterator &i, int len,
         int negative_idx = *(i+1);
         int idx = -1 - negative_idx;
         assert(is_index(idx, vm.numbers()));
-        double value = vm.numbers()[idx];
+        realt value = vm.numbers()[idx];
         results[len] = new OpTree(value);
         break;
     }
@@ -849,7 +870,7 @@ vector<OpTree*> calculate_deriv(vector<int>::const_iterator &i, int len,
         int idx = -1 - negative_idx;
         assert(idx <= len);
         for (int k = 0; k < len; ++k) {
-            double der_value = (k == idx ? 1. : 0.);
+            realt der_value = (k == idx ? 1. : 0.);
             results[k] = new OpTree(der_value);
         }
         results[len] = new OpTree(NULL, idx);
@@ -860,7 +881,7 @@ vector<OpTree*> calculate_deriv(vector<int>::const_iterator &i, int len,
         int n = len - 1;
         // the rest is the same as in OP_SYMBOL
         for (int k = 0; k < len; ++k) {
-            double der_value = (k == n ? 1. : 0.);
+            realt der_value = (k == n ? 1. : 0.);
             results[k] = new OpTree(der_value);
         }
         results[len] = new OpTree(NULL, n);

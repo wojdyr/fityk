@@ -35,7 +35,7 @@ struct Option
     const char** allowed_values; // used only for kStringEnum
 };
 
-fp epsilon = 1e-12; // declared in common.h
+double epsilon = 1e-12; // declared in common.h
 
 static const char* default_sigma_enum[] =
 { "sqrt", "one", NULL };
@@ -108,6 +108,15 @@ SettingsMgr::SettingsMgr(Ftk const* F)
         else if (opt.vtype == kEnum)
             m_.*opt.val.e.ptr = opt.val.e.ini;
     }
+    set_long_double_format(m_.numeric_format);
+}
+
+void SettingsMgr::set_long_double_format(const string& double_fmt)
+{
+    long_double_format_ = double_fmt;
+    size_t pos = double_fmt.find_last_of("aAeEfFgG");;
+    if (pos != string::npos && double_fmt[pos] != 'L')
+        long_double_format_.insert(pos, "L");
 }
 
 string SettingsMgr::get_as_string(string const& k) const
@@ -165,6 +174,7 @@ void SettingsMgr::set_as_string(string const& k, string const& v)
         else if (k == "numeric_format") {
             if (count(v.begin(), v.end(), '%') != 1)
                 throw ExecuteError("Exactly one `%' expected, e.g. '%.9g'");
+            set_long_double_format(v);
         }
         m_.*opt.val.s.ptr = v;
     }

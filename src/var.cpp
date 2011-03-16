@@ -104,7 +104,7 @@ void Variable::set_var_idx(vector<Variable*> const& variables)
     }
 }
 
-string Variable::get_formula(vector<fp> const &parameters) const
+string Variable::get_formula(vector<realt> const &parameters) const
 {
     assert(nr_ >= -1);
     vector<string> vn;
@@ -115,7 +115,7 @@ string Variable::get_formula(vector<fp> const &parameters) const
 }
 
 void Variable::recalculate(vector<Variable*> const &variables,
-                           vector<fp> const &parameters)
+                           vector<realt> const &parameters)
 {
     if (nr_ >= 0) {
         assert (nr_ < (int) parameters.size());

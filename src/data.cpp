@@ -95,8 +95,8 @@ void Data::post_load()
     update_active_p();
 }
 
-int Data::load_arrays(const vector<fp> &x, const vector<fp> &y,
-                      const vector<fp> &sigma, const string &data_title)
+int Data::load_arrays(const vector<realt> &x, const vector<realt> &y,
+                      const vector<realt> &sigma, const string &data_title)
 {
     assert(x.size() == y.size());
     assert(sigma.empty() || sigma.size() == y.size());
@@ -143,7 +143,7 @@ namespace {
 void merge_same_x(vector<Point> &pp, bool avg)
 {
     int count_same = 1;
-    fp x0 = 0; // 0 is assigned only to avoid compiler warnings
+    double x0 = 0; // 0 is assigned only to avoid compiler warnings
     for (int i = pp.size() - 2; i >= 0; --i) {
         if (count_same == 1)
             x0 = pp[i+1].x;
@@ -253,7 +253,7 @@ void Data::load_data_sum(const vector<const Data*>& dd, const string& op)
     post_load();
 }
 
-void Data::add_one_point(double x, double y, double sigma)
+void Data::add_one_point(realt x, realt y, realt sigma)
 {
     Point pt(x, y, sigma);
     vector<Point>::iterator a = upper_bound(p_.begin(), p_.end(), pt);
@@ -267,7 +267,7 @@ void Data::add_one_point(double x, double y, double sigma)
         x_step_ = p_[1].x - p_[0].x;
     else if (x_step_ != 0) {
         //TODO use tiny_relat_diff
-        fp max_diff = 1e-4 * fabs(x_step_);
+        double max_diff = 1e-4 * fabs(x_step_);
         if (idx == 0 && fabs((p_[1].x - p_[0].x) - x_step_) < max_diff)
             ; //nothing, the same step
         else if (idx == size(p_) - 1
@@ -408,15 +408,15 @@ void Data::load_file (const string& fn,
 }
 
 /*
-fp Data::get_y_at (fp x) const
+double Data::get_y_at (double x) const
 {
     int n = get_upper_bound_ac (x);
     if (n > size(active_) || n <= 0)
         return 0;
-    fp y1 = get_y (n - 1);
-    fp y2 = get_y (n);
-    fp x1 = get_x (n - 1);
-    fp x2 = get_x (n);
+    double y1 = get_y (n - 1);
+    double y2 = get_y (n);
+    double x1 = get_x (n - 1);
+    double x2 = get_x (n);
     return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
 }
 */
@@ -460,18 +460,18 @@ string Data::range_as_string() const
         return "[]";
     }
     vector<Point>::const_iterator old_p = p_.begin() + active_[0];
-    fp left =  old_p->x;
+    double left =  old_p->x;
     string s = "[" + S (left) + " : ";
     for (vector<int>::const_iterator i = active_.begin() + 1;
                                                     i != active_.end(); i++) {
         if (p_.begin() + *i != old_p + 1) {
-            fp right = old_p->x;
+            double right = old_p->x;
             left = p_[*i].x;
             s += S(right) + "] + [" + S(left) + " : ";
         }
         old_p = p_.begin() + *i;
     }
-    fp right = old_p->x;
+    double right = old_p->x;
     s += S(right) + "]";
     return s;
 }
@@ -479,7 +479,7 @@ string Data::range_as_string() const
 ///check for fixed step
 void Data::find_step()
 {
-    const fp tiny_relat_diff = 1e-4;
+    const double tiny_relat_diff = 1e-4;
     size_t len = p_.size();
     if (len < 2) {
         x_step_ = 0.;
@@ -491,21 +491,21 @@ void Data::find_step()
     }
 
     // first check for definitely unequal step
-    fp s1 = p_[1].x - p_[0].x;
-    fp s2 = p_[len-1].x - p_[len-2].x;
+    double s1 = p_[1].x - p_[0].x;
+    double s2 = p_[len-1].x - p_[len-2].x;
     if (fabs(s2 - s1) > tiny_relat_diff * fabs(s2+s1)) {
         x_step_ = 0.;
         return;
     }
 
-    fp min_step, max_step, step;
+    double min_step, max_step, step;
     min_step = max_step = p_[1].x - p_[0].x;
     for (vector<Point>::iterator i = p_.begin() + 2; i < p_.end(); i++) {
         step = i->x - (i-1)->x;
         min_step = min (min_step, step);
         max_step = max (max_step, step);
     }
-    fp avg = (max_step + min_step) / 2;
+    double avg = (max_step + min_step) / 2;
     if ((max_step - min_step) < tiny_relat_diff * fabs(avg))
         x_step_ = avg;
     else
@@ -517,26 +517,26 @@ void Data::sort_points()
     sort(p_.begin(), p_.end());
 }
 
-int Data::get_lower_bound_ac (fp x) const
+int Data::get_lower_bound_ac(double x) const
 {
     //pre: p_.x is sorted, active_ is sorted
     int pit = lower_bound(p_.begin(), p_.end(), Point(x,0)) - p_.begin();
     return lower_bound(active_.begin(), active_.end(), pit) - active_.begin();
 }
 
-int Data::get_upper_bound_ac (fp x) const
+int Data::get_upper_bound_ac(double x) const
 {
     //pre: p_.x is sorted, active_ is sorted
     int pit = upper_bound(p_.begin(), p_.end(), Point(x,0)) - p_.begin();
     return upper_bound(active_.begin(), active_.end(), pit) - active_.begin();
 }
 
-vector<Point>::const_iterator Data::get_point_at(fp x) const
+vector<Point>::const_iterator Data::get_point_at(double x) const
 {
     return lower_bound (p_.begin(), p_.end(), Point(x,0));
 }
 
-fp Data::get_x_min() const
+double Data::get_x_min() const
 {
     v_foreach (Point, i, p_)
         if (is_finite(i->x))
@@ -544,7 +544,7 @@ fp Data::get_x_min() const
     return 0.;
 }
 
-fp Data::get_x_max() const
+double Data::get_x_max() const
 {
     if (p_.empty())
         return 180.;

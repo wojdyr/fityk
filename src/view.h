@@ -34,7 +34,7 @@ struct Rect
 class View: public Rect
 {
 public:
-    static const fp relative_x_margin, relative_y_margin;
+    static const double relative_x_margin, relative_y_margin;
 
     View(Ftk const* F_)
         : Rect(0, 180., -50, 1e3), F(F_),
@@ -44,17 +44,18 @@ public:
     void change_view(const RealRange& hor_r, const RealRange& ver_r,
                      const std::vector<int>& datasets);
     void set_log_scale(bool log_x, bool log_y) { log_x_=log_x; log_y_=log_y; }
-    fp y0_factor() const { return y0_factor_; }
-    void set_y0_factor(fp f) { y0_factor_ = f; }
+    double y0_factor() const { return y0_factor_; }
+    void set_y0_factor(double f) { y0_factor_ = f; }
 private:
     Ftk const* F;
     bool log_x_, log_y_;
-    fp y0_factor_;
+    double y0_factor_;
 
-    void get_x_range(std::vector<Data const*> datas, fp &x_min, fp &x_max);
+    void get_x_range(std::vector<Data const*> datas,
+                     double &x_min, double &x_max);
     void get_y_range(std::vector<Data const*> datas,
                      std::vector<Model const*> models,
-                     fp &y_min, fp &y_max);
+                     double &y_min, double &y_max);
 };
 
 #endif

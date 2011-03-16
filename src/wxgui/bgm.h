@@ -16,8 +16,8 @@ public:
     BgManager(const Scale& x_scale);
     ~BgManager();
     void update_focused_data(int idx);
-    void add_background_point(fp x, fp y);
-    void rm_background_point(fp x);
+    void add_background_point(double x, double y);
+    void rm_background_point(double x);
     void clear_background();
     void strip_background();
     // reverses strip_background(), unless %bgX was changed in the meantime  

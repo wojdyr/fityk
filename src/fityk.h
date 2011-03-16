@@ -20,6 +20,14 @@
 #include <stdexcept>
 class Ftk;
 
+/// set precision used for storing data and fitting functions
+#define QUAD_PRECISION 1
+#if QUAD_PRECISION
+typedef long double realt;
+#else
+typedef double realt;
+#endif
+
 
 /// Public C++ API of libfityk: class Fityk and helpers.
 ///
@@ -49,12 +57,12 @@ struct ExitRequestedException : std::exception
 /// data point
 struct Point
 {
-    double x, y, sigma;
+    realt x, y, sigma;
     bool is_active;
 
     Point();
-    Point(double x_, double y_);
-    Point(double x_, double y_, double sigma_);
+    Point(realt x_, realt y_);
+    Point(realt x_, realt y_, realt sigma_);
     std::string str() const;
 };
 inline bool operator< (Point const& p, Point const& q) { return p.x < q.x; }
@@ -83,13 +91,13 @@ public:
 
     /// load data
     void load_data(int dataset,
-                   std::vector<double> const& x,
-                   std::vector<double> const& y,
-                   std::vector<double> const& sigma,
+                   std::vector<realt> const& x,
+                   std::vector<realt> const& y,
+                   std::vector<realt> const& sigma,
                    std::string const& title="")  throw(ExecuteError);
 
     /// add one data point to dataset
-    void add_point(double x, double y, double sigma, int dataset=0)
+    void add_point(realt x, realt y, realt sigma, int dataset=0)
                                                      throw(ExecuteError);
 
     // @}
@@ -132,7 +140,7 @@ public:
                                             throw(SyntaxError, ExecuteError);
 
     /// return expression value, similarly to the print command
-    double calculate_expr(std::string const& s, int dataset=0)
+    realt calculate_expr(std::string const& s, int dataset=0)
                                             throw(SyntaxError, ExecuteError);
 
     /// returns number of datasets n, always n >= 1
@@ -142,11 +150,11 @@ public:
     std::vector<Point> const& get_data(int dataset=0)  throw(ExecuteError);
 
     /// returns the value of the model for a given dataset at x
-    double get_model_value(double x, int dataset=0)  throw(ExecuteError);
+    realt get_model_value(realt x, int dataset=0)  throw(ExecuteError);
 
     /// multiple point version of the get_model_value()
-    std::vector<double>
-    get_model_vector(std::vector<double> const& x, int dataset=0)
+    std::vector<realt>
+    get_model_vector(std::vector<realt> const& x, int dataset=0)
                                                         throw(ExecuteError);
 
     /// \brief returns the index of parameter hold by the variable
@@ -160,13 +168,13 @@ public:
     // @{
 
     /// get WSSR for given dataset or for all datasets
-    double get_wssr(int dataset=all_datasets)  throw(ExecuteError);
+    realt get_wssr(int dataset=all_datasets)  throw(ExecuteError);
 
     /// get SSR for given dataset or for all datasets
-    double get_ssr(int dataset=all_datasets)  throw(ExecuteError);
+    realt get_ssr(int dataset=all_datasets)  throw(ExecuteError);
 
     /// get R-squared for given dataset or for all datasets
-    double get_rsquared(int dataset=all_datasets)  throw(ExecuteError);
+    realt get_rsquared(int dataset=all_datasets)  throw(ExecuteError);
 
     /// get number of degrees-of-freedom for given dataset or for all datasets
     int get_dof(int dataset=all_datasets)  throw(ExecuteError);
@@ -174,7 +182,7 @@ public:
     /// \brief get covariance matrix (for given dataset or for all datasets)
     /// get_variable_nr() can be used to connect variables with parameter
     /// positions
-    std::vector<std::vector<double> >
+    std::vector<std::vector<realt> >
     get_covariance_matrix(int dataset=all_datasets)  throw(ExecuteError);
     // @}
 

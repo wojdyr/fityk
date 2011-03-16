@@ -199,11 +199,11 @@ void do_print_plots(wxDC *dc, PrintManager const* pm)
 
     int w, h; // size in DC units
     dc->GetSize(&w, &h);
-    fp y_scale = (float) h / H;
+    double y_scale = (float) h / H;
     int space_dc = iround(space * y_scale);
-    //fp scale = pm->scale/100.;
-    //fp scaleX = scale * w / W;
-    //fp scaleY = scale * h / H;
+    //double scale = pm->scale/100.;
+    //double scaleX = scale * w / W;
+    //double scaleY = scale * h / H;
     //if (pm->keep_ratio)
     //    scaleX = scaleY = min(scaleX, scaleY);
     //const int marginX = iround((w - W * scaleX) / 2.);

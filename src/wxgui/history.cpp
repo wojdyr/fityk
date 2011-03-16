@@ -87,23 +87,20 @@ void SumHistoryDlg::initialize_lc()
         lc->InsertColumn(3 + i, wxString::Format(wxT("par. %i"), view[i]));
 
     FitMethodsContainer const* fmc = ftk->get_fit_container();
-    for (int i = 0; i != fmc->get_param_history_size(); ++i) {
-        add_item_to_lc(i, fmc->get_item(i));
+    for (int pos = 0; pos != fmc->get_param_history_size(); ++pos) {
+        // add item to lc
+        const vector<realt>& item = fmc->get_item(pos);
+        lc->InsertItem(pos, wxString::Format(wxT("  %i  "), pos));
+        lc->SetItem(pos, 1, wxString::Format(wxT("%i"), (int) item.size()));
+        lc->SetItem(pos, 2, wxT("      ?      "));
+        for (int j = 0; j < 4; j++) {
+            int n = view[j];
+            if (n < size(item))
+                lc->SetItem(pos, 3 + j, s2wx(S(item[n])));
+        }
     }
     for (int i = 0; i < 3+4; i++)
         lc->SetColumnWidth(i, wxLIST_AUTOSIZE);
-}
-
-void SumHistoryDlg::add_item_to_lc(int pos, vector<double> const& item)
-{
-    lc->InsertItem(pos, wxString::Format(wxT("  %i  "), pos));
-    lc->SetItem(pos, 1, wxString::Format(wxT("%i"), (int) item.size()));
-    lc->SetItem(pos, 2, wxT("      ?      "));
-    for (int j = 0; j < 4; j++) {
-        int n = view[j];
-        if (n < size(item))
-            lc->SetItem(pos, 3 + j, wxString::Format(wxT("%g"), item[n]));
-    }
 }
 
 void SumHistoryDlg::compute_wssr()
@@ -111,11 +108,11 @@ void SumHistoryDlg::compute_wssr()
     if (wssr_done)
         return;
     FitMethodsContainer const* fmc = ftk->get_fit_container();
-    vector<double> const orig = ftk->parameters();
+    const vector<realt> orig = ftk->parameters();
     vector<DataAndModel*> dms = frame->get_selected_dms();
 
     for (int i = 0; i != fmc->get_param_history_size(); ++i) {
-        vector<double> const& item = fmc->get_item(i);
+        vector<realt> const& item = fmc->get_item(i);
         if (item.size() == orig.size()) {
             double wssr = ftk->get_fit()->do_compute_wssr(item, dms, true);
             lc->SetItem(i, 2, wxString::Format(wxT("%g"), wssr));
@@ -162,9 +159,8 @@ void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)
     //update data in wxListCtrl
     FitMethodsContainer const* fmc = ftk->get_fit_container();
     for (int i = 0; i != fmc->get_param_history_size(); ++i) {
-        vector<double> const& item = fmc->get_item(i);
-        wxString s = n < size(item) ? wxString::Format(wxT("%g"), item[n])
-                                    : wxString();
+        vector<realt> const& item = fmc->get_item(i);
+        wxString s = n < size(item) ? s2wx(S(item[n])) : wxString();
         lc->SetItem(i, 3 + v, s);
     }
 }

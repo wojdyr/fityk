@@ -33,25 +33,27 @@ public:
     Model(Ftk *F);
     ~Model();
 
-    // calculate model (single point)
-    fp value(fp x) const;
+    /// calculate model (single point)
+    realt value(realt x) const;
 
-    // calculate model (multiple points) without derivatives
-    // the option to ignore one function in F is useful for "guessing".
-    void compute_model(std::vector<fp> &x, std::vector<fp> &y,
+    /// calculate model (multiple points) without derivatives
+    /// the option to ignore one function in F is useful for "guessing".
+    void compute_model(std::vector<realt> &x, std::vector<realt> &y,
                        int ignore_func=-1) const;
 
-    // calculate model (multiple points) with derivatives
-    void compute_model_with_derivs(std::vector<fp> &x, std::vector<fp> &y,
-                                   std::vector<fp> &dy_da) const;
+    /// calculate model (multiple points) with derivatives
+    void compute_model_with_derivs(std::vector<realt> &x, std::vector<realt> &y,
+                                   std::vector<realt> &dy_da) const;
 
 
-    fp approx_max(fp x_min, fp x_max) const;
+    /// estimate max. value in given range (probe at peak centers and between)
+    realt approx_max(realt x_min, realt x_max) const;
+
     std::string get_formula(bool simplify) const;
-    std::string get_peak_parameters(const std::vector<fp>& errors) const;
-    std::vector<fp> get_symbolic_derivatives(fp x) const;
-    std::vector<fp> get_numeric_derivatives(fp x, fp numerical_h) const;
-    fp zero_shift (fp x) const;
+    std::string get_peak_parameters(const std::vector<realt>& errors) const;
+    std::vector<realt> get_symbolic_derivatives(realt x) const;
+    std::vector<realt> get_numeric_derivatives(realt x, realt numerical_h)const;
+    realt zero_shift(realt x) const;
 
     // ff_ and zz_ getters
     const FunctionSum& get_ff() const { return ff_; }
@@ -64,7 +66,7 @@ public:
     // throws SyntaxError if index `idx' is wrong
     const std::string& get_func_name(char c, int idx) const;
 
-    fp numarea(fp x1, fp x2, int nsteps) const;
+    realt numarea(realt x1, realt x2, int nsteps) const;
     bool is_dependent_on_var(int idx) const;
 
 

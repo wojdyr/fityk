@@ -29,13 +29,13 @@ bool FitInfoDlg::Initialize()
     string s; // string for the left panel
     try {
         vector<DataAndModel*> dms = frame->get_selected_dms();
-        vector<fp> const &pp = ftk->parameters();
+        const vector<realt> &pp = ftk->parameters();
         ::Fit *fit = ftk->get_fit();
         int dof = fit->get_dof(dms);
-        fp wssr = fit->do_compute_wssr(pp, dms, true);
+        double wssr = fit->do_compute_wssr(pp, dms, true);
         wssr_over_dof = wssr / dof;
-        fp ssr = fit->do_compute_wssr(pp, dms, false);
-        fp r2 = fit->compute_r_squared(pp, dms);
+        double ssr = fit->do_compute_wssr(pp, dms, false);
+        double r2 = fit->compute_r_squared(pp, dms);
         int points = 0;
         for (vector<DataAndModel*>::const_iterator i = dms.begin();
                                                         i != dms.end(); ++i)
@@ -107,12 +107,12 @@ void FitInfoDlg::update_right_tc()
     ::Fit *fit = ftk->get_fit();
     int choice = right_c->GetSelection();
     vector<DataAndModel*> dms = frame->get_selected_dms();
-    vector<fp> const &pp = ftk->parameters();
+    vector<realt> const &pp = ftk->parameters();
     int na = pp.size();
     wxString s;
     if (choice == 0 || choice == 1) {
-        fp scale = (choice == 0 ? 1. : 1. / sqrt(wssr_over_dof));
-        vector<fp> errors;
+        double scale = (choice == 0 ? 1. : 1. / sqrt(wssr_over_dof));
+        vector<realt> errors;
         try {
             errors = fit->get_standard_errors(dms);
         }
@@ -142,7 +142,7 @@ void FitInfoDlg::update_right_tc()
     }
     else {
         s = wxT("          ");
-        vector<fp> alpha;
+        vector<realt> alpha;
         try {
             alpha = fit->get_covariance_matrix(dms);
         }
@@ -160,7 +160,7 @@ void FitInfoDlg::update_right_tc()
                 s += wxString::Format(wxT("\n%10s"), t.c_str());
                 for (int j = 0; j < na; ++j) {
                     if (fit->is_param_used(j)) {
-                        fp val = alpha[na*i + j];
+                        double val = alpha[na*i + j];
                         if (fabs(val) < 1e-99)
                             s += wxT("         0");
                         else

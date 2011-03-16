@@ -158,7 +158,7 @@ void FStatusBar::set_coords(double x, double y, PlotTypeEnum pte)
                                     : wxT("% -8.12g [% -7.12g]"));
     wxString label = wxString::Format(fmt, x, y);
     if (!extra_value.IsEmpty()) {
-        double val = extra_parser.calculate_custom(vector2(x, y));
+        double val = extra_parser.calculate_custom(vector2<realt>(x, y));
         label += wxString::Format(extra_fmt, val);
     }
     coords->SetLabel(label);

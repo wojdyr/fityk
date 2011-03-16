@@ -97,8 +97,10 @@ public:
               char buffer[128];
               sprintf(buffer,
                       "M=M+1, X[%d]=%.12g, Y[%d]=%.12g, S[%d]=%.12g, A[%d]=%d",
-                      row, last_point_.x, row, last_point_.y,
-                      row, last_point_.sigma, row, last_point_.is_active);
+                      row, (double) last_point_.x,
+                      row, (double) last_point_.y,
+                      row, (double) last_point_.sigma,
+                      row, last_point_.is_active);
               change_value(buffer);
               if (!instant_update_)
                   local_points_.push_back(last_point_);

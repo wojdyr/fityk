@@ -40,24 +40,25 @@ bool Model::is_dependent_on_var(int idx) const
     return false;
 }
 
-fp Model::value(fp x) const
+realt Model::value(realt x) const
 {
     x += zero_shift(x);
-    fp y = 0;
+    realt y = 0;
     v_foreach (int, i, ff_.idx)
         y += mgr.get_function(*i)->calculate_value(x);
     return y;
 }
 
-fp Model::zero_shift(fp x) const
+realt Model::zero_shift(realt x) const
 {
-    fp z = 0;
+    realt z = 0;
     v_foreach (int, i, zz_.idx)
         z += mgr.get_function(*i)->calculate_value(x);
     return z;
 }
 
-void Model::compute_model(vector<fp> &x, vector<fp> &y, int ignore_func) const
+void Model::compute_model(vector<realt> &x, vector<realt> &y,
+                          int ignore_func) const
 {
     // add x-correction to x
     v_foreach (int, i, zz_.idx)
@@ -74,8 +75,8 @@ void Model::compute_model(vector<fp> &x, vector<fp> &y, int ignore_func) const
 // [ dy/da_1 (x_2)  dy/da_2 (x_2)  ...  dy/da_na (x_2)  dy/dx (x_2) ]
 // [ ...                                                            ]
 // [ dy/da_1 (x_n)  dy/da_2 (x_n)  ...  dy/da_na (x_n)  dy/dx (x_n) ]
-void Model::compute_model_with_derivs(vector<fp> &x, vector<fp> &y,
-                                      vector<fp> &dy_da) const
+void Model::compute_model_with_derivs(vector<realt> &x, vector<realt> &y,
+                                      vector<realt> &dy_da) const
 {
     assert(y.size() == x.size());
     if (x.empty())
@@ -93,34 +94,32 @@ void Model::compute_model_with_derivs(vector<fp> &x, vector<fp> &y,
         mgr.get_function(*i)->calculate_value_deriv(x, y, dy_da, true);
 }
 
-vector<fp>
-Model::get_symbolic_derivatives(fp x) const
+vector<realt> Model::get_symbolic_derivatives(realt x) const
 {
     int n = mgr.parameters().size();
-    vector<fp> dy_da(n+1);
-    vector<fp> xx(1, x);
-    vector<fp> yy(1);
+    vector<realt> dy_da(n+1);
+    vector<realt> xx(1, x);
+    vector<realt> yy(1);
     compute_model_with_derivs(xx, yy, dy_da);
     dy_da.resize(n); //throw out last item (dy/dx)
     return dy_da;
 }
 
-vector<fp>
-Model::get_numeric_derivatives(fp x, fp numerical_h) const
+vector<realt> Model::get_numeric_derivatives(realt x, realt numerical_h) const
 {
-    vector<fp> av_numder = mgr.parameters();
+    vector<realt> av_numder = mgr.parameters();
     int n = av_numder.size();
-    vector<fp> dy_da(n);
-    const fp small_number = 1e-10; //it only prevents h==0
+    vector<realt> dy_da(n);
+    const double small_number = 1e-10; //it only prevents h==0
     for (int k = 0; k < n; k++) {
-        fp acopy = av_numder[k];
-        fp h = max (fabs(acopy), small_number) * numerical_h;
+        realt acopy = av_numder[k];
+        realt h = max(fabs(acopy), small_number) * numerical_h;
         av_numder[k] -= h;
         mgr.use_external_parameters(av_numder);
-        fp y_aless = value(x);
+        realt y_aless = value(x);
         av_numder[k] = acopy + h;
         mgr.use_external_parameters(av_numder);
-        fp y_amore = value(x);
+        realt y_amore = value(x);
         dy_da[k] = (y_amore - y_aless) / (2 * h);
         av_numder[k] = acopy;
     }
@@ -128,25 +127,24 @@ Model::get_numeric_derivatives(fp x, fp numerical_h) const
     return dy_da;
 }
 
-// estimate max. value in given range (probe at peak centers and between)
-fp Model::approx_max(fp x_min, fp x_max) const
+realt Model::approx_max(realt x_min, realt x_max) const
 {
     mgr.use_parameters();
-    fp x = x_min;
-    fp y_max = value(x);
-    vector<fp> xx;
+    realt x = x_min;
+    realt y_max = value(x);
+    vector<realt> xx;
     v_foreach (int, i, ff_.idx) {
-        fp ctr;
+        realt ctr;
         if (mgr.get_function(*i)->get_center(&ctr)
                 && x_min < ctr && ctr < x_max)
             xx.push_back(ctr);
     }
     xx.push_back(x_max);
     sort(xx.begin(), xx.end());
-    v_foreach (fp, i, xx) {
-        fp x_between = (x + *i)/2.;
+    v_foreach (realt, i, xx) {
+        realt x_between = (x + *i)/2.;
         x = *i;
-        fp y = max(value(x_between), value(x));
+        realt y = max(value(x_between), value(x));
         if (y > y_max)
             y_max = y;
     }
@@ -154,7 +152,7 @@ fp Model::approx_max(fp x_min, fp x_max) const
 }
 
 
-string Model::get_peak_parameters(const vector<fp>& errors) const
+string Model::get_peak_parameters(const vector<realt>& errors) const
 {
     string s;
     const SettingsMgr *sm = F_->settings_mgr();
@@ -162,7 +160,7 @@ string Model::get_peak_parameters(const vector<fp>& errors) const
     v_foreach (int, i, ff_.idx) {
         const Function* p = mgr.get_function(*i);
         s += "%" + p->name + "  " + p->tp()->name;
-        fp a;
+        realt a;
         if (p->get_center(&a))
             s += "\t" + sm->format_double(a);
         else
@@ -185,7 +183,7 @@ string Model::get_peak_parameters(const vector<fp>& errors) const
             if (!errors.empty()) {
                 const Variable* var = mgr.get_variable(p->get_var_idx(j));
                 if (var->is_simple()) {
-                    double err = errors[var->get_nr()];
+                    realt err = errors[var->get_nr()];
                     s += " +/- " + sm->format_double(err);
                 }
                 else
@@ -235,11 +233,11 @@ const string& Model::get_func_name(char c, int idx) const
     return names[idx];
 }
 
-fp Model::numarea(fp x1, fp x2, int nsteps) const
+realt Model::numarea(realt x1, realt x2, int nsteps) const
 {
     x1 += zero_shift(x1);
     x2 += zero_shift(x2);
-    fp a = 0;
+    realt a = 0;
     v_foreach (int, i, ff_.idx)
         a += mgr.get_function(*i)->numarea(x1, x2, nsteps);
     return a;

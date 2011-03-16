@@ -19,9 +19,9 @@ struct OpTree
     int op;
     OpTree *c1,
            *c2;
-    fp val;
+    realt val;
 
-    explicit OpTree(fp v) : op(0), c1(0), c2(0), val(v) {}
+    explicit OpTree(realt v) : op(0), c1(0), c2(0), val(v) {}
 
     explicit OpTree(void*, int n) : op(-1-n), c1(0), c2(0), val(0.) {}
 

@@ -116,8 +116,8 @@ int GnuPlot::plot()
         fprintf(gnuplot_pipe_, "0.0  0.0\n");
     else
         for (int i = i_f; i < i_l; i++) {
-            fp x = data->get_x(i);
-            fp y = data->get_y(i);
+            double x = data->get_x(i);
+            double y = data->get_y(i);
             if (is_finite(x) && is_finite(y)) {
                 fprintf(gnuplot_pipe_, "%f  %f\n", x, y);
             }
@@ -129,8 +129,8 @@ int GnuPlot::plot()
         fprintf(gnuplot_pipe_, "0.0  0.0\n");
     else
         for (int i = i_f; i < i_l; i++) {
-            fp x = data->get_x(i);
-            fp y = model->value(x);
+            double x = data->get_x(i);
+            double y = model->value(x);
             if (is_finite(x) && is_finite(y))
                 fprintf(gnuplot_pipe_, "%f  %f\n", x, y);
         }

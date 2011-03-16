@@ -6,6 +6,7 @@
 #define FITYK_VM_H_
 
 #include "fityk.h" // struct Point
+#include "common.h" // realt
 using fityk::Point;
 
 class Ftk;
@@ -108,12 +109,12 @@ public:
         { return op == OP_NUMBER || op == OP_SYMBOL || op == OP_PUT_DERIV; }
 
     const std::vector<int>& code() const { return code_; }
-    const std::vector<double>& numbers() const { return numbers_; }
+    const std::vector<realt>& numbers() const { return numbers_; }
 
     void append_code(int op) { code_.push_back(op); }
-    void append_number(double d);
+    void append_number(realt d);
     void clear_data() { code_.clear(); numbers_.clear(); }
-    void replace_symbols(const std::vector<double>& vv);
+    void replace_symbols(const std::vector<realt>& vv);
     void flip_indices();
     bool single_symbol() const {return code_.size()==2 && code_[0]==OP_SYMBOL;}
     bool has_op(int op) const;
@@ -121,12 +122,12 @@ public:
 
 private:
     std::vector<int> code_;    //  VM code
-    std::vector<double> numbers_;  //  VM data (numeric values)
+    std::vector<realt> numbers_;  //  VM data (numeric values)
 };
 
 std::string op2str(int op);
 std::string vm2str(const std::vector<int>& code,
-                   const std::vector<double>& data);
+                   const std::vector<realt>& data);
 inline
 std::string vm2str(const VMData& vm) { return vm2str(vm.code(), vm.numbers()); }
 
@@ -137,14 +138,14 @@ public:
     ExprCalculator(const Ftk* F) : F_(F) {}
 
     /// calculate value of expression that may depend on dataset
-    double calculate(int n, const std::vector<Point>& points) const;
+    realt calculate(int n, const std::vector<Point>& points) const;
 
     /// calculate value of expression that does not depend on dataset
-    double calculate() const { return calculate(0, std::vector<Point>()); }
+    realt calculate() const { return calculate(0, std::vector<Point>()); }
 
     /// calculate value of expression that was parsed with custom_vars set,
     /// the values in custom_val should correspond to names in custom_vars
-    double calculate_custom(const std::vector<double>& custom_val) const;
+    realt calculate_custom(const std::vector<realt>& custom_val) const;
 
     /// transform data (X=..., Y=..., S=..., A=...)
     void transform_data(std::vector<Point>& points);
@@ -156,13 +157,13 @@ protected:
     VMData vm_;
 };
 
-double run_code_for_variable(const VMData& vm,
-                             const std::vector<Variable*> &variables,
-                             std::vector<double> &derivatives);
-double run_code_for_custom_func(const VMData& vm, double x,
-                                std::vector<double> &derivatives);
-double run_code_for_custom_func_value(const VMData& vm, double x,
-                                      int code_offset);
+realt run_code_for_variable(const VMData& vm,
+                            const std::vector<Variable*> &variables,
+                            std::vector<realt> &derivatives);
+realt run_code_for_custom_func(const VMData& vm, realt x,
+                               std::vector<realt> &derivatives);
+realt run_code_for_custom_func_value(const VMData& vm, realt x,
+                                     int code_offset);
 
 #endif // FITYK_VM_H_
 

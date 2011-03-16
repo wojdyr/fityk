@@ -1605,15 +1605,15 @@ void FFrame::OnGScrollRight (wxCommandEvent&)
 
 void FFrame::OnGScrollUp (wxCommandEvent&)
 {
-    View const& view = ftk->view;
-    Scale const& scale = plot_pane_->get_plot()->get_y_scale();
-    fp top, bottom;
+    const View& view = ftk->view;
+    const Scale& scale = plot_pane_->get_plot()->get_y_scale();
+    double top, bottom;
     if (scale.logarithm) {
         top = 10 * view.top();
         bottom = 0.1 * view.bottom();
     }
     else {
-        fp const factor = 2.;
+        const double factor = 2.;
         int Y0 = scale.px(0);
         int H = plot_pane_->get_plot()->GetSize().GetHeight();
         bool Y0_visible = (Y0 >= 0 && Y0 < H);
@@ -1627,8 +1627,8 @@ void FFrame::OnGScrollUp (wxCommandEvent&)
 
 void FFrame::OnGExtendH (wxCommandEvent&)
 {
-    const fp factor = 0.5;
-    fp diff = ftk->view.width() * factor;
+    const double factor = 0.5;
+    double diff = ftk->view.width() * factor;
     change_zoom(RealRange(ftk->view.left() - diff, ftk->view.right() + diff),
                 ftk->view.ver);
 }
@@ -1662,9 +1662,9 @@ void FFrame::change_zoom(const RealRange& h, const RealRange& v)
     ftk->exec(cmd);
 }
 
-void FFrame::scroll_view_horizontally(fp step)
+void FFrame::scroll_view_horizontally(double step)
 {
-    fp diff = ftk->view.width() * step;
+    double diff = ftk->view.width() * step;
     if (plot_pane_->get_plot()->get_x_reversed())
         diff = -diff;
     change_zoom(RealRange(ftk->view.left() + diff, ftk->view.right() + diff),
@@ -1819,7 +1819,7 @@ void FFrame::set_status_text(std::string const& text)
         status_bar->set_text(s2wx(text));
 }
 
-void FFrame::set_status_coords(fp x, fp y, PlotTypeEnum pte)
+void FFrame::set_status_coords(double x, double y, PlotTypeEnum pte)
 {
     if (status_bar)
         status_bar->set_coords(x, y, pte);

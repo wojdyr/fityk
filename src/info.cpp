@@ -156,7 +156,7 @@ string info_func_props(const Ftk* F, const string& name)
         Variable const* v = F->get_variable(f->get_var_idx(i));
         s += "\n" + f->get_param(i) + " = " + get_variable_info(F, v);
     }
-    fp a;
+    realt a;
     const vector<string>& fargs = f->tp()->fargs;;
     if (f->get_center(&a) && !contains_element(fargs, string("center")))
         s += "\nCenter: " + S(a);
@@ -356,14 +356,14 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             save_state(F, result);
         }
         else if (word == "peaks") {
-            vector<fp> errors;
-            result += F->get_model(ds)->get_peak_parameters(errors);
+            vector<realt> no_errors; // empty vec -> no errors
+            result += F->get_model(ds)->get_peak_parameters(no_errors);
         }
         else if (word == "peaks_err") {
             //FIXME: assumes the dataset was fitted separately
             DataAndModel* dm = const_cast<DataAndModel*>(F->get_dm(ds));
             vector<DataAndModel*> dms(1, dm);
-            vector<fp> errors = F->get_fit()->get_standard_errors(dms);
+            vector<realt> errors = F->get_fit()->get_standard_errors(dms);
             result += F->get_model(ds)->get_peak_parameters(errors);
         }
         else if (word == "history_summary")
@@ -659,10 +659,10 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
         Lexer lex(rest.str);
         ExpressionParser ep(F);
         ep.parse_expr(lex, ds);
-        double x = ep.calculate();
+        realt x = ep.calculate();
         const Model* model = F->get_model(ds);
-        vector<fp> symb = model->get_symbolic_derivatives(x);
-        vector<fp> num = model->get_numeric_derivatives(x, 1e-4);
+        vector<realt> symb = model->get_symbolic_derivatives(x);
+        vector<realt> num = model->get_numeric_derivatives(x, 1e-4);
         assert (symb.size() == num.size());
         r += "F(" + S(x) + ")=" + S(model->value(x));
         for (int i = 0; i < size(num); ++i) {

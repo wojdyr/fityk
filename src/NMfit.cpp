@@ -20,11 +20,11 @@ NMfit::NMfit(Ftk* F)
 
 NMfit::~NMfit() {}
 
-fp NMfit::init()
+void NMfit::init()
 {
     bool move_all = F_->get_settings()->nm_move_all;
     char distrib = F_->get_settings()->nm_distribution[0];
-    fp factor = F_->get_settings()->nm_move_factor;
+    realt factor = F_->get_settings()->nm_move_factor;
 
     // 1. all n+1 vertices are the same
     Vertex v(a_orig);
@@ -33,7 +33,7 @@ fp NMfit::init()
     for (int i = 0; i < na; i++) {
         vertices[i + 1].a[i] = draw_a_from_distribution(i, distrib, factor);
         if (move_all) {
-            fp d2 = (vertices[i + 1].a[i] - vertices[0].a[i]) / 2;
+            realt d2 = (vertices[i + 1].a[i] - vertices[0].a[i]) / 2;
             for (vector<Vertex>::iterator j = vertices.begin();
                                                     j != vertices.end(); j++)
                 j->a[i] -= d2;
@@ -45,7 +45,7 @@ fp NMfit::init()
     find_best_worst();
     compute_coord_sum();
     volume_factor = 1.;
-    return best->wssr;
+    //return best->wssr;
 }
 
 void NMfit::find_best_worst()
@@ -73,7 +73,7 @@ void NMfit::find_best_worst()
 
 void NMfit::autoiter()
 {
-    fp convergence = F_->get_settings()->nm_convergence;
+    realt convergence = F_->get_settings()->nm_convergence;
     wssr_before = compute_wssr(a_orig, dmdm_);
     F_->msg("WSSR before starting simplex fit: " + S(wssr_before));
     for (int iter = 0; !termination_criteria(iter, convergence); ++iter) {
@@ -87,12 +87,12 @@ void NMfit::autoiter()
 
 void NMfit::change_simplex()
 {
-    fp t = try_new_worst (-1.);
+    realt t = try_new_worst (-1.);
     if (t <= best->wssr)
         try_new_worst (2.);
     else if (t >= s_worst->wssr) {
-        fp old = worst->wssr;
-        fp t = try_new_worst(0.5);
+        realt old = worst->wssr;
+        realt t = try_new_worst(0.5);
         if (t >= old) { // than multiple contraction
             for (vector<Vertex>::iterator i = vertices.begin();
                                                     i != vertices.end() ;i++) {
@@ -108,14 +108,14 @@ void NMfit::change_simplex()
     }
 }
 
-fp NMfit::try_new_worst (fp f)
+realt NMfit::try_new_worst(realt f)
     //extrapolates by a factor f through the face of the simplex across
     //from the high point, tries it,
     //and replaces the high point if the new point is better.
 {
     Vertex t(na);
-    fp f1 = (1 - f) / na;
-    fp f2 = f1 - f;
+    realt f1 = (1 - f) / na;
+    realt f2 = f1 - f;
     for (int i = 0; i < na; i++)
         t.a[i] = coord_sum[i] * f1 - worst->a[i] * f2;
     compute_v (t);
@@ -138,7 +138,7 @@ void NMfit::compute_coord_sum()
             coord_sum[i] += j->a[i];
 }
 
-bool NMfit::termination_criteria(int iter, fp convergence)
+bool NMfit::termination_criteria(int iter, realt convergence)
 {
     F_->vmsg("#" + S(iter_nr) + " (ev:" + S(evaluations) + "): best:"
                 + S(best->wssr) + " worst:" + S(worst->wssr) + ", "
@@ -163,7 +163,7 @@ bool NMfit::termination_criteria(int iter, fp convergence)
         F_->msg ("All vertices have WSSR < epsilon=" + S(epsilon));
         return true;
     }
-    fp r_diff = 2 * (worst->wssr - best->wssr) / (best->wssr + worst->wssr);
+    realt r_diff = 2 * (worst->wssr - best->wssr) / (best->wssr + worst->wssr);
     if (r_diff < convergence) {
         F_->msg ("Relative difference between worst and best vertex is only "
                  + S(r_diff) + ". Stop");
@@ -172,7 +172,7 @@ bool NMfit::termination_criteria(int iter, fp convergence)
     return stop;
 }
 
-void NMfit::compute_v (Vertex& v)
+void NMfit::compute_v(Vertex& v)
 {
     assert (!v.a.empty());
     v.wssr = compute_wssr(v.a, dmdm_);

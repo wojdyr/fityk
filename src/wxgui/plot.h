@@ -60,7 +60,7 @@ public:
     // set scale using minimum and maximum logical values and width/height
     // of the screen in pixels.
     // In case of y scale, where pixel=0 is at the top, m and M are switched
-    void set(fp m, fp M, int pixels);
+    void set(double m, double M, int pixels);
 
 private:
     static int inf_px(float t) { return t > 0 ? SHRT_MAX : SHRT_MIN; }
@@ -80,7 +80,7 @@ int Scale::px(double val) const
 
 double Scale::val(int px) const
 {
-    fp a = px / scale + origin;
+    double a = px / scale + origin;
     return logarithm ? exp(a) : a;
 }
 

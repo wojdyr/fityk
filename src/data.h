@@ -41,37 +41,38 @@ public :
                    const std::vector<int>& blocks,
                    const std::string& format, const std::string& options);
 
-    int load_arrays(const std::vector<fp>& x, const std::vector<fp>& y,
-                   const std::vector<fp>& sigma, const std::string& data_title);
+    int load_arrays(const std::vector<realt>& x, const std::vector<realt>& y,
+                    const std::vector<realt>& sigma,
+                    const std::string& data_title);
     void load_data_sum(const std::vector<const Data*>& dd,
                        const std::string& op);
     void set_points(const std::vector<Point>& p);
     void clear();
     //void add_point(Point const& pt) { p_.push_back(pt); }; //don't use it
-    void add_one_point(double x, double y, double sigma);
-    fp get_x(int n) const { return p_[active_[n]].x; }
-    fp get_y(int n) const { return p_[active_[n]].y; }
-    fp get_sigma (int n) const { return p_[active_[n]].sigma; }
+    void add_one_point(realt x, realt y, realt sigma);
+    realt get_x(int n) const { return p_[active_[n]].x; }
+    realt get_y(int n) const { return p_[active_[n]].y; }
+    realt get_sigma (int n) const { return p_[active_[n]].sigma; }
     int get_n() const { return active_.size(); }
     bool is_empty() const { return p_.empty(); }
     bool has_any_info() const { return !is_empty() || !get_title().empty(); }
-    fp get_x_step() const { return x_step_; } /// 0.0 if not fixed
+    double get_x_step() const { return x_step_; } /// 0.0 if not fixed
     void after_transform(); // update x_step_, active_
     void update_active_p();
     std::string range_as_string () const;
-    int get_lower_bound_ac (fp x) const;
-    int get_upper_bound_ac (fp x) const;
+    int get_lower_bound_ac (double x) const;
+    int get_upper_bound_ac (double x) const;
     const std::string& get_title() const { return title; }
     const std::string& get_filename() const { return filename_; }
 
     void find_step();
     void sort_points();
     void update_active_for_one_point(int idx);
-    //fp get_y_at (fp x) const;
+    //double get_y_at (double x) const;
     // return points at x (if any) or (usually) after it.
-    std::vector<Point>::const_iterator get_point_at(fp x) const;
-    fp get_x_min() const;
-    fp get_x_max() const;
+    std::vector<Point>::const_iterator get_point_at(double x) const;
+    double get_x_min() const;
+    double get_x_max() const;
     std::vector<Point> const& points() const { return p_; }
     std::vector<Point>& get_mutable_points() { return p_; }
     int get_given_x() const { return given_x_; }
@@ -86,7 +87,7 @@ private:
     std::vector<int> given_blocks_;
     std::string given_format_;
     std::string given_options_;
-    fp x_step_; // 0.0 if not fixed;
+    double x_step_; // 0.0 if not fixed;
     bool has_sigma_;
     std::vector<Point> p_;
     std::vector<int> active_;

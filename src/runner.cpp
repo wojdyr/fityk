@@ -236,7 +236,7 @@ void Runner::command_guess(const vector<Token>& args, int ds)
 
     // guess
     vector<string> gkeys;
-    vector<double> gvals;
+    vector<realt> gvals;
     if (tp->peak_d) {
         boost::array<double,4> peak_v = g.estimate_peak_parameters();
         gkeys.insert(gkeys.end(), Guess::peak_traits.begin(),
@@ -346,8 +346,8 @@ int Runner::make_func_from_template(const string& name,
 
         // calculate current values of VMs in par_values, it will be used
         // to handle default values
-        vector<double> cvals(par_values.size());
-        vector<double> dummy;
+        vector<realt> cvals(par_values.size());
+        vector<realt> dummy;
         for (size_t i = 0; i != par_values.size(); ++i)
             cvals[i] = run_code_for_variable(*par_values[i], F_->variables(),
                                              dummy);

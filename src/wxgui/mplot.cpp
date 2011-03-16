@@ -176,22 +176,23 @@ public:
         int parameter_idx;
         std::string parameter_name;
         std::string variable_name; /// name of variable that are to be changed
-        fp value; /// current value of parameter
-        fp ini_value; /// initial value of parameter
-        fp multiplier; /// increases or decreases changing rate
-        fp ini_x;
+        double value; /// current value of parameter
+        double ini_value; /// initial value of parameter
+        double multiplier; /// increases or decreases changing rate
+        double ini_x;
 
         Drag() : how(no_drag) {}
-        void set(const Function* p, int idx, drag_type how_, fp multiplier_);
-        void change_value(fp x, fp dx, int dX);
+        void set(const Function* p, int idx, drag_type how_,
+                 double multiplier_);
+        void change_value(double x, double dx, int dX);
         std::string get_cmd() const;
     };
 
     FunctionMouseDrag() : sidebar_dirty(false) {}
-    void start(const Function* p, int X, int Y, fp x, fp y);
-    void move(bool shift, int X, int Y, fp x, fp y);
+    void start(const Function* p, int X, int Y, double x, double y);
+    void move(bool shift, int X, int Y, double x, double y);
     void stop();
-    const std::vector<fp>& get_values() const { return values; }
+    const std::vector<realt>& get_values() const { return values; }
     const std::string& get_status() const { return status; }
     std::string get_cmd() const;
 
@@ -200,21 +201,21 @@ private:
     Drag drag_y; /// y axis
     Drag drag_shift_x; ///x with [shift]
     Drag drag_shift_y; ///y with [shift]
-    fp px, py;
+    double px, py;
     int pX, pY;
-    std::vector<fp> values;
+    std::vector<realt> values;
     std::string status;
     bool sidebar_dirty;
 
     void set_defined_drags();
     bool bind_parameter_to_drag(Drag &drag, const std::string& name,
-                          const Function* p, drag_type how, fp multiplier=1.);
+                      const Function* p, drag_type how, double multiplier=1.);
     void set_drag(Drag &drag, const Function* p, int idx,
-                  drag_type how, fp multiplier=1.);
+                  drag_type how, double multiplier=1.);
 };
 
 
-void FunctionMouseDrag::Drag::change_value(fp x, fp dx, int dX)
+void FunctionMouseDrag::Drag::change_value(double x, double dx, int dX)
 {
     if (how == no_drag || dx == 0. || dX == 0)
         return;
@@ -244,7 +245,7 @@ string FunctionMouseDrag::Drag::get_cmd() const
 }
 
 void FunctionMouseDrag::Drag::set(const Function* p, int idx,
-                                  drag_type how_, fp multiplier_)
+                                  drag_type how_, double multiplier_)
 {
     const Variable* var = ftk->get_variable(p->get_var_idx(idx));
     if (!var->is_simple()) {
@@ -261,7 +262,8 @@ void FunctionMouseDrag::Drag::set(const Function* p, int idx,
 }
 
 
-void FunctionMouseDrag::start(const Function* p, int X, int Y, fp x, fp y)
+void FunctionMouseDrag::start(const Function* p, int X, int Y,
+                              double x, double y)
 {
     drag_x.parameter_name = drag_y.parameter_name
         = drag_shift_x.parameter_name = drag_shift_y.parameter_name = "-";
@@ -302,7 +304,7 @@ void FunctionMouseDrag::set_defined_drags()
 
 bool FunctionMouseDrag::bind_parameter_to_drag(Drag &drag, const string& name,
                                               const Function* p, drag_type how,
-                                              fp multiplier)
+                                              double multiplier)
 {
     // search for Function(..., height, ...)
     int idx = index_of_element(p->tp()->fargs, name);
@@ -328,7 +330,7 @@ bool FunctionMouseDrag::bind_parameter_to_drag(Drag &drag, const string& name,
     return false;
 }
 
-void FunctionMouseDrag::move(bool shift, int X, int Y, fp x, fp y)
+void FunctionMouseDrag::move(bool shift, int X, int Y, double x, double y)
 {
     SideBar *sib = frame->get_sidebar();
 
@@ -415,7 +417,7 @@ void MainPlot::OnPaint(wxPaintEvent&)
     // TODO
 }
 
-fp y_of_data_for_draw_data(vector<Point>::const_iterator i,
+double y_of_data_for_draw_data(vector<Point>::const_iterator i,
                            const Model* /*model*/)
 {
     return i->y;
@@ -521,7 +523,7 @@ void MainPlot::draw_model(wxDC& dc, const Model* model, bool set_pen)
     if (set_pen)
         dc.SetPen(wxPen(modelCol, pen_width));
     int n = get_pixel_width(dc);
-    vector<fp> xx(n), yy(n);
+    vector<realt> xx(n), yy(n);
     vector<int> YY(n);
     for (int i = 0; i < n; ++i)
         xx[i] = xs.val(i);
@@ -541,10 +543,10 @@ void MainPlot::draw_model(wxDC& dc, const Model* model, bool set_pen)
 
 void MainPlot::draw_peaks(wxDC& dc, const Model* model, bool set_pen)
 {
-    fp level = 0;
+    double level = 0;
     const vector<int>& idx = model->get_ff().idx;
     int n = get_pixel_width(dc);
-    vector<fp> xx(n), yy(n);
+    vector<realt> xx(n), yy(n);
     vector<int> YY(n);
     for (int i = 0; i < n; ++i) {
         xx[i] = xs.val(i);
@@ -554,7 +556,7 @@ void MainPlot::draw_peaks(wxDC& dc, const Model* model, bool set_pen)
         fill(yy.begin(), yy.end(), 0.);
         const Function* f = ftk->get_function(idx[k]);
         int from=0, to=n-1;
-        fp left, right;
+        realt left, right;
         if (f->get_nonzero_range(level, left, right)) {
             from = max(from, xs.px(left));
             to = min(to, xs.px(right));
@@ -656,10 +658,11 @@ void MainPlot::prepare_peaktops(const Model* model, int Ymax)
     int no_ctr_idx = 0;
     for (int k = 0; k < n; k++) {
         const Function *f = ftk->get_function(idx[k]);
-        fp x, ctr;
+        double x;
+        realt ctr;
         int X, Y;
         if (f->get_center(&ctr)) {
-            X = xs.px (ctr - model->zero_shift(ctr));
+            X = xs.px(ctr - model->zero_shift(ctr));
             // instead of these two lines we could simply do x=ctr,
             // but it would be slightly inaccurate
             x = xs.val(X);
@@ -691,7 +694,7 @@ void MainPlot::prepare_peak_labels(const Model* model)
             if (right == string::npos)
                 break;
             string tag(label, pos+1, right-pos-1);
-            fp a;
+            realt a;
             if (tag == "area")
                 label.replace(pos, right-pos+1, f->get_area(&a) ? S(a) : " ");
             else if (tag == "height")
@@ -858,7 +861,7 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
     peak_menu.Append(ID_peak_popup_info, wxT("Show &Info"));
     peak_menu.Append(ID_peak_popup_del, wxT("&Delete"));
     peak_menu.Append(ID_peak_popup_guess, wxT("&Guess parameters"));
-    fp dummy;
+    realt dummy;
     peak_menu.Enable(ID_peak_popup_guess,
                      ftk->get_function(over_peak_)->get_center(&dummy));
     PopupMenu (&peak_menu, event.GetX(), event.GetY());
@@ -881,16 +884,15 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
     if (over_peak_ < 0)
         return;
     const Function* p = ftk->get_function(over_peak_);
-    fp ctr;
+    realt ctr;
     if (p->get_center(&ctr)) {
-        fp plusmin = 0, fwhm, iw;
+        double plusmin = 0;
+        realt fwhm, iw;
         if (p->get_fwhm(&fwhm))
             plusmin = fabs(fwhm);
         if (p->get_iwidth(&iw) && fabs(iw) > plusmin)
             plusmin = fabs(iw);
         plusmin = max(plusmin, 1.);
-        char buffer[64];
-        sprintf(buffer, " [%.12g:%.12g]", ctr-plusmin, ctr+plusmin);
         ftk->exec(frame->get_datasets() + "guess %" + p->name + " = "
                   + frame->get_guess_string(p->tp()->name)
                   + " [" + eS(ctr-plusmin) + ":" + eS(ctr+plusmin) + "]");
@@ -1122,8 +1124,8 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
     pressed_mouse_button_ = event.GetButton();
     downX = event.GetX();
     downY = event.GetY();
-    fp x = xs.valr(event.GetX());
-    fp y = ys.valr(event.GetY());
+    double x = xs.valr(event.GetX());
+    double y = ys.valr(event.GetY());
     mouse_op_ = what_mouse_operation(event);
     if (mouse_op_ == kRectangularZoom) {
         SetCursor(wxCURSOR_MAGNIFIER);
@@ -1250,7 +1252,7 @@ void freeze_functions_in_range(double x1, double x2, bool freeze)
 {
     string cmd;
     v_foreach (Function*, i, ftk->functions()) {
-        fp ctr;
+        realt ctr;
         if (!(*i)->get_center(&ctr))
             continue;
         if (!(x1 < ctr && ctr < x2))
@@ -1299,22 +1301,22 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
 
     // zoom
     if (mouse_op_ == kRectangularZoom) {
-        fp x1 = xs.valr(downX);
-        fp x2 = xs.valr(event.GetX());
-        fp y1 = ys.valr(downY);
-        fp y2 = ys.valr(event.GetY());
+        double x1 = xs.valr(downX);
+        double x2 = xs.valr(event.GetX());
+        double y1 = ys.valr(downY);
+        double y2 = ys.valr(event.GetY());
         frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)),
                            RealRange(min(y1,y2), max(y1,y2)));
     }
     else if (mouse_op_ == kVerticalZoom) {
-        fp y1 = ys.valr(downY);
-        fp y2 = ys.valr(event.GetY());
+        double y1 = ys.valr(downY);
+        double y2 = ys.valr(event.GetY());
         frame->change_zoom(ftk->view.hor,
                            RealRange(min(y1,y2), max(y1,y2)));
     }
     else if (mouse_op_ == kHorizontalZoom) {
-        fp x1 = xs.valr(downX);
-        fp x2 = xs.valr(event.GetX());
+        double x1 = xs.valr(downX);
+        double x2 = xs.valr(event.GetX());
         frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)),
                            ftk->view.ver);
     }
@@ -1337,14 +1339,14 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         bool activate = (mouse_op_== kActivateSpan ||
                          mouse_op_ == kActivateRect);
         string c = (activate ? "A = a or" : "A = a and not");
-        fp x1 = xs.valr(downX);
-        fp x2 = xs.valr(event.GetX());
+        double x1 = xs.valr(downX);
+        double x2 = xs.valr(event.GetX());
         if (x1 > x2)
             swap(x1, x2);
         string cond = eS(x1) + " < x and x < " + eS(x2);
         if (rect) {
-            fp y1 = ys.valr(downY);
-            fp y2 = ys.valr(event.GetY());
+            double y1 = ys.valr(downY);
+            double y2 = ys.valr(event.GetY());
             cond += " and "
                     + eS(min(y1,y2)) + " < y and y < " + eS(max(y1,y2));
         }
@@ -1359,8 +1361,8 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     }
     // add peak (in range)
     else if (mouse_op_ == kAddPeakInRange) {
-        fp x1 = xs.valr(downX);
-        fp x2 = xs.valr(event.GetX());
+        double x1 = xs.valr(downX);
+        double x2 = xs.valr(event.GetX());
         ftk->exec(frame->get_datasets() + "guess "
                   + frame->get_guess_string(frame->get_peak_type())
                   + " [" + eS(min(x1,x2)) + " : " + eS(max(x1,x2)) + "]");
@@ -1374,19 +1376,19 @@ void MainPlot::add_peak_from_draft(int X, int Y)
 {
     string args;
     if (func_draft_kind_ == kLinear && downY != Y) {
-        fp x1 = xs.valr(downX);
-        fp y1 = ys.valr(downY);
-        fp x2 = xs.valr(X);
-        fp y2 = ys.valr(Y);
-        fp m = (y2 - y1) / (x2 - x1);
+        double x1 = xs.valr(downX);
+        double y1 = ys.valr(downY);
+        double x2 = xs.valr(X);
+        double y2 = ys.valr(Y);
+        double m = (y2 - y1) / (x2 - x1);
         args = "slope=~" + eS(m) + ", intercept=~" + eS(y1-m*x1)
                + ", avgy=~" + eS((y1+y2)/2);
     }
     else {
-        fp height = ys.valr(Y);
-        fp center = xs.valr(downX);
-        fp hwhm = fabs(center - xs.valr(X));
-        fp area = 2 * height * hwhm;
+        double height = ys.valr(Y);
+        double center = xs.valr(downX);
+        double hwhm = fabs(center - xs.valr(X));
+        double area = 2 * height * hwhm;
         args = "height=~" + eS(height) + ", center=~" + eS(center)
                  + ", area=~" + eS(area);
         if (ftk->find_variable_nr("_hwhm") == -1)
@@ -1410,8 +1412,8 @@ void MainPlot::add_peak_from_draft(int X, int Y)
 }
 
 static
-void calculate_values(const vector<fp>& xx, vector<fp>& yy,
-                      const Tplate::Ptr& tp, const vector<fp>& p_values)
+void calculate_values(const vector<realt>& xx, vector<realt>& yy,
+                      const Tplate::Ptr& tp, const vector<realt>& p_values)
 {
     int len = p_values.size();
     vector<string> varnames(len);
@@ -1429,7 +1431,7 @@ void calculate_values(const vector<fp>& xx, vector<fp>& yy,
         variables[i] = new Variable("v" + S(i), vector<string>(),
                                     vector1<OpTree*>(tree));
         variables[i]->set_var_idx(dummy_vars);
-        variables[i]->recalculate(dummy_vars, vector<fp>());
+        variables[i]->recalculate(dummy_vars, vector<realt>());
     }
 
     f->set_var_idx(variables);
@@ -1438,12 +1440,13 @@ void calculate_values(const vector<fp>& xx, vector<fp>& yy,
     purge_all_elements(variables);
 }
 
-void MainPlot::draw_overlay_func(const Function* f, const vector<fp>& p_values)
+void MainPlot::draw_overlay_func(const Function* f,
+                                 const vector<realt>& p_values)
 {
     int n = GetClientSize().GetWidth();
     if (n <= 0)
         return;
-    vector<fp> xx(n), yy(n, 0);
+    vector<realt> xx(n), yy(n, 0);
     for (int i = 0; i < n; ++i)
         xx[i] = xs.val(i);
     calculate_values(xx, yy, f->tp(), p_values);
@@ -1461,7 +1464,7 @@ void MainPlot::draw_overlay_limits(const Function* f)
     double cutoff = ftk->get_settings()->function_cutoff;
     if (cutoff == 0)
         return;
-    fp x1, x2;
+    realt x1, x2;
     bool r = f->get_nonzero_range(cutoff, x1, x2);
     if (r) {
         int xleft = xs.px(x1);

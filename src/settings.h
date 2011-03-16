@@ -91,11 +91,17 @@ public:
     void do_srand();
     std::string format_double(double d) const
             { return format1<double, 32>(m_.numeric_format.c_str(), d); }
+#if QUAD_PRECISION
+    std::string format_double(long double d) const
+            { return format1<long double, 64>(long_double_format_.c_str(), d); }
+#endif
 
 private:
     const Ftk* F_; // used for msg() and vmsg()
     Settings m_;
+    std::string long_double_format_;
 
+    void set_long_double_format(const std::string& double_fmt);
     DISALLOW_COPY_AND_ASSIGN(SettingsMgr);
 };
 

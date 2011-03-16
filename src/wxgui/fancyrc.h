@@ -8,6 +8,7 @@
 #include <wx/tooltip.h>
 #include <math.h>
 #include <vector>
+#include "../common.h" // realt
 
 class SideBar;
 class ValueChangingWidget;
@@ -48,7 +49,7 @@ private:
 class ParameterPanelObserver
 {
 public:
-    virtual void on_parameter_changing(const std::vector<double>& values) = 0;
+    virtual void on_parameter_changing(const std::vector<realt>& values) = 0;
     virtual void on_parameter_changed(int n) = 0;
     virtual void on_parameter_lock_clicked(int n, int state) = 0;
 };
@@ -94,7 +95,7 @@ public:
 private:
     ParameterPanelObserver* observer_;
     std::vector<ParameterRowData> rows_;
-    std::vector<double> values_;
+    std::vector<realt> values_;
     wxStaticText* title_st_;
     wxFlexGridSizer *grid_sizer_;
     int active_item_;

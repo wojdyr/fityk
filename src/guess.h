@@ -7,6 +7,7 @@
 #include <vector>
 #include <string>
 #include <boost/array.hpp>
+#include "common.h" // realt
 
 class DataAndModel;
 class Tplate;
@@ -37,7 +38,7 @@ public:
 
 private:
     Settings const* settings_;
-    std::vector<double> xx_, yy_;
+    std::vector<realt> xx_, yy_;
 
     double find_hwhm(int pos, double *area);
 };

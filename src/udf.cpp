@@ -80,24 +80,24 @@ void CompoundFunction::set_var_idx(vector<Variable*> const& variables)
 void CompoundFunction::more_precomputations()
 {
     vm_foreach (Variable*, i, intern_variables_)
-        (*i)->recalculate(intern_variables_, vector<double>());
+        (*i)->recalculate(intern_variables_, vector<realt>());
     vm_foreach (Function*, i, intern_functions_)
         (*i)->do_precomputations(intern_variables_);
 }
 
-void CompoundFunction::calculate_value_in_range(const vector<fp> &xx,
-                                                vector<fp> &yy,
+void CompoundFunction::calculate_value_in_range(const vector<realt> &xx,
+                                                vector<realt> &yy,
                                                 int first, int last) const
 {
     v_foreach (Function*, i, intern_functions_)
         (*i)->calculate_value_in_range(xx, yy, first, last);
 }
 
-void CompoundFunction::calculate_value_deriv_in_range(
-                                             const vector<fp> &xx,
-                                             vector<fp> &yy, vector<fp> &dy_da,
-                                             bool in_dx,
-                                             int first, int last) const
+void CompoundFunction::calculate_value_deriv_in_range(const vector<realt> &xx,
+                                                      vector<realt> &yy,
+                                                      vector<realt> &dy_da,
+                                                      bool in_dx,
+                                                      int first, int last) const
 {
     v_foreach (Function*, i, intern_functions_)
         (*i)->calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, first, last);
@@ -114,14 +114,14 @@ string CompoundFunction::get_current_formula(const string& x) const
     return t;
 }
 
-bool CompoundFunction::get_center(fp* a) const
+bool CompoundFunction::get_center(realt* a) const
 {
     vector<Function*> const& ff = intern_functions_;
     bool r = ff[0]->get_center(a);
     if (!r)
         return false;
     for (size_t i = 1; i < ff.size(); ++i) {
-        fp b;
+        realt b;
         r = ff[i]->get_center(&b);
         if (!r || is_neq(*a, b))
             return false;
@@ -131,15 +131,15 @@ bool CompoundFunction::get_center(fp* a) const
 
 /// if consists of >1 functions and centers are in the same place
 ///  height is a sum of heights
-bool CompoundFunction::get_height(fp* a) const
+bool CompoundFunction::get_height(realt* a) const
 {
     vector<Function*> const& ff = intern_functions_;
     if (ff.size() == 1)
         return ff[0]->get_height(a);
-    fp ctr;
+    realt ctr;
     if (!get_center(&ctr))
         return false;
-    fp sum = 0;
+    realt sum = 0;
     for (size_t i = 0; i < ff.size(); ++i) {
         if (!ff[i]->get_height(a))
             return false;
@@ -149,7 +149,7 @@ bool CompoundFunction::get_height(fp* a) const
     return true;
 }
 
-bool CompoundFunction::get_fwhm(fp* a) const
+bool CompoundFunction::get_fwhm(realt* a) const
 {
     vector<Function*> const& ff = intern_functions_;
     if (ff.size() == 1)
@@ -157,10 +157,10 @@ bool CompoundFunction::get_fwhm(fp* a) const
     return false;
 }
 
-bool CompoundFunction::get_area(fp* a) const
+bool CompoundFunction::get_area(realt* a) const
 {
     vector<Function*> const& ff = intern_functions_;
-    fp sum = 0;
+    realt sum = 0;
     for (size_t i = 0; i < ff.size(); ++i)
         if (ff[i]->get_area(a))
             sum += *a;
@@ -170,7 +170,8 @@ bool CompoundFunction::get_area(fp* a) const
     return true;
 }
 
-bool CompoundFunction::get_nonzero_range(fp level, fp& left, fp& right) const
+bool CompoundFunction::get_nonzero_range(double level,
+                                         realt& left, realt& right) const
 {
     vector<Function*> const& ff = intern_functions_;
     if (ff.size() == 1)
@@ -220,8 +221,8 @@ void CustomFunction::more_precomputations()
     substituted_vm_.replace_symbols(av_);
 }
 
-void CustomFunction::calculate_value_in_range(const vector<fp> &xx,
-                                              vector<fp> &yy,
+void CustomFunction::calculate_value_in_range(const vector<realt> &xx,
+                                              vector<realt> &yy,
                                               int first, int last) const
 {
     for (int i = first; i < last; ++i)
@@ -229,15 +230,15 @@ void CustomFunction::calculate_value_in_range(const vector<fp> &xx,
                                                 value_offset_);
 }
 
-void CustomFunction::calculate_value_deriv_in_range(
-                                           const vector<fp> &xx,
-                                           vector<fp> &yy, vector<fp> &dy_da,
-                                           bool in_dx,
-                                           int first, int last) const
+void CustomFunction::calculate_value_deriv_in_range(const vector<realt> &xx,
+                                                    vector<realt> &yy,
+                                                    vector<realt> &dy_da,
+                                                    bool in_dx,
+                                                    int first, int last) const
 {
     int dyn = dy_da.size() / xx.size();
     for (int i = first; i < last; ++i) {
-        fp y = run_code_for_custom_func(substituted_vm_, xx[i], derivatives_);
+        realt y = run_code_for_custom_func(substituted_vm_, xx[i],derivatives_);
 
         if (!in_dx) {
             yy[i] += y;
@@ -315,28 +316,28 @@ void SplitFunction::set_var_idx(vector<Variable*> const& variables)
 void SplitFunction::more_precomputations()
 {
     vm_foreach (Variable*, i, intern_variables_)
-        (*i)->recalculate(intern_variables_, vector<double>());
+        (*i)->recalculate(intern_variables_, vector<realt>());
     left_->do_precomputations(intern_variables_);
     right_->do_precomputations(intern_variables_);
 }
 
-void SplitFunction::calculate_value_in_range(const vector<fp> &xx,
-                                             vector<fp> &yy,
+void SplitFunction::calculate_value_in_range(const vector<realt> &xx,
+                                             vector<realt> &yy,
                                              int first, int last) const
 {
-    double xsplit = intern_variables_.back()->get_value();
+    realt xsplit = intern_variables_.back()->get_value();
     int t = lower_bound(xx.begin(), xx.end(), xsplit) - xx.begin();
     left_->calculate_value_in_range(xx, yy, first, t);
     right_->calculate_value_in_range(xx, yy, t, last);
 }
 
-void SplitFunction::calculate_value_deriv_in_range(
-                                          const vector<fp> &xx,
-                                          vector<fp> &yy, vector<fp> &dy_da,
-                                          bool in_dx,
-                                          int first, int last) const
+void SplitFunction::calculate_value_deriv_in_range(const vector<realt> &xx,
+                                                   vector<realt> &yy,
+                                                   vector<realt> &dy_da,
+                                                   bool in_dx,
+                                                   int first, int last) const
 {
-    double xsplit = intern_variables_.back()->get_value();
+    realt xsplit = intern_variables_.back()->get_value();
     int t = lower_bound(xx.begin(), xx.end(), xsplit) - xx.begin();
     left_-> calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, first, t);
     right_-> calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, t, last);
@@ -344,26 +345,27 @@ void SplitFunction::calculate_value_deriv_in_range(
 
 string SplitFunction::get_current_formula(const string& x) const
 {
-    double xsplit = intern_variables_.back()->get_value();
+    realt xsplit = intern_variables_.back()->get_value();
     return "x < " + S(xsplit) + " ? " + left_->get_current_formula(x)
                               + " : " + right_->get_current_formula(x);
 }
 
-bool SplitFunction::get_height(fp* a) const
+bool SplitFunction::get_height(realt* a) const
 {
-    fp h2;
+    realt h2;
     return left_->get_height(a) && right_->get_height(&h2) && is_eq(*a, h2);
 }
 
-bool SplitFunction::get_center(fp* a) const
+bool SplitFunction::get_center(realt* a) const
 {
-    fp c2;
+    realt c2;
     return left_->get_center(a) && right_->get_center(&c2) && is_eq(*a, c2);
 }
 
-bool SplitFunction::get_nonzero_range(fp level, fp& left, fp& right) const
+bool SplitFunction::get_nonzero_range(double level,
+                                      realt& left, realt& right) const
 {
-    fp dummy;
+    realt dummy;
     return left_->get_nonzero_range(level, left, dummy) &&
            right_->get_nonzero_range(level, dummy, right);
 }

@@ -52,7 +52,7 @@ public:
     void auto_remove_functions();
     bool is_function_referred(int n) const;
 
-    const std::vector<fp>& parameters() const { return parameters_; }
+    const std::vector<realt>& parameters() const { return parameters_; }
     const std::vector<Variable*>& variables() const { return variables_; }
     const Variable* get_variable(int n) const { return variables_[n]; }
     Variable* get_variable(int n) { return variables_[n]; }
@@ -75,9 +75,9 @@ public:
     /// calculate value and derivatives of all variables;
     /// do precomputations for all functions
     void use_parameters();
-    void use_external_parameters(const std::vector<fp> &ext_param);
-    void put_new_parameters(const std::vector<fp> &aa);
-    fp variation_of_a(int n, fp variat) const;
+    void use_external_parameters(const std::vector<realt> &ext_param);
+    void put_new_parameters(const std::vector<realt> &aa);
+    realt variation_of_a(int n, realt variat) const;
     std::vector<std::string>
         get_variable_references(const std::string &name) const;
     void update_indices_in_models();
@@ -91,7 +91,7 @@ protected:
 private:
     const Ftk* F_;
     std::vector<Model*> models_;
-    std::vector<fp> parameters_;
+    std::vector<realt> parameters_;
     /// sorted, a doesn't depend on b if idx(a)>idx(b)
     std::vector<Variable*> variables_;
     std::vector<Function*> functions_;

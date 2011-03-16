@@ -20,9 +20,9 @@
 
 using namespace std;
 
-void Scale::set(fp m, fp M, int pixels)
+void Scale::set(double m, double M, int pixels)
 {
-    fp h = 0;
+    double h = 0;
     if (logarithm) {
         M = log(max(M, epsilon));
         m = log(max(m, epsilon));

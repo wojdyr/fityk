@@ -10,8 +10,8 @@
 using namespace std;
 
 
-const fp View::relative_x_margin = 1./20.;
-const fp View::relative_y_margin = 1./20.;
+const double View::relative_x_margin = 1./20.;
+const double View::relative_y_margin = 1./20.;
 
 
 string View::str() const
@@ -41,7 +41,7 @@ void View::change_view(const RealRange& hor_r, const RealRange& ver_r,
         datas[i] = F->get_dm(datasets[i])->data();
 
     if (hor.from_inf() || hor.to_inf()) {
-        fp x_min=0, x_max=0;
+        double x_min=0, x_max=0;
         get_x_range(datas, x_min, x_max);
         if (x_min == x_max) {
             x_min -= 0.1;
@@ -50,14 +50,14 @@ void View::change_view(const RealRange& hor_r, const RealRange& ver_r,
         if (log_x_) {
             x_min = max(epsilon, x_min);
             x_max = max(epsilon, x_max);
-            fp margin = log(x_max / x_min) * relative_x_margin;
+            double margin = log(x_max / x_min) * relative_x_margin;
             if (hor.from_inf())
                 hor.from = exp(log(x_min) - margin);
             if (hor.to_inf())
                 hor.to = exp(log(x_max) + margin);
         }
         else {
-            fp margin = (x_max - x_min) * relative_x_margin;
+            double margin = (x_max - x_min) * relative_x_margin;
             if (hor.from_inf())
                 hor.from = x_min - margin;
             if (hor.to_inf())
@@ -66,7 +66,7 @@ void View::change_view(const RealRange& hor_r, const RealRange& ver_r,
     }
 
     if (ver.from_inf() || ver.to_inf()) {
-        fp y_min=0, y_max=0;
+        double y_min=0, y_max=0;
         get_y_range(datas, models, y_min, y_max);
         if (y_min == y_max) {
             y_min -= 0.1;
@@ -75,14 +75,14 @@ void View::change_view(const RealRange& hor_r, const RealRange& ver_r,
         if (log_y_) {
             y_min = max(epsilon, y_min);
             y_max = max(epsilon, y_max);
-            fp margin = log(y_max / y_min) * relative_y_margin;
+            double margin = log(y_max / y_min) * relative_y_margin;
             if (ver.from_inf())
                 ver.from = exp(log(y_min) - margin);
             if (ver.to_inf())
                 ver.to = exp(log(y_max) + margin);
         }
         else {
-            fp margin = (y_max - y_min) * relative_y_margin;
+            double margin = (y_max - y_min) * relative_y_margin;
             if (ver.from_inf())
                 ver.from = y_min - margin;
             if (ver.to_inf())
@@ -92,7 +92,7 @@ void View::change_view(const RealRange& hor_r, const RealRange& ver_r,
 }
 
 
-void View::get_x_range(vector<Data const*> datas, fp &x_min, fp &x_max)
+void View::get_x_range(vector<Data const*> datas, double &x_min, double &x_max)
 {
     if (datas.empty())
         throw ExecuteError("Can't find x-y axes ranges for plot");
@@ -107,7 +107,7 @@ void View::get_x_range(vector<Data const*> datas, fp &x_min, fp &x_max)
 
 
 void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
-                       fp &y_min, fp &y_max)
+                       double &y_min, double &y_max)
 {
     if (datas.empty())
         throw ExecuteError("Can't find x-y axes ranges for plot");
@@ -150,7 +150,7 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
         if (model->get_ff().empty())
             continue;
         // estimated model maximum
-        fp model_y_max = model->approx_max(hor.from, hor.to);
+        double model_y_max = model->approx_max(hor.from, hor.to);
         if (model_y_max > y_max)
             y_max = model_y_max;
         if (model_y_max < y_min)
@@ -159,7 +159,7 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
 
     // include or not include zero
     if (!log_y_ && y0_factor_ > 0) {
-        fp dy = y_max - y_min;
+        double dy = y_max - y_min;
         if (y_min > 0 && y0_factor_ * dy > y_max)
             y_min = 0;
         else if (y_max < 0 && y0_factor_ * dy > fabs(y_min))

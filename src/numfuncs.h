@@ -8,23 +8,24 @@
 #include "common.h"
 
 
+/// Point used for linear interpolation and polyline convex hull algorithm.
 struct PointD
 {
-    fp x, y;
+    double x, y;
     PointD() {}
-    PointD(fp x_, fp y_) : x(x_), y(y_) {}
+    PointD(double x_, double y_) : x(x_), y(y_) {}
     bool operator< (const PointD& b) const { return x < b.x; }
 };
 
 
-/// Points used for parametrized functions. They have q parameter, that
-/// is used for cubic spline computation
+/// Point used for spline/polyline interpolation.
+/// The q parameter is used for cubic spline computation.
 struct PointQ
 {
-    fp x, y;
-    fp q; /* q is used for spline */
+    double x, y;
+    double q; /* q is used for spline */
     PointQ() {}
-    PointQ(fp x_, fp y_) : x(x_), y(y_) {}
+    PointQ(double x_, double y_) : x(x_), y(y_) {}
     bool operator< (const PointQ& b) const { return x < b.x; }
 };
 
@@ -33,18 +34,18 @@ struct PointQ
 /// based on Numerical Recipes www.nr.com
 void prepare_spline_interpolation (std::vector<PointQ> &bb);
 
-fp get_spline_interpolation(std::vector<PointQ> &bb, fp x);
+double get_spline_interpolation(std::vector<PointQ> &bb, double x);
 
-fp get_linear_interpolation(std::vector<PointD> &bb, fp x);
-fp get_linear_interpolation(std::vector<PointQ> &bb, fp x);
+double get_linear_interpolation(std::vector<PointD> &bb, double x);
+double get_linear_interpolation(std::vector<PointQ> &bb, double x);
 
 // random number utilities
-inline fp rand_1_1() { return 2.0 * rand() / RAND_MAX - 1.; }
-inline fp rand_0_1() { return static_cast<fp>(rand()) / RAND_MAX; }
-inline fp rand_uniform(fp a, fp b) { return a + rand_0_1() * (b-a); }
+inline double rand_1_1() { return 2.0 * rand() / RAND_MAX - 1.; }
+inline double rand_0_1() { return static_cast<double>(rand()) / RAND_MAX; }
+inline double rand_uniform(double a, double b) { return a + rand_0_1()*(b-a); }
 inline bool rand_bool() { return rand() < RAND_MAX / 2; }
-fp rand_gauss();
-fp rand_cauchy();
+double rand_gauss();
+double rand_cauchy();
 
 
 // Simple Polyline Convex Hull Algorithms

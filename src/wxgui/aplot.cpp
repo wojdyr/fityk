@@ -156,7 +156,7 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
 
     if (mark_peak_pos_) {
         v_foreach (int, i, model->get_ff().idx) {
-            fp x;
+            realt x;
             if (ftk->get_function(*i)->get_center(&x)) {
                 int X = xs.px(x - model->zero_shift(x));
                 dc.DrawLine(X, 0, X, pixel_height);
@@ -182,7 +182,7 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         draw_ytics(dc, rect, !monochrome);
     }
 
-    fp (*f)(vector<Point>::const_iterator, Model const*) = NULL;
+    double (*f)(vector<Point>::const_iterator, Model const*) = NULL;
     bool cummulative = false;
     if (kind_ == apk_diff)
         f = reversed_diff_ ? rdiff_of_data_for_draw_data
@@ -382,8 +382,8 @@ void AuxPlot::OnLeftUp (wxMouseEvent &event)
 {
     if (downX == INT_MIN)
         return;
-    fp x1 = xs.val(event.GetX());
-    fp x2 = xs.val(downX); // must be called before cancel_mouse...()
+    double x1 = xs.val(event.GetX());
+    double x2 = xs.val(downX); // must be called before cancel_mouse...()
     if (GetCapture() == this)
         ReleaseMouse();
     connect_esc_to_cancel(false);
@@ -481,7 +481,7 @@ void AuxPlot::fit_y_zoom(Data const* data, Model const* model)
 {
     if (!is_zoomable())
         return;
-    fp y = 0.;
+    double y = 0.;
     vector<Point>::const_iterator first = data->get_point_at(ftk->view.left()),
                                   last = data->get_point_at(ftk->view.right());
     if (data->is_empty() || last==first)
@@ -494,7 +494,7 @@ void AuxPlot::fit_y_zoom(Data const* data, Model const* model)
             Scale const& mys = master_->get_y_scale();
             y_zoom_ = fabs (pixel_height / (2 * y
                                            * (mys.logarithm ? 1 : mys.scale)));
-            fp order = pow (10, floor (log10(y_zoom_)));
+            double order = pow (10, floor (log10(y_zoom_)));
             y_zoom_ = floor(y_zoom_ / order) * order;
             }
             break;
