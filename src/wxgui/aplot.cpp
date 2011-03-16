@@ -210,7 +210,12 @@ void AuxPlot::draw_zoom_text(wxDC& dc, bool set_pen)
     if (set_pen)
         dc.SetTextForeground(xAxisCol);
     set_font(dc, *wxNORMAL_FONT);
+#ifdef __WXMSW__
+    // U+00D7 is not rendered correctly on Windows XP
+    string s = "x" + S(y_zoom_);
+#else
     string s = "\u00D7" + S(y_zoom_); // U+00D7 == &times;
+#endif
     wxCoord w, h;
     dc.GetTextExtent (s2wx(s), &w, &h);
     dc.DrawText (s2wx(s), get_pixel_width(dc) - w - 2, 2);
