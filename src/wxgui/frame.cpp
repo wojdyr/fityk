@@ -134,6 +134,7 @@ enum {
     ID_H_EXAMPLE1              ,
     ID_H_EXAMPLE2              ,
     ID_H_EXAMPLE3              ,
+    ID_H_EXAMPLE4              ,
     ID_D_QLOAD                 ,
     ID_D_XLOAD                 ,
     ID_D_RECENT                , //and next ones
@@ -355,9 +356,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_H_WIKI,        FFrame::OnOnline)
     EVT_MENU (ID_H_DISCUSSIONS, FFrame::OnOnline)
     EVT_MENU (ID_H_FEEDBACK,    FFrame::OnOnline)
-    EVT_MENU (ID_H_EXAMPLE1,    FFrame::OnExample)
-    EVT_MENU (ID_H_EXAMPLE2,    FFrame::OnExample)
-    EVT_MENU (ID_H_EXAMPLE3,    FFrame::OnExample)
+    EVT_MENU_RANGE (ID_H_EXAMPLE1, ID_H_EXAMPLE4, FFrame::OnExample)
     EVT_MENU (wxID_ABOUT,       FFrame::OnAbout)
     EVT_MENU (wxID_EXIT,        FFrame::OnQuit)
 END_EVENT_TABLE()
@@ -828,8 +827,10 @@ void FFrame::set_menubar()
                                wxT("nacl01.fit"));
     help_menu_examples->Append(ID_H_EXAMPLE2, wxT("&Multiple Peaks"),
                                wxT("SiC_Zn.fit"));
-    //help_menu_examples->Append(ID_H_EXAMPLE3, wxT("&Custom Function"),
-    //                  wxT("SiC_Zn.fit"));
+    help_menu_examples->Append(ID_H_EXAMPLE3, wxT("Southern &Oscillation"),
+                               wxT("enso.fit"));
+    help_menu_examples->Append(ID_H_EXAMPLE4, wxT("&Read-Shockley equation"),
+                               wxT("read-shockley.fit"));
     help_menu->Append(-1, wxT("&Examples"), help_menu_examples);
 
     help_menu->Append(wxID_ABOUT, wxT("&About..."), wxT("Show about dialog"));
