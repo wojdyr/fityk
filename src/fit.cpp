@@ -162,7 +162,9 @@ realt Fit::compute_wssr_for_data(const DataAndModel* dm, bool weigthed)
         xx[j] = data->get_x(j);
     vector<realt> yy(n, 0.);
     dm->model()->compute_model(xx, yy);
-    realt wssr = 0;
+    // use here always long double, because it does not effect (much)
+    // the efficiency and it notably increases accuracy of results
+    long double wssr = 0;
     for (int j = 0; j < n; j++) {
         realt dy = data->get_y(j) - yy[j];
         if (weigthed)
