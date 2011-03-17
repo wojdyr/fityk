@@ -21,11 +21,13 @@
 class Ftk;
 
 /// set precision used for storing data and fitting functions
-#define QUAD_PRECISION 1
+#define QUAD_PRECISION 0
 #if QUAD_PRECISION
 typedef long double realt;
+#define REALT_LENGTH_MOD "L"
 #else
 typedef double realt;
+#define REALT_LENGTH_MOD ""
 #endif
 
 

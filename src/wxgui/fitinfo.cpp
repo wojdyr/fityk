@@ -48,10 +48,7 @@ NumericFormatPanel::NumericFormatPanel(wxWindow* parent)
 
 void NumericFormatPanel::update_format()
 {
-    format_= "%." + S(prec_sc->GetValue())
-#if QUAD_PRECISION
-             + "L"
-#endif
+    format_= "%." + S(prec_sc->GetValue()) + REALT_LENGTH_MOD
              + wx2s(fmt_c->GetStringSelection());
 
     wxCommandEvent event(wxEVT_COMMAND_CHOICE_SELECTED, GetId());

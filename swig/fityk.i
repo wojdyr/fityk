@@ -22,6 +22,7 @@
 namespace std {
     %template(PointVector) vector<fityk::Point>;
     %template(DoubleVector) vector<double>;
+    %template(RealVector) vector<realt>;
 }
 
 // it can be wrapped only using typemaps

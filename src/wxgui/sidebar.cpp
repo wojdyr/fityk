@@ -896,7 +896,8 @@ void SideBar::update_func_inf()
     Function const* func = ftk->get_function(active_function);
     realt a;
     if (func->get_center(&a))
-        inf->AppendText(wxT("Center: ") + s2wx(format1<realt, 30>("%.10g", a)));
+        inf->AppendText(wxT("Center: ")
+                   + s2wx(format1<realt, 30>("%.10"REALT_LENGTH_MOD"g", a)));
     if (func->get_area(&a))
         inf->AppendText(wxT("\nArea: ") + s2wx(S(a)));
     if (func->get_height(&a))

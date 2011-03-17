@@ -1213,6 +1213,7 @@ void PowderBook::set_peak_name(const string& name)
     peak_rb->SetSelection(sel);
 }
 
+#if !STANDALONE_POWDIFPAT
 static
 bool has_old_variables()
 {
@@ -1221,6 +1222,7 @@ bool has_old_variables()
             return true;
     return false;
 }
+#endif
 
 wxPanel* PowderBook::PrepareActionPanel()
 {
