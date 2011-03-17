@@ -20,27 +20,6 @@
 #include "lexer.h"
 #include "eparser.h"
 
-#if QUAD_PRECISION
-#define pow powl
-#define floor floorl
-#define sqrt sqrtl
-#define exp expl
-#define erf erfl
-#define erfc erfcl
-#define log10 log10l
-#define log logl
-#define sin sinl
-#define cos cosl
-#define tan tanl
-#define asin asinl
-#define acos acosl
-#define atan atanl
-#define sinh sinhl
-#define cosh coshl
-#define tanh tanhl
-#define fabs fabsl
-#endif
-
 using namespace std;
 
 
