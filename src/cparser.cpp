@@ -290,6 +290,10 @@ void Parser::parse_component(Lexer& lex, const vector<string>& lhs_vars,
         read_define_arg(lex, lhs_vars, NULL);
         c->cargs.push_back(ep_.vm());
     }
+    if (c->p && c->cargs.size() != c->p->fargs.size())
+        lex.throw_syntax_error("function " + c->p->name + " should have "
+                               + S(c->p->fargs.size()) + " parameters (not "
+                               + S(c->cargs.size()) + ")");
 }
 
 void Parser::parse_define_rhs(Lexer& lex, Tplate *tp)
