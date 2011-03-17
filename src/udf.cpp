@@ -116,6 +116,8 @@ string CompoundFunction::get_current_formula(const string& x) const
 
 bool CompoundFunction::get_center(realt* a) const
 {
+    if (Function::get_center(a))
+        return true;
     vector<Function*> const& ff = intern_functions_;
     bool r = ff[0]->get_center(a);
     if (!r)
@@ -358,6 +360,8 @@ bool SplitFunction::get_height(realt* a) const
 
 bool SplitFunction::get_center(realt* a) const
 {
+    if (Function::get_center(a))
+        return true;
     realt c2;
     return left_->get_center(a) && right_->get_center(&c2) && is_eq(*a, c2);
 }
