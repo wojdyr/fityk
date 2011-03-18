@@ -1,9 +1,4 @@
 
-* use wxToggleBitmapButton buttons on sidebar>functions (buttons that make
-  hwhm and shape equal for all functions)
-
-------
-
 * GUI: optionally use wxGCDC for plotting
 
 * peak finding: optionally use weights for finding peak positions

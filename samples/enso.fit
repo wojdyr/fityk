@@ -5,7 +5,7 @@
 set lm_stop_rel_change=1e-20, numeric_format='%.10E', default_sigma=one
 
 # load index as x and column 1 as y
-@0 < _EXECUTED_SCRIPT_DIR_/enso.dat:0:1::
+@0 < '_EXECUTED_SCRIPT_DIR_/enso.dat:0:1::'
 # now x is set as 0-based index, we prefer 1-based index
 X=n+1
 

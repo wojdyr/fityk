@@ -68,38 +68,21 @@ Features
 Download
 ========
 
-|ico-win| MS Windows: :download-msw:`.exe`
+In an attempt to make this software self-sustaining and actively
+developed in the future,
+new binaries are available to subscribers only:
 
-|ico-tux| Fresh Linux RPMs from OBS_ and DEBs from PPA_ or debian-xray_
+|ico-win| MS Windows: :download:`-setup.exe`  $
 
-|ico-osx| Mac OS X: work in progress...
+|ico-osx| Mac OS X (10.4 or later): :download:`-osx.zip`  $
 
-.. _OBS: http://download.opensuse.org/repositories/home://wojdyr/
-.. _PPA: https://launchpad.net/~wojdyr/+archive/fityk
-.. _debian-xray: http://debian-xray.iit.edu/
-.. |ico-win| image:: ico-win.png
-.. |ico-tux| image:: ico-tux.png
-.. |ico-osx| image:: ico-osx.png
+|ico-tux| Linux: email me...
 
+.. raw:: html
 
-Source code: `GitHub <https://github.com/wojdyr/fityk>`_
-:html:`<a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://fityk.nieto.pl"></a>`
+   <div class="subscr">
 
-Version 0.9.7 was released on 2011-02-08
-(`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
-Subscribe to `new version notifications <http://fityk-announce.nieto.pl/>`_
-(email or feeds).
-
-Subscriptions
--------------
-
-*This is an attempt to make this software self-sustaining and actively
-developed in the future.*
-
-After releasing ver. 1.0 new binaries will be available to subscribers only.
-Distribution of the source code and the licence will not change.
-
-Subscription cost (includes support via e-mail):
+Subscription cost includes support via e-mail:
 
 * `1 month subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918496>`_: €90 / $115
 
@@ -110,18 +93,49 @@ Subscription cost (includes support via e-mail):
   implement feature(s) requested by the customer.
   (Bugs are fixed as soon as possible regardless of who reports them).
   20 hours can be enough to add a simple data file format (2-3 page long spec),
-  or to add a new function (like, say, Voigt), or to tweak the GUI.
+  or to add a new function, or to tweak the GUI.
   If you have a particular feature in mind, please contact us first.`
 
+.. raw:: html
 
+   <div class="smallfont">
+
+The exact price in € may change. If you prefer to transfer money directly to my bank account (PL), drop me a line.
 Alternatively, students and home users may
 donate 10% of the normal price to ``wojdyr@gmail.com`` using
 `PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=E98FRTPDBQ3L6&lc=US&currency_code=USD&item_name=Fityk>`_,
 `MoneyBookers <https://www.moneybookers.com/app/payment.pl?pay_to_email=wojdyr@gmail.com&language=EN&detail1_text=The+amount+can+be+changed+at+the+end+of+the+URL&detail1_description=Fityk&currency=USD&amount=26.5>`_
 or `Flattr <https://flattr.com/donation/give/to/wojdyr>`_.
+If you have made any donation before the release of 1.0 you get free
+subscription, just let me know you are interested.
 
-You are welcome to make a purchase now, the subscription time will be counted
-since the release of ver. 1.0.
+Currently, the subscriptions are processed manually, so you may wait a few hours
+before you get a password.
+
+.. raw:: html
+
+    </div>
+    </div>
+
+
+Versions 0.9.7 and older are free:
+`Windows <https://github.com/wojdyr/fityk/downloads>`_
+and Linux (Ubuntu PPA_ and RPMs from OBS_).
+
+Source code: `GitHub <https://github.com/wojdyr/fityk>`_
+:html:`<a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://fityk.nieto.pl"></a>`
+
+Version 1.0.0 was released on 2011-03-18
+(`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
+New version `notifications <http://fityk-announce.nieto.pl/>`_
+are delivered via email and feeds.
+
+.. _OBS: http://download.opensuse.org/repositories/home://wojdyr/
+.. _PPA: https://launchpad.net/~wojdyr/+archive/fityk
+.. _debian-xray: http://debian-xray.iit.edu/
+.. |ico-win| image:: ico-win.png
+.. |ico-tux| image:: ico-tux.png
+.. |ico-osx| image:: ico-osx.png
 
 .. _Documentation:
 
@@ -171,6 +185,13 @@ or, if it already is in the list, in assigning higher priority to it.
        $("#features").show('slow');
        event.preventDefault();
      });
+
+  $('#download a[href*="/subscribers/"]').click(function(event){
+    event.preventDefault();
+    var reply = prompt("Your password, please.", "")
+    if (reply != null)
+      location.href = $(this).attr("href") + "?u=" + reply;
+  });
 
      var s = document.createElement('script'), t = document.getElementsByTagName('script')[0];
      s.type = 'text/javascript';

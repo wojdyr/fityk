@@ -386,6 +386,10 @@ a.current {
 
 .smallfont { font-size: 0.9em; }
 
+div.subscr, div.subscr span.pre { background-color: #DDDDDD; }
+
+div.subscr ul.simple { padding-top: 0; padding-bottom: 0; margin-top: 0; }
+
 img.icon { vertical-align: text-bottom; }
 
 div.admonition-in-the-gui

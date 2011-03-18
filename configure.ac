@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([fityk], [0.9.8])
+AC_INIT([fityk], [1.0.0])
 LIBRARY_VERSION_FLAG="-version-info 3:0:0"
 
 AC_CONFIG_SRCDIR([src/voigt.h])
@@ -132,7 +132,7 @@ SRCSUBDIRS=
 # Checks for version specific libraries and headers.
 if test "$enable_GUI" != "no" ; then
     SRCSUBDIRS="$SRCSUBDIRS wxgui"
-    AM_PATH_WXCONFIG([2.8.4], [wxWin=1], [wxWin=0], [adv,core,base])
+    AM_PATH_WXCONFIG([2.9.1], [wxWin=1], [wxWin=0], [adv,core,base])
     if test "$wxWin" != 1; then
     	AC_MSG_ERROR([
     	      wxWindows must be installed on your system
@@ -146,12 +146,6 @@ if test "$enable_GUI" != "no" ; then
     fi
 fi
 
-if test "$enable_xyconvert" != "no" ; then
-    WX_CONFIG_CHECK([2.9.0], [], [AC_MSG_ERROR([
-	 xyConvert requires wxWidgets >= 2.9.
-	 Either upgrade or add --disable-xyconvert flag.])
-		    ])
-fi
 AM_CONDITIONAL([XYCONVERT], [test $enable_xyconvert != no])
 
 AM_CONDITIONAL([POWDIFPAT], [test $enable_powdifpat != no])

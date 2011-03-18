@@ -16,7 +16,7 @@ source_encoding = 'utf-8'
 master_doc = 'fityk-manual'
 project = 'Fityk'
 copyright = '2001-2011, Fityk Developers'
-version = '0.9.8'
+version = '1.0.0'
 release = version
 default_role = None
 
@@ -95,10 +95,10 @@ latex_show_urls = True
 # determine vertical alignment of the math PNGs
 pngmath_use_preview = True
 
-dl_dir = 'https://github.com/downloads/wojdyr/fityk/'
-msw_filename = 'fityk-%s-setup' % version
+dl_dir = 'http://fityk.nieto.pl/subscribers/'
+dl_prefix = 'fityk-%s' % version
 extlinks = {
     'wiki': ('https://github.com/wojdyr/fityk/wiki/%s', ''),
-    'download-msw': (dl_dir + msw_filename + '%s', msw_filename),
+    'download': (dl_dir + dl_prefix + '%s', dl_prefix),
     }
 

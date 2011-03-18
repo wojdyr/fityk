@@ -2,10 +2,10 @@
 Prerequisites
 =============
 
-*  c++ compiler (e.g. GCC >= 3.4)
+*  c++ compiler (e.g. GCC)
 *  Boost libraries (headers only)
 *  xylib library - http://xylib.sf.net
-*  wxWidgets (wxGTK or wxMSW) >= 2.8.4 (for GUI)
+*  wxWidgets (wxGTK or wxMSW) >= 2.9.1 (for GUI)
 *  readline library >= 4.2 (optional, for CLI)
 *  gnuplot program (optional, can be used with CLI)
 
