@@ -21,7 +21,6 @@
 %include "std_except.i"
 namespace std {
     %template(PointVector) vector<fityk::Point>;
-    %template(DoubleVector) vector<double>;
     %template(RealVector) vector<realt>;
 }
 
