@@ -1032,14 +1032,16 @@ void SideBar::make_same_func_par(string const& p, bool checked)
         int nr = ftk->find_variable_nr(varname);
         if (nr == -1)
             return;
-        double value = ftk->get_variable(nr)->get_value();
-        val_str = S(value);
+        val_str = ftk->get_variable(nr)->get_formula(ftk->parameters());
         // varname (_hwhm or _shape) will be auto-deleted
     }
     string cmd;
     for (int i = 0; i < ftk->get_dm_count(); ++i)
-        if (ftk->get_model(i)->get_ff().names.size() > 0)
-            cmd += "@" + S(i) + ".F[*]." + p + " = " + val_str + "; ";
+        if (ftk->get_model(i)->get_ff().names.size() > 0) {
+            if (!cmd.empty())
+                cmd += "; ";
+            cmd += "@" + S(i) + ".F[*]." + p + " = " + val_str;
+        }
     ftk->exec(cmd);
 }
 
