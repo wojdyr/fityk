@@ -119,6 +119,9 @@ img/zoom_up.xpm \
 img/zoom_vert.xpm \
 img/zshift.xpm \
 \
+img/eq_fwhm.h \
+img/eq_shape.h \
+\
 img/book16.h \
 img/editor16.h \
 img/export16.h \

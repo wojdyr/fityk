@@ -41,6 +41,8 @@
 #include "img/copyfunc.xpm"
 #include "img/unused.xpm"
 #include "img/zshift.xpm"
+#include "img/eq_fwhm.h"
+#include "img/eq_shape.h"
 
 
 using namespace std;
@@ -87,12 +89,15 @@ void add_bitmap_button(wxWindow* parent, wxWindowID id, const char** xpm,
 
 // wxToggleBitmapButton was added in 2.9. We use wxToggleButton instead
 void add_toggle_bitmap_button(wxWindow* parent, wxWindowID id,
-                              wxString const& label,
+                              wxString const& /*label*/, const wxBitmap& bmp,
                               wxString const& tip, wxSizer* sizer)
 {
+    /*
     wxToggleButton *btn = new wxToggleButton(parent, id, label,
                                              wxDefaultPosition, wxDefaultSize,
                                              wxBU_EXACTFIT);
+    */
+    wxBitmapToggleButton *btn = new wxBitmapToggleButton(parent, id, bmp);
     btn->SetToolTip(tip);
     sizer->Add(btn, wxSizerFlags().Expand());
 }
@@ -237,10 +242,11 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     f->list->set_side_bar(this);
     func_sizer->Add(f, 1, wxEXPAND|wxALL, 1);
     wxBoxSizer *func_buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
-    add_toggle_bitmap_button(func_page, ID_FP_HWHM, wxT("=W"),
+    add_toggle_bitmap_button(func_page, ID_FP_HWHM, wxT("=W"), GET_BMP(eq_fwhm),
                              wxT("same HWHM for all functions"),
                              func_buttons_sizer);
     add_toggle_bitmap_button(func_page, ID_FP_SHAPE, wxT("=S"),
+                             GET_BMP(eq_shape),
                              wxT("same shape for all functions"),
                              func_buttons_sizer);
     add_bitmap_button(func_page, ID_FP_NEW, add_xpm,
@@ -256,12 +262,6 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     func_sizer->Add(func_buttons_sizer, 0, wxEXPAND);
     func_page->SetSizerAndFit(func_sizer);
     nb->AddPage(func_page, wxT("functions"));
-
-    // "=W" and "=S" buttons look better with the same size as other buttons
-    wxSize size = FindWindow(ID_FP_COL)->GetSize();
-    func_buttons_sizer->SetItemMinSize((size_t) 0,
-                                        size.GetWidth(), size.GetHeight());
-    func_buttons_sizer->SetItemMinSize(1, size.GetWidth(), size.GetHeight());
 
     //-----  variables page  -----
     var_page = new wxPanel(nb, -1);
