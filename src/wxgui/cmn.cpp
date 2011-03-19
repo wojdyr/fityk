@@ -257,15 +257,18 @@ void updateControlWithItems(wxControlWithItems *cwi, vector<string> const& v)
 }
 
 
-wxStaticText* persistance_note(wxWindow *parent)
+SmallStaticText::SmallStaticText(wxWindow* parent, const wxString& label)
+    : wxStaticText(parent, wxID_ANY, label)
 {
-    wxStaticText *text = new wxStaticText(parent, -1,
-        wxT("To save preferences use GUI \u2023 Save current config"));
-    wxFont font = text->GetFont();
+    wxFont font = GetFont();
+#ifdef __WXMSW__
+    font.SetPointSize(font.GetPointSize() - 1);
+#else
     font.SetPointSize(font.GetPointSize() - 2);
-    text->SetFont(font);
-    return text;
+#endif
+    SetFont(font);
 }
+
 
 DialogCloser* DialogCloser::instance_ = NULL;
 

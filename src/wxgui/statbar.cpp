@@ -53,7 +53,7 @@ FStatusBar::FStatusBar(wxWindow *parent)
     wxBitmapButton *prefbtn = new wxBitmapButton
 #ifdef __WXMSW__
         // on wxMSW the default width is too small
-        (this, -1, GET_BMP(sbprefs), wxDefaultPosition, wxSize(22, -1));
+        (this, -1, GET_BMP(sbprefs), wxDefaultPosition, wxSize(22, 16));
 #else
         (this, -1, GET_BMP(sbprefs));
 #endif

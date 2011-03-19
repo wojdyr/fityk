@@ -262,13 +262,10 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
 #if __WXMAC__
     nb->SetMinSize(wxSize(-1, 300));
 #endif
-    wxStaticText *note = new wxStaticText(this, -1,
+    wxStaticText *note = new SmallStaticText(this,
       wxT("These settings can be saved in the init script")
       wxT(" (Session \u2023 Edit Init File).")
       wxT("\nThe interface can be configured in GUI \u2023 Configure."));
-    wxFont font = note->GetFont();
-    font.SetPointSize(font.GetPointSize() - 2);
-    note->SetFont(font);
     top_sizer->Add(note, 0, wxALL|wxALIGN_CENTER, 10);
     top_sizer->Add (CreateButtonSizer (wxOK|wxCANCEL),
                     0, wxALL|wxALIGN_CENTER, 5);

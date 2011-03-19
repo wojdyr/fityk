@@ -91,9 +91,12 @@ bool FitInfoDlg::Initialize()
                               wxDefaultPosition, wxDefaultSize,
                               wxTE_MULTILINE|wxTE_RICH|wxTE_READONLY|
                               wxTE_DONTWRAP);
-    int default_font_size = right_tc->GetFont().GetPointSize();
-    wxFont font(default_font_size - 1, wxFONTFAMILY_TELETYPE,
-                            wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
+    int font_size = right_tc->GetFont().GetPointSize();
+#ifndef __WXMSW__
+    font_size -= 1;
+#endif
+    wxFont font(font_size, wxFONTFAMILY_TELETYPE,
+                wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     wxTextAttr attr;
     attr.SetFont(font);
     right_tc->SetDefaultStyle(attr);

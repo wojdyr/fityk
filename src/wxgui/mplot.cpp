@@ -412,9 +412,10 @@ MainPlot::~MainPlot()
 
 void MainPlot::OnPaint(wxPaintEvent&)
 {
+    overlay.reset();
     update_buffer_and_blit();
-    // if necessary, redraw inverted lines
-    // TODO
+    //draw, if necessary, vertical lines
+    overlay.draw();
 }
 
 double y_of_data_for_draw_data(vector<Point>::const_iterator i,
@@ -452,8 +453,6 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
     const Model* model = ftk->get_model(focused_data);
 
     set_scale(get_pixel_width(dc), get_pixel_height(dc));
-
-    overlay.reset();
 
     int Ymax = get_pixel_height(dc);
     prepare_peaktops(model, Ymax);

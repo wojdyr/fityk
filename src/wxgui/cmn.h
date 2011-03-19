@@ -187,7 +187,16 @@ inline wxBitmap GetBitmapFromMemory_(const unsigned char *data, int length)
 #define GET_BMP(name) \
             GetBitmapFromMemory_(name##_png, sizeof(name##_png))
 
-// add persistance note (use GUI > Save...)
-wxStaticText* persistance_note(wxWindow *parent);
+class SmallStaticText: public wxStaticText
+{
+public:
+    SmallStaticText(wxWindow* parent, const wxString& label);
+};
+
+inline wxStaticText* persistance_note(wxWindow *parent)
+{
+    return new SmallStaticText(parent,
+        wxT("To save preferences use GUI \u2023 Save current config"));
+}
 
 #endif // FITYK_WX_CMN_H_
