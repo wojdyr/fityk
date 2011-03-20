@@ -1021,6 +1021,9 @@ void PhasePanel::update_miller_indices(bool sg_changed)
                                               m.h, m.k, m.l, a, i->d));
             hkl_list->Check(hkl_list->GetCount() - 1, i->enabled);
         }
+#ifdef __WXMAC__
+        hkl_list->EnsureVisible(0);
+#endif
     }
 
     cr_.update_intensities(radiation, lambda);

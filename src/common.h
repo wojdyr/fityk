@@ -274,9 +274,6 @@ int index_of_element(std::vector<T> const& vec, T2 const& t)
 //----------------  filename utils  -------------------------------------
 #if defined(_WIN32) || defined(WIN32) || defined(__NT__) || defined(__WIN32__) || defined(__OS2__)
 #define PATH_COMPONENT_SEP '\\'
-#elif defined(__MAC__) || defined(__APPLE__) || defined(macintosh)
-//Mac OS <= 9
-#define PATH_COMPONENT_SEP ':'
 #else
 #define PATH_COMPONENT_SEP '/'
 #endif

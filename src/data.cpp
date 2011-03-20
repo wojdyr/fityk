@@ -19,15 +19,9 @@
 using namespace std;
 
 // filename utils
-#if defined(_WIN32) || defined(WIN32) || defined(__NT__) || defined(__WIN32__) || defined(__OS2__)
-#define DIR_SEPARATOR '\\'
-#else
-#define DIR_SEPARATOR '/'
-#endif
-
 string get_file_basename(const string& path)
 {
-    string::size_type last_sep = path.rfind(DIR_SEPARATOR);
+    string::size_type last_sep = path.rfind(PATH_COMPONENT_SEP);
     string::size_type last_dot = path.rfind('.');
     size_t basename_begin = (last_sep == string::npos ? 0 : last_sep + 1);
     if (last_dot != string::npos && last_dot > basename_begin)

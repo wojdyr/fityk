@@ -465,10 +465,15 @@ void FPlot::read_settings(wxConfigBase *cf)
     cf->SetPath(wxT("../Colors"));
     xAxisCol = cfg_read_color(cf, wxT("xAxis"), wxColour(wxT("WHITE")));
     cf->SetPath(wxT(".."));
-    ticsFont = cfg_read_font(cf, wxT("ticsFont"),
-                             wxFont(8, wxFONTFAMILY_DEFAULT,
-                                    wxFONTSTYLE_NORMAL,
-                                    wxFONTWEIGHT_NORMAL));
+    ticsFont = cfg_read_font(cf, wxT("ticsFont"), wxFont(
+#ifdef __WXMAC__
+                                                         9,
+#else
+                                                         8,
+#endif
+                                                         wxFONTFAMILY_DEFAULT,
+                                                         wxFONTSTYLE_NORMAL,
+                                                         wxFONTWEIGHT_NORMAL));
 }
 
 void FPlot::save_settings(wxConfigBase *cf) const
