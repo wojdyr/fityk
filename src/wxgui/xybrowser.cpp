@@ -136,7 +136,7 @@ void PreviewPlot::draw(wxDC &dc, bool)
         = scale_tics_step(xcol.get_min(), xcol.get_max(np), 4, minors);
     for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
         int X = getX(*i);
-        wxString label = S(*i);
+        wxString label = s2wx(S(*i));
         wxCoord tw, th;
         dc.GetTextExtent (label, &tw, &th);
         int Y = dc.DeviceToLogicalY(H - th - 2);
@@ -145,15 +145,15 @@ void PreviewPlot::draw(wxDC &dc, bool)
     }
     if (!xcol.get_name().empty()) {
         wxCoord tw, th;
-        dc.GetTextExtent (xcol.get_name(), &tw, &th);
-        dc.DrawText (xcol.get_name(), (W - tw)/2, 2);
+        dc.GetTextExtent (s2wx(xcol.get_name()), &tw, &th);
+        dc.DrawText (s2wx(xcol.get_name()), (W - tw)/2, 2);
     }
 
     // ... vertical
     tics = scale_tics_step(ycol.get_min(), ycol.get_max(np), 4, minors);
     for (vector<double>::const_iterator i = tics.begin(); i != tics.end(); ++i){
         int Y = getY(*i);
-        wxString label = S(*i);
+        wxString label = s2wx(S(*i));
         wxCoord tw, th;
         dc.GetTextExtent (label, &tw, &th);
         dc.DrawText (label, dc.DeviceToLogicalX(5), Y - th/2);
@@ -161,8 +161,8 @@ void PreviewPlot::draw(wxDC &dc, bool)
     }
     if (!ycol.get_name().empty()) {
         wxCoord tw, th;
-        dc.GetTextExtent (ycol.get_name(), &tw, &th);
-        dc.DrawRotatedText (ycol.get_name(), W - 2, (H - tw)/2, 270);
+        dc.GetTextExtent (s2wx(ycol.get_name()), &tw, &th);
+        dc.DrawRotatedText (s2wx(ycol.get_name()), W - 2, (H - tw)/2, 270);
     }
 
     // draw data
@@ -270,7 +270,7 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent, wxWindowID id)
     // ----- left panel -----
     wxString all(wxFileSelectorDefaultWildcardStr);
     wxString wild = "All Files (" + all + ")|" + all
-                    + "|" + xylib::get_wildcards_string();
+                    + "|" + s2wx(xylib::get_wildcards_string());
     filectrl = new wxFileCtrl(left_panel, -1, wxEmptyString, wxEmptyString,
                               wild, wxFC_OPEN|wxFC_MULTIPLE|wxFC_NOSHOWHIDDEN);
     left_sizer->Add(filectrl, 1, wxALL|wxEXPAND, 5);
@@ -510,8 +510,6 @@ void XyFileBrowser::on_path_change()
 class App : public wxApp
 {
 public:
-    wxString version;
-
     bool OnInit();
     void OnAbout(wxCommandEvent&);
     void OnConvert(wxCommandEvent&);
@@ -540,7 +538,7 @@ static const wxCmdLineEntryDesc cmdLineDesc[] = {
 bool App::OnInit()
 {
     // to make life simpler, use the same version number as xylib
-    version = xylib_get_version();
+    wxString version = xylib_get_version();
 
     // reading numbers won't work with decimal points different than '.'
     setlocale(LC_NUMERIC, "C");
@@ -552,8 +550,8 @@ bool App::OnInit()
         return false;
     }
     if (cmdLineParser.Found(wxT("V"))) {
-        wxMessageOutput::Get()->Printf("xyConvert " + version
-                                   + ", powered by xylib " + version + "\n");
+        wxMessageOutput::Get()->Printf("xyConvert, powered by xylib "
+                                       + version + "\n");
         return false;
     }
 
@@ -679,8 +677,9 @@ void App::OnConvert(wxCommandEvent&)
             const int np = block->get_point_count();
 
             if (with_header) {
-                f << "# converted by xyConvert " << version << " from file:\n";
-                f << "# " << new_filename << endl;
+                f << "# converted by xyConvert " << xylib_get_version()
+                    << " from file:\n";
+                f << "# " << wx2s(new_filename) << endl;
                 if (ds->get_block_count() > 1)
                     f << "# (block " << block_nr << ") "
                       << block->get_name() << endl;
@@ -711,7 +710,7 @@ void App::OnConvert(wxCommandEvent&)
 void App::OnAbout(wxCommandEvent&)
 {
     wxAboutDialogInfo adi;
-    adi.SetVersion(version);
+    adi.SetVersion(xylib_get_version());
     wxString desc = "A simple converter of files supported by xylib library\n"
                     "to two- or three-column text format.\n";
     adi.SetDescription(desc);
