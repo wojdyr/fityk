@@ -59,6 +59,8 @@ Features
   Genetic Algorithms, Nelder-Mead simplex),
 * handling series of datasets,
 * automation with macros (scripts),
+* the accuracy of nonlinear regression :wiki:`verified <NIST-certified-data>`
+  with reference datasets from NIST,
 * an add-on for powder diffraction data (Pawley refinement)
 * modular :wiki:`architecture <Architecture>`,
 * open source licence (`GPL <http://creativecommons.org/licenses/GPL/2.0/>`_).
