@@ -1290,17 +1290,17 @@ wxString hkl2wxstr(const Miller& hkl)
                       hkl.l > -10 && hkl.l < 10);
     if (hkl.h < 0)
         s += wxT("m");
-    s += wxString::Format(wxT("%d"), hkl.h);
+    s += s2wx(S(abs(hkl.h)));
     if (separate)
         s += wxT("_");
     if (hkl.k < 0)
         s += wxT("m");
-    s += wxString::Format(wxT("%d"), hkl.k);
+    s += s2wx(S(abs(hkl.k)));
     if (separate)
         s += wxT("_");
     if (hkl.l < 0)
         s += wxT("m");
-    s += wxString::Format(wxT("%d"), hkl.l);
+    s += s2wx(S(abs(hkl.l)));
     return s;
 }
 
