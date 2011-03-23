@@ -1,9 +1,6 @@
 
 * GUI: optionally use wxGCDC for plotting
 
-* GUI, main plot configuration: add option to change the width and style
-  of the sum (and perhaps also function lines)
-
 * peak finding: optionally use weights for finding peak positions
 
 * GUI: use wxFileCtrl in custom open-file dialog (xybrowser.cpp) (wx3)

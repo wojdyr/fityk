@@ -47,7 +47,7 @@ private:
     wxCheckBox *model_cb_, *func_cb_, *labels_cb_, *vertical_labels_cb_;
     wxComboBox *label_combo_;
     wxColourPickerCtrl *bg_cp_, *inactive_cp_, *axis_cp_, *model_cp_, *func_cp_;
-    wxSpinCtrl *data_colors_sc_;
+    wxSpinCtrl *data_colors_sc_, *model_width_sc_;
     MultiColorCombo *data_color_combo_;
     wxFontPickerCtrl *tics_fp_, *label_fp_;
     wxCheckBox *x_show_axis_cb_, *x_show_tics_cb_, *x_show_minor_tics_cb_,
@@ -65,6 +65,9 @@ private:
 
     void OnLabelsCheckbox(wxCommandEvent& event)
         { mp_->plabels_visible_ = event.IsChecked(); mp_->refresh(); }
+
+    void OnModelWidthSpin(wxSpinEvent& event)
+        { mp_->model_line_width_ = event.GetPosition(); mp_->refresh(); }
 
     void OnVerticalCheckbox(wxCommandEvent& event)
     {
@@ -520,7 +523,7 @@ void MainPlot::draw_y_axis (wxDC& dc, bool set_pen)
 void MainPlot::draw_model(wxDC& dc, const Model* model, bool set_pen)
 {
     if (set_pen)
-        dc.SetPen(wxPen(modelCol, pen_width));
+        dc.SetPen(wxPen(modelCol, model_line_width_ * pen_width));
     int n = get_pixel_width(dc);
     vector<realt> xx(n), yy(n);
     vector<int> YY(n);
@@ -756,6 +759,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
     inactiveDataCol = cfg_read_color(cf, wxT("inactive_data"),
                                                       wxColour(128, 128, 128));
     modelCol = cfg_read_color (cf, wxT("model"), wxColour(wxT("YELLOW")));
+    model_line_width_ = cf->Read(wxT("model_line_width"), 1);
     bg_pointsCol = cfg_read_color(cf, wxT("BgPoints"), wxColour(wxT("RED")));
     //for (int i = 0; i < max_group_cols; i++)
     //    groupCol[i] = cfg_read_color(cf, wxString::Format(wxT("group/%i"), i),
@@ -819,6 +823,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
             cfg_write_color(cf, wxT("data/") + s2wx(S(i)), data_colors_[i]);
     cfg_write_color (cf, wxT("inactive_data"), inactiveDataCol);
     cfg_write_color (cf, wxT("model"), modelCol);
+    cf->Write(wxT("model_line_width"), model_line_width_);
     cfg_write_color (cf, wxT("BgPoints"), bg_pointsCol);
     //for (int i = 0; i < max_group_cols; i++)
     //    cfg_write_color(cf, wxString::Format(wxT("group/%i"), i), groupCol[i]);
@@ -1526,8 +1531,13 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
     model_cb_ = new wxCheckBox(this, -1, wxT("model (sum)"));
     model_cb_->SetValue(mp_->model_visible_);
     gsizer->Add(model_cb_, cr);
+    wxBoxSizer *model_sizer = new wxBoxSizer(wxHORIZONTAL);
     model_cp_ = new wxColourPickerCtrl(this, -1, mp_->modelCol);
-    gsizer->Add(model_cp_, cl);
+    model_sizer->Add(model_cp_, cl.Border(wxRIGHT));
+    model_sizer->Add(new wxStaticText(this, -1, wxT("width:")), cl);
+    model_width_sc_ = new SpinCtrl(this, -1, mp_->model_line_width_, 1, 5);
+    model_sizer->Add(model_width_sc_, cl);
+    gsizer->Add(model_sizer, cl);
 
     func_cb_ = new wxCheckBox(this, -1, wxT("functions"));
     func_cb_->SetValue(mp_->peaks_visible_);
@@ -1673,6 +1683,8 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
 
     Connect(model_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
             wxCommandEventHandler(MainPlotConfDlg::OnModelCheckbox));
+    Connect(model_width_sc_->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
+            wxSpinEventHandler(MainPlotConfDlg::OnModelWidthSpin));
     Connect(func_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
             wxCommandEventHandler(MainPlotConfDlg::OnFuncCheckbox));
     Connect(labels_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,

@@ -115,6 +115,7 @@ private:
     std::string plabel_format_;
     bool vertical_plabels_;
     wxColour modelCol, bg_pointsCol;
+    int model_line_width_;
     //wxColour groupCol[max_group_cols];
     wxColour peakCol[max_peak_cols];
     std::vector<wxColour> data_colors_;
