@@ -1963,7 +1963,7 @@ void FFrame::activate_function(int n)
 
 void FFrame::update_app_title()
 {
-    string title = "fityk";
+    string title = "Fityk " VERSION;
     int pos = get_focused_data_index();
     string const& filename = ftk->get_data(pos)->get_filename();
     if (!filename.empty())
