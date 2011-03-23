@@ -1,7 +1,14 @@
 
 * GUI: optionally use wxGCDC for plotting
 
+* GUI, main plot configuration: add option to change the width and style
+  of the sum (and perhaps also function lines)
+
 * peak finding: optionally use weights for finding peak positions
+
+* GUI: use wxFileCtrl in custom open-file dialog (xybrowser.cpp) (wx3)
+
+----
 
 * GUI: a single dialog for Model > Export... options and for "info models"
 
@@ -21,9 +28,6 @@
 * add functions cot and coth
 
 * GUI: pre-defined GUI configuration `black-on-white`
-
-* GUI, main plot configuration: add option to change the width and style
-  of the sum (and perhaps also function lines)
 
 - refactor sidebar; use wxDataViewCtrl for the lists at the sidebar,
   rewrite ListWithColors::populate(), add sorting by clicking on column
@@ -139,7 +143,5 @@
            the constraints could be automatic for some function parameters,
 	   e.g. "guess PseudoVoigt" could give shape with bounds <0,1>
 
-- use wxFileCtrl in custom open-file dialog (xybrowser.cpp) (wx3)
-
-- custom control in the log file dialogs: "log also output" checkbox (wx3)
+* GUI: custom control in the log file dialogs: "log also output" checkbox (wx3)
 

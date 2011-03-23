@@ -70,7 +70,8 @@ Download
 
 In an attempt to make this software self-sustaining and actively
 developed in the future,
-new binaries are available to subscribers only:
+`new binaries <http://fityk.nieto.pl/subscribers>`_
+are available to subscribers only:
 
 |ico-win| MS Windows: :download:`-setup.exe`  $
 
@@ -108,9 +109,6 @@ donate 10% of the normal price to ``wojdyr@gmail.com`` using
 or `Flattr <https://flattr.com/donation/give/to/wojdyr>`_.
 If you have made any donation before the release of 1.0 you get free
 subscription, just let me know you are interested.
-
-Currently, the subscriptions are processed manually, so you may wait a few hours
-before you get a password.
 
 .. raw:: html
 
