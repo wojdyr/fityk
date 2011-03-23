@@ -27,6 +27,7 @@ struct Settings
     // guess
     double height_correction;
     double width_correction;
+    bool guess_uses_weights;
 
     // fitting
     const char* fitting_method;

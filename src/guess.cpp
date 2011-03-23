@@ -35,6 +35,11 @@ void Guess::initialize(const DataAndModel* dm, int lb, int rb, int ignore_idx)
     xx_.resize(len);
     for (int j = 0; j != len; ++j)
         xx_[j] = dm->data()->get_x(lb+j);
+    if (settings_->guess_uses_weights) {
+        sigma_.resize(len);
+        for (int j = 0; j != len; ++j)
+            sigma_[j] = dm->data()->get_sigma(lb+j);
+    }
     yy_.clear(); // just in case
     yy_.resize(len, 0.);
     dm->model()->compute_model(xx_, yy_, ignore_idx);
@@ -102,9 +107,19 @@ array<double,4> Guess::estimate_peak_parameters()
     // find the highest point, which must be higher than the previous and next
     // points (-> it cannot be the first/last point)
     int pos = -1;
-    for (int i = 1; i < (int) yy_.size() - 1; ++i)
-        if (yy_[i] > yy_[i+1] && yy_[i] > (pos == -1 ? yy_[i-1] : yy_[pos]))
-            pos = i;
+    if (!sigma_.empty()) {
+        for (int i = 1; i < (int) yy_.size() - 1; ++i) {
+            int t = pos == -1 ? i-1 : pos;
+            if (sigma_[i+1] * yy_[i] > sigma_[i] * yy_[i+1] &&
+                    sigma_[t] * yy_[i] > sigma_[i] * yy_[t])
+                pos = i;
+        }
+    }
+    else {
+        for (int i = 1; i < (int) yy_.size() - 1; ++i)
+            if (yy_[i] > yy_[i+1] && yy_[i] > (pos == -1 ? yy_[i-1] : yy_[pos]))
+                pos = i;
+    }
     if (pos == -1)
         throw ExecuteError("Peak outside of the range.");
 

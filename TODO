@@ -1,8 +1,6 @@
 
 * GUI: optionally use wxGCDC for plotting
 
-* peak finding: optionally use weights for finding peak positions
-
 * GUI: use wxFileCtrl in custom open-file dialog (xybrowser.cpp) (wx3)
 
 ----

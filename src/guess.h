@@ -38,7 +38,7 @@ public:
 
 private:
     Settings const* settings_;
-    std::vector<realt> xx_, yy_;
+    std::vector<realt> xx_, yy_, sigma_;
 
     double find_hwhm(int pos, double *area);
 };

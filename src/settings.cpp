@@ -63,6 +63,7 @@ static const Option options[] = {
 
     OPT(height_correction, kDouble, 1., NULL),
     OPT(width_correction, kDouble, 1., NULL),
+    OPT(guess_uses_weights, kBool, true, NULL),
 
     OPT(fitting_method, kEnum, fitting_method_enum[0], fitting_method_enum),
     OPT(max_wssr_evaluations, kInt, 1000, NULL),
