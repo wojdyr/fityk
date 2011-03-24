@@ -5,6 +5,7 @@
 #include <wx/spinctrl.h>
 #include <wx/statline.h>
 #include <wx/tooltip.h>
+#include <wx/clipbrd.h>
 
 #include "fitinfo.h"
 #include "frame.h" //frame
@@ -104,8 +105,13 @@ bool FitInfoDlg::Initialize()
     right_panel->SetSizerAndFit(rsizer);
     hsplit->SplitVertically(left_panel, right_panel);
     top_sizer->Add(hsplit, wxSizerFlags(1).Expand().Border());
-    top_sizer->Add(new wxButton(this, wxID_CLOSE),
+    wxBoxSizer *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+    btn_sizer->Add(new wxButton(this, wxID_COPY),
+                   wxSizerFlags().Border());
+    btn_sizer->AddStretchSpacer();
+    btn_sizer->Add(new wxButton(this, wxID_CLOSE),
                    wxSizerFlags().Right().Border());
+    top_sizer->Add(btn_sizer, wxSizerFlags().Expand());
     SetSizerAndFit(top_sizer);
     SetSize(wxSize(640, 440));
 
@@ -122,6 +128,8 @@ bool FitInfoDlg::Initialize()
     // connect both right_c and nf (NumericFormatPanel)
     Connect(-1, wxEVT_COMMAND_CHOICE_SELECTED,
             wxCommandEventHandler(FitInfoDlg::OnChoice));
+    Connect(wxID_COPY, wxEVT_COMMAND_BUTTON_CLICKED,
+            wxCommandEventHandler(FitInfoDlg::OnCopy));
 
     return true;
 }
@@ -229,5 +237,18 @@ void FitInfoDlg::update_right_tc()
     //right_tc->ChangeValue(s);
     right_tc->Clear();
     right_tc->AppendText(s);
+}
+
+void FitInfoDlg::OnCopy(wxCommandEvent&)
+{
+    wxString sel = right_tc->GetStringSelection();
+    if (sel.empty())
+        sel = left_tc->GetStringSelection();
+    if (sel.empty())
+        sel = right_tc->GetValue();
+    if (wxTheClipboard->Open()) {
+        wxTheClipboard->SetData(new wxTextDataObject(sel));
+        wxTheClipboard->Close();
+    }
 }
 

@@ -45,6 +45,7 @@ private:
     void update_left_tc();
     void update_right_tc();
     void OnChoice(wxCommandEvent&) { update_left_tc(); update_right_tc(); }
+    void OnCopy(wxCommandEvent&);
 };
 
 #endif // FITYK_WX_FITINFO_H_
