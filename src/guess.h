@@ -34,8 +34,6 @@ public:
     /// returns values corresponding to peak_traits
     boost::array<double,4> estimate_peak_parameters();
 
-    void get_guess_info(std::string& result);
-
 private:
     Settings const* settings_;
     std::vector<realt> xx_, yy_, sigma_;

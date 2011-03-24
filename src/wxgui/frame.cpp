@@ -2006,6 +2006,7 @@ BEGIN_EVENT_TABLE (FToolBar, wxToolBar)
     EVT_TOOL_RANGE (ID_T_PZ, ID_T_AUTO, FToolBar::OnClickTool)
     //EVT_TOOL (ID_T_BAR, FToolBar::OnSwitchSideBar)
     EVT_CHOICE (ID_T_CHOICE, FToolBar::OnPeakChoice)
+    EVT_TOOL_ENTER (-1, FToolBar::OnToolEnter)
 END_EVENT_TABLE()
 
 FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
@@ -2094,7 +2095,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     //peak_choice->SetToolTip(wxT("function"));
     AddControl (peak_choice);
     AddTool (ID_T_AUTO, wxT("add"), wxBitmap(add_peak_xpm), wxNullBitmap,
-             wxITEM_NORMAL, wxT("auto-add"), wxT("Add peak automatically"));
+             wxITEM_NORMAL, wxT("auto-add"), wxT(""));
     AddSeparator();
     //fit
     AddTool(ID_T_RUN, wxT("Run"),
@@ -2169,4 +2170,31 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
     }
 }
 
+void FToolBar::OnToolEnter(wxCommandEvent& event)
+{
+    if (event.GetSelection() == ID_T_AUTO) {
+        Guess g(ftk->get_settings());
+        const DataAndModel* dm = ftk->get_dm(frame->get_focused_data_index());
+        int len = dm->data()->get_n();
+        if (len == 0)
+            return;
+        g.initialize(dm, 0, len, -1);
+        if (frame->peak_type_nr >= (int) ftk->get_tpm()->tpvec().size())
+            return;
+        string info;
+        if (ftk->get_tpm()->tpvec()[frame->peak_type_nr]->peak_d) {
+            boost::array<double,4> peak_v = g.estimate_peak_parameters();
+            for (int i = 0; i != 4; ++i)
+                info += (i != 0 ? ", " : "")
+                          + Guess::peak_traits[i] + ": " + S(peak_v[i]);
+        }
+        else {
+            boost::array<double,3> lin_v = g.estimate_linear_parameters();
+            for (int i = 0; i != 3; ++i)
+                info += (i != 0 ? ", " : "")
+                          + Guess::linear_traits[i] + ": " + S(lin_v[i]);
+        }
+        frame->set_status_text(info);
+    }
+}
 

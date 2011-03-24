@@ -38,6 +38,7 @@ public:
     void OnChangeMouseMode (wxCommandEvent& event);
     void OnSwitchSideBar (wxCommandEvent& event);
     void OnClickTool (wxCommandEvent& event);
+    void OnToolEnter(wxCommandEvent& event);
 
 private:
     wxChoice *peak_choice;
