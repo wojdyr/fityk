@@ -664,8 +664,10 @@ void FFrame::set_menubar()
     append_mi(sum_menu, ID_DEFMGR, GET_BMP(function16),
               wxT("&Definition Manager"), wxT("Add or modify funtion types"));
     sum_menu->Append (ID_S_GUESS, wxT("&Guess Peak"),wxT("Guess and add peak"));
+    /* this item doesn't add much to the program, remove it for now
     sum_menu->Append (ID_S_PFINFO, wxT("Peak-Find &Info"),
                                 wxT("Show where guessed peak would be placed"));
+    */
     sum_menu->AppendCheckItem(ID_S_AUTOFREEZE, wxT("Auto-Freeze"),
         wxT("In Data-Range mode: freeze functions in disactivated range"));
     sum_menu->AppendSeparator();

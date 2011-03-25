@@ -97,8 +97,6 @@
 * Use a better approximation of Voigt function than the one used now.
   There are dozens of papers on Voigt calculation, mostly in JQSRT.
 
-* GUI: Functions > Peak-Find Info - present the the peak graphically
-
 * info dpeak [range]: show parameters of selected data range assuming that
   this range contains a peak: area, center, FWHM, max, peak-area, backgr-area
   (like in the Xview program)
