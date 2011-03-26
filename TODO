@@ -89,11 +89,6 @@
       - calculating limits, width, area, etc. for UDF
       - ?? use LLVM for faster calculation of user-defined functions
 
-* EMG function: calculate it in a smarter way. (now there are problems for
-  some parameters -- the functions is calculated as very-large-number x
-  very-small-number), perhaps use gsl_sf_log_erfc or exp(x*x)*erfc(x) from
-  http://www.netlib.org/specfun/erf
-
 * Use a better approximation of Voigt function than the one used now.
   There are dozens of papers on Voigt calculation, mostly in JQSRT.
 

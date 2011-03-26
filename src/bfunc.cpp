@@ -673,43 +673,77 @@ bool FuncEMG::get_nonzero_range(double/*level*/,
     return false;
 }
 
+// approximation to erfc(x) * exp(x*x) for |x| > 4;
+// if x < -26.something exp(x*x) in the last line returns inf;
+// based on "Rational Chebyshev approximations for the error function"
+// by W.J. Cody, Math. Comp., 1969, 631-638.
+static double erfcexp_x4(double x)
+{
+    double ax = fabs(x);
+    assert(ax >= 4.);
+    const double p[4] = { 3.05326634961232344e-1, 3.60344899949804439e-1,
+                          1.25781726111229246e-1, 1.60837851487422766e-2 };
+    const double q[4] = { 2.56852019228982242,    1.87295284992346047,
+                          5.27905102951428412e-1, 6.05183413124413191e-2 };
+    double rsq = 1 / (ax * ax);
+    double xnum = 1.63153871373020978e-2 * rsq;
+    double xden = rsq;
+    for (int i = 0; i < 4; ++i) {
+       xnum = (xnum + p[i]) * rsq;
+       xden = (xden + q[i]) * rsq;
+    }
+    double t = rsq * (xnum + 6.58749161529837803e-4)
+                   / (xden + 2.33520497626869185e-3);
+    double v = (1/sqrt(M_PI) - t) / ax;
+    return x >= 0 ? v : 2*exp(x*x) - v;
+}
+
 CALCULATE_VALUE_BEGIN(FuncEMG)
     realt a = av_[0];
     realt bx = av_[1] - x;
     realt c = av_[2];
     realt d = av_[3];
-    realt fact = a*c*sqrt(2*M_PI)/(2*d);
-    realt ex = exp(bx/d + c*c/(2*d*d));
-    //realt erf_arg = bx/(M_SQRT2*c) + c/(M_SQRT2*d);
+    realt fact = c*sqrt(M_PI/2)/d;
     realt erf_arg = (bx/c + c/d) / M_SQRT2;
-    realt t = fact * ex * (d >= 0 ? erfc(erf_arg) : -erfc(-erf_arg));
-    //realt t = fact * ex * (d >= 0 ? 1-erf(erf_arg) : -1-erf(erf_arg));
-CALCULATE_VALUE_END(t)
+    // e_arg == bx/d + c*c/(2*d*d)
+    // erf_arg^2 == bx^2/(2*c^2) + bx/d  + c^2/(2*d^2)
+    // e_arg == erf_arg^2 - bx^2/(2*c^2)
+    realt t;
+    // type double cannot handle erfc(x) for x >= 28
+    if (fabs(erf_arg) < 20) {
+        realt e_arg = bx/d + c*c/(2*d*d);
+        // t = fact * exp(e_arg) * (d >= 0 ? 1-erf(erf_arg) : -1-erf(erf_arg));
+        t = fact * exp(e_arg) * (d >= 0 ? erfc(erf_arg) : -erfc(-erf_arg));
+    }
+    else if ((d >= 0 && erf_arg > -26) || (d < 0 && -erf_arg > -26)) {
+        realt h = exp(-bx*bx/(2*c*c));
+        realt ee = d >= 0 ? erfcexp_x4(erf_arg) : -erfcexp_x4(-erf_arg);
+        t = fact * h * ee;
+    }
+    else
+        t = 0;
+CALCULATE_VALUE_END(a*t)
 
 CALCULATE_DERIV_BEGIN(FuncEMG)
     realt a = av_[0];
     realt bx = av_[1] - x;
     realt c = av_[2];
     realt d = av_[3];
-    realt cs2d = c/(M_SQRT2*d);
-    realt cc = c*sqrt(M_PI/2)/d;
-    realt ex = exp(bx/d + cs2d*cs2d); //==exp((c^2+2bd-2dx) / 2d^2)
-    realt bx2c = bx/(M_SQRT2*c);
-    realt erf_arg = bx2c + cs2d; //== (c*c+b*d-d*x)/(M_SQRT2*c*d);
-    //realt er = erf(erf_arg);
-    //realt d_sign = d >= 0 ? 1 : -1;
-    //realt ser = d_sign - er;
-    realt ser = (d >= 0 ? erfc(erf_arg) : -erfc(-erf_arg));
-    realt t = cc * ex * ser;
-    realt eee = exp(erf_arg*erf_arg);
+    realt fact = c*sqrt(M_PI/2)/d;
+    realt erf_arg = (bx/c + c/d) / M_SQRT2; //== (c*c+b*d-d*x)/(M_SQRT2*c*d);
+    realt ee;
+    if (fabs(erf_arg) < 20)
+        ee = exp(erf_arg*erf_arg) * (d >= 0 ? erfc(erf_arg) : -erfc(-erf_arg));
+    else if ((d >= 0 && erf_arg > -26) || (d < 0 && -erf_arg > -26))
+        ee = d >= 0 ? erfcexp_x4(erf_arg) : -erfcexp_x4(-erf_arg);
+    else
+        ee = 0;
+    realt h = exp(-bx*bx/(2*c*c));
+    realt t = fact * h * ee;
     dy_dv[0] = t;
-    dy_dv[1] = -a/d * ex / eee + a*t/d;
-    dy_dv[2] = - a/(2*c*d*d*d)*exp(-bx2c*bx2c)
-                  * (2*d*(c*c-bx*d) - sqrt(2*M_PI)*c*(c*c+d*d) * eee * ser);
-    //dy_dv[3] = a*c/(d*d*d)*ex * (c/eee
-    //                             - d_sign * (c*cc + sqrt(M_PI/2)*(b+d-x))
-    //                             + sqrt(M_PI/2) * (c*c/d + b+d-x) * er);
-    dy_dv[3] = a*c/(d*d*d)*ex * (c/eee - ser * (c*cc + sqrt(M_PI/2)*(bx+d)));
+    dy_dv[1] = -a/d * h + a*t/d;
+    dy_dv[2] = -a/(c*d*d) * (h * (c*c - bx*d) - t * (c*c + d*d));
+    dy_dv[3] =  a/(d*d*d) * (h * c*c - t * (c*c + d*d + bx*d));
     dy_dx = - dy_dv[1];
 CALCULATE_DERIV_END(a*t)
 

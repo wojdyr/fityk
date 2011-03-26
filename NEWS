@@ -1,4 +1,7 @@
 
+User-visible changes in version 1.0.1  (2011-03-  ):
+* corrected calculation of Exponentially Modified Gaussian
+
 User-visible changes in version 1.0.0  (2011-03-18):
 * fixed bugs: several bugs in the powder diffraction add-on,
   problem with negative simple-variables, crash when the status bar has an
@@ -292,7 +295,7 @@ User-visible changes in version 0.7.2  (2006-03-08):
 * GUI: "directories" tab in settings dialog 
 
 User-visible changes in version 0.7.1  (2006-02-23):
-* new functions: EMG (expotentially modified gauss) and Doniach-Sunjic
+* new functions: EMG (exponentially modified gauss) and Doniach-Sunjic
 * GUI: fixes and improvements in printing
 * GUI: new aux. plot type: cumulative chi2 
 * minor bug fixes
