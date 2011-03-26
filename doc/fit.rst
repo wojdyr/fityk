@@ -192,14 +192,16 @@ __ http://www.graphpad.com/manuals/prism4/RegressionBook.pdf
 In Fityk:
 
 * ``info errors`` shows values of :math:`\sigma_{a_k}`.
+* ``info confidence 95`` shows confidence limits for confidence level 95%
+  (any level can be choosen)
 * ``info cov`` shows the matrix *C*:sup:`--1`.
 * Individual symmetric errors of simple-variables can be accessed as
   ``$variable.error`` or e.g. ``%func.height.error``.
 
 .. admonition:: In the GUI
 
-    select :menuselection:`Fit --> Info` from the menu to see uncertainties
-    and the covariance matrix.
+    select :menuselection:`Fit --> Info` from the menu to see uncertainties,
+    confidence intervals and and the covariance matrix.
 
 .. note:: In Fityk 0.9.0 and earlier ``info errors`` reported values of
           :math:`\sqrt{C_{kk}^{-1}}`, which makes sense if the standard

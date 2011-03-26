@@ -35,7 +35,7 @@ const char* info_args[] = {
     "models", "state", "history_summary", "peaks", "peaks_err",
     "set",
     "history", "guess",
-    "fit", "errors", "cov",
+    "fit", "errors", "confidence", "cov",
     "refs", "prop",
     NULL
 };
@@ -536,6 +536,12 @@ void Parser::parse_one_info_arg(Lexer& lex, vector<Token>& args)
             parse_real_range(lex, args);
         }
         else if (word == "fit" || word == "errors" || word == "cov") {
+            while (lex.peek_token().type == kTokenDataset)
+                args.push_back(lex.get_token());
+            args.push_back(nop()); // separator
+        }
+        else if (word == "confidence") {
+            args.push_back(lex.get_expected_token(kTokenNumber));
             while (lex.peek_token().type == kTokenDataset)
                 args.push_back(lex.get_token());
             args.push_back(nop()); // separator

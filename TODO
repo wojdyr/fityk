@@ -67,14 +67,10 @@
 
 * GUI: a simple (for the user) way to interrupt fitting. Requires two threads.
 
-* confidence intervals of model parameters (95%, 99%)
-  http://www.boost.org/doc/libs/1_42_0/libs/math/doc/sf_and_dist/html/math_toolkit/dist/stat_tut/weg/st_eg/tut_mean_intervals.html
-  p.103 in the GraphPad book
-
 * plot histogram of resiudals:
   http://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm
 
-* ? confidence intervals for data
+* confidence bands
 
 * data smoothing (Savitzky-Golay and/or other methods)
 

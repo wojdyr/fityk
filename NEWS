@@ -1,6 +1,7 @@
 
 User-visible changes in version 1.0.1  (2011-03-  ):
 * corrected calculation of Exponentially Modified Gaussian
+* confidence intervals can be calculated for any confidence level
 
 User-visible changes in version 1.0.0  (2011-03-18):
 * fixed bugs: several bugs in the powder diffraction add-on,

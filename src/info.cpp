@@ -417,7 +417,16 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         }
 
         // optionally takes datasets as args
-        else if (word == "fit" || word == "errors" || word == "cov") {
+        else if (word == "fit" || word == "errors" || word == "cov" ||
+                 word == "confidence") {
+            double level = 0.;
+            if (word == "confidence") {
+                level = args[n+1].value.d;
+                if (level <= 0 || level >= 100)
+                    throw ExecuteError("confidence level outside of (0,100)");
+                ++n;
+                ++ret;
+            }
             vector<DataAndModel*> v;
             ++n;
             while (args[n].type == kTokenDataset) {
@@ -437,6 +446,12 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
                 result += "Standard errors:";
                 vector<realt> errors = F->get_fit()->get_standard_errors(v);
                 result += format_error_info(F, errors);
+            }
+            else if (word == "confidence") {
+                result += "Confidence interval for " + S(level) + " %:";
+                vector<realt> limits =
+                    F->get_fit()->get_confidence_limits(v, level);
+                result += format_error_info(F, limits);
             }
             else //if (word == "cov")
                 result += F->get_fit()->get_cov_info(v);

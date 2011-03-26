@@ -83,6 +83,10 @@ bool FitInfoDlg::Initialize()
     // \u00B1 == +/-
     choices.Add(wxT("\u00B1 standard errors: sqrt(WSSR/DoF COV_kk)"));
     choices.Add(wxT("\u00B1 sqrt(COV_kk)"));
+    choices.Add(wxT("\u00B1 50% confidence intervals"));
+    choices.Add(wxT("\u00B1 90% confidence intervals"));
+    choices.Add(wxT("\u00B1 95% confidence intervals"));
+    choices.Add(wxT("\u00B1 99% confidence intervals"));
     choices.Add(wxT("covariance matrix"));
     right_c = new wxChoice(right_panel, -1, wxDefaultPosition, wxDefaultSize,
                            choices);
@@ -173,14 +177,35 @@ void FitInfoDlg::update_right_tc()
     vector<realt> const &pp = ftk->parameters();
     int na = pp.size();
     wxString s;
-    if (choice == 0 || choice == 1) {
-        double scale = (choice == 0 ? 1. : 1. / sqrt(wssr_over_dof));
+    if (choice <= 5) {
         vector<realt> errors;
-        try {
-            errors = fit->get_standard_errors(dms);
+        if (choice == 0 || choice == 1) {
+            try {
+                errors = fit->get_standard_errors(dms);
+            }
+            catch (ExecuteError&) {
+                errors.resize(na, 0.);
+            }
+            if (choice == 1)
+                vm_foreach (realt, i, errors)
+                    *i *= 1. / sqrt(wssr_over_dof);
         }
-        catch (ExecuteError&) {
-            errors.resize(na, 0.);
+        else {
+            int level;
+            if (choice == 2)
+                level = 50;
+            else if (choice == 3)
+                level = 90;
+            else if (choice == 4)
+                level = 95;
+            else //if (choice == 5)
+                level = 99;
+            try {
+                errors = fit->get_confidence_limits(dms, level);
+            }
+            catch (ExecuteError&) {
+                errors.resize(na, 0.);
+            }
         }
         for (int i = 0; i < na; ++i) {
             if (fit->is_param_used(i)) {
@@ -200,7 +225,7 @@ void FitInfoDlg::update_right_tc()
                 if (errors[i] == 0.)
                     s += wxT("??");
                 else
-                    s += s2wx(nf->fmt(scale * errors[i]));
+                    s += s2wx(nf->fmt(errors[i]));
             }
         }
     }

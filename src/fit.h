@@ -34,6 +34,9 @@ public:
         get_covariance_matrix(const std::vector<DataAndModel*>& dms);
     std::vector<realt>
         get_standard_errors(const std::vector<DataAndModel*>& dms);
+    std::vector<realt>
+        get_confidence_limits(const std::vector<DataAndModel*>& dms,
+                              double level_percent);
     //const std::vector<DataAndModel*>& get_datsums() const { return dmdm_; }
     static realt compute_wssr_for_data (const DataAndModel* dm, bool weigthed);
     realt do_compute_wssr(const std::vector<realt> &A,

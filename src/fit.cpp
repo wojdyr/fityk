@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <math.h>
 #include <string.h>
+#include <boost/math/distributions/students_t.hpp>
 
 #include "fit.h"
 #include "logic.h"
@@ -101,6 +102,19 @@ vector<realt> Fit::get_standard_errors(const vector<DataAndModel*>& dms)
     for (int i = 0; i < na_; ++i)
         errors[i] = sqrt(wssr / dof * alpha[i*na_ + i]);
     return errors;
+}
+
+vector<realt> Fit::get_confidence_limits(const vector<DataAndModel*>& dms,
+                                         double level_percent)
+{
+    vector<realt> v = get_standard_errors(dms);
+    int dof = get_dof(dms);
+    double level = 1. - level_percent / 100.;
+    boost::math::students_t dist(dof);
+    double t = boost::math::quantile(boost::math::complement(dist, level/2));
+    vm_foreach (realt, i, v)
+        *i *= t;
+    return v;
 }
 
 string Fit::get_cov_info(const vector<DataAndModel*>& dms)

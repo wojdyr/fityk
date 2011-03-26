@@ -188,6 +188,7 @@ The following ``info`` arguments are recognized:
 * ``F`` -- the list of functions in *F*
 * ``Z`` -- the list of functions in *Z*
 * ``compiler`` -- options used when compiling the program
+* ``confidence level @n`` -- confidence limits for given confidence level
 * ``cov @n`` -- covariance matrix
 * ``data`` -- number of points, data filename and title
 * ``dataset_count`` -- number of datasets
