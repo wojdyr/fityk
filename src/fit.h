@@ -29,7 +29,6 @@ public:
                                                     { return dms == dmdm_; }
     std::string get_goodness_info(const std::vector<DataAndModel*>& dms);
     int get_dof(const std::vector<DataAndModel*>& dms);
-    std::string get_error_info(const std::vector<DataAndModel*>& dms);
     std::string get_cov_info(const std::vector<DataAndModel*>& dms);
     std::vector<realt>
         get_covariance_matrix(const std::vector<DataAndModel*>& dms);
@@ -49,18 +48,18 @@ public:
                              int m, int n, const char *mname);
     realt compute_r_squared(const std::vector<realt> &A,
                            const std::vector<DataAndModel*>& dms);
-    bool is_param_used(int n) const { return par_usage[n]; }
+    bool is_param_used(int n) const { return par_usage_[n]; }
 protected:
     Ftk *F_;
     std::vector<DataAndModel*> dmdm_;
-    int evaluations;
+    int evaluations_;
     int max_evaluations_;
-    int max_iterations; //it is set before calling autoiter()
-    int iter_nr;
-    realt wssr_before;
-    std::vector<realt> a_orig;
-    std::vector<bool> par_usage;
-    int na; ///number of fitted parameters
+    int max_iterations_; //it is set before calling autoiter()
+    int iter_nr_;
+    realt wssr_before_;
+    std::vector<realt> a_orig_;
+    std::vector<bool> par_usage_;
+    int na_; ///number of fitted parameters
 
     virtual void init() = 0; // called before autoiter()
     virtual void autoiter() = 0;
@@ -70,7 +69,7 @@ protected:
                           std::vector<realt>& alpha, std::vector<realt>& beta);
     realt compute_wssr(const std::vector<realt> &A,
                     const std::vector<DataAndModel*>& dms, bool weigthed=true)
-        { ++evaluations; return do_compute_wssr(A, dms, weigthed); }
+        { ++evaluations_; return do_compute_wssr(A, dms, weigthed); }
     bool post_fit(const std::vector<realt>& aa, realt chi2);
     realt draw_a_from_distribution(int nr, char distribution = 'u',
                                    realt mult = 1.);

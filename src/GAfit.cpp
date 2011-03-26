@@ -78,8 +78,8 @@ void GAfit::init()
     pop->resize (popsize);
     vector<Individual>::iterator best = pop->begin();
     for (vector<Individual>::iterator i = pop->begin(); i != pop->end(); i++) {
-        i->g.resize(na);
-        for (int j = 0; j < na; j++)
+        i->g.resize(na_);
+        for (int j = 0; j < na_; j++)
             i->g[j] = draw_a_from_distribution(j);
         compute_wssr_for_ind (i);
         if (i->raw_score < best->raw_score)
@@ -90,8 +90,8 @@ void GAfit::init()
 
 void GAfit::autoiter()
 {
-    wssr_before = compute_wssr(a_orig, dmdm_);
-    F_->msg ("WSSR before starting GA: " + S(wssr_before));
+    wssr_before_ = compute_wssr(a_orig_, dmdm_);
+    F_->msg ("WSSR before starting GA: " + S(wssr_before_));
     assert (pop && opop);
     if (elitism >= popsize) {
         F_->warn ("hmm, now elitism >= popsize, setting elitism = 1");
@@ -99,7 +99,7 @@ void GAfit::autoiter()
     }
     for (int iter = 0; !termination_criteria_and_print_info(iter); iter++) {
         autoplot_in_autoiter();
-        iter_nr ++;
+        ++iter_nr_;
         pre_selection();
         crossover();
         mutation();
@@ -111,7 +111,7 @@ void GAfit::autoiter()
 void GAfit::compute_wssr_for_ind (vector<Individual>::iterator ind)
 {
     ind->raw_score = compute_wssr(ind->g, dmdm_);
-    ind->generation = iter_nr;
+    ind->generation = iter_nr_;
 }
 
 void GAfit::autoplot_in_autoiter()
@@ -126,14 +126,14 @@ void GAfit::mutation()
     for (vector<Individual>::iterator i = pop->begin(); i != pop->end(); i++) {
         if (mutate_all_genes) {
             if (rand() < RAND_MAX * p_mutation) {
-                for (int j = 0; j < na; j++)
+                for (int j = 0; j < na_; j++)
                     i->g[j] = draw_a_from_distribution(j, mutation_type,
                                                             mutation_strength);
                 compute_wssr_for_ind (i);
             }
         }
         else
-            for (int j = 0; j < na; j++)
+            for (int j = 0; j < na_; j++)
                 if (rand() < RAND_MAX * p_mutation) {
                     i->g[j] = draw_a_from_distribution(j, mutation_type,
                                                             mutation_strength);
@@ -181,7 +181,7 @@ void GAfit::crossover()
 void GAfit::uniform_crossover (vector<Individual>::iterator c1,
                                vector<Individual>::iterator c2)
 {
-    for (int i = 0; i < na; i++)
+    for (int i = 0; i < na_; i++)
         if (rand() % 2)
             swap(c1->g[i], c2->g[i]);
 }
@@ -189,7 +189,7 @@ void GAfit::uniform_crossover (vector<Individual>::iterator c1,
 void GAfit::one_point_crossover (vector<Individual>::iterator c1,
                                  vector<Individual>::iterator c2)
 {
-    int p = rand() % na;
+    int p = rand() % na_;
     for (int j = 0; j < p; j++)
             swap(c1->g[j], c2->g[j]);
 }
@@ -197,8 +197,8 @@ void GAfit::one_point_crossover (vector<Individual>::iterator c1,
 void GAfit::two_points_crossover (vector<Individual>::iterator c1,
                                   vector<Individual>::iterator c2)
 {
-    int p1 = rand() % na;
-    int p2 = rand() % na;
+    int p1 = rand() % na_;
+    int p2 = rand() % na_;
     for (int j = min(p1, p2); j < max(p1, p2); j++)
             swap(c1->g[j], c2->g[j]);
 }
@@ -207,7 +207,7 @@ void GAfit::arithmetic_crossover1 (vector<Individual>::iterator c1,
                                    vector<Individual>::iterator c2)
 {
     realt a = rand_0_1();
-    for (int j = 0; j < na; j++) {
+    for (int j = 0; j < na_; j++) {
         c1->g[j] = a * c1->g[j] + (1 - a) * c2->g[j];
         c2->g[j] = (1 - a) * c1->g[j] + a * c2->g[j]; ;
     }
@@ -216,7 +216,7 @@ void GAfit::arithmetic_crossover1 (vector<Individual>::iterator c1,
 void GAfit::arithmetic_crossover2 (vector<Individual>::iterator c1,
                                    vector<Individual>::iterator c2)
 {
-    for (int j = 0; j < na; j++) {
+    for (int j = 0; j < na_; j++) {
         realt a = rand_0_1();
         c1->g[j] = a * c1->g[j] + (1 - a) * c2->g[j];
         c2->g[j] = (1 - a) * c1->g[j] + a * c2->g[j]; ;
@@ -226,7 +226,7 @@ void GAfit::arithmetic_crossover2 (vector<Individual>::iterator c1,
 void GAfit::guaranteed_avarage_crossover (vector<Individual>::iterator c1,
                                           vector<Individual>::iterator c2)
 {
-    for (int j = 0; j < na; j++)
+    for (int j = 0; j < na_; j++)
         c1->g[j] = c2->g[j] = (c1->g[j] + c2->g[j]) / 2;
 }
 
@@ -256,7 +256,7 @@ void GAfit::pre_selection()
             pre_selection ();
             return;
     }
-    opop->resize(next.size(), Individual(na));
+    opop->resize(next.size(), Individual(na_));
     for (int i = 0; i < size(next); i++)
         (*opop)[i] = (*pop)[next[i]];
     swap (pop, opop);
@@ -454,7 +454,7 @@ bool GAfit::termination_criteria_and_print_info (int iter)
         generations_sum += i->generation;
     }
     realt std_dev = sq_sum > 0 ? sqrt (sq_sum / pop->size()) : 0;
-    F_->msg("Population #" + S(iter_nr) + ": best " + S(min)
+    F_->msg("Population #" + S(iter_nr_) + ": best " + S(min)
                 + ", avg " + S(avg) + ", worst " + S(tmp_max)
                 + ", std dev. " + S(std_dev));
     if (min < best_indiv.raw_score) {

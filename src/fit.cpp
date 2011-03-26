@@ -20,7 +20,8 @@
 using namespace std;
 
 Fit::Fit(Ftk *F, const string& m)
-    : name(m), F_(F), evaluations(0), iter_nr (0), na(0), last_refresh_time_(0)
+    : name(m), F_(F),
+      evaluations_(0), iter_nr_(0), na_(0), last_refresh_time_(0)
 {
 }
 
@@ -31,7 +32,7 @@ int Fit::get_dof(const vector<DataAndModel*>& dms)
     int dof = 0;
     v_foreach (DataAndModel*, i, dms)
         dof += (*i)->data()->get_n();
-    dof -= count(par_usage.begin(), par_usage.end(), true);
+    dof -= count(par_usage_.begin(), par_usage_.end(), true);
     return dof;
 }
 
@@ -54,37 +55,37 @@ vector<realt> Fit::get_covariance_matrix(const vector<DataAndModel*>& dms)
     const vector<realt> &pp = F_->parameters();
     update_parameters(dms);
 
-    vector<realt> alpha(na*na), beta(na);
+    vector<realt> alpha(na_*na_), beta(na_);
     compute_derivatives(pp, dms, alpha, beta);
 
     // To avoid singular matrix, put fake values corresponding to unused
     // parameters.
-    for (int i = 0; i < na; ++i)
-        if (!par_usage[i]) {
-            alpha[i*na + i] = 1.;
+    for (int i = 0; i < na_; ++i)
+        if (!par_usage_[i]) {
+            alpha[i*na_ + i] = 1.;
         }
-    // We may have unused parameters with par_usage[] set true,
+    // We may have unused parameters with par_usage_[] set true,
     // e.g. SplitGaussian with center < min(active x) will have hwhm1 unused.
     // If i'th column/row in alpha are only zeros, we must
     // do something about it -- standard error is undefined
     vector<int> undef;
-    for (int i = 0; i < na; ++i) {
+    for (int i = 0; i < na_; ++i) {
         bool has_nonzero = false;
-        for (int j = 0; j < na; j++)
-            if (alpha[na*i+j] != 0.) {
+        for (int j = 0; j < na_; j++)
+            if (alpha[na_*i+j] != 0.) {
                 has_nonzero = true;
                 break;
             }
         if (!has_nonzero) {
             undef.push_back(i);
-            alpha[i*na + i] = 1.;
+            alpha[i*na_ + i] = 1.;
         }
     }
 
-    reverse_matrix(alpha, na);
+    reverse_matrix(alpha, na_);
 
     v_foreach (int, i, undef)
-        alpha[(*i)*na + (*i)] = 0.;
+        alpha[(*i)*na_ + (*i)] = 0.;
 
     return alpha;
 }
@@ -95,28 +96,11 @@ vector<realt> Fit::get_standard_errors(const vector<DataAndModel*>& dms)
     realt wssr = do_compute_wssr(pp, dms, true);
     int dof = get_dof(dms);
     vector<realt> alpha = get_covariance_matrix(dms);
-    // `na' was set by functions above
-    vector<realt> errors(na);
-    for (int i = 0; i < na; ++i)
-        errors[i] = sqrt(wssr / dof * alpha[i*na + i]);
+    // `na_' was set by functions above
+    vector<realt> errors(na_);
+    for (int i = 0; i < na_; ++i)
+        errors[i] = sqrt(wssr / dof * alpha[i*na_ + i]);
     return errors;
-}
-
-string Fit::get_error_info(const vector<DataAndModel*>& dms)
-{
-    const SettingsMgr *sm = F_->settings_mgr();
-    vector<realt> errors = get_standard_errors(dms);
-    const vector<realt>& pp = F_->parameters();
-    string s = "Standard errors:";
-    for (int i = 0; i < na; i++) {
-        if (par_usage[i]) {
-            realt err = errors[i];
-            s += "\n$" + F_->find_variable_handling_param(i)->name
-                + " = " + sm->format_double(pp[i])
-                + " +- " + (err == 0. ? string("??") : sm->format_double(err));
-        }
-    }
-    return s;
 }
 
 string Fit::get_cov_info(const vector<DataAndModel*>& dms)
@@ -125,15 +109,15 @@ string Fit::get_cov_info(const vector<DataAndModel*>& dms)
     const SettingsMgr *sm = F_->settings_mgr();
     vector<realt> alpha = get_covariance_matrix(dms);
     s += "\nCovariance matrix\n    ";
-    for (int i = 0; i < na; ++i)
-        if (par_usage[i])
+    for (int i = 0; i < na_; ++i)
+        if (par_usage_[i])
             s += "\t$" + F_->find_variable_handling_param(i)->name;
-    for (int i = 0; i < na; ++i) {
-        if (par_usage[i]) {
+    for (int i = 0; i < na_; ++i) {
+        if (par_usage_[i]) {
             s += "\n$" + F_->find_variable_handling_param(i)->name;
-            for (int j = 0; j < na; ++j) {
-                if (par_usage[j])
-                    s += "\t" + sm->format_double(alpha[na*i + j]);
+            for (int j = 0; j < na_; ++j) {
+                if (par_usage_[j])
+                    s += "\t" + sm->format_double(alpha[na_*i + j]);
             }
         }
     }
@@ -229,7 +213,7 @@ void Fit::compute_derivatives(const vector<realt> &A,
                               const vector<DataAndModel*>& dms,
                               vector<realt>& alpha, vector<realt>& beta)
 {
-    assert (size(A) == na && size(alpha) == na * na && size(beta) == na);
+    assert (size(A) == na_ && size(alpha) == na_ * na_ && size(beta) == na_);
     fill(alpha.begin(), alpha.end(), 0.0);
     fill(beta.begin(), beta.end(), 0.0);
 
@@ -238,9 +222,9 @@ void Fit::compute_derivatives(const vector<realt> &A,
         compute_derivatives_for(*i, alpha, beta);
     }
     // filling second half of alpha[]
-    for (int j = 1; j < na; j++)
+    for (int j = 1; j < na_; j++)
         for (int k = 0; k < j; k++)
-            alpha[na * k + j] = alpha[na * j + k];
+            alpha[na_ * k + j] = alpha[na_ * j + k];
 }
 
 //results in alpha and beta
@@ -254,18 +238,18 @@ void Fit::compute_derivatives_for(const DataAndModel* dm,
     for (int j = 0; j < n; ++j)
         xx[j] = data->get_x(j);
     vector<realt> yy(n, 0.);
-    const int dyn = na+1;
+    const int dyn = na_+1;
     vector<realt> dy_da(n*dyn, 0.);
     dm->model()->compute_model_with_derivs(xx, yy, dy_da);
     for (int i = 0; i != n; i++) {
         realt inv_sig = 1.0 / data->get_sigma(i);
         realt dy_sig = (data->get_y(i) - yy[i]) * inv_sig;
         vector<realt>::iterator t = dy_da.begin() + i*dyn;
-        for (int j = 0; j != na; ++j) {
-            if (par_usage[j]) {
+        for (int j = 0; j != na_; ++j) {
+            if (par_usage_[j]) {
                 *(t+j) *= inv_sig;
                 for (int k = 0; k <= j; ++k)    //half of alpha[]
-                    alpha[na * j + k] += *(t+j) * *(t+k);
+                    alpha[na_ * j + k] += *(t+j) * *(t+k);
                 beta[j] += dy_sig * *(t+j);
             }
         }
@@ -303,23 +287,23 @@ string Fit::print_matrix(const vector<realt>& vec, int m, int n,
 bool Fit::post_fit(const vector<realt>& aa, realt chi2)
 {
     double elapsed = (clock() - start_time_) / (double) CLOCKS_PER_SEC;
-    F_->msg(name + ": " + S(iter_nr) + " iterations, "
-           + S(evaluations) + " evaluations, "
+    F_->msg(name + ": " + S(iter_nr_) + " iterations, "
+           + S(evaluations_) + " evaluations, "
            + format1<double,16>("%.2f", elapsed) + " s. of CPU time.");
-    bool better = (chi2 < wssr_before);
+    bool better = (chi2 < wssr_before_);
     const SettingsMgr *sm = F_->settings_mgr();
     if (better) {
         F_->get_fit_container()->push_param_history(aa);
         F_->put_new_parameters(aa);
-        double percent_change = (chi2 - wssr_before) / wssr_before * 100.;
+        double percent_change = (chi2 - wssr_before_) / wssr_before_ * 100.;
         F_->msg("WSSR: " + sm->format_double(chi2) +
                 " (" + S(percent_change) + "%)");
     }
     else {
         F_->msg("Better fit NOT found (WSSR = " + sm->format_double(chi2)
-                + ", was " + sm->format_double(wssr_before) + ")."
+                + ", was " + sm->format_double(wssr_before_) + ")."
                 "\nParameters NOT changed");
-        F_->use_external_parameters(a_orig);
+        F_->use_external_parameters(a_orig_);
         if (F_->get_settings()->fit_replot)
             F_->get_ui()->draw_plot(UserInterface::kRepaintImmediately);
     }
@@ -328,9 +312,9 @@ bool Fit::post_fit(const vector<realt>& aa, realt chi2)
 
 realt Fit::draw_a_from_distribution (int nr, char distribution, realt mult)
 {
-    assert (nr >= 0 && nr < na);
-    if (!par_usage[nr])
-        return a_orig[nr];
+    assert (nr >= 0 && nr < na_);
+    if (!par_usage_[nr])
+        return a_orig_[nr];
     realt dv = 0;
     switch (distribution) {
         case 'g':
@@ -366,21 +350,21 @@ void Fit::fit(int max_iter, const vector<DataAndModel*>& dms)
     ComputeUI compute_ui(F_->get_ui());
     update_parameters(dms);
     dmdm_ = dms;
-    a_orig = F_->parameters();
-    F_->get_fit_container()->push_param_history(a_orig);
-    iter_nr = 0;
-    evaluations = 0;
+    a_orig_ = F_->parameters();
+    F_->get_fit_container()->push_param_history(a_orig_);
+    iter_nr_ = 0;
+    evaluations_ = 0;
     max_evaluations_ = F_->get_settings()->max_wssr_evaluations;
     user_interrupt = false;
     init(); //method specific init
-    max_iterations = max_iter;
+    max_iterations_ = max_iter;
 
     // print stats
-    int nu = count(par_usage.begin(), par_usage.end(), true);
+    int nu = count(par_usage_.begin(), par_usage_.end(), true);
     int np = 0;
     v_foreach (DataAndModel*, i, dms)
         np += (*i)->data()->get_n();
-    F_->msg ("Fitting " + S(nu) + " (of " + S(na) + ") parameters to "
+    F_->msg ("Fitting " + S(nu) + " (of " + S(na_) + ") parameters to "
             + S(np) + " points ...");
 
     autoiter();
@@ -392,13 +376,13 @@ void Fit::continue_fit(int max_iter)
     start_time_ = clock();
     last_refresh_time_ = time(0);
     v_foreach (DataAndModel*, i, dmdm_)
-        if (!F_->contains_dm(*i) || na != size(F_->parameters()))
+        if (!F_->contains_dm(*i) || na_ != size(F_->parameters()))
             throw ExecuteError(name + " method should be initialized first.");
     update_parameters(dmdm_);
-    a_orig = F_->parameters();  //should it be also updated?
+    a_orig_ = F_->parameters();  //should it be also updated?
     user_interrupt = false;
-    evaluations = 0;
-    max_iterations = max_iter;
+    evaluations_ = 0;
+    max_iterations_ = max_iter;
     autoiter();
 }
 
@@ -409,21 +393,21 @@ void Fit::update_parameters(const vector<DataAndModel*>& dms)
     if (dms.empty())
         throw ExecuteError("No datasets to fit.");
 
-    na = F_->parameters().size();
+    na_ = F_->parameters().size();
 
-    par_usage = vector<bool>(na, false);
-    for (int idx = 0; idx < na; ++idx) {
+    par_usage_ = vector<bool>(na_, false);
+    for (int idx = 0; idx < na_; ++idx) {
         int var_idx = F_->find_nr_var_handling_param(idx);
         v_foreach (DataAndModel*, i, dms) {
             if ((*i)->model()->is_dependent_on_var(var_idx)) {
-                par_usage[idx] = true;
+                par_usage_[idx] = true;
                 break; //go to next idx
             }
             //vmsg(F_->find_variable_handling_param(idx)->xname
             //        + " is not in chi2.");
         }
     }
-    if (count(par_usage.begin(), par_usage.end(), true) == 0)
+    if (count(par_usage_.begin(), par_usage_.end(), true) == 0)
         throw ExecuteError("No parametrized functions are used in the model.");
 }
 
@@ -435,11 +419,11 @@ bool Fit::common_termination_criteria(int iter)
         F_->msg ("Fitting stopped manually.");
         stop = true;
     }
-    if (max_iterations >= 0 && iter >= max_iterations) {
+    if (max_iterations_ >= 0 && iter >= max_iterations_) {
         F_->msg("Maximum iteration number reached.");
         stop = true;
     }
-    if (max_evaluations_ > 0 && evaluations >= max_evaluations_) {
+    if (max_evaluations_ > 0 && evaluations_ >= max_evaluations_) {
         F_->msg("Maximum evaluations number reached.");
         stop = true;
     }
@@ -456,10 +440,10 @@ void Fit::iteration_plot(const vector<realt> &A, realt wssr)
         F_->get_ui()->draw_plot(UserInterface::kRepaintImmediately);
     }
     double elapsed = (clock() - start_time_) / (double) CLOCKS_PER_SEC;
-    double percent_change = (wssr - wssr_before) / wssr_before * 100.;
-    F_->msg("Iter: " + S(iter_nr) + "/"
-            + (max_iterations > 0 ? S(max_iterations) : string("oo"))
-            + "  Eval: " + S(evaluations) + "/"
+    double percent_change = (wssr - wssr_before_) / wssr_before_ * 100.;
+    F_->msg("Iter: " + S(iter_nr_) + "/"
+            + (max_iterations_ > 0 ? S(max_iterations_) : string("oo"))
+            + "  Eval: " + S(evaluations_) + "/"
             + (max_evaluations_ > 0 ? S(max_evaluations_) : string("oo"))
             + "  WSSR=" + F_->settings_mgr()->format_double(wssr)
             + " (" + S(percent_change)+ "%)"
@@ -499,7 +483,7 @@ void Fit::Jordan(vector<realt>& A, vector<realt>& b, int n)
                 if (A[n * i + j] || b[i]) {
                     F_->vmsg (print_matrix(A, n, n, "A"));
                     F_->msg (print_matrix(b, 1, n, "b"));
-                    throw ExecuteError("In iteration " + S(iter_nr)
+                    throw ExecuteError("In iteration " + S(iter_nr_)
                                        + ": trying to reverse singular matrix."
                                         " Column " + S(i) + " is zeroed.");
                 }

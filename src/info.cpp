@@ -301,6 +301,25 @@ void save_state(const Ftk* F, string& r)
     r += "\nset verbosity = " + F->settings_mgr()->get_as_string("verbosity");
 }
 
+static
+string format_error_info(const Ftk* F, const vector<realt>& errors)
+{
+    string s;
+    const SettingsMgr *sm = F->settings_mgr();
+    const vector<realt>& pp = F->parameters();
+    assert(pp.size() == errors.size());
+    const Fit* fit = F->get_fit();
+    for (size_t i = 0; i != errors.size(); ++i) {
+        if (fit->is_param_used(i)) {
+            realt err = errors[i];
+            s += "\n$" + F->find_variable_handling_param(i)->name
+                + " = " + sm->format_double(pp[i])
+                + " +- " + (err == 0. ? string("??") : sm->format_double(err));
+        }
+    }
+    return s;
+}
+
 int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
                       string& result)
 {
@@ -414,8 +433,11 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             }
             if (word == "fit")
                 result += F->get_fit()->get_goodness_info(v);
-            else if (word == "errors")
-                result += F->get_fit()->get_error_info(v);
+            else if (word == "errors") {
+                result += "Standard errors:";
+                vector<realt> errors = F->get_fit()->get_standard_errors(v);
+                result += format_error_info(F, errors);
+            }
             else //if (word == "cov")
                 result += F->get_fit()->get_cov_info(v);
         }
