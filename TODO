@@ -24,7 +24,7 @@
 
 * GUI: pre-defined GUI configuration `black-on-white`
 
-- refactor sidebar; use wxDataViewCtrl for the lists at the sidebar,
+* refactor sidebar; use wxDataViewCtrl for the lists at the sidebar,
   rewrite ListWithColors::populate(), add sorting by clicking on column
   header (use case: sort functions by centers)
 

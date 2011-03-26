@@ -26,14 +26,14 @@ inline int get_pixel_width(wxDC const& dc)
 {
       int w;
       dc.GetClippingBox(NULL, NULL, &w, NULL);
-      if (w != 0) printf("Clipping On (width)\n");
+      //if (w != 0) printf("Clipping On (width)\n");
       return w != 0 ? w : dc.GetSize().GetWidth();
 }
 inline int get_pixel_height(wxDC const& dc)
 {
       int h;
       dc.GetClippingBox(NULL, NULL, NULL, &h);
-      if (h != 0) printf("Clipping On (height)\n");
+      //if (h != 0) printf("Clipping On (height)\n");
       return h != 0 ? h : dc.GetSize().GetHeight();
 }
 

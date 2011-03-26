@@ -3,12 +3,9 @@
 
 /// utilities for making plot (BufferedPanel, scale_tics_step())
 
-#include <wx/wxprec.h>
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
-#ifndef WX_PRECOMP
 #include <wx/wx.h>
+#if wxUSE_GRAPHICS_CONTEXT
+#include <wx/dcgraph.h>
 #endif
 
 #include "uplot.h"
@@ -35,10 +32,10 @@ void BufferedPanel::redraw_now()
 void BufferedPanel::update_buffer_and_blit()
 {
     //cout << "BufferedPanel::update_buffer_and_blit()" << endl;
-    wxPaintDC dc(this);
+    wxPaintDC pdc(this);
     // check size
     wxCoord w, h;
-    dc.GetSize(&w, &h);
+    pdc.GetSize(&w, &h);
     if (!buffer_.Ok() || w != buffer_.GetWidth() || h != buffer_.GetHeight()) {
         memory_dc_.SelectObject(wxNullBitmap);
         buffer_ = wxBitmap(w, h);
@@ -51,17 +48,25 @@ void BufferedPanel::update_buffer_and_blit()
     if (dirty_) {
         memory_dc_.SetLogicalFunction(wxCOPY);
         memory_dc_.Clear();
-        draw(memory_dc_);
+#if wxUSE_GRAPHICS_CONTEXT
+        bool antialiasing = true;
+        if (antialiasing) {
+            wxGCDC gdc(memory_dc_);
+            draw(gdc);
+        }
+        else
+#endif // wxUSE_GRAPHICS_CONTEXT
+            draw(memory_dc_);
         // This condition is almost always true. It was added because on
         // wxGTK 2.8 with some window managers, after loading a data file
         // the next paint event had the update region set to the area
         // of the file dialog, and the rest of the plot remained not updated.
-        if (GetUpdateRegion().GetBox().GetSize() == dc.GetSize())
+        if (GetUpdateRegion().GetBox().GetSize() == pdc.GetSize())
             dirty_ = false;
     }
 
     // copy bitmap to window
-    dc.Blit(0, 0, buffer_.GetWidth(), buffer_.GetHeight(), &memory_dc_, 0, 0);
+    pdc.Blit(0, 0, buffer_.GetWidth(), buffer_.GetHeight(), &memory_dc_, 0, 0);
 }
 
 void BufferedPanel::OnIdle(wxIdleEvent&)

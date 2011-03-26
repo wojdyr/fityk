@@ -36,9 +36,9 @@ AboutDlg::AboutDlg(wxWindow* parent)
     sizer->Add(hsizer, wxSizerFlags());
     wxTextCtrl *txt = new wxTextCtrl(this, -1, wxT(""), wxDefaultPosition,
 #ifdef __WXMSW__
-                                     wxSize(-1,150),
+                                     wxSize(-1,120),
 #else
-                                     wxSize(-1,200),
+                                     wxSize(-1,160),
 #endif
                          wxTE_MULTILINE|wxTE_RICH|wxNO_BORDER |wxTE_READONLY);
 #ifdef __WXGTK__
@@ -58,13 +58,15 @@ AboutDlg::AboutDlg(wxWindow* parent)
                     + wxT("\n"));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxNORMAL_FONT));
     txt->AppendText(wxT("\nCopyright (C) 2001 - 2011 Marcin Wojdyr\n\n"));
+    txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxSMALL_FONT));
     txt->AppendText(
    wxT("This program is free software; you can redistribute it and/or modify ")
    wxT("it under the terms of the GNU General Public License as published by ")
    wxT("the Free Software Foundation; either version 2 of the License, or ")
    wxT("(at your option) any later version.")
     );
-    sizer->Add (txt, 1, wxALL|wxEXPAND|wxFIXED_MINSIZE, 5);
+    txt->ShowPosition(0);
+    sizer->Add(txt, 1, wxLEFT|wxRIGHT|wxTOP|wxEXPAND|wxFIXED_MINSIZE, 10);
 
     //sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);
     wxButton *button = new wxButton (this, wxID_CLOSE);
