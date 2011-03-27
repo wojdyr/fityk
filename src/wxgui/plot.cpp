@@ -32,6 +32,9 @@ void Scale::set(double m, double M, int pixels)
     if (h == 0)
         h = 0.1;
     scale = pixels / (reversed ? -h : h);
+    // small (subpixel) shift that aligns axis with pixel grid
+    if (!logarithm)
+        origin = iround(origin * scale) / scale;
 }
 
 double Scale::valr(int px) const
@@ -467,7 +470,7 @@ void FPlot::read_settings(wxConfigBase *cf)
     cf->SetPath(wxT(".."));
     ticsFont = cfg_read_font(cf, wxT("ticsFont"), wxFont(
 #ifdef __WXMAC__
-                                                         9,
+                                                         10,
 #else
                                                          8,
 #endif

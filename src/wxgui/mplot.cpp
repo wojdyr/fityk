@@ -5,6 +5,7 @@
 
 #include <wx/clrpicker.h>
 #include <wx/fontpicker.h>
+#include <wx/dcgraph.h>
 #include <algorithm>
 #include <boost/scoped_ptr.hpp>
 
@@ -372,6 +373,27 @@ string FunctionMouseDrag::get_cmd() const
         + drag_shift_y.get_cmd();
 }
 
+static
+void stroke_line(wxDC& dc, const vector<double>& YY, int from=0, int to=-1)
+{
+    if (to == -1)
+        to = YY.size() - 1;
+    wxGCDC* gdc = wxDynamicCast(&dc, wxGCDC);
+    if (gdc) {
+        wxGraphicsContext *gc = gdc->GetGraphicsContext();
+        wxGraphicsPath path = gc->CreatePath();
+        path.MoveToPoint(from, YY[from]);
+        for (int i = from+1; i <= to; ++i)
+            path.AddLineToPoint(i, YY[i]);
+        gc->StrokePath(path);
+    }
+    else {
+        for (int i = from+1; i <= to; i++)
+            dc.DrawLine(i-1, iround(YY[i-1]), i, iround(YY[i]));
+        // perhaps wxDC::DrawLines() would be faster?
+    }
+}
+
 //===============================================================
 //                MainPlot (plot with data and fitted curves)
 //===============================================================
@@ -489,7 +511,7 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
         draw_peaktops(dc, model);
     if (mode_ == mmd_bg) {
         bgm_->update_focused_data(focused_data);
-        draw_background(dc);
+        draw_baseline(dc);
     }
     else {
         if (plabels_visible_)
@@ -526,15 +548,13 @@ void MainPlot::draw_model(wxDC& dc, const Model* model, bool set_pen)
         dc.SetPen(wxPen(modelCol, model_line_width_ * pen_width));
     int n = get_pixel_width(dc);
     vector<realt> xx(n), yy(n);
-    vector<int> YY(n);
+    vector<double> YY(n);
     for (int i = 0; i < n; ++i)
         xx[i] = xs.val(i);
     model->compute_model(xx, yy);
     for (int i = 0; i < n; ++i)
-        YY[i] = ys.px(yy[i]);
-    for (int i = 1; i < n; i++)
-        dc.DrawLine (i-1, YY[i-1], i, YY[i]);
-    // perhaps wxDC::DrawLines() would be faster?
+        YY[i] = ys.px_d(yy[i]);
+    stroke_line(dc, YY);
 }
 
 
@@ -549,7 +569,7 @@ void MainPlot::draw_peaks(wxDC& dc, const Model* model, bool set_pen)
     const vector<int>& idx = model->get_ff().idx;
     int n = get_pixel_width(dc);
     vector<realt> xx(n), yy(n);
-    vector<int> YY(n);
+    vector<double> YY(n);
     for (int i = 0; i < n; ++i) {
         xx[i] = xs.val(i);
         xx[i] += model->zero_shift(xx[i]);
@@ -567,9 +587,8 @@ void MainPlot::draw_peaks(wxDC& dc, const Model* model, bool set_pen)
             dc.SetPen(wxPen(peakCol[k % max_peak_cols], pen_width));
         f->calculate_value(xx, yy);
         for (int i = from; i <= to; ++i)
-            YY[i] = ys.px(yy[i]);
-        for (int i = from+1; i <= to; i++)
-            dc.DrawLine (i-1, YY[i-1], i, YY[i]);
+            YY[i] = ys.px_d(yy[i]);
+        stroke_line(dc, YY, from, to);
     }
 }
 
@@ -719,23 +738,16 @@ void MainPlot::prepare_peak_labels(const Model* model)
 }
 
 
-void MainPlot::draw_background(wxDC& dc, bool set_pen)
+void MainPlot::draw_baseline(wxDC& dc, bool set_pen)
 {
     if (set_pen)
         dc.SetPen(wxPen(bg_pointsCol, pen_width));
     dc.SetBrush (*wxTRANSPARENT_BRUSH);
 
     // bg line
-    int X = -1, Y = -1;
     int width = get_pixel_width(dc);
-    vector<int> bgline = bgm_->calculate_bgline(width, ys);
-    for (int i = 0; i < width; ++i) {
-        int X_ = X, Y_ = Y;
-        X = i;
-        Y = bgline[i];
-        if (X_ >= 0 && (X != X_ || Y != Y_))
-            dc.DrawLine (X_, Y_, X, Y);
-    }
+    vector<double> YY = bgm_->calculate_bgline(width, ys);
+    stroke_line(dc, YY);
 
     // bg points (circles)
     v_foreach (PointQ, i, bgm_->get_bg()) {
@@ -775,7 +787,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
     //groups_visible_ = cfg_read_bool(cf, wxT("groups"), false);
     model_visible_ = cfg_read_bool(cf, wxT("model"), true);
     cf->SetPath(wxT("/MainPlot"));
-    point_radius = cf->Read (wxT("point_radius"), 1);
+    point_radius = cf->Read (wxT("point_radius"), 2);
     line_between_points = cfg_read_bool(cf,wxT("line_between_points"), false);
     draw_sigma = cfg_read_bool(cf,wxT("draw_sigma"), false);
     wxFont default_plabel_font(10, wxFONTFAMILY_DEFAULT,

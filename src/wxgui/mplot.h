@@ -131,7 +131,7 @@ private:
 
     void draw_x_axis (wxDC& dc, bool set_pen=true);
     void draw_y_axis (wxDC& dc, bool set_pen=true);
-    void draw_background(wxDC& dc, bool set_pen=true);
+    void draw_baseline(wxDC& dc, bool set_pen=true);
     void draw_model (wxDC& dc, const Model* model, bool set_pen=true);
     //void draw_groups (wxDC& dc, const Model* model, bool set_pen=true);
     void draw_peaks (wxDC& dc, const Model* model, bool set_pen=true);

@@ -29,7 +29,8 @@ public:
     void set_spline_bg(bool s) { spline_ = s; }
     void set_as_recent(int n);
     void set_as_convex_hull();
-    std::vector<int> calculate_bgline(int window_width, const Scale& y_scale);
+    std::vector<double> calculate_bgline(int window_width,
+                                         const Scale& y_scale);
     const std::vector<PointQ>& get_bg() const { return bg_; }
     bool stripped() const;
     const wxString& get_recent_bg_name(int n) const;

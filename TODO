@@ -1,9 +1,5 @@
 
-* GUI: optionally use wxGCDC for plotting
-
 * GUI: use wxFileCtrl in custom open-file dialog (xybrowser.cpp) (wx3)
-
-----
 
 * GUI: a single dialog for Model > Export... options and for "info models"
 
@@ -58,14 +54,15 @@
   function should also be changed (to the function that was active last time
   this dataset was active)
 
-* GUI: plot horizontal/vertical lines
-     can be used to show theoretical peak positions in XRD
-     (or to mark simulation restarts in data from MD)
-     Syntax: line x=42.2 label="foo"
+* (?) GUI: possibility to plot horizontal/vertical lines on the main plot
+  (for example to show theoretical peak positions in XRD or to mark simulation
+  restarts in data from MD. Syntax: plot line x=42.2 label="foo"
 
 * fitting: add stopping criterium based on elapsed time
 
 * GUI: a simple (for the user) way to interrupt fitting. Requires two threads.
+
+* "info fit" should also print standard deviation of residuals
 
 * plot histogram of resiudals:
   http://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm

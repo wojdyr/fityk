@@ -209,6 +209,7 @@ enum {
     ID_G_C_OUTPUT              ,
     ID_G_C_SB                  ,
     ID_G_CROSSHAIR             ,
+    ID_G_ANTIALIAS             ,
     ID_G_FULLSCRN              ,
     ID_G_V_ALL                 ,
     ID_G_V_VERT                ,
@@ -336,6 +337,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_C_OUTPUT,    FFrame::OnConfigureOutputWin)
     EVT_MENU (ID_G_C_SB,        FFrame::OnConfigureStatusBar)
     EVT_MENU (ID_G_CROSSHAIR,   FFrame::OnSwitchCrosshair)
+    EVT_MENU (ID_G_ANTIALIAS,   FFrame::OnSwitchAntialias)
     EVT_MENU (ID_G_FULLSCRN,    FFrame::OnSwitchFullScreen)
     EVT_MENU (ID_G_V_ALL,       FFrame::OnGViewAll)
     EVT_MENU (ID_G_V_VERT,      FFrame::OnGFitHeight)
@@ -531,6 +533,8 @@ void FFrame::read_settings(wxConfigBase *cf)
                         cfg_read_double(cf, wxT("MainPaneProportion"), 0.84));
     SwitchIOPane(cfg_read_bool(cf, wxT("ShowIOPane"), true));
     SwitchCrosshair(cfg_read_bool(cf, wxT("ShowCrosshair"), false));
+    antialias_ = cfg_read_bool(cf, wxT("AntiAliasing"), true);
+    GetMenuBar()->Check(ID_G_ANTIALIAS, antialias_);
     ftk->view.set_y0_factor(cfg_read_double(cf, wxT("ShowY0"), 10));
     GetMenuBar()->Check(ID_G_SHOWY0, ftk->view.y0_factor() != 0);
 }
@@ -555,6 +559,7 @@ void FFrame::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("MainPaneProportion"), main_pane->GetProportion());
     cf->Write(wxT("ShowIOPane"), main_pane->IsSplit());
     cf->Write(wxT("ShowCrosshair"), get_main_plot()->crosshair_cursor());
+    cf->Write(wxT("AntiAliasing"), antialias_);
     cf->Write(wxT("ShowY0"), ftk->view.y0_factor());
     int w, h;
     GetSize(&w, &h);
@@ -772,6 +777,8 @@ void FFrame::set_menubar()
 
     gui_menu->AppendCheckItem(ID_G_CROSSHAIR, wxT("&Crosshair Cursor"),
                                               wxT("Show crosshair cursor"));
+    gui_menu->AppendCheckItem(ID_G_ANTIALIAS, wxT("&Anti-aliasing"),
+                                              wxT("Switch anti-aliasing"));
     gui_menu->AppendCheckItem(ID_G_FULLSCRN, wxT("&Full Screen\tF11"),
                                               wxT("Switch full screen"));
     gui_menu->AppendSeparator();
@@ -1566,6 +1573,12 @@ void FFrame::SwitchCrosshair (bool show)
 {
     get_main_plot()->set_crosshair_cursor(show);
     GetMenuBar()->Check(ID_G_CROSSHAIR, show);
+}
+
+void FFrame::OnSwitchAntialias(wxCommandEvent& event)
+{
+    antialias_ = event.IsChecked();
+    plot_pane_->refresh_plots(false, kAllPlots);
 }
 
 void FFrame::OnSwitchFullScreen(wxCommandEvent& event)

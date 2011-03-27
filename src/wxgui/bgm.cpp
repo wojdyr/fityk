@@ -188,16 +188,17 @@ void BgManager::add_background()
     ftk->exec(frame->get_datasets() + "Y = y + %" + name + "(x)");
 }
 
-vector<int> BgManager::calculate_bgline(int window_width, const Scale& y_scale)
+vector<double> BgManager::calculate_bgline(int window_width,
+                                           const Scale& y_scale)
 {
-    vector<int> bgline(window_width);
+    vector<double> bgline(window_width);
     if (spline_)
         prepare_spline_interpolation(bg_);
     for (int i = 0; i < window_width; i++) {
         double x = x_scale_.val(i);
         double y = spline_ ? get_spline_interpolation(bg_, x)
                            : get_linear_interpolation(bg_, x);
-        bgline[i] = y_scale.px(y);
+        bgline[i] = y_scale.px_d(y);
     }
     return bgline;
 }

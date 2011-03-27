@@ -4,12 +4,11 @@
 /// utilities for making plot (BufferedPanel, scale_tics_step())
 
 #include <wx/wx.h>
-#if wxUSE_GRAPHICS_CONTEXT
 #include <wx/dcgraph.h>
-#endif
 
 #include "uplot.h"
 #include "cmn.h"
+#include "frame.h" // frame->antialias()
 
 using namespace std;
 
@@ -48,14 +47,11 @@ void BufferedPanel::update_buffer_and_blit()
     if (dirty_) {
         memory_dc_.SetLogicalFunction(wxCOPY);
         memory_dc_.Clear();
-#if wxUSE_GRAPHICS_CONTEXT
-        bool antialiasing = true;
-        if (antialiasing) {
+        if (frame->antialias()) {
             wxGCDC gdc(memory_dc_);
             draw(gdc);
         }
         else
-#endif // wxUSE_GRAPHICS_CONTEXT
             draw(memory_dc_);
         // This condition is almost always true. It was added because on
         // wxGTK 2.8 with some window managers, after loading a data file

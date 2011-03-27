@@ -49,7 +49,8 @@ public:
     Scale() : scale(1.), origin(0.), logarithm(false), reversed(false) {}
 
     /// value -> pixel
-    inline int px(double val) const;
+    int px(double val) const { return iround(px_d(val)); }
+    inline double px_d(double val) const;
     /// pixel -> value
     inline double val(int px) const;
 
@@ -63,11 +64,11 @@ public:
     void set(double m, double M, int pixels);
 
 private:
-    static int inf_px(float t) { return t > 0 ? SHRT_MAX : SHRT_MIN; }
+    static int inf_px(double t) { return t > 0 ? SHRT_MAX : SHRT_MIN; }
 };
 
 
-int Scale::px(double val) const
+double Scale::px_d(double val) const
 {
     if (logarithm) {
         if (val <= 0)
@@ -75,7 +76,7 @@ int Scale::px(double val) const
         val = log(val);
     }
     double t = (val - origin) * scale;
-    return fabs(t) < SHRT_MAX ? static_cast<int>(t) : inf_px(t);
+    return fabs(t) < SHRT_MAX ? t : (double) inf_px(t);
 }
 
 double Scale::val(int px) const

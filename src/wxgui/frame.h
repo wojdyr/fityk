@@ -158,6 +158,7 @@ public:
     void OnConfigureStatusBar(wxCommandEvent& event);
     void OnConfigureOutputWin(wxCommandEvent&);
     void OnSwitchCrosshair(wxCommandEvent& e) {SwitchCrosshair(e.IsChecked());}
+    void OnSwitchAntialias(wxCommandEvent& event);
     void OnSwitchFullScreen(wxCommandEvent& event);
     void OnGShowY0(wxCommandEvent& e);
     void save_config_as(wxString const& name);
@@ -199,6 +200,7 @@ public:
     void update_menu_previous_zooms();
     // overridden from wxFrameBase, to show help in our status bar replacement
     void DoGiveHelp(const wxString& help, bool show);
+    bool antialias() const { return antialias_; }
 
 private:
     ProportionalSplitter *main_pane;
@@ -216,6 +218,7 @@ private:
     std::list<wxFileName> recent_data_files;
     wxMenu *data_menu_recent, *data_ft_menu, *func_type_menu;
     wxString script_dir_, data_dir_, export_dir_;
+    bool antialias_;
 
     void place_plot_and_io_windows(wxWindow *parent);
     void create_io_panel(wxWindow *parent);

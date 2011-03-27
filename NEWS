@@ -1,7 +1,10 @@
 
-User-visible changes in version 1.0.1  (2011-03-  ):
+User-visible changes in version 1.0.1  (2011-03-27):
 * corrected calculation of Exponentially Modified Gaussian
-* confidence intervals can be calculated for any confidence level
+* added calculation of confidence intervals
+* GUI: anti-aliasing (can be switched off in menu GUI > Anti-aliasing)
+* added (experimental) option guess_uses_weights that changes peak "guessing"
+* minor changes in the GUI and one bug fix in the powder diffraction add-on
 
 User-visible changes in version 1.0.0  (2011-03-18):
 * fixed bugs: several bugs in the powder diffraction add-on,
