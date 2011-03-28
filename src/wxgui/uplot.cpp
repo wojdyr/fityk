@@ -8,8 +8,12 @@
 
 #include "uplot.h"
 #include "cmn.h"
-#ifndef XYCONVERT
+
+#if !defined(XYCONVERT) && !defined(STANDALONE_POWDIFPAT)
 #include "frame.h" // frame->antialias()
+inline bool antialias() { return frame->antialias(); }
+#else
+inline bool antialias() { return false; }
 #endif
 
 using namespace std;
@@ -49,13 +53,11 @@ void BufferedPanel::update_buffer_and_blit()
     if (dirty_) {
         memory_dc_.SetLogicalFunction(wxCOPY);
         memory_dc_.Clear();
-#ifndef XYCONVERT
-        if (frame->antialias()) {
+        if (antialias()) {
             wxGCDC gdc(memory_dc_);
             draw(gdc);
         }
         else
-#endif
             draw(memory_dc_);
         // This condition is almost always true. It was added because on
         // wxGTK 2.8 with some window managers, after loading a data file
