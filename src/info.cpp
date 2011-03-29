@@ -244,7 +244,6 @@ void save_models(const Ftk* F, string& r, bool commented_defines)
         r +="\n" + (*i)->get_basic_assignment();
     r += "\n\n# ------------  models  ------------";
     for (int i = 0; i != F->get_dm_count(); ++i) {
-        r += "\n";
         const Model* model = F->get_model(i);
         const vector<string>& ff = model->get_ff().names;
         if (!ff.empty())
@@ -272,8 +271,6 @@ void save_state(const Ftk* F, string& r)
         string v = F->settings_mgr()->get_as_string(*i);
         r += "\nset " + *i + " = " + (v.empty() ? "''" : v);
     }
-    r += "\n\n";
-    save_models(F, r, true);
     r += "\n";
     r += "\n# ------------  datasets ------------";
     for (int i = 0; i != F->get_dm_count(); ++i) {
@@ -295,6 +292,9 @@ void save_state(const Ftk* F, string& r)
         }
         r += "\n";
     }
+    r += "\n\n";
+    save_models(F, r, true);
+    r += "\n";
     r += "\nplot " + F->view.str();
     r += "\nuse @" + S(F->default_dm());
     r += "\nset autoplot = " + F->settings_mgr()->get_as_string("autoplot");
