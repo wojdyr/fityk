@@ -2,14 +2,8 @@
 // Licence: GNU General Public License ver. 2+
 ///  FPlot, the base class for MainPlot and AuxPlot
 
-#include <wx/wxprec.h>
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
-#ifndef WX_PRECOMP
 #include <wx/wx.h>
-#endif
-
+#include <wx/dcgraph.h>
 #include <wx/confbase.h>
 
 #include "plot.h"
@@ -321,6 +315,99 @@ double FPlot::get_max_abs_y (double (*compute_y)(vector<Point>::const_iterator,
     return max_abs_y;
 }
 
+
+static
+void stroke_lines(wxDC& dc, wxGraphicsContext *gc, int n, wxPoint2DDouble *pp)
+{
+    if (gc) {
+        gc->StrokeLines(n, pp);
+    }
+    else {
+        wxPoint *points = new wxPoint[n];
+        for (int i = 0; i < n; ++i) {
+            points[i].x = iround(pp[i].m_x);
+            points[i].y = iround(pp[i].m_y);
+        }
+        dc.DrawLines(n, points);
+        delete [] points;
+    }
+}
+
+void FPlot::draw_data_by_activity(wxDC& dc, wxPoint2DDouble *pp,
+                                  const vector<bool>& aa, bool state)
+{
+    int len = aa.size();
+    int count_state = count(aa.begin(), aa.end(), state);
+    if (count_state == 0)
+        return;
+    wxGCDC* gdc = wxDynamicCast(&dc, wxGCDC);
+    wxGraphicsContext *gc = gdc ? gdc->GetGraphicsContext() : NULL;
+    if (line_between_points) {
+        int start = (aa[0] == state ? 0 : -1);
+        for (int i = 1; i != len; ++i) {
+            if (aa[i] == state && start == -1)
+                start = i;
+            else if (aa[i] != state && start != -1) {
+                wxPoint2DDouble start_bak = pp[start];
+                wxPoint2DDouble i_bak = pp[i];
+                if (start > 0) {
+                    // draw half of the line between points start-1 and start
+                    --start;
+                    start_bak = pp[start];
+                    pp[start] = (pp[start] + pp[start+1]) / 2;
+                }
+                // draw half of the line between points i-1 and i
+                pp[i] = (pp[i-1] + pp[i]) / 2;
+                stroke_lines(dc, gc, i - start + 1, pp + start);
+                pp[i] = i_bak;
+                pp[start] = start_bak;
+                start = -1;
+            }
+        }
+        if (start != -1) {
+            wxPoint2DDouble start_bak = pp[start];
+            if (start > 0) {
+                // draw half of the line between points start-1 and start
+                --start;
+                start_bak = pp[start];
+                pp[start] = (pp[start] + pp[start+1]) / 2;
+            }
+            stroke_lines(dc, gc, len - start, pp + start);
+            pp[start] = start_bak;
+        }
+    }
+
+    if (point_radius > 1) {
+        int r = (point_radius - 1) * pen_width;
+        if (gc) {
+            for (int i = 0; i != len; ++i)
+                if (aa[i] == state)
+                    gc->DrawEllipse(pp[i].m_x - r/2., pp[i].m_y - r/2., r, r);
+        }
+        else
+            for (int i = 0; i != len; ++i)
+                if (aa[i] == state)
+                    dc.DrawEllipse(pp[i].m_x - r/2, pp[i].m_y - r/2, r, r);
+    }
+    else if (!line_between_points) { // if we are here, point_radius == 1
+        if (gc) {
+            wxGraphicsPath path = gc->CreatePath();
+            for (int i = 0; i != len; ++i)
+                if (aa[i] == state) {
+                    path.MoveToPoint(pp[i].m_x, pp[i].m_y);
+                    path.AddLineToPoint(pp[i].m_x, pp[i].m_y + 0.1);
+                }
+            gc->SetAntialiasMode(wxANTIALIAS_NONE);
+            gc->StrokePath(path);
+            gc->SetAntialiasMode(wxANTIALIAS_DEFAULT);
+        }
+        else
+            for (int i = 0; i != len; ++i)
+                if (aa[i] == state)
+                    dc.DrawPoint(iround(pp[i].m_x), iround(pp[i].m_y));
+    }
+}
+
 void FPlot::draw_data (wxDC& dc,
                        double (*compute_y)(vector<Point>::const_iterator,
                                            Model const*),
@@ -330,103 +417,59 @@ void FPlot::draw_data (wxDC& dc,
                        int Y_offset,
                        bool cumulative)
 {
-    Y_offset *= (get_pixel_height(dc) / 100);
-    wxPen const activePen(color.Ok() ? color : activeDataCol, pen_width);
-    wxPen const inactivePen(inactive_color.Ok() ? inactive_color
-                                                : inactiveDataCol,
-                            pen_width);
-    wxBrush const activeBrush(activePen.GetColour(), wxSOLID);
-    wxBrush const inactiveBrush(inactivePen.GetColour(), wxSOLID);
     if (data->is_empty())
         return;
     vector<Point>::const_iterator first = data->get_point_at(ftk->view.left()),
                                   last = data->get_point_at(ftk->view.right());
-    if (last <= first)
+    if (first > data->points().begin())
+        --first;
+    if (last < data->points().end())
+        ++last;
+    // prepare coordinates
+    int len = last - first;
+    if (len <= 0)
         return;
-    bool active = first->is_active;
-    dc.SetPen (active ? activePen : inactivePen);
-    dc.SetBrush (active ? activeBrush : inactiveBrush);
-    int X_ = INT_MIN, Y_ = INT_MIN;
-    // first line segment -- lines should be drawn towards points
-    //                                                 that are outside of plot
-    if (line_between_points && first > data->points().begin() && !cumulative) {
-        X_ = xs.px (ftk->view.left());
-        int Y_l = ys.px ((*compute_y)(first - 1, model));
-        int Y_r = ys.px ((*compute_y)(first, model));
-        int X_l = xs.px ((first - 1)->x);
-        int X_r = xs.px (first->x);
-        if (X_r == X_l)
-            Y_ = Y_r;
-        else
-            Y_ = Y_l + (Y_r - Y_l) * (X_ - X_l) / (X_r - X_l);
-    }
-    Y_ -= Y_offset;
-    double y = 0;
-
-    //drawing all points (and lines); main loop
-    for (vector<Point>::const_iterator i = first; i < last; i++) {
-        int X = xs.px(i->x);
-        if (cumulative)
-            y += (*compute_y)(i, model);
-        else
-            y = (*compute_y)(i, model);
-        int Y = ys.px(y) - Y_offset;
-        if (X == X_ && Y == Y_)
-            continue;
-
-        if (i->is_active != active) {
-            //half of line between points should be active and half not.
-            //draw first half here and change X_, Y_; the rest will be drawed
-            //as usually.
-            if (line_between_points) {
-                int X_mid = (X_ + X) / 2;
-		int Y_mid = (Y_ + Y) / 2;
-                dc.DrawLine (X_, Y_, X_mid, Y_mid);
-                X_ = X_mid;
-		Y_ = Y_mid;
-            }
-            active = i->is_active;
-            if (active) {
-                dc.SetPen (activePen);
-                dc.SetBrush (activeBrush);
-            }
-            else {
-                dc.SetPen (inactivePen);
-                dc.SetBrush (inactiveBrush);
-            }
-        }
-
-        if (point_radius > 1)
-            dc.DrawCircle (X, Y, (point_radius - 1) * pen_width);
-        if (line_between_points) {
-            if (X_ != INT_MIN)
-                dc.DrawLine (X_, Y_, X, Y);
-            X_ = X;
-	    Y_ = Y;
-        }
-        else { //no line_between_points
-            if (point_radius == 1)
-                dc.DrawPoint(X, Y);
-        }
-
-        if (draw_sigma) {
-            dc.DrawLine (X, ys.px(y - i->sigma) - Y_offset,
-                         X, ys.px(y + i->sigma) - Y_offset);
-        }
+    wxPoint2DDouble *pp = new wxPoint2DDouble[len];
+    vector<bool> aa(len);
+    vector<double> yy(len);
+    Y_offset *= (get_pixel_height(dc) / 100);
+    for (int i = 0; i != len; ++i) {
+        const Point& p = *(first + i);
+        pp[i].m_x = xs.px_d(p.x);
+        yy[i] = (*compute_y)((first+i), model);
+        if (cumulative && i > 0)
+            yy[i] += yy[i-1];
+        pp[i].m_y = ys.px_d(yy[i]) - Y_offset;
+        aa[i] = p.is_active;
     }
 
-    //the last line segment, toward next point
-    if (line_between_points && last < data->points().end() && !cumulative) {
-        int X = xs.px (ftk->view.right());
-        int Y_l = ys.px ((*compute_y)(last - 1, model));
-        int Y_r = ys.px ((*compute_y)(last, model));
-        int X_l = xs.px ((last - 1)->x);
-        int X_r = xs.px (last->x);
-        if (X_r != X_l) {
-            int Y = Y_l + (Y_r - Y_l) * (X - X_l) / (X_r - X_l) - Y_offset;
-            dc.DrawLine (X_, Y_, X, Y);
-        }
-    }
+    // draw inactive
+    wxColour icol = inactive_color.Ok() ? inactive_color : inactiveDataCol;
+    dc.SetPen(wxPen(icol, pen_width));
+    dc.SetBrush(wxBrush(icol, wxSOLID));
+    draw_data_by_activity(dc, pp, aa, false);
+    if (draw_sigma)
+        for (int i = 0; i != len; ++i)
+            if (!aa[i]) {
+                double sigma = (first + i)->sigma;
+                dc.DrawLine(iround(pp[i].m_x), ys.px(yy[i] - sigma) - Y_offset,
+                            iround(pp[i].m_x), ys.px(yy[i] + sigma) - Y_offset);
+            }
+
+    // draw active
+    wxColour acol = color.Ok() ? color : activeDataCol;
+    dc.SetPen(wxPen(acol, pen_width));
+    dc.SetBrush(wxBrush(acol, wxSOLID));
+    draw_data_by_activity(dc, pp, aa, true);
+    if (draw_sigma)
+        for (int i = 0; i != len; ++i)
+            if (aa[i]) {
+                double sigma = (first + i)->sigma;
+                dc.DrawLine(iround(pp[i].m_x), ys.px(yy[i] - sigma) - Y_offset,
+                            iround(pp[i].m_x), ys.px(yy[i] + sigma) - Y_offset);
+            }
+
+    delete [] pp;
 }
 
 void FPlot::set_scale(int pixel_width, int pixel_height)

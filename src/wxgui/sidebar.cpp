@@ -178,7 +178,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     data_spin_sizer->Add(new wxStaticBitmap(data_page, -1,
                                             wxBitmap(dpsize_xpm)),
                          0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-    dpsize_sc = new SpinCtrl(data_page, ID_DP_PSIZE, 1, 1, 8, 40);
+    dpsize_sc = new SpinCtrl(data_page, ID_DP_PSIZE, 1, 1, 9, 40);
     dpsize_sc->SetToolTip(wxT("data point size"));
     data_spin_sizer->Add(dpsize_sc, 0);
     // line between points

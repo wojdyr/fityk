@@ -21,6 +21,7 @@ class Model;
 class Function;
 class Data;
 class Rect;
+struct wxPoint2DDouble;
 
 inline int get_pixel_width(wxDC const& dc)
 {
@@ -197,6 +198,9 @@ protected:
     virtual void cancel_action() {}
     // handler used by connect_esc_to_cancel()
     void OnKeyDown(wxKeyEvent& event);
+private:
+    void draw_data_by_activity(wxDC& dc, wxPoint2DDouble *pp,
+                               const std::vector<bool>& aa, bool state);
 };
 
 #endif

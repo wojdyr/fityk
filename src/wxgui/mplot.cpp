@@ -388,9 +388,14 @@ void stroke_line(wxDC& dc, const vector<double>& YY, int from=0, int to=-1)
         gc->StrokePath(path);
     }
     else {
-        for (int i = from+1; i <= to; i++)
-            dc.DrawLine(i-1, iround(YY[i-1]), i, iround(YY[i]));
-        // perhaps wxDC::DrawLines() would be faster?
+        int n = to - from + 1;
+        wxPoint *points = new wxPoint[n];
+        for (int i = 0; i < n; ++i) {
+            points[i].x = from + i;
+            points[i].y = iround(YY[from + i]);
+        }
+        dc.DrawLines(n, points);
+        delete [] points;
     }
 }
 
