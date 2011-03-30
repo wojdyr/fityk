@@ -257,6 +257,19 @@ int FApp::OnExit()
     return 0;
 }
 
+#ifdef __WXMAC__
+#include <wx/msgdlg.h>
+void FApp::MacOpenFile(const wxString &filename)
+{
+    try {
+        ftk->get_ui()->process_cmd_line_filename(wx2s(filename));
+    }
+    catch (runtime_error const& e) {
+        wxMessageBox(s2wx(e.what()), "Open File Error", wxOK|wxICON_ERROR);
+    }
+}
+#endif
+
 namespace {
 
 struct less_filename : public binary_function<string, string, bool> {

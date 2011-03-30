@@ -15,8 +15,11 @@ public:
     // directory for (named by user) config files
     wxString config_dir;
 
-    bool OnInit(void);
-    int OnExit();
+    virtual bool OnInit(void);
+    virtual int OnExit();
+#ifdef __WXMAC__
+    virtual void MacOpenFile(const wxString &fileName);
+#endif
 
 private:
     bool is_fityk_script(std::string filename);
