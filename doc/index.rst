@@ -11,11 +11,15 @@
 .. role:: html(raw)
    :format: html
 
-.. image:: fityk076.png
-   :alt: [screenshot]
-   :align: right
-   :scale: 50
-   :class: screenshot
+.. raw:: html
+
+  <div align="right" class="screenshot">
+   <a href="screens.html#mac-os-x">
+    <img alt="[screenshot]" src="_images/fityk-1.0.1-osx-so.png"
+    style="width: 436px; height: 303px;" />
+    </a>
+   <p class="caption">see <a href="screens.html">more screenshots</a></p>
+  </div>
 
 Fityk *[fi:tik]* is a program for data processing
 and nonlinear **curve fitting**.
@@ -105,9 +109,9 @@ Subscription cost includes support via e-mail:
 
 The exact price in € may change. If you prefer to transfer money directly to my bank account (PL), drop me a line.
 Alternatively, students and home users may
-donate 10% of the normal price to ``wojdyr@gmail.com`` using
+donate 20% of the normal price to ``wojdyr@gmail.com`` using
 `PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=E98FRTPDBQ3L6&lc=US&currency_code=USD&item_name=Fityk>`_,
-`MoneyBookers <https://www.moneybookers.com/app/payment.pl?pay_to_email=wojdyr@gmail.com&language=EN&detail1_text=The+amount+can+be+changed+at+the+end+of+the+URL&detail1_description=Fityk&currency=USD&amount=26.5>`_
+`MoneyBookers <https://www.moneybookers.com/app/payment.pl?pay_to_email=wojdyr@gmail.com&language=EN&detail1_text=The+amount+can+be+changed+at+the+end+of+the+URL&detail1_description=Fityk&currency=USD&amount=53>`_
 or `Flattr <https://flattr.com/donation/give/to/wojdyr>`_.
 If you have made any donation before the release of 1.0 you get free
 subscription, just let me know you are interested.
@@ -125,7 +129,7 @@ and Linux (Ubuntu PPA_ and RPMs from OBS_).
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 :html:`<a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://fityk.nieto.pl"></a>`
 
-Version 1.0.0 was released on 2011-03-18
+Version 1.0.1 was released on 2011-03-30
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
 New version `notifications <http://fityk-announce.nieto.pl/>`_
 are delivered via email and feeds.
@@ -133,9 +137,9 @@ are delivered via email and feeds.
 .. _OBS: http://download.opensuse.org/repositories/home://wojdyr/
 .. _PPA: https://launchpad.net/~wojdyr/+archive/fityk
 .. _debian-xray: http://debian-xray.iit.edu/
-.. |ico-win| image:: ico-win.png
-.. |ico-tux| image:: ico-tux.png
-.. |ico-osx| image:: ico-osx.png
+.. |ico-win| image:: img/ico-win.png
+.. |ico-tux| image:: img/ico-tux.png
+.. |ico-osx| image:: img/ico-osx.png
 
 .. _Documentation:
 

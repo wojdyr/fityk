@@ -2,7 +2,6 @@
 # the list can be updated by copying & pasting this in vim:
 # 5Gd}- :r! find html -type f -exec echo '$(srcdir)/'\{} \\ \;
 nobase_dist_pkgdata_DATA = \
-$(srcdir)/html/index.html \
 $(srcdir)/html/model.html \
 $(srcdir)/html/getstarted.html \
 $(srcdir)/html/fit.html \
@@ -26,12 +25,8 @@ $(srcdir)/html/searchindex.js \
 $(srcdir)/html/lang.html \
 $(srcdir)/html/fityk-manual.html \
 $(srcdir)/html/_images/zoom_all.png \
-$(srcdir)/html/_images/ico-tux.png \
-$(srcdir)/html/_images/ico-win.png \
-$(srcdir)/html/_images/ico-osx.png \
 $(srcdir)/html/_images/open_lock_icon.png \
 $(srcdir)/html/_images/copyfunc_icon.png \
-$(srcdir)/html/_images/fityk076.png \
 $(srcdir)/html/_images/fit_icon.png \
 $(srcdir)/html/_images/mode_add_icon.png \
 $(srcdir)/html/_images/mode_range_icon.png \
@@ -85,7 +80,6 @@ $(srcdir)/html/_images/math/23decadd8b245289f5fa993f2c99e0ac9cff56dc.png \
 $(srcdir)/html/ref.html \
 $(srcdir)/html/data.html \
 $(srcdir)/html/search.html \
-$(srcdir)/html/_sources/index.txt \
 $(srcdir)/html/_sources/fit.txt \
 $(srcdir)/html/_sources/data.txt \
 $(srcdir)/html/_sources/getstarted.txt \
@@ -104,15 +98,20 @@ EXTRA_DIST  = fityk-manual.rst index.rst intro.rst getstarted.rst \
 
 SPHINX = sphinx-build -a -d ./doctrees/
 
-all-local: $(srcdir)/html/index.html
+all-local: $(srcdir)/html/model.html
 
-$(srcdir)/html/index.html: $(srcdir)/*.rst $(srcdir)/fityk.css $(srcdir)/conf.py
+$(srcdir)/html/model.html: $(srcdir)/*.rst $(srcdir)/fityk.css $(srcdir)/conf.py
 	$(SPHINX) -b html $(srcdir) $(srcdir)/html
 	rm -f $(srcdir)/html/objects.inv $(srcdir)/html/.buildinfo
-	sed -i 's/&mdash; Fityk ..... manual//' $(srcdir)/html/index.html
 
 pdf:
 	rm -rf $(srcdir)/doctrees/
 	$(SPHINX) -b latex $(srcdir) latex
 	cd latex/ && make all-pdf
+
+website:
+	rm -rf web
+	$(SPHINX) -b html -D'exclude_patterns=[]' $(srcdir) $(srcdir)/web
+	rm -f $(srcdir)/web/objects.inv $(srcdir)/web/.buildinfo
+	sed -i 's/&mdash; Fityk ..... manual//' $(srcdir)/web/index.html $(srcdir)/web/screens.html
 

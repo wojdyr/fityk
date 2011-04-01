@@ -346,8 +346,8 @@ The example of non-interactive using CLI version on Linux::
 
     wojdyr@ubu:~/foo$ ls *.rdf
     dat_a.rdf  dat_r.rdf  out.rdf
-    wojdyr@ubu:~/foo$ cfityk -q -I "=-> set verbosity=quiet, autoplot=never" \
-    > *.rdf "=-> i+ min(x if y > 0) in @*"
+    wojdyr@ubu:~/foo$ cfityk -q -I "=-> set verbosity=-1, autoplot=0" \
+    > *.rdf "=-> @*: print min(x if y > 0)"
     in @0 dat_a: 1.8875
     in @1 dat_r: 1.5105
     in @2 out: 1.8305

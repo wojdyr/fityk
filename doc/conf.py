@@ -10,6 +10,7 @@ sys.path.append(os.path.abspath('.'))
 extensions = ["sphinx.ext.pngmath", "sphinx.ext.extlinks", "fityk_ext"]
 
 exclude_trees = ['html', 'latex', '.svn']
+exclude_patterns = ['index.rst', 'screens.rst']
 templates_path = ['.']
 source_suffix = '.rst'
 source_encoding = 'utf-8'
@@ -26,6 +27,7 @@ pygments_style = "trac"
 
 html_theme = "sphinxdoc"
 html_sidebars = {'index': [],
+                 'screens': [],
                  '**': ['globaltoc.html', 'sourcelink.html', 'searchbox.html']}
 html_title = 'Fityk %s manual' % version
 html_short_title = 'Manual'

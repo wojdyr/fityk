@@ -482,7 +482,7 @@ Variables ($foo) and functions (%bar) can be used in data expressions::
     %bg0 = Spline(14.2979,62.1253, 39.5695,35.0676, 148.553,49.9493)
     Y = y - %bg0(x)
 
-   Clicking the same button again will undo the subtraction by::
+   Clicking the same button again undoes the subtraction::
 
     Y = y + %bg0(x)
 

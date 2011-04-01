@@ -68,13 +68,13 @@ elif [ $1 -eq 3 ]; then
 
 elif [ $1 -eq 4 ]; then
  echo Building MS Windows version
+ SRC_DIR=fityk-$version/
+ MDIR=$HOME/local/mingw32msvc
+ BOOST_DIR=$HOME/local/src/boost_1_42_0/
  rm -rf $MINGW_DIR
  mkdir -p $MINGW_DIR
  cd $MINGW_DIR
  tar xjf ../$tarball_filename || exit 1
- SRC_DIR=fityk-$version/
- MDIR=$HOME/local/mingw32msvc
- BOOST_DIR=$HOME/local/src/boost_1_42_0/
  # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
  $SRC_DIR/configure --build=x86_64-pc-linux-gnu --host=i586-mingw32msvc \
    CPPFLAGS="-I$BOOST_DIR -I$MDIR/include/" \
