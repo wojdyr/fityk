@@ -1092,16 +1092,12 @@ void FFrame::OnDataMerge (wxCommandEvent&)
 void FFrame::OnDataCalcShirley (wxCommandEvent&)
 {
     vector<int> sel = get_selected_data_indices();
-    string cmd;
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
         string title = ftk->get_data(*i)->get_title();
         int c = ftk->get_dm_count();
-        if (i != sel.begin())
-            cmd += "; ";
-        cmd += "@+ = shirley_bg @" + S(*i)
-              + "; @" + S(c) + ".title = '" + title + "-Shirley'";
+        ftk->exec("@+ = shirley_bg @" + S(*i));
+        ftk->exec("@" + S(c) + ": title = '" + title + "-Shirley'");
     }
-    ftk->exec(cmd);
 }
 
 void FFrame::OnDataRmShirley (wxCommandEvent&)
