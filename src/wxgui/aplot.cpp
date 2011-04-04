@@ -76,10 +76,7 @@ AuxPlot::AuxPlot(wxWindow *parent, FPlot *master, wxString const& name)
 
 void AuxPlot::OnPaint(wxPaintEvent&)
 {
-    overlay.reset();
     update_buffer_and_blit();
-    //draw, if necessary, vertical lines
-    overlay.draw();
 }
 
 namespace {
@@ -359,7 +356,7 @@ void AuxPlot::OnLeftDown (wxMouseEvent &event)
     else {
         downX = X;
         overlay.start_mode(Overlay::kVRange, downX, 0);
-        overlay.draw();
+        overlay.draw_overlay();
         SetCursor(wxCURSOR_SIZEWE);
         frame->set_status_text("Select x range and release button to zoom...");
         CaptureMouse();
@@ -379,7 +376,7 @@ void AuxPlot::cancel_mouse_left_press()
 
     frame->set_status_text("");
     overlay.switch_mode(Overlay::kVLine);
-    overlay.draw();
+    overlay.draw_overlay();
     frame->plot_pane()->draw_vertical_lines(-1, -1, this);
 }
 
@@ -401,7 +398,7 @@ void AuxPlot::OnLeftUp (wxMouseEvent &event)
     }
     else {
         frame->set_status_text("");
-        overlay.draw();
+        overlay.draw_overlay();
         frame->plot_pane()->draw_vertical_lines(event.GetX(), -1, this);
     }
 }

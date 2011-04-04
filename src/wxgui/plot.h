@@ -7,7 +7,6 @@
 #include <limits.h>
 #include <vector>
 #include <wx/config.h>
-#include <wx/overlay.h>
 #include "../data.h" //Point
 #include "uplot.h" //BufferedPanel
 #include "cmn.h" // compatibility with wx2.8 (defined wxPenStyle, etc.)
@@ -104,20 +103,19 @@ public:
         kVRange,
         kHRange
     };
-    Overlay(wxWindow *window) : window_(window), mode_(kNone),
-                                color_(192,192,192) {}
+    Overlay(BufferedPanel *panel) : panel_(panel), mode_(kNone),
+                                    color_(192,192,192) {}
     void start_mode(Mode m, int x1, int y1) { mode_=m; x1_=x2_=x1; y1_=y2_=y1; }
     void switch_mode(Mode m) { mode_=m; }
-    void change_pos(int x2,int y2) { x2_=x2; y2_=y2; if (mode_!=kNone) draw(); }
-    void draw();
-    void reset() { wxoverlay_.Reset(); }
+    void change_pos(int x2,int y2)
+        { x2_=x2; y2_=y2; if (mode_!=kNone) draw_overlay(); }
+    void draw_overlay();
     void draw_lines(int n, wxPoint points[]);
     Mode mode() const { return mode_; }
     void bg_color_updated(const wxColour& bg);
 
 private:
-    wxWindow *window_;
-    wxOverlay wxoverlay_;
+    BufferedPanel *panel_;
     Mode mode_;
     wxColour color_;
     int x1_, x2_, y1_, y2_;

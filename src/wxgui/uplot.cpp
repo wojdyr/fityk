@@ -66,9 +66,12 @@ void BufferedPanel::update_buffer_and_blit()
         if (GetUpdateRegion().GetBox().GetSize() == pdc.GetSize())
             dirty_ = false;
     }
+    blit(pdc);
+}
 
-    // copy bitmap to window
-    pdc.Blit(0, 0, buffer_.GetWidth(), buffer_.GetHeight(), &memory_dc_, 0, 0);
+void BufferedPanel::blit(wxDC& dc)
+{
+    dc.Blit(0, 0, buffer_.GetWidth(), buffer_.GetHeight(), &memory_dc_, 0, 0);
 }
 
 void BufferedPanel::OnIdle(wxIdleEvent&)

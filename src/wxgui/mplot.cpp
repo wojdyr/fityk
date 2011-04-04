@@ -442,10 +442,7 @@ MainPlot::~MainPlot()
 
 void MainPlot::OnPaint(wxPaintEvent&)
 {
-    overlay.reset();
     update_buffer_and_blit();
-    //draw, if necessary, vertical lines
-    overlay.draw();
 }
 
 double y_of_data_for_draw_data(vector<Point>::const_iterator i,
@@ -959,7 +956,7 @@ void MainPlot::set_mouse_mode(MouseModeEnum m)
                         || visible_peaktops(old) != visible_peaktops(mode_))
         refresh();
     else
-        overlay.draw();
+        overlay.draw_overlay();
 }
 
 // update mouse hint on status bar
@@ -1029,7 +1026,7 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
             if (event.AltDown() || event.CmdDown()) {
                 if (overlay.mode() == Overlay::kVLine) {
                     overlay.switch_mode(get_normal_ovmode());
-                    overlay.draw();
+                    overlay.draw_overlay();
                 }
             }
             else
@@ -1137,7 +1134,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         // if one button is already down, pressing other button cancels action
         cancel_mouse_press();
         overlay.change_pos(event.GetX(), event.GetY());
-        overlay.draw();
+        overlay.draw_overlay();
         frame->plot_pane()->draw_vertical_lines(-1, -1, this);
         return;
     }
@@ -1316,7 +1313,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
              mouse_op_ == kActivateRect || mouse_op_ == kDisactivateRect ||
              mouse_op_ == kAddPeakTriangle || mouse_op_ == kAddPeakInRange)) {
         frame->set_status_text("");
-        overlay.draw();
+        overlay.draw_overlay();
         return;
     }
 
@@ -1348,7 +1345,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         if (!cmd.empty())
             ftk->exec(cmd);
         else {
-            overlay.draw();
+            overlay.draw_overlay();
             frame->set_status_text("");
         }
     }

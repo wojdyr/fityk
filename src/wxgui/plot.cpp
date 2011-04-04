@@ -55,16 +55,15 @@ void Overlay::bg_color_updated(const wxColor& bg)
         color_.Set(64, 64, 64);
 }
 
-void Overlay::draw()
+void Overlay::draw_overlay()
 {
     if (mode_ == kFunction)
         // function is drawn by calling draw_lines()
         return;
 
-    wxClientDC dc(window_) ;
-    window_->PrepareDC(dc) ;
-    wxDCOverlay overlaydc(wxoverlay_, &dc);
-    overlaydc.Clear();
+    wxClientDC dc(panel_) ;
+    panel_->blit(dc);
+
     dc.SetPen(wxPen(color_, 1, wxPENSTYLE_SHORT_DASH));
     dc.SetBrush(*wxTRANSPARENT_BRUSH);
     switch (mode_) {
@@ -129,10 +128,8 @@ void Overlay::draw()
 
 void Overlay::draw_lines(int n, wxPoint points[])
 {
-    wxClientDC dc(window_) ;
-    window_->PrepareDC(dc) ;
-    wxDCOverlay overlaydc(wxoverlay_, &dc);
-    overlaydc.Clear();
+    wxClientDC dc(panel_) ;
+    panel_->blit(dc);
     if (n <= 0)
         return;
     dc.SetPen(wxPen(color_, 1, wxPENSTYLE_SHORT_DASH));
@@ -319,6 +316,8 @@ double FPlot::get_max_abs_y (double (*compute_y)(vector<Point>::const_iterator,
 static
 void stroke_lines(wxDC& dc, wxGraphicsContext *gc, int n, wxPoint2DDouble *pp)
 {
+    if (n < 2)
+        return;
     if (gc) {
         gc->StrokeLines(n, pp);
     }

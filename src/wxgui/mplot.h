@@ -64,7 +64,8 @@ public:
     void OnPeakDelete(wxCommandEvent& event);
     void OnPeakGuess(wxCommandEvent &event);
     // function called when Esc is pressed
-    virtual void cancel_action() { cancel_mouse_press(); overlay.draw(); }
+    virtual void cancel_action()
+        { cancel_mouse_press(); overlay.draw_overlay(); }
     void cancel_mouse_press();
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);

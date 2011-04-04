@@ -32,6 +32,8 @@ public:
     /// called from wxPaint event handler
     /// updates buffer only if the window size is changed or if dirty_
     void update_buffer_and_blit();
+    /// copy bitmap to window
+    void blit(wxDC& dc);
     /// plotting function called to refresh buffer
     virtual void draw(wxDC &dc, bool monochrome=false) = 0;
     /// get bitmap buffer
