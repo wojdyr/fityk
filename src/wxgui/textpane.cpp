@@ -10,7 +10,7 @@
 #include <wx/clrpicker.h>
 #include <wx/fontpicker.h>
 
-#include "pane.h"
+#include "textpane.h"
 #include "frame.h"
 #include "inputline.h"
 #include "../common.h"

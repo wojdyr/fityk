@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK_WX_PANE_H_
-#define FITYK_WX_PANE_H_
+#ifndef FITYK_WX_TEXTPANE_H_
+#define FITYK_WX_TEXTPANE_H_
 
 #include "../ui.h" // UserInterface::Style
 #include "inputline.h" // InputLineObserver
@@ -51,5 +51,5 @@ public:
     InputLine *input_field;
 };
 
-#endif // FITYK_WX_PANE_H_
+#endif // FITYK_WX_TEXTPANE_H_
 

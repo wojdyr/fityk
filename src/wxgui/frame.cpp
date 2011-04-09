@@ -41,7 +41,7 @@
 #include "history.h"
 #include "about.h"
 #include "dload.h"
-#include "pane.h"
+#include "textpane.h"
 #include "plotpane.h"
 #include "sidebar.h"
 #include "print.h"
