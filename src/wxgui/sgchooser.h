@@ -15,7 +15,7 @@ class wxCheckBox;
 class SpaceGroupChooser : public wxDialog
 {
 public:
-    SpaceGroupChooser(wxWindow* parent);
+    SpaceGroupChooser(wxWindow* parent, const wxString& initial_value);
     wxString get_value() const;
 
 private:
@@ -23,11 +23,11 @@ private:
     wxListView *list;
     wxCheckBox *centering_cb[7];
 
-    void OnCheckBox(wxCommandEvent&) { regenerate_list(); }
-    void OnSystemChoice(wxCommandEvent&) { regenerate_list(); }
+    void OnCheckBox(wxCommandEvent&) { regenerate_list(get_value()); }
+    void OnSystemChoice(wxCommandEvent&) { regenerate_list(get_value()); }
     void OnListItemActivated(wxCommandEvent&);
 
-    void regenerate_list();
+    void regenerate_list(const wxString& sel_value);
 
     // disallow copy and assign
     SpaceGroupChooser(const SpaceGroupChooser&);

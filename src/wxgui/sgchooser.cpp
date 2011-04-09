@@ -11,7 +11,8 @@
 
 using namespace std;
 
-SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent)
+SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent,
+                                     const wxString& initial_value)
         : wxDialog(parent, -1, wxT("Choose space group"),
                    wxDefaultPosition, wxDefaultSize,
                    wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
@@ -47,10 +48,10 @@ SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent)
                           wxLC_REPORT|wxLC_HRULES|wxLC_VRULES);
     list->InsertColumn(0, wxT("No"));
     list->InsertColumn(1, wxT("H-M symbol"));
-    list->InsertColumn(2, wxT("Schoenflies symbol"));
+    list->InsertColumn(2, wxT("Sch\u00F6nflies symbol"));
     list->InsertColumn(3, wxT("Hall symbol"));
 
-    regenerate_list();
+    regenerate_list(initial_value);
 
     // set widths of columns
     int col_widths[4];
@@ -88,12 +89,13 @@ void SpaceGroupChooser::OnListItemActivated(wxCommandEvent&)
     EndModal(wxID_OK);
 }
 
-void SpaceGroupChooser::regenerate_list()
+void SpaceGroupChooser::regenerate_list(const wxString& sel_value)
 {
     list->DeleteAllItems();
-    int sel = system_c->GetSelection();
+    int syst = system_c->GetSelection();
+    int sel_idx = -1;
     for (const SpaceGroupSetting* i = space_group_settings; i->sgnumber; ++i) {
-        if (sel != 0 && get_crystal_system(i->sgnumber) != sel+1)
+        if (syst != 0 && get_crystal_system(i->sgnumber) != syst+1)
             continue;
         switch (i->HM[0]) {
             case 'P': if (!centering_cb[0]->IsChecked()) continue; break;
@@ -107,9 +109,17 @@ void SpaceGroupChooser::regenerate_list()
         }
         int n = list->GetItemCount();
         list->InsertItem(n, wxString::Format(wxT("%d"), i->sgnumber));
-        list->SetItem(n, 1, s2wx(fullHM(i)));
-        list->SetItem(n, 2, pchar2wx(SchoenfliesSymbols[i->sgnumber-1]));
+        wxString hm = s2wx(fullHM(i));
+        list->SetItem(n, 1, hm);
+        wxString schoen(SchoenfliesSymbolsAsUTF8[i->sgnumber-1], wxConvUTF8);
+        list->SetItem(n, 2, schoen);
         list->SetItem(n, 3, pchar2wx(i->Hall));
+        if (hm == sel_value)
+            sel_idx = n;
+    }
+    if (sel_idx != -1) {
+        list->Select(sel_idx, true);
+        list->EnsureVisible(sel_idx);
     }
 }
 

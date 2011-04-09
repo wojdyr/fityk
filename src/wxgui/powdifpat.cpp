@@ -674,7 +674,7 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
 
 void PhasePanel::OnSpaceGroupButton(wxCommandEvent& event)
 {
-    SpaceGroupChooser dlg(this);
+    SpaceGroupChooser dlg(this, sg_tc->GetValue());
     if (dlg.ShowModal() == wxID_OK)
         sg_tc->SetValue(dlg.get_value());
     OnSpaceGroupChanged(event);

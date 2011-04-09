@@ -46,6 +46,7 @@ SpaceGroupSetting;
 extern const ThirdOfSeitzMx seitz_mx_codes[];
 extern const SpaceGroupSetting space_group_settings[];
 extern const char* SchoenfliesSymbols[];
+extern const char* SchoenfliesSymbolsAsUTF8[];
 
 int get_seitz_mx_count(const SpaceGroupSetting *sgs);
 void decode_seitz_mx(char x, char y, char z, SeitzMatrix *sm);

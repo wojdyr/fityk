@@ -12,7 +12,6 @@
 #include <assert.h>
 #include <string.h>
 #include <algorithm>
-//#include <iostream> // debug
 
 using namespace std;
 
