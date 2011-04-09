@@ -27,7 +27,7 @@
 #include "app.h"
 #include "cmn.h"
 #include "frame.h"
-#include "pplot.h"
+#include "plotpane.h"
 #include "dataedit.h" //DataEditorDlg::read_transforms()
 #include "sidebar.h" // initializations
 #include "statbar.h" // initializations

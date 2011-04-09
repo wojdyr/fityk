@@ -27,7 +27,8 @@ libceria_a_SOURCES = ceria.cpp ceria.h atomtables.c atomtables.h \
 
 fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		inputline.cpp inputline.h \
-		listptxt.cpp listptxt.h dload.cpp dload.h pplot.cpp pplot.h \
+		listptxt.cpp listptxt.h dload.cpp dload.h \
+		plotpane.cpp plotpane.h \
 		statbar.cpp statbar.h pane.cpp pane.h sidebar.cpp sidebar.h \
 		history.cpp history.h datatable.cpp datatable.h \
 		dataedit.cpp dataedit.h defmgr.cpp defmgr.h \

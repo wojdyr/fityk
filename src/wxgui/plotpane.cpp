@@ -3,7 +3,7 @@
 
 #include <wx/wx.h>
 
-#include "pplot.h"
+#include "plotpane.h"
 #include "plot.h"
 #include "mplot.h"
 #include "aplot.h"

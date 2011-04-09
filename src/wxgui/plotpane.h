@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK_WX_PPLOT_H_
-#define FITYK_WX_PPLOT_H_
+#ifndef FITYK_WX_PLOTPANE_H_
+#define FITYK_WX_PLOTPANE_H_
 
 #include "cmn.h"  //for MouseModeEnum, ProportionalSplitter
 
@@ -40,4 +40,4 @@ private:
     std::vector<std::string> zoom_hist;
 };
 
-#endif // FITYK_WX_PPLOT_H_
+#endif // FITYK_WX_PLOTPANE_H_

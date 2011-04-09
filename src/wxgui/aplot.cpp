@@ -10,7 +10,7 @@
 
 #include "aplot.h"
 #include "frame.h"
-#include "pplot.h"
+#include "plotpane.h"
 #include "../model.h"
 #include "../func.h"
 #include "../data.h"

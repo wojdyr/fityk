@@ -19,7 +19,7 @@
 #include "gradient.h"
 #include "cmn.h" //SpinCtrl, ProportionalSplitter, change_color_dlg, ...
 #include "frame.h" //frame
-#include "pplot.h"
+#include "plotpane.h"
 #include "mplot.h"
 #include "../common.h" //vector4, join_vector, S(), ...
 #include "../ui.h"

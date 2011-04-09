@@ -10,7 +10,7 @@
 #include <boost/scoped_ptr.hpp>
 
 #include "mplot.h"
-#include "pplot.h"
+#include "plotpane.h"
 #include "frame.h"
 #include "sidebar.h"
 #include "statbar.h" // HintReceiver

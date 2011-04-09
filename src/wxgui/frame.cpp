@@ -42,7 +42,7 @@
 #include "about.h"
 #include "dload.h"
 #include "pane.h"
-#include "pplot.h"
+#include "plotpane.h"
 #include "sidebar.h"
 #include "print.h"
 #include "datatable.h"
