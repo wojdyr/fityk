@@ -20,6 +20,7 @@
 #include <wx/stdpaths.h>
 #include <wx/dir.h>
 #include <wx/filename.h>
+#include <wx/generic/statbmpg.h>
 
 #include "powdifpat.h"
 #include "sgchooser.h"
@@ -47,46 +48,6 @@
 #include "img/sizes32.h"
 
 using namespace std;
-
-
-class StaticBitmap : public wxControl
-{
-public:
-    StaticBitmap(wxWindow *parent, wxBitmap const& bitmap_)
-        : wxControl(parent, -1, wxDefaultPosition, wxDefaultSize,
-                    wxBORDER_NONE),
-          bitmap(bitmap_)
-    {
-        InheritAttributes();
-        SetInitialSize(wxSize(bitmap.GetWidth(), bitmap.GetHeight()));
-        Connect(GetId(), wxEVT_ERASE_BACKGROUND,
-                (wxObjectEventFunction) &StaticBitmap::OnEraseBackground);
-        Connect(GetId(), wxEVT_PAINT,
-                (wxObjectEventFunction) &StaticBitmap::OnPaint);
-    }
-
-    bool ShouldInheritColours() { return true; }
-
-    bool AcceptsFocus() { return false; }
-
-    wxSize DoGetBestSize() const
-           { return wxSize(bitmap.GetWidth(), bitmap.GetHeight()); }
-
-    void OnEraseBackground(wxEraseEvent&) {}
-
-    void OnPaint(wxPaintEvent&)
-    {
-        wxPaintDC dc(this);
-        //DoPrepareDC(dc);
-        PrepareDC(dc);
-        dc.DrawBitmap(bitmap, 0, 0, true);
-    }
-
-private:
-    wxBitmap bitmap;
-};
-
-
 
 class PlotWithLines : public PlotWithTics
 {
@@ -425,7 +386,7 @@ wxPanel* PowderBook::PrepareInstrumentPanel()
     // x corrections
     wxSizer *corr_sizer = new wxStaticBoxSizer(wxVERTICAL, panel,
                                            wxT("corrections (use with care)"));
-    corr_sizer->Add(new StaticBitmap(panel, GET_BMP(correction)),
+    corr_sizer->Add(new wxGenericStaticBitmap(panel, -1, GET_BMP(correction)),
                     wxSizerFlags().Border());
 
     wxSizer *g_sizer = new wxGridSizer(2, 5, 5);
