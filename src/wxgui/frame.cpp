@@ -202,7 +202,7 @@ enum {
     ID_G_S_SIDEB               ,
     ID_G_S_A1                  ,
     ID_G_S_A2                  ,
-    ID_G_S_IO                  ,
+    ID_G_S_TEXT                ,
     ID_G_C_MAIN                ,
     ID_G_C_A1                  ,
     ID_G_C_A2                  ,
@@ -330,7 +330,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_S_SIDEB,     FFrame::OnSwitchSideBar)
     EVT_MENU_RANGE (ID_G_S_A1, ID_G_S_A2, FFrame::OnSwitchAuxPlot)
     EVT_UPDATE_UI_RANGE (ID_G_S_A1, ID_G_S_A2,  FFrame::OnMenuShowAuxUpdate)
-    EVT_MENU (ID_G_S_IO,        FFrame::OnSwitchIOPane)
+    EVT_MENU (ID_G_S_TEXT,      FFrame::OnSwitchTextPane)
     EVT_MENU (ID_G_S_TOOLBAR,   FFrame::OnSwitchToolbar)
     EVT_MENU (ID_G_S_STATBAR,   FFrame::OnSwitchStatbar)
     EVT_MENU_RANGE (ID_G_C_MAIN, ID_G_C_A2, FFrame::OnShowPrefDialog)
@@ -368,11 +368,11 @@ END_EVENT_TABLE()
 FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style),
-      main_pane(NULL), sidebar(NULL), status_bar(NULL), toolbar(NULL)
+      main_pane_(NULL), sidebar_(NULL), status_bar_(NULL), toolbar_(NULL)
 {
     const int default_peak_nr = 7; // Gaussian
     wxConfigBase *config = wxConfig::Get();
-    peak_type_nr = config->Read(wxT("/DefaultFunctionType"), default_peak_nr);
+    peak_type_nr_ = config->Read(wxT("/DefaultFunctionType"), default_peak_nr);
     update_peak_type_list();
     // Load icon and bitmap
     SetIcon (wxICON (fityk));
@@ -383,44 +383,44 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 
     //sizer, splitters, etc.
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    v_splitter = new ProportionalSplitter(this);
-    main_pane = new ProportionalSplitter(v_splitter);
-    plot_pane_ = new PlotPane(main_pane);
-    io_pane = new IOPane(main_pane);
-    main_pane->SplitHorizontally(plot_pane_, io_pane);
-    sidebar = new SideBar(v_splitter);
-    sidebar->Show(false);
-    v_splitter->Initialize(main_pane);
-    sizer->Add(v_splitter, 1, wxEXPAND, 0);
+    v_splitter_ = new ProportionalSplitter(this);
+    main_pane_ = new ProportionalSplitter(v_splitter_);
+    plot_pane_ = new PlotPane(main_pane_);
+    text_pane_ = new TextPane(main_pane_);
+    main_pane_->SplitHorizontally(plot_pane_, text_pane_);
+    sidebar_ = new SideBar(v_splitter_);
+    sidebar_->Show(false);
+    v_splitter_->Initialize(main_pane_);
+    sizer->Add(v_splitter_, 1, wxEXPAND, 0);
 
     read_recent_data_files();
     set_menubar();
 
-    toolbar = new FToolBar(this, -1);
-    toolbar->update_peak_type(peak_type_nr, &peak_types);
-    SetToolBar(toolbar);
+    toolbar_ = new FToolBar(this, -1);
+    toolbar_->update_peak_type(peak_type_nr_, &peak_types_);
+    SetToolBar(toolbar_);
 
     //status bar
-    status_bar = new FStatusBar(this);
-    sizer->Add(status_bar, 0, wxEXPAND, 0);
+    status_bar_ = new FStatusBar(this);
+    sizer->Add(status_bar_, 0, wxEXPAND, 0);
 
     SetSizer(sizer);
     sizer->SetSizeHints(this);
 
-    print_mgr = new PrintManager(plot_pane_);
+    print_mgr_ = new PrintManager(plot_pane_);
 
     update_menu_functions();
     update_menu_saved_transforms();
     update_menu_recent_baselines();
-    get_main_plot()->set_hint_receiver(status_bar);
-    io_pane->SetFocus();
+    get_main_plot()->set_hint_receiver(status_bar_);
+    text_pane_->SetFocus();
 }
 
 FFrame::~FFrame()
 {
     write_recent_data_files();
-    wxConfig::Get()->Write(wxT("/DefaultFunctionType"), peak_type_nr);
-    delete print_mgr;
+    wxConfig::Get()->Write(wxT("/DefaultFunctionType"), peak_type_nr_);
+    delete print_mgr_;
 #ifdef __WXMAC__
     // On wxCarbon 2.9.2svn assertion pops up on exit
     // (from wxObject::CreateRefData src/common/object.cpp:418).
@@ -436,25 +436,25 @@ void FFrame::OnQuit(wxCommandEvent&)
 
 void FFrame::update_peak_type_list()
 {
-    peak_types.clear();
+    peak_types_.clear();
     v_foreach(Tplate::Ptr, i, ftk->get_tpm()->tpvec())
-        peak_types.push_back((*i)->name);
-    if (peak_type_nr >= size(peak_types))
-        peak_type_nr = 0;
-    if (toolbar)
-        toolbar->update_peak_type(peak_type_nr, &peak_types);
+        peak_types_.push_back((*i)->name);
+    if (peak_type_nr_ >= size(peak_types_))
+        peak_type_nr_ = 0;
+    if (toolbar_)
+        toolbar_->update_peak_type(peak_type_nr_, &peak_types_);
 }
 
 
 void FFrame::read_recent_data_files()
 {
-    recent_data_files.clear();
+    recent_data_files_.clear();
     wxConfigBase *c = wxConfig::Get();
     if (c && c->HasGroup(wxT("/RecentDataFiles"))) {
         for (int i = 0; i < 20; i++) {
             wxString key = wxString::Format(wxT("/RecentDataFiles/%i"), i);
             if (c->HasEntry(key))
-                recent_data_files.push_back(wxFileName(c->Read(key, wxT(""))));
+                recent_data_files_.push_back(wxFileName(c->Read(key, wxT(""))));
         }
     }
 }
@@ -468,8 +468,8 @@ void FFrame::write_recent_data_files()
     if (c->HasGroup(group))
         c->DeleteGroup(group);
     int counter = 0;
-    for (list<wxFileName>::const_iterator i = recent_data_files.begin();
-         i != recent_data_files.end() && counter < 9;
+    for (list<wxFileName>::const_iterator i = recent_data_files_.begin();
+         i != recent_data_files_.end() && counter < 9;
          i++, counter++) {
         wxString key = group + wxT("/") + s2wx(S(counter));
         c->Write(key, i->GetFullPath());
@@ -481,8 +481,8 @@ void FFrame::add_recent_data_file(string const& filename)
     int const count = data_menu_recent->GetMenuItemCount();
     wxMenuItemList const& mlist = data_menu_recent->GetMenuItems();
     wxFileName const fn = wxFileName(s2wx(filename));
-    recent_data_files.remove(fn);
-    recent_data_files.push_front(fn);
+    recent_data_files_.remove(fn);
+    recent_data_files_.push_front(fn);
     int id_new = 0;
 	for (wxMenuItemList::compatibility_iterator i = mlist.GetFirst(); i;
                                                             i = i->GetNext())
@@ -507,10 +507,10 @@ void FFrame::read_all_settings(wxConfigBase *cf)
 {
     read_settings(cf);
     plot_pane_->read_settings(cf);
-    io_pane->output_win->read_settings(cf);
-    status_bar->read_settings(cf);
-    sidebar->read_settings(cf);
-    sidebar->update_lists();
+    text_pane_->output_win->read_settings(cf);
+    status_bar_->read_settings(cf);
+    sidebar_->read_settings(cf);
+    sidebar_->update_lists();
 }
 
 void FFrame::read_settings(wxConfigBase *cf)
@@ -526,12 +526,12 @@ void FFrame::read_settings(wxConfigBase *cf)
     int w = cf->Read(wxT("w"), default_w),
         h = cf->Read(wxT("h"), default_h);
     SetSize(w, h);
-    v_splitter->SetProportion(
+    v_splitter_->SetProportion(
                         cfg_read_double(cf, wxT("VertSplitProportion"), 0.75));
     SwitchSideBar(cfg_read_bool(cf, wxT("ShowSideBar"), true));
-    main_pane->SetProportion(
+    main_pane_->SetProportion(
                         cfg_read_double(cf, wxT("MainPaneProportion"), 0.84));
-    SwitchIOPane(cfg_read_bool(cf, wxT("ShowIOPane"), true));
+    SwitchTextPane(cfg_read_bool(cf, wxT("ShowTextPane"), true));
     SwitchCrosshair(cfg_read_bool(cf, wxT("ShowCrosshair"), false));
     antialias_ = cfg_read_bool(cf, wxT("AntiAliasing"), true);
     GetMenuBar()->Check(ID_G_ANTIALIAS, antialias_);
@@ -544,20 +544,20 @@ void FFrame::save_all_settings(wxConfigBase *cf) const
     cf->Write(wxT("/FitykVersion"), pchar2wx(VERSION));
     save_settings(cf);
     plot_pane_->save_settings(cf);
-    io_pane->output_win->save_settings(cf);
-    status_bar->save_settings(cf);
-    sidebar->save_settings(cf);
+    text_pane_->output_win->save_settings(cf);
+    status_bar_->save_settings(cf);
+    sidebar_->save_settings(cf);
 }
 
 void FFrame::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath(wxT("/Frame"));
-    cf->Write(wxT("ShowToolbar"), toolbar != 0);
-    cf->Write(wxT("ShowStatbar"), status_bar != 0);
-    cf->Write(wxT("VertSplitProportion"), v_splitter->GetProportion());
-    cf->Write(wxT("ShowSideBar"), v_splitter->IsSplit());
-    cf->Write(wxT("MainPaneProportion"), main_pane->GetProportion());
-    cf->Write(wxT("ShowIOPane"), main_pane->IsSplit());
+    cf->Write(wxT("ShowToolbar"), toolbar_ != 0);
+    cf->Write(wxT("ShowStatbar"), status_bar_ != 0);
+    cf->Write(wxT("VertSplitProportion"), v_splitter_->GetProportion());
+    cf->Write(wxT("ShowSideBar"), v_splitter_->IsSplit());
+    cf->Write(wxT("MainPaneProportion"), main_pane_->GetProportion());
+    cf->Write(wxT("ShowTextPane"), main_pane_->IsSplit());
     cf->Write(wxT("ShowCrosshair"), get_main_plot()->crosshair_cursor());
     cf->Write(wxT("AntiAliasing"), antialias_);
     cf->Write(wxT("ShowY0"), ftk->view.y0_factor());
@@ -634,8 +634,8 @@ void FFrame::set_menubar()
               wxT("Load data from file, with some options"));
     this->data_menu_recent = new wxMenu;
     int rf_counter = 1;
-    for (list<wxFileName>::const_iterator i = recent_data_files.begin();
-         i != recent_data_files.end() && rf_counter < 16; i++, rf_counter++)
+    for (list<wxFileName>::const_iterator i = recent_data_files_.begin();
+         i != recent_data_files_.end() && rf_counter < 16; i++, rf_counter++)
         data_menu_recent->Append(ID_D_RECENT + rf_counter,
                                  i->GetFullName(), i->GetFullPath());
     data_menu->Append(ID_D_RECENT, wxT("&Recent Files"), data_menu_recent);
@@ -644,8 +644,8 @@ void FFrame::set_menubar()
     data_menu->AppendSeparator();
 
     data_menu->Append (ID_D_TABLE, wxT("T&able"), wxT("Data Table"));
-    this->data_ft_menu = new wxMenu;
-    data_menu->Append (ID_D_SDT, wxT("&Transformations"), data_ft_menu,
+    this->data_ft_menu_ = new wxMenu;
+    data_menu->Append (ID_D_SDT, wxT("&Transformations"), data_ft_menu_,
                                  wxT("Custom data transformations"));
     data_menu->Append (ID_D_EDITOR, wxT("E&dit Transformations..."),
                                     wxT("Open editor of data operations"));
@@ -663,8 +663,8 @@ void FFrame::set_menubar()
               wxT("&Export\tCtrl-S"), wxT("Save data to file"));
 
     wxMenu* sum_menu = new wxMenu;
-    func_type_menu = new wxMenu;
-    sum_menu->Append (ID_G_M_PEAK, wxT("Function &Type"), func_type_menu);
+    func_type_menu_ = new wxMenu;
+    sum_menu->Append (ID_G_M_PEAK, wxT("Function &Type"), func_type_menu_);
     // the function list is created in update_menu_functions()
     append_mi(sum_menu, ID_DEFMGR, GET_BMP(function16),
               wxT("&Definition Manager"), wxT("Add or modify funtion types"));
@@ -757,9 +757,9 @@ void FFrame::set_menubar()
     gui_menu_show->AppendCheckItem (ID_G_S_A2, wxT("A&uxiliary Plot 2"),
                                     wxT("Show/hide auxiliary plot II"));
     gui_menu_show->Check(ID_G_S_A2, false);
-    gui_menu_show->AppendCheckItem (ID_G_S_IO, wxT("&Input/Output Text Pane"),
+    gui_menu_show->AppendCheckItem (ID_G_S_TEXT, wxT("&Input/Output Text Pane"),
                                     wxT("Show/hide text input/output"));
-    gui_menu_show->Check(ID_G_S_IO, true);
+    gui_menu_show->Check(ID_G_S_TEXT, true);
     gui_menu->Append(ID_G_SHOW, wxT("S&how"), gui_menu_show);
 
     wxMenu* gui_menu_config = new wxMenu;
@@ -1055,9 +1055,9 @@ void FFrame::OnDataEditor (wxCommandEvent&)
 void FFrame::update_menu_saved_transforms()
 {
     // delete old items
-    int item_count = data_ft_menu->GetMenuItemCount();
+    int item_count = data_ft_menu_->GetMenuItemCount();
     for (int i = 0; i != item_count; ++i)
-        data_ft_menu->Delete(ID_D_SDT+i+1);
+        data_ft_menu_->Delete(ID_D_SDT+i+1);
     // create new items
     const vector<DataTransform> &all = EditTransDlg::get_transforms();
     int counter = 0;
@@ -1065,7 +1065,7 @@ void FFrame::update_menu_saved_transforms()
                                                         i != all.end(); ++i)
         if (i->in_menu) {
             ++counter;
-            data_ft_menu->Append(ID_D_SDT+counter, i->name, i->description);
+            data_ft_menu_->Append(ID_D_SDT+counter, i->name, i->description);
         }
 }
 
@@ -1315,7 +1315,7 @@ void FFrame::OnInclude (wxCommandEvent&)
                        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
         ftk->exec("exec '" + wx2s(fdlg.GetPath()) + "'");
-        last_include_path = wx2s(fdlg.GetPath());
+        last_include_path_ = wx2s(fdlg.GetPath());
         GetMenuBar()->Enable(ID_SESSION_REINCLUDE, true);
     }
     script_dir_ = fdlg.GetDirectory();
@@ -1323,7 +1323,7 @@ void FFrame::OnInclude (wxCommandEvent&)
 
 void FFrame::OnReInclude (wxCommandEvent&)
 {
-    ftk->exec("reset; exec '" + last_include_path + "'");
+    ftk->exec("reset; exec '" + last_include_path_ + "'");
 }
 
 void FFrame::show_editor(wxString const& path)
@@ -1366,9 +1366,9 @@ void FFrame::change_mouse_mode(MouseModeEnum mode)
     int tool_ids[] = { ID_T_ZOOM, ID_T_BG, ID_T_ADD, ID_T_RANGE };
     int idx = mode;
     GetMenuBar()->Check(menu_ids[idx], true);
-    if (toolbar)
-        toolbar->ToggleTool(tool_ids[idx], true);
-    toolbar->EnableTool(ID_T_STRIP, (mode == mmd_bg));
+    if (toolbar_)
+        toolbar_->ToggleTool(tool_ids[idx], true);
+    toolbar_->EnableTool(ID_T_STRIP, (mode == mmd_bg));
     get_main_plot()->set_mouse_mode(mode);
 }
 
@@ -1397,8 +1397,8 @@ void FFrame::OnChangeMouseMode (wxCommandEvent& event)
 
 void FFrame::update_menu_functions()
 {
-    size_t cnt = this->func_type_menu->GetMenuItemCount();
-    size_t pcnt = peak_types.size();
+    size_t cnt = func_type_menu_->GetMenuItemCount();
+    size_t pcnt = peak_types_.size();
 
     // in wxGTK 2.9 (svn 11.2007) in wxMenu::GtkAppend() m_prevRadio is stored
     // and adding radio-item to menu when the last added radio-item is already
@@ -1409,29 +1409,29 @@ void FFrame::update_menu_functions()
         was_deleted = true;
     else if (pcnt > cnt && was_deleted) {
         for (size_t i = 0; i < cnt; i++)
-            func_type_menu->Destroy(ID_G_M_PEAK_N+i);
+            func_type_menu_->Destroy(ID_G_M_PEAK_N+i);
         cnt = 0;
         was_deleted = false;
     }
     // -- end of the workaround
 
     for (size_t i = 0; i < min(pcnt, cnt); i++)
-        if (func_type_menu->GetLabel(ID_G_M_PEAK_N+i) != s2wx(peak_types[i]))
-            func_type_menu->SetLabel(ID_G_M_PEAK_N+i, s2wx(peak_types[i]));
+        if (func_type_menu_->GetLabel(ID_G_M_PEAK_N+i) != s2wx(peak_types_[i]))
+            func_type_menu_->SetLabel(ID_G_M_PEAK_N+i, s2wx(peak_types_[i]));
     for (size_t i = cnt; i < pcnt; i++)
-        func_type_menu->AppendRadioItem(ID_G_M_PEAK_N+i, s2wx(peak_types[i]));
+        func_type_menu_->AppendRadioItem(ID_G_M_PEAK_N+i, s2wx(peak_types_[i]));
     for (size_t i = pcnt; i < cnt; i++)
-        func_type_menu->Destroy(ID_G_M_PEAK_N+i);
+        func_type_menu_->Destroy(ID_G_M_PEAK_N+i);
 
-    func_type_menu->Check(ID_G_M_PEAK_N + peak_type_nr, true);
-    func_type_menu->UpdateUI();
+    func_type_menu_->Check(ID_G_M_PEAK_N + peak_type_nr_, true);
+    func_type_menu_->UpdateUI();
 }
 
 void FFrame::OnChangePeakType(wxCommandEvent& event)
 {
-    peak_type_nr = event.GetId() - ID_G_M_PEAK_N;
-    if (toolbar)
-        toolbar->update_peak_type(peak_type_nr);
+    peak_type_nr_ = event.GetId() - ID_G_M_PEAK_N;
+    if (toolbar_)
+        toolbar_->update_peak_type(peak_type_nr_, NULL);
 }
 
 void FFrame::OnMenuBgStripUpdate(wxUpdateUIEvent& event)
@@ -1492,39 +1492,39 @@ void FFrame::OnSplineBg(wxCommandEvent& event)
 void FFrame::SwitchToolbar(bool show)
 {
     if (show && !GetToolBar()) {
-        toolbar = new FToolBar(this, -1);
-        SetToolBar(toolbar);
+        toolbar_ = new FToolBar(this, -1);
+        SetToolBar(toolbar_);
         update_toolbar();
         update_peak_type_list();
-        //toolbar->ToggleTool(ID_T_BAR, v_splitter->IsSplit());
+        //toolbar_->ToggleTool(ID_T_BAR, v_splitter_->IsSplit());
     }
     else if (!show && GetToolBar()){
-        SetToolBar(0);
-        delete toolbar;
-        toolbar = 0;
+        SetToolBar(NULL);
+        delete toolbar_;
+        toolbar_ = NULL;
     }
     GetMenuBar()->Check(ID_G_S_TOOLBAR, show);
 }
 
 void FFrame::SwitchStatbar (bool show)
 {
-    status_bar->Show(show);
+    status_bar_->Show(show);
     GetMenuBar()->Check(ID_G_S_STATBAR, show);
 }
 
 void FFrame::SwitchSideBar(bool show)
 {
-    //v_splitter->IsSplit() means sidebar is visible
-    if (show && !v_splitter->IsSplit()) {
-        sidebar->Show(true);
-        v_splitter->SplitVertically(main_pane, sidebar);
+    //v_splitter_->IsSplit() means sidebar_ is visible
+    if (show && !v_splitter_->IsSplit()) {
+        sidebar_->Show(true);
+        v_splitter_->SplitVertically(main_pane_, sidebar_);
     }
-    else if (!show && v_splitter->IsSplit()) {
-        v_splitter->Unsplit();
+    else if (!show && v_splitter_->IsSplit()) {
+        v_splitter_->Unsplit();
     }
     GetMenuBar()->Check(ID_G_S_SIDEB, show);
-    //if (toolbar)
-    //    toolbar->ToggleTool(ID_T_BAR, show);
+    //if (toolbar_)
+    //    toolbar_->ToggleTool(ID_T_BAR, show);
 }
 
 void FFrame::OnSwitchAuxPlot(wxCommandEvent& ev)
@@ -1532,18 +1532,18 @@ void FFrame::OnSwitchAuxPlot(wxCommandEvent& ev)
     plot_pane_->show_aux(ev.GetId() - ID_G_S_A1, ev.IsChecked());
 }
 
-void FFrame::SwitchIOPane (bool show)
+void FFrame::SwitchTextPane(bool show)
 {
-    //main_pane->IsSplit() means io_pane is visible
-    if (show && !main_pane->IsSplit()) {
-        io_pane->Show(true);
-        main_pane->SplitHorizontally(plot_pane_, io_pane);
+    //main_pane_->IsSplit() means text_pane_ is visible
+    if (show && !main_pane_->IsSplit()) {
+        text_pane_->Show(true);
+        main_pane_->SplitHorizontally(plot_pane_, text_pane_);
     }
-    else if (!show && main_pane->IsSplit()) {
-        main_pane->Unsplit();
+    else if (!show && main_pane_->IsSplit()) {
+        main_pane_->Unsplit();
     }
-    GetMenuBar()->Check(ID_G_S_IO, show);
-    //if (toolbar) toolbar->ToggleTool(ID_T_..., show);
+    GetMenuBar()->Check(ID_G_S_TEXT, show);
+    //if (toolbar_) toolbar_->ToggleTool(ID_T_..., show);
 }
 
 void FFrame::OnShowPrefDialog(wxCommandEvent& ev)
@@ -1556,13 +1556,13 @@ void FFrame::OnShowPrefDialog(wxCommandEvent& ev)
 
 void FFrame::OnConfigureStatusBar(wxCommandEvent& event)
 {
-    if (status_bar)
-        status_bar->OnPrefButton(event);
+    if (status_bar_)
+        status_bar_->OnPrefButton(event);
 }
 
 void FFrame::OnConfigureOutputWin(wxCommandEvent&)
 {
-    io_pane->output_win->show_preferences_dialog();
+    text_pane_->output_win->show_preferences_dialog();
 }
 
 void FFrame::SwitchCrosshair (bool show)
@@ -1670,7 +1670,7 @@ void FFrame::change_zoom(const RealRange& h, const RealRange& v)
     plot_pane_->zoom_forward();
     string cmd = "plot " + format_range(h) + " " + format_range(v);
     if (h.from_inf() || h.to_inf() || v.from_inf() || v.to_inf())
-        cmd += sidebar->get_sel_datasets_as_string();
+        cmd += sidebar_->get_sel_datasets_as_string();
     ftk->exec(cmd);
 }
 
@@ -1770,22 +1770,22 @@ void FFrame::OnConfigX (wxCommandEvent& event)
 
 void FFrame::OnPrintPreview(wxCommandEvent&)
 {
-    print_mgr->printPreview();
+    print_mgr_->printPreview();
 }
 
 void FFrame::OnPageSetup(wxCommandEvent&)
 {
-    print_mgr->pageSetup();
+    print_mgr_->pageSetup();
 }
 
 void FFrame::OnPrint(wxCommandEvent&)
 {
-    print_mgr->print();
+    print_mgr_->print();
 }
 
 void FFrame::OnPrintPSFile(wxCommandEvent&)
 {
-    print_mgr->print_to_psfile();
+    print_mgr_->print_to_psfile();
 }
 
 void FFrame::OnPrintToClipboard(wxCommandEvent&)
@@ -1793,7 +1793,7 @@ void FFrame::OnPrintToClipboard(wxCommandEvent&)
 #if wxUSE_METAFILE
     wxMetafileDC dc;
     if (dc.IsOk()) {
-        do_print_plots(&dc, print_mgr);
+        do_print_plots(&dc, print_mgr_);
         wxMetafile *mf = dc.Close();
         if (mf) {
             mf->SetClipboard(dc.MaxX() + 10, dc.MaxY() + 10);
@@ -1820,52 +1820,52 @@ void FFrame::OnSaveAsImage(wxCommandEvent&)
 
 string FFrame::get_peak_type() const
 {
-    if (peak_type_nr >= (int) ftk->get_tpm()->tpvec().size())
+    if (peak_type_nr_ >= (int) ftk->get_tpm()->tpvec().size())
         return "";
-    return ftk->get_tpm()->tpvec()[peak_type_nr]->name;
+    return ftk->get_tpm()->tpvec()[peak_type_nr_]->name;
 }
 
 void FFrame::set_status_text(std::string const& text)
 {
-    if (status_bar)
-        status_bar->set_text(s2wx(text));
+    if (status_bar_)
+        status_bar_->set_text(s2wx(text));
 }
 
 void FFrame::set_status_coords(double x, double y, PlotTypeEnum pte)
 {
-    if (status_bar)
-        status_bar->set_coords(x, y, pte);
+    if (status_bar_)
+        status_bar_->set_coords(x, y, pte);
 }
 
 void FFrame::clear_status_coords()
 {
-    if (status_bar)
-        status_bar->clear_coords();
+    if (status_bar_)
+        status_bar_->clear_coords();
 }
 
 void FFrame::output_text(UserInterface::Style style, const string& str)
 {
-    io_pane->output_win->append_text(style, s2wx(str));
+    text_pane_->output_win->append_text(style, s2wx(str));
 }
 
 void FFrame::focus_input(wxKeyEvent& event)
 {
     if (should_focus_input(event))
-        io_pane->input_field->RedirectKeyPress(event);
+        text_pane_->input_field->RedirectKeyPress(event);
     else
         event.Skip();
 }
 
 void FFrame::edit_in_input(string const& s)
 {
-    io_pane->edit_in_input(s);
+    text_pane_->edit_in_input(s);
 }
 
 /// here we update all GUI buttons, lists etc. that can be changed
 /// after execCommand() and can't be updated in another way
 void FFrame::after_cmd_updates()
 {
-    sidebar->update_lists(false);
+    sidebar_->update_lists(false);
     update_peak_type_list();
     update_menu_functions();
     update_menu_previous_zooms();
@@ -1874,23 +1874,23 @@ void FFrame::after_cmd_updates()
 
 void FFrame::update_toolbar()
 {
-    if (!toolbar)
+    if (!toolbar_)
         return;
     BgManager* bgm = get_main_plot()->bgm();
-    toolbar->ToggleTool(ID_T_STRIP, bgm->has_fn() && bgm->stripped());
-    toolbar->EnableTool(ID_T_RUN, !ftk->parameters().empty());
-    toolbar->EnableTool(ID_T_UNDO, ftk->get_fit_container()->can_undo());
-    toolbar->EnableTool(ID_T_PZ, !plot_pane_->get_zoom_hist().empty());
+    toolbar_->ToggleTool(ID_T_STRIP, bgm->has_fn() && bgm->stripped());
+    toolbar_->EnableTool(ID_T_RUN, !ftk->parameters().empty());
+    toolbar_->EnableTool(ID_T_UNDO, ftk->get_fit_container()->can_undo());
+    toolbar_->EnableTool(ID_T_PZ, !plot_pane_->get_zoom_hist().empty());
 }
 
 int FFrame::get_focused_data_index()
 {
-    return sidebar->get_focused_data();
+    return sidebar_->get_focused_data();
 }
 
 vector<int> FFrame::get_selected_data_indices()
 {
-    return sidebar->get_selected_data_indices();
+    return sidebar_->get_selected_data_indices();
 }
 
 string FFrame::get_datasets()
@@ -1964,12 +1964,12 @@ MainPlot const* FFrame::get_main_plot() const
 
 void FFrame::update_data_pane()
 {
-    sidebar->update_lists();
+    sidebar_->update_lists();
 }
 
 void FFrame::activate_function(int n)
 {
-    sidebar->activate_function(n);
+    sidebar_->activate_function(n);
 }
 
 void FFrame::update_app_title()
@@ -1987,13 +1987,13 @@ void FFrame::update_app_title()
 // Implementation based on wxFrameBase::DoGiveHelp(), see comments there.
 void FFrame::DoGiveHelp(const wxString& help, bool show)
 {
-    if (!status_bar)
+    if (!status_bar_)
         return;
 
     wxString text;
     if (show) {
         if (m_oldStatusText.empty()) {
-            m_oldStatusText = status_bar->get_text();
+            m_oldStatusText = status_bar_->get_text();
             if (m_oldStatusText.empty()) {
                 // use special value to prevent us from doing this the next time
                 m_oldStatusText += _T('\0');
@@ -2005,7 +2005,7 @@ void FFrame::DoGiveHelp(const wxString& help, bool show)
         text = m_oldStatusText;
         m_oldStatusText.clear();
     }
-    status_bar->set_text(text);
+    status_bar_->set_text(text);
 }
 
 //===============================================================
@@ -2125,7 +2125,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
 void FToolBar::OnPeakChoice(wxCommandEvent &event)
 {
     if (frame)
-        frame->peak_type_nr = event.GetSelection();
+        frame->peak_type_nr_ = event.GetSelection();
 }
 
 void FToolBar::update_peak_type(int nr, vector<string> const* peak_types)
@@ -2190,10 +2190,10 @@ void FToolBar::OnToolEnter(wxCommandEvent& event)
         if (len == 0)
             return;
         g.initialize(dm, 0, len, -1);
-        if (frame->peak_type_nr >= (int) ftk->get_tpm()->tpvec().size())
+        if (frame->peak_type_nr_ >= (int) ftk->get_tpm()->tpvec().size())
             return;
         string info;
-        if (ftk->get_tpm()->tpvec()[frame->peak_type_nr]->peak_d) {
+        if (ftk->get_tpm()->tpvec()[frame->peak_type_nr_]->peak_d) {
             boost::array<double,4> peak_v = g.estimate_peak_parameters();
             for (int i = 0; i != 4; ++i)
                 info += (i != 0 ? ", " : "")

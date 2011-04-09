@@ -38,10 +38,10 @@ private:
 
 
 /// A pane containing input line and output window.
-class IOPane : public wxPanel, public InputLineObserver
+class TextPane : public wxPanel, public InputLineObserver
 {
 public:
-    IOPane(wxWindow *parent, wxWindowID id=-1);
+    TextPane(wxWindow *parent);
     void edit_in_input(std::string const& s);
 
     // implementation of InputLineObserver

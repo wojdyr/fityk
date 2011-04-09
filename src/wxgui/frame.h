@@ -15,7 +15,7 @@ class ApplicationLogic;
 class FDXLoadDlg;
 class PlotPane;
 class MainPlot;
-class IOPane;
+class TextPane;
 class SideBar;
 class ProportionalSplitter;
 class DataEditorDlg;
@@ -32,7 +32,7 @@ class FToolBar : public wxToolBar
 {
 public:
     FToolBar (wxFrame *parent, wxWindowID id);
-    void update_peak_type(int nr, std::vector<std::string> const* peak_types=0);
+    void update_peak_type(int nr, std::vector<std::string> const* peak_types);
 
     void OnPeakChoice (wxCommandEvent& event);
     void OnChangeMouseMode (wxCommandEvent& event);
@@ -147,8 +147,8 @@ public:
     void SwitchSideBar(bool show);
     void OnSwitchSideBar(wxCommandEvent& ev) {SwitchSideBar(ev.IsChecked());}
     void OnSwitchAuxPlot(wxCommandEvent& ev);
-    void SwitchIOPane(bool show);
-    void OnSwitchIOPane(wxCommandEvent& ev) {SwitchIOPane(ev.IsChecked());}
+    void SwitchTextPane(bool show);
+    void OnSwitchTextPane(wxCommandEvent& ev) {SwitchTextPane(ev.IsChecked());}
     void SwitchToolbar(bool show);
     void OnSwitchToolbar(wxCommandEvent& ev) {SwitchToolbar(ev.IsChecked());}
     void SwitchStatbar(bool show);
@@ -167,7 +167,7 @@ public:
     void save_settings(wxConfigBase *cf) const;
     void read_all_settings(wxConfigBase *cf);
     void read_settings(wxConfigBase *cf);
-    const FToolBar* get_toolbar() const { return toolbar; }
+    const FToolBar* get_toolbar() const { return toolbar_; }
     std::string get_peak_type() const;
     void set_status_text(std::string const& text);
     void set_status_coords(double x, double y, PlotTypeEnum pte);
@@ -189,8 +189,8 @@ public:
     MainPlot* get_main_plot();
     MainPlot const* get_main_plot() const;
     void update_data_pane();
-    SideBar const* get_sidebar() const { return sidebar; }
-    SideBar* get_sidebar() { return sidebar; }
+    SideBar const* get_sidebar() const { return sidebar_; }
+    SideBar* get_sidebar() { return sidebar_; }
     void activate_function(int n);
     void update_app_title();
     void add_recent_data_file(std::string const& filename);
@@ -203,20 +203,20 @@ public:
     bool antialias() const { return antialias_; }
 
 private:
-    ProportionalSplitter *main_pane;
+    ProportionalSplitter *v_splitter_;
+    ProportionalSplitter *main_pane_;
     PlotPane *plot_pane_;
-    IOPane *io_pane;
-    SideBar *sidebar;
-    FStatusBar *status_bar;
+    TextPane *text_pane_;
+    SideBar *sidebar_;
+    FStatusBar *status_bar_;
+    FToolBar *toolbar_;
 
-    int peak_type_nr;
-    std::vector<std::string> peak_types;
-    FToolBar *toolbar;
-    ProportionalSplitter *v_splitter;
-    PrintManager* print_mgr;
-    std::string last_include_path;
-    std::list<wxFileName> recent_data_files;
-    wxMenu *data_menu_recent, *data_ft_menu, *func_type_menu;
+    int peak_type_nr_;
+    std::vector<std::string> peak_types_;
+    PrintManager* print_mgr_;
+    std::string last_include_path_;
+    std::list<wxFileName> recent_data_files_;
+    wxMenu *data_menu_recent, *data_ft_menu_, *func_type_menu_;
     wxString script_dir_, data_dir_, export_dir_;
     bool antialias_;
 

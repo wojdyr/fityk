@@ -46,11 +46,11 @@ private:
 
 
 //===============================================================
-//                            IOPane
+//                            TextPane
 //===============================================================
 
-IOPane::IOPane(wxWindow *parent, wxWindowID id)
-    : wxPanel(parent, id)
+TextPane::TextPane(wxWindow *parent)
+    : wxPanel(parent, -1)
 {
     wxBoxSizer *io_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -65,13 +65,13 @@ IOPane::IOPane(wxWindow *parent, wxWindowID id)
     io_sizer->SetSizeHints(this);
 }
 
-void IOPane::edit_in_input(string const& s)
+void TextPane::edit_in_input(string const& s)
 {
     input_field->SetValue(s2wx(s));
     input_field->SetFocus();
 }
 
-void IOPane::ProcessInputLine(wxString const& s)
+void TextPane::ProcessInputLine(wxString const& s)
 {
     frame->set_status_text(wx2s(s));
     ftk->exec(wx2s(s)); //displaying and executing command
@@ -170,7 +170,7 @@ void OutputWin::OnClear (wxCommandEvent&)
 
 void OutputWin::OnEditLine (wxCommandEvent&)
 {
-    InputLine *input_field = static_cast<IOPane*>(GetParent())->input_field;
+    InputLine *input_field = static_cast<TextPane*>(GetParent())->input_field;
     input_field->SetValue(selection_);
     input_field->SetFocus();
 }

@@ -225,10 +225,10 @@ bool FApp::OnInit(void)
     frame->Show(true);
 
     // sash inside wxNoteBook can have wrong position (eg. wxGTK 2.7.1)
-    frame->sidebar->read_settings(cf);
+    frame->sidebar_->read_settings(cf);
     // sash on the status bar is also in the wrong place (wxGTK),
     // because for some reason wxSplitterWindow had width=0 before Show()
-    frame->status_bar->read_settings(cf);
+    frame->status_bar_->read_settings(cf);
 
     delete cf;
 
