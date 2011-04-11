@@ -66,6 +66,7 @@ PreviewPlot::PreviewPlot(wxWindow* parent)
       data_updated_(false)
 {
     set_bg_color(*wxBLACK);
+    support_antialiasing_ = false;
 }
 
 void PreviewPlot::draw(wxDC &dc, bool)

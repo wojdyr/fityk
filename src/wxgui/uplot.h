@@ -44,10 +44,12 @@ public:
     /// get background color
     wxColour const& get_bg_color() const { return bg_color_; }
 
+protected:
+    bool support_antialiasing_;
 private:
+    bool dirty_;
     wxMemoryDC memory_dc_;
     wxBitmap buffer_;
-    bool dirty_;
     wxColour bg_color_;
 
     bool resize_buffer(wxDC &dc);

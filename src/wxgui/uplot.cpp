@@ -21,7 +21,7 @@ using namespace std;
 BufferedPanel::BufferedPanel(wxWindow *parent)
    : wxPanel(parent, -1, wxDefaultPosition, wxDefaultSize,
              wxNO_BORDER|wxFULL_REPAINT_ON_RESIZE),
-     dirty_(true)
+     support_antialiasing_(true), dirty_(true)
 {
     SetBackgroundStyle(wxBG_STYLE_CUSTOM);
     Connect(wxEVT_IDLE, wxIdleEventHandler(BufferedPanel::OnIdle));
@@ -53,7 +53,7 @@ void BufferedPanel::update_buffer_and_blit()
     if (dirty_) {
         memory_dc_.SetLogicalFunction(wxCOPY);
         memory_dc_.Clear();
-        if (antialias()) {
+        if (antialias() && support_antialiasing_) {
             wxGCDC gdc(memory_dc_);
             draw(gdc);
         }
