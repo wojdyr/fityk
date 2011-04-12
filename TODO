@@ -1,6 +1,4 @@
 
-* GUI: use wxFileCtrl in custom open-file dialog (xybrowser.cpp) (wx3)
-
 * GUI: a single dialog for Model > Export... options and for "info models"
 
 * GUI: definition mgr - checkbox - show in the list on toolbar

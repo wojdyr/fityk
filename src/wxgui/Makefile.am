@@ -26,8 +26,8 @@ libceria_a_SOURCES = ceria.cpp ceria.h atomtables.c atomtables.h \
 		     sgtables.c sgtables.h
 
 fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
-		inputline.cpp inputline.h \
-		listptxt.cpp listptxt.h dload.cpp dload.h \
+		inputline.cpp inputline.h listptxt.cpp listptxt.h \
+		dload.cpp dload.h xybrowser.cpp xybrowser.h \
 		plotpane.cpp plotpane.h textpane.cpp textpane.h \
 		statbar.cpp statbar.h sidebar.cpp sidebar.h \
 		history.cpp history.h datatable.cpp datatable.h \
@@ -46,7 +46,7 @@ fityk_LDADD = ../libfityk.la libceria.a -lxy $(WX_LIBS) $(fityk_res)
 
 if XYCONVERT
 bin_PROGRAMS += xyconvert
-xyconvert_SOURCES = xybrowser.cpp uplot.cpp uplot.h cmn.cpp cmn.h
+xyconvert_SOURCES = xybrowser.cpp xybrowser.h uplot.cpp uplot.h cmn.cpp cmn.h
 xyconvert_CPPFLAGS = $(WX_CPPFLAGS) -DXYCONVERT
 xyconvert_LDADD = $(WX_LIBS) -lxy $(xyconvert_res)
 endif

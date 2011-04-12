@@ -1004,7 +1004,7 @@ void FFrame::OnDataXLoad (wxCommandEvent&)
     int n = (sel.size() == 1 ? sel[0] : -1);
     // in case of multi-selection, use the first item
     Data *data = ftk->get_data(sel[0]);
-    DLoadDlg dload_dialog(this, -1, n, data);
+    DLoadDlg dload_dialog(this, n, data, data_dir_);
     dload_dialog.ShowModal();
 }
 
