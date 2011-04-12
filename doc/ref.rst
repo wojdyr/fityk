@@ -92,7 +92,7 @@ nm_*
 numeric_format
     Format of numbers printed by the ``info`` command. It takes as a value
     a format string, the same as ``sprintf()`` in the C language.
-    For example ``set numeric_format=%.3f`` changes the precision
+    For example ``set numeric_format='%.3f'`` changes the precision
     of numbers to 3 digits after the decimal point. Default value: ``%g``.
 
 pseudo_random_seed
