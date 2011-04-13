@@ -393,8 +393,10 @@ void FPlot::draw_data_by_activity(wxDC& dc, wxPoint2DDouble *pp,
             wxGraphicsPath path = gc->CreatePath();
             for (int i = 0; i != len; ++i)
                 if (aa[i] == state) {
-                    path.MoveToPoint(pp[i].m_x, pp[i].m_y);
-                    path.AddLineToPoint(pp[i].m_x, pp[i].m_y + 0.1);
+                    double rx = iround(pp[i].m_x);
+                    double ry = iround(pp[i].m_y);
+                    path.MoveToPoint(rx, ry - 0.1);
+                    path.AddLineToPoint(rx, ry + 0.1);
                 }
             gc->SetAntialiasMode(wxANTIALIAS_NONE);
             gc->StrokePath(path);
