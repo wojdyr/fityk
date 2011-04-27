@@ -112,6 +112,7 @@ pdf:
 website:
 	rm -rf web
 	$(SPHINX) -b html -D'exclude_patterns=[]' $(srcdir) $(srcdir)/web
+	cp $(srcdir)/screenshots/fityk-1.0.1-osx-so.png $(srcdir)/web/_images/
 	rm -f $(srcdir)/web/objects.inv $(srcdir)/web/.buildinfo
 	sed -i 's/&mdash; Fityk ..... manual//' $(srcdir)/web/index.html $(srcdir)/web/screens.html
 

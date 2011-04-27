@@ -16,11 +16,11 @@ AM_MAINTAINER_MODE
 
 # What versions of program are to be made
 AC_ARG_ENABLE(GUI,
-[  --disable-GUI           do not build GUI version of program])
+[  --disable-GUI           do not build the GUI])
 test -z "$enable_GUI" && enable_GUI="yes"
 
 AC_ARG_ENABLE(CLI,
-[  --disable-CLI           do not build CLI version of program])
+[  --disable-CLI           do not build the CLI])
 test -z "$enable_CLI" && enable_CLI="yes"
 
 AC_ARG_ENABLE(xyconvert,
@@ -132,17 +132,17 @@ SRCSUBDIRS=
 # Checks for version specific libraries and headers.
 if test "$enable_GUI" != "no" ; then
     SRCSUBDIRS="$SRCSUBDIRS wxgui"
-    AM_PATH_WXCONFIG([2.9.1], [wxWin=1], [wxWin=0], [adv,core,base])
+    AM_PATH_WXCONFIG([2.9.2], [wxWin=1], [wxWin=0], [adv,core,base])
     if test "$wxWin" != 1; then
     	AC_MSG_ERROR([
-    	      wxWindows must be installed on your system
-    	      but wx-config script couldn't be found.
+	      wxWindows must be installed on your system
+	      but wx-config script could not be found.
 
-    	      Please check that wx-config is in path, the directory
-    	      where wxWindows libraries are installed (returned by
-    	      'wx-config --libs' command) is in LD_LIBRARY_PATH or
-    	      equivalent variable and wxWindows version is 2.8.4 or above.
-            ])
+	      Please check that wx-config is in path, the directory
+	      where wxWindows libraries are installed (returned by
+	      'wx-config --libs' command) is in LD_LIBRARY_PATH or
+	      equivalent variable and wxWindows version is 2.9.2 or above.
+	     ])
     fi
 fi
 

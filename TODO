@@ -1,3 +1,4 @@
+* bug: "@0 < file.xy text" doesn't work
 
 * GUI: a single dialog for Model > Export... options and for "info models"
 

@@ -14,6 +14,13 @@
 .. raw:: html
 
   <div align="right" class="screenshot">
+   <p class="quote">
+    <i>Excellent GUI and command-line curve fitting tool</i><br />
+    <span class="quote-author">
+     - John Allspaw in
+     <a href="http://oreilly.com/catalog/9780596518585"><i>The art of capacity planning</i></a>
+    </span>
+   </p>
    <a href="screens.html#mac-os-x">
     <img alt="[screenshot]" src="_images/fityk-1.0.1-osx-so.png"
     style="width: 436px; height: 303px;" />
@@ -24,7 +31,7 @@
 Fityk *[fi:tik]* is a program for data processing
 and nonlinear **curve fitting**.
 
-It is primarily used...
+Although it is primarily used...
 
 * by scientists who analyse data from powder diffraction, chromatography,
   photoluminescence and photoelectron spectroscopy,
@@ -35,7 +42,8 @@ It is primarily used...
 * to fit peaks -- bell-shaped functions (Gaussian, Lorentzian, Voigt,
   Pearson VII, bifurcated Gaussian, EMG, Doniach-Sunjic, etc.),
 
-... but any functions can be fitted to any 2D (*x*,\ *y*) data.
+... the program can be used for any task that requires fitting a curve
+to 2D (*x*,\ *y*) data.
 
 .. _contents:
 
@@ -76,38 +84,41 @@ Download
 
 In an attempt to make this software self-sustaining and actively
 developed in the future,
-`new binaries <http://fityk.nieto.pl/subscribers>`_
-are available to subscribers only:
+`new binaries </subscribers>`_ are available to subscribers only:
 
 |ico-win| MS Windows: :download:`-setup.exe`  $
 
 |ico-osx| Mac OS X (10.4 or later): :download:`-osx.zip`  $
 
-|ico-tux| Linux: email me...
+|ico-tux| Linux: `deb packages </subscribers>`_ (i386 and x64).
+:smallfont:`Tested only on Ubuntu 10.10.
+Email me if you need a package for another distro.`
 
 .. raw:: html
 
    <div class="subscr">
 
-Subscription cost includes support via e-mail:
+Subscribers have access to all versions of the program and to e-mail support.
+The program can be installed on many computers and can be also used
+after the end of subscription.
 
 * `1 month subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918496>`_: €90 / $115
 
 * `1 year subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918202>`_: €210 / $265
 
-* `1 year subscription + 20 hours of coding <https://www.plimus.com/jsp/buynow.jsp?contractId=2918292>`_ €630 / $795.
-  :smallfont:`The maintainer of the program will devote up to 20 hours to
-  implement feature(s) requested by the customer.
-  (Bugs are fixed as soon as possible regardless of who reports them).
-  20 hours can be enough to add a simple data file format (2-3 page long spec),
-  or to add a new function, or to tweak the GUI.
-  If you have a particular feature in mind, please contact us first.`
+* `1 year subscription + 30 hours of coding <https://www.plimus.com/jsp/buynow.jsp?contractId=2918292>`_ €630 / $795.
+  :smallfont:`The maintainer of the program will devote up to 30 hours
+  to implement features requested by the customer.
+  (But feel free to suggest new features even if you are not going to pay).
+  Contact me to discuss details.`
 
 .. raw:: html
 
    <div class="smallfont">
 
-The exact price in € may change. If you prefer to transfer money directly to my bank account (PL), drop me a line.
+The exact price in € depends on the exchange rate.
+If you prefer to transfer money directly to my bank account (PL),
+drop me a line.
 Alternatively, students and home users may
 donate 20% of the normal price to ``wojdyr@gmail.com`` using
 `PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=E98FRTPDBQ3L6&lc=US&currency_code=USD&item_name=Fityk>`_,
@@ -123,7 +134,7 @@ subscription, just let me know you are interested.
 
 
 Versions 0.9.7 and older are free:
-`Windows <https://github.com/wojdyr/fityk/downloads>`_
+for `Windows <https://github.com/wojdyr/fityk/downloads>`_
 and Linux (Ubuntu PPA_ and RPMs from OBS_).
 
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_

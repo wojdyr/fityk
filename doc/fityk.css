@@ -435,4 +435,8 @@ div.admonition-in-the-gui p.admonition-title {
 
 #expand_features a { text-decoration: none; }
 
+.quote { font-size: 0.9em; }
+
+.quote-author, div.body span.quote-author a { color: #888; }
+
 .FlattrButton { text-align: center; float: right; }
