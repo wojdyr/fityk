@@ -292,7 +292,7 @@ void AuxPlot::read_settings(wxConfigBase *cf)
     kind_ = static_cast<AuxPlotKind>(cf->Read (wxT("kind"), apk_diff));
     mark_peak_pos_ = cfg_read_bool (cf, wxT("markCtr"), false);
     reversed_diff_ = cfg_read_bool (cf, wxT("reversedDiff"), false);
-    auto_zoom_y_ = false;
+    auto_zoom_y_ = cfg_read_bool(cf, wxT("autozoom"), false);
     line_between_points = cfg_read_bool(cf, wxT("line_between_points"), true);
     point_radius = cf->Read (wxT("point_radius"), 1);
     y_max_tics = cf->Read(wxT("yMaxTics"), 5);
@@ -313,11 +313,12 @@ void AuxPlot::read_settings(wxConfigBase *cf)
 void AuxPlot::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath(wxT("/AuxPlot_") + name_);
-    cf->Write (wxT("kind"), (int) kind_);
-    cf->Write (wxT("markCtr"), mark_peak_pos_);
-    cf->Write (wxT("reversedDiff"), reversed_diff_);
-    cf->Write (wxT("line_between_points"), line_between_points);
-    cf->Write (wxT("point_radius"), point_radius);
+    cf->Write(wxT("kind"), (int) kind_);
+    cf->Write(wxT("markCtr"), mark_peak_pos_);
+    cf->Write(wxT("reversedDiff"), reversed_diff_);
+    cf->Write(wxT("line_between_points"), line_between_points);
+    cf->Write(wxT("autozoom"), auto_zoom_y_);
+    cf->Write(wxT("point_radius"), point_radius);
     cf->Write(wxT("yMaxTics"), y_max_tics);
     cf->Write(wxT("yTicSize"), y_tic_size);
 
@@ -569,7 +570,7 @@ AuxPlotConfDlg::AuxPlotConfDlg(AuxPlot* ap)
     left_sizer->Add(auto_cb, 0, wxALL, 5);
     wxBoxSizer *zoom_sizer = new wxBoxSizer(wxHORIZONTAL);
     zoom_sizer->AddSpacer(10);
-    zoom_sizer->Add(new wxStaticText(this, -1, wxT("max. iterations")),
+    zoom_sizer->Add(new wxStaticText(this, -1, wxT("y zoom")),
                     0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     zoom_sc_ = new SpinCtrl(this, -1, iround(ap_->y_zoom_ * 100),
                             0, 999999, 70);
