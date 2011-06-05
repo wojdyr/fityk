@@ -218,7 +218,7 @@ void FitInfoDlg::update_right_tc()
                     name += wxT(" (in ") + s2wx(in[0]) + wxT(")");
                 else
                     name += wxT(" (") + s2wx(S(in.size())) + wxT(" refs)");
-                string val = nf->fmt(pp[i]);
+                wxString val = s2wx(nf->fmt(pp[i]));
                 // \u00B1 == +/-
                 s += wxString::Format(wxT("\n%20s = %10s \u00B1 "),
                                       name.c_str(), val.c_str());
@@ -252,7 +252,8 @@ void FitInfoDlg::update_right_tc()
                         double val = alpha[na*i + j];
                         if (fabs(val) < 1e-99)
                             val = 0.;
-                        s += wxString::Format(wxT(" %9s"),nf->fmt(val).c_str());
+                        s += wxString::Format(wxT(" %9s"),
+                                              s2wx(nf->fmt(val)).c_str());
                     }
                 }
             }
