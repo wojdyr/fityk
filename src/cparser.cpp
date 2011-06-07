@@ -990,6 +990,8 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
         cmd.args.push_back(token);
         lex.get_token(); // discard '<'
         cmd.args.push_back(lex.get_filename_token());
+        while (lex.peek_token().type == kTokenLname)
+            cmd.args.push_back(lex.get_token());
     }
     else if (token.type == kTokenDataset &&
              lex.peek_token().type == kTokenAssign) {
