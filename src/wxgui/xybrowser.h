@@ -4,6 +4,7 @@
 #ifndef FITYK_WX_XYBROWSER_H_
 #define FITYK_WX_XYBROWSER_H_
 
+#include <wx/filectrl.h>
 #include "uplot.h"
 
 class PreviewPlot : public PlotWithTics

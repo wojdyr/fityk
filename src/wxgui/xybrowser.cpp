@@ -2,7 +2,6 @@
 // Licence: GNU General Public License ver. 2+
 
 #include <wx/wx.h>
-#include <wx/filectrl.h>
 #include <wx/filename.h>
 #include <wx/cmdline.h>
 #include <wx/splitter.h>
