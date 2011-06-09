@@ -133,21 +133,20 @@ subscription, just let me know you are interested.
     </div>
 
 
-Versions 0.9.7 and older are free:
+Versions 0.9.8 and older are free:
 for `Windows <https://github.com/wojdyr/fityk/downloads>`_
 and Linux (Ubuntu PPA_ and RPMs from OBS_).
 
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 :html:`<a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://fityk.nieto.pl"></a>`
 
-Version 1.0.1 was released on 2011-03-30
+Version 1.0.2 was released on 2011-06-08
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
 New version `notifications <http://fityk-announce.nieto.pl/>`_
 are delivered via email and feeds.
 
 .. _OBS: http://download.opensuse.org/repositories/home://wojdyr/
 .. _PPA: https://launchpad.net/~wojdyr/+archive/fityk
-.. _debian-xray: http://debian-xray.iit.edu/
 .. |ico-win| image:: img/ico-win.png
 .. |ico-tux| image:: img/ico-tux.png
 .. |ico-osx| image:: img/ico-osx.png

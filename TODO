@@ -1,4 +1,3 @@
-* bug: "@0 < file.xy text" doesn't work
 
 * GUI: a single dialog for Model > Export... options and for "info models"
 
@@ -22,6 +21,15 @@
 * refactor sidebar; use wxDataViewCtrl for the lists at the sidebar,
   rewrite ListWithColors::populate(), add sorting by clicking on column
   header (use case: sort functions by centers)
+
+* GUI, printing (hardcopy): this part has been neglected for some time.
+  Make sure it works fine on all platforms and add more options:
+  it should be possible to add text to the graph (data title or fit info)
+
+* GUI: draw points (handles) for dragging peak width at half height
+
+* Mac, GUI: "Session > New Window" that would start an independent process
+  (equivalent of clicking the program icon again on Windows and Linux)
 
 ---
 

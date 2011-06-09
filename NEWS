@@ -1,3 +1,6 @@
+User-visible changes in version 1.0.2  (2011-06-08):
+* changed Data > Load File dialog
+* fixed a few minor problems and a major one (GUI not working on OSX 10.5)
 
 User-visible changes in version 1.0.1  (2011-03-30):
 * corrected calculation of Exponentially Modified Gaussian
@@ -17,8 +20,8 @@ User-visible changes in version 1.0.0  (2011-03-18):
   added menu Help > Examples in the GUI
 * requires wxWidgets >= 2.9.1
 
-User-visible changes in version 0.9.8  (not yet):
-* several bug fixes ported from version 1.0.0 to 0.9.8
+User-visible changes in version 0.9.8  (2011-06-08):
+* several bug fixes ported from version 1.0.2
   (unlike 1.x, this version can be built with wxWidgets 2.8)
 
 User-visible changes in version 0.9.7  (2011-02-08):
