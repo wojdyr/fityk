@@ -11,6 +11,7 @@
 
 {%- block extrahead %}
 {{ super() }}
+{% if website %}
 <script type="text/javascript">
   var _gaq = _gaq || [];
   _gaq.push(['_setAccount', 'UA-20519098-2']);
@@ -21,6 +22,7 @@
     var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
   })();
 </script>
+{% endif %}
 {% endblock %}
 
 
