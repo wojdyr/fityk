@@ -164,6 +164,7 @@ void FitInfoDlg::update_left_tc()
          "\nWSSR: " + nf->fmt(wssr) +
          "\nSSR: " + nf->fmt(ssr) +
          "\nWSSR/DoF: " + nf->fmt(wssr_over_dof) +
+         "\nRes.St.Dev.: " + nf->fmt(sqrt(wssr_over_dof)) +
          "\nR-squared: " + nf->fmt(r2) + "\n";
     left_tc->SetValue(s2wx(s));
 }
