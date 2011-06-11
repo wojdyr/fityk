@@ -1,3 +1,15 @@
+* fitting the functions Spline nad Polyline (the derivatives of these
+  functions are not implemented yet and the L-M method does not fit them)
+
+* fitting: add stopping criterium based on elapsed time
+
+* subtracting datasets (with interpolation of the subtrahend): @2 = @0 - @1;
+  for consistency, `+' should add interpolated data, and 'U' can stand
+  for a sum of sets.
+
+* handle gzipped fit files
+
+--------------
 
 * GUI: a single dialog for Model > Export... options and for "info models"
 
@@ -5,14 +17,8 @@
 
 * GUI: definition mgr - show formula images from the manual, if available
 
-* handle gzipped fit files
-
 * CLI/GUI: use sigaction() instead of signal() to handle SIGINT
   print a message from interrupt_handler()
-
-* subtracting datasets (with interpolation of the subtrahend): @2 = @0 - @1;
-  for consistency, `+' should add interpolated data, and 'U' can stand
-  for a sum of sets.
 
 * add functions cot and coth
 
@@ -50,9 +56,6 @@
 * convolution and deconvolution of two datasets or a dataset with Gaussian:
   convolve @0 @1; convolve @0 2.3; deconvolve @0 3.4
 
-* fitting the functions Spline nad Polyline (the derivatives of these
-  functions are not implemented yet and the L-M method does not fit them)
-  
 * GUI: there is ugly vertical line (a part of the fitted curve) in points
   where the value is undefined (e.g. in ReadShockley function for x=0).
 
@@ -65,11 +68,7 @@
   (for example to show theoretical peak positions in XRD or to mark simulation
   restarts in data from MD. Syntax: plot line x=42.2 label="foo"
 
-* fitting: add stopping criterium based on elapsed time
-
 * GUI: a simple (for the user) way to interrupt fitting. Requires two threads.
-
-* "info fit" should also print standard deviation of residuals
 
 * plot histogram of resiudals:
   http://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm
@@ -130,6 +129,4 @@
 * fitting: box-constrained parameters (simple-variables)
            the constraints could be automatic for some function parameters,
 	   e.g. "guess PseudoVoigt" could give shape with bounds <0,1>
-
-* GUI: custom control in the log file dialogs: "log also output" checkbox (wx3)
 
