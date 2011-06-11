@@ -1257,17 +1257,34 @@ void FFrame::OnMenuLogOutputUpdate (wxUpdateUIEvent& event)
         event.Check(ftk->get_settings()->log_full);
 }
 
+static
+wxWindow* log_filedialog_extra(wxWindow* parent)
+{
+    wxCheckBox *cb = new wxCheckBox(parent, -1, "log also output");
+    cb->SetValue(ftk->get_settings()->log_full);
+    return cb;
+}
+
 void FFrame::OnLogStart (wxCommandEvent&)
 {
     wxFileDialog fdlg (this, wxT("Log to file"), export_dir_, wxT(""),
                        wxT("Fityk script file (*.fit)|*.fit;*.FIT")
                        wxT("|All files |*"),
                        wxFD_SAVE);
+    fdlg.SetExtraControlCreator(&log_filedialog_extra);
     const string& logfile = ftk->get_settings()->logfile;
     if (!logfile.empty())
         fdlg.SetPath(s2wx(logfile));
-    if (fdlg.ShowModal() == wxID_OK)
-        ftk->exec("set logfile='" + wx2s(fdlg.GetPath()) + "'");
+    if (fdlg.ShowModal() == wxID_OK) {
+        string cmd = "set logfile='" + wx2s(fdlg.GetPath()) + "'";
+        wxWindow *cb = fdlg.GetExtraControl();
+        if (cb != NULL) {
+            bool checked = static_cast<wxCheckBox*>(cb)->GetValue();
+            if (checked != ftk->get_settings()->log_full)
+                cmd += ", log_full=" + S(checked ? "1" : "0");
+        }
+        ftk->exec(cmd);
+    }
     export_dir_ = fdlg.GetDirectory();
 }
 
