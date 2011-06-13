@@ -34,7 +34,7 @@ void NAME::calculate_value_deriv_in_range(vector<realt> const &xx, \
                                           int first, int last) const \
 { \
     int dyn = dy_da.size() / xx.size(); \
-    vector<realt> dy_dv(nv()); \
+    vector<realt> dy_dv(nv(), 0.); \
     for (int i = first; i < last; ++i) { \
         realt x = xx[i]; \
         realt dy_dx;
@@ -1012,6 +1012,7 @@ CALCULATE_VALUE_END(t)
 
 CALCULATE_DERIV_BEGIN(FuncSpline)
     dy_dx = 0; // unused
+    //dy_dv[];
     realt t = get_spline_interpolation(q_, x);
 CALCULATE_DERIV_END(t)
 
@@ -1031,9 +1032,33 @@ CALCULATE_VALUE_BEGIN(FuncPolyline)
 CALCULATE_VALUE_END(t)
 
 CALCULATE_DERIV_BEGIN(FuncPolyline)
-    dy_dx = 0; // unused
-    realt t = get_linear_interpolation(q_, x);
-CALCULATE_DERIV_END(t)
+    double value;
+    if (q_.empty()) {
+        dy_dx = 0;
+        value = 0.;
+    }
+    else if (q_.size() == 1) {
+        //dy_dv[0] = 0; // 0 -> p_x
+        dy_dv[1] = 1; // 1 -> p_y
+        dy_dx = 0;
+        value = q_[0].y;
+    }
+    else {
+        // value = p0.y + (p1.y - p0.y) / (p1.x - p0.x) * (x - p0.x);
+        vector<PointD>::iterator pos = get_interpolation_segment(q_, x);
+        double lx = (pos + 1)->x - pos->x;
+        double ly = (pos + 1)->y - pos->y;
+        double d = x - pos->x;
+        double a = ly / lx;
+        size_t npos = pos - q_.begin();
+        dy_dv[2*npos+0] = a*d/lx - a; // p0.x
+        dy_dv[2*npos+1] = 1 - d/lx; // p0.y
+        dy_dv[2*npos+2] = -a*d/lx; // p1.x
+        dy_dv[2*npos+3] = d/lx; // p1.y
+        dy_dx = a;
+        value = pos->y + a * d;
+    }
+CALCULATE_DERIV_END(value)
 
 ///////////////////////////////////////////////////////////////////////
 

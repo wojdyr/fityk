@@ -1,4 +1,6 @@
 User-visible changes in version 1.0.3  (2011-  -  ):
+* added calculation of Polyline derivatives, what enables weighted least
+  squares approximation by broken lines
 
 User-visible changes in version 1.0.2  (2011-06-08):
 * changed Data > Load File dialog

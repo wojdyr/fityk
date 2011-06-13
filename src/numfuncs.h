@@ -34,6 +34,11 @@ struct PointQ
 /// based on Numerical Recipes www.nr.com
 void prepare_spline_interpolation (std::vector<PointQ> &bb);
 
+// instantiated for T = PointQ, PointD
+template<typename T>
+typename std::vector<T>::iterator
+get_interpolation_segment(std::vector<T> &bb,  double x);
+
 double get_spline_interpolation(std::vector<PointQ> &bb, double x);
 
 double get_linear_interpolation(std::vector<PointD> &bb, double x);
