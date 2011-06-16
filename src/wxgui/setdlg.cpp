@@ -209,6 +209,8 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
     mwssre_sp = addSpinCtrl(page_fit_common, wxT("max. WSSR evaluations"),
                             settings->max_wssr_evaluations, 0, 999999,
                             sizer_fcmn, 10);
+    fit_max_time = addRealNumberCtrl(page_fit_common, wxT("max. fitting time"),
+                                   settings->max_fitting_time, sizer_fcmn, 10);
     //sizer_fcmn->Add(sizer_fcstop, 0, wxEXPAND|wxALL, 5);
 
     page_fit_common->SetSizerAndFit(sizer_fcmn);
@@ -297,6 +299,7 @@ void SettingsDlg::exec_set_command()
     assign += add("height_correction", wx2s(height_correction->GetValue()));
     assign += add("width_correction", wx2s(width_correction->GetValue()));
     assign += add("max_wssr_evaluations", S(mwssre_sp->GetValue()));
+    assign += add("max_fitting_time", wx2s(fit_max_time->GetValue()));
     assign += add("domain_percent", wx2s(domain_p->GetValue()));
     assign += add("fit_replot", fit_replot_cb->GetValue() ? "1" : "0");
     assign += add("refresh_period", S(delay_sp->GetValue()));

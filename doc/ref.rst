@@ -80,6 +80,10 @@ log_full
 logfile
     String. File where the commands are logged. Empty -- no logging.
 
+max_fitting_time
+    Stop fitting when this number of seconds of processor time is exceeded.
+    See :ref:`fitting_cmd`.
+
 max_wssr_evaluations
     See :ref:`fitting_cmd`.
 

@@ -19,7 +19,8 @@ private:
     wxCheckBox *exit_cb;
     wxSpinCtrl *delay_sp, *seed_sp, *mwssre_sp, *verbosity_sp;
     RealNumberCtrl *cut_func, *eps_rc, *height_correction, *width_correction,
-                   *domain_p, *lm_lambda_ini, *lm_lambda_up, *lm_lambda_down,
+                   *domain_p, *fit_max_time,
+                   *lm_lambda_ini, *lm_lambda_up, *lm_lambda_down,
                    *lm_stop, *lm_max_lambda,
                    *nm_convergence, *nm_move_factor;
     wxCheckBox *nm_move_all, *fit_replot_cb;

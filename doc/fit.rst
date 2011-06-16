@@ -94,13 +94,16 @@ The fitting method can be set using the set command::
 where method is one of: ``levenberg_marquardt``, ``nelder_mead_simplex``,
 ``genetic_algorithms``.
 
-All non-linear fitting methods are iterative, and there are two common
+All non-linear fitting methods are iterative, and there are three common
 stopping criteria:
 
 - the number of iterations; it can be specified after the ``fit`` command.
 
-- and the number of evaluations of the objective function (WSSR); set
+- the number of evaluations of the objective function (WSSR); set
   using the option :option:`max_wssr_evaluations` (0=unlimited).
+
+- and the processor time, in seconds
+  (:option:`max_fitting_time`,  0=unlimited).
 
 There are also other criteria, different for each method.
 

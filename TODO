@@ -1,5 +1,3 @@
-* fitting: add stopping criterium based on elapsed time
-
 * subtracting datasets (with interpolation of the subtrahend): @2 = @0 - @1;
   for consistency, `+' should add interpolated data, and 'U' can stand
   for a sum of sets.

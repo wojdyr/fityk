@@ -67,6 +67,7 @@ static const Option options[] = {
 
     OPT(fitting_method, kEnum, fitting_method_enum[0], fitting_method_enum),
     OPT(max_wssr_evaluations, kInt, 1000, NULL),
+    OPT(max_fitting_time, kDouble, 0., NULL),
     OPT(refresh_period, kInt, 4, NULL),
     OPT(fit_replot, kBool, false, NULL),
     OPT(domain_percent, kDouble, 30., NULL),

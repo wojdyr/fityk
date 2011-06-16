@@ -441,6 +441,11 @@ bool Fit::common_termination_criteria(int iter)
         F_->msg("Maximum evaluations number reached.");
         stop = true;
     }
+    double max_time = F_->get_settings()->max_fitting_time;
+    if (max_time > 0 && clock() >= start_time_ + max_time * CLOCKS_PER_SEC) {
+        F_->msg("Maximum processor time exceeded.");
+        stop = true;
+    }
     return stop;
 }
 

@@ -32,6 +32,7 @@ struct Settings
     // fitting
     const char* fitting_method;
     int max_wssr_evaluations;
+    double max_fitting_time;
     int refresh_period;
     bool fit_replot;
     double domain_percent;
