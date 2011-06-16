@@ -1,6 +1,3 @@
-* fitting the functions Spline nad Polyline (the derivatives of these
-  functions are not implemented yet and the L-M method does not fit them)
-
 * fitting: add stopping criterium based on elapsed time
 
 * subtracting datasets (with interpolation of the subtrahend): @2 = @0 - @1;
@@ -81,6 +78,8 @@
 
 * add a new function category: sigmoids/steps (now function can be guessed as
   "peak" and "linear"). (GUI): drawing drafts for the new category.
+
+* splines: fitting, guessing, handling knots in the GUI
 
 * GUI: add alpha channel to the toolbar icons
 

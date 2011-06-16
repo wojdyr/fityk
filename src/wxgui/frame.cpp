@@ -736,7 +736,7 @@ void FFrame::set_menubar()
                            wxT("Set baseline as convex hull of data"));
     baseline_menu->AppendSeparator();
     baseline_menu->AppendCheckItem(ID_G_BG_SPLINE,
-                                   wxT("&Spline Interpolation"),
+                                   wxT("Cubic &Spline"),
                                    wxT("Cubic spline interpolation of points"));
     baseline_menu->Check(ID_G_BG_SPLINE, true);
     gui_menu->Append(ID_G_BG_SUB, wxT("&Baseline Handling"), baseline_menu);

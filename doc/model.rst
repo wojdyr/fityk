@@ -410,13 +410,20 @@ This example::
 
     %f = Spline(22.1, 37.9, 48.1, 17.2, 93.0, 20.7)
 
-creates a function that is a *cubic spline interpolation* through points
-(22.1, 37.9), (48.1, 17.2), ....
+creates a function that is a *natural cubic spline* interpolation
+through points (22.1, 37.9), (48.1, 17.2), ....
 
-The ``Polyline`` function is similar, but gives the *polyline interpolation*.
+The ``Polyline`` function is a polyline interpolation (spline of order 1).
 
 Both ``Spline`` and ``Polyline`` functions are primarily used
 for the manual baseline subtraction via the GUI.
+
+The derivatives of Spline function are not calculated, so this function
+is not refined by the default, derivative-based fitting algorithm.
+
+Since the Polyline derivatives are calculated, it is possible to perform
+weighted least squares approximation by broken lines, although
+non-linear fitting algorithms are not optimal for this task.
 
 .. _udf:
 
