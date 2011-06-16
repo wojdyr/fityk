@@ -4,8 +4,6 @@
   for consistency, `+' should add interpolated data, and 'U' can stand
   for a sum of sets.
 
-* handle gzipped fit files
-
 --------------
 
 * GUI: a single dialog for Model > Export... options and for "info models"

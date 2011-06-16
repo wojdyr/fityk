@@ -1328,7 +1328,8 @@ void FFrame::OnInclude (wxCommandEvent&)
 {
     wxFileDialog fdlg (this, wxT("Execute commands from file"),
                        script_dir_, wxT(""),
-                       wxT("fityk file (*.fit)|*.fit;*.FIT|all files|*"),
+                       "fityk script (*.fit, *.fit.gz)|*.fit;*.FIT;*.fit.gz|"
+                       "all files|*",
                        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
         ftk->exec("exec '" + wx2s(fdlg.GetPath()) + "'");

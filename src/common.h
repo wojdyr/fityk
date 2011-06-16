@@ -156,6 +156,10 @@ inline std::string strip_string(std::string const &s) {
 inline bool startswith(std::string const& s, std::string const& p) {
     return p.size() <= s.size() && std::string(s, 0, p.size()) == p;
 }
+/// similar to Python string.endswith() method
+inline bool endswith(std::string const& s, std::string const& p) {
+    return p.size() <= s.size() && std::string(s, s.size() - p.size()) == p;
+}
 
 std::string::size_type find_matching_bracket(std::string const& formula,
                                              std::string::size_type left_pos);

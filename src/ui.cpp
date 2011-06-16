@@ -5,6 +5,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <zlib.h>
+#include <boost/scoped_ptr.hpp>
 
 #include "ui.h"
 #include "settings.h"
@@ -20,17 +22,6 @@ const char* startup_commands_filename = "init";
 
 
 // utils for reading FILE
-class LineReader
-{
-public:
-    LineReader(FILE *fp) : fp_(fp), len_(160), buf_((char*) malloc(len_)) {}
-    ~LineReader() { free(buf_); }
-    char *next();
-private:
-    FILE *fp_;
-    size_t len_;
-    char* buf_;
-};
 
 // simple replacement for GNU getline() (returns int, not ssize_t)
 int our_getline(char **lineptr, size_t *n, FILE *stream)
@@ -49,20 +40,59 @@ int our_getline(char **lineptr, size_t *n, FILE *stream)
     return c == EOF ? -1 : counter;
 }
 
-char* LineReader::next()
+
+// the same as our_getline(), but works with gzFile instead of FILE
+int gzipped_getline(char **lineptr, size_t *n, gzFile stream)
 {
-#if HAVE_GETLINE
-    int n = getline(&buf_, &len_, fp_);
-#else
-    // if GNU getline() is not available, use very simple replacement
-    int n = our_getline(&buf_, &len_, fp_);
-#endif
-    // we don't need '\n' at all
-    if (n > 0 && buf_[n-1] == '\n')
-        buf_[n-1] = '\0';
-    return n == -1 ? NULL : buf_;
+    int c;
+    int counter = 0;
+    while ((c = gzgetc (stream)) != EOF && c != '\n') {
+        if (counter >= (int) *n - 1) {
+            *n = 2 * (*n) + 80;
+            *lineptr = (char *) realloc (*lineptr, *n); // let's hope it worked
+        }
+        (*lineptr)[counter] = c;
+        ++counter;
+    }
+    (*lineptr)[counter] = '\0';
+    return c == EOF ? -1 : counter;
 }
 
+// buffer for reading lines from file, with minimalistic interface
+class LineReader
+{
+public:
+    LineReader() : len_(160), buf_((char*) malloc(len_)) {}
+    ~LineReader() { free(buf_); }
+
+    char* next(FILE *fp)
+    {
+#if HAVE_GETLINE
+        return return_buf(getline(&buf_, &len_, fp));
+#else
+        // if GNU getline() is not available, use very simple replacement
+        return return_buf(our_getline(&buf_, &len_, fp));
+#endif
+    }
+
+    char* gz_next(gzFile gz_stream)
+    {
+        return return_buf(gzipped_getline(&buf_, &len_, gz_stream));
+    }
+
+private:
+    size_t len_;
+    char* buf_;
+
+    char* return_buf(int n)
+    {
+        // we don't need '\n' at all
+        if (n > 0 && buf_[n-1] == '\n')
+            buf_[n-1] = '\0';
+        return n == -1 ? NULL : buf_;
+    }
+
+};
 
 
 string UserInterface::Cmd::str() const
@@ -194,21 +224,56 @@ void UserInterface::output_message(Style style, const string& s) const
 }
 
 
+class FileOpener
+{
+public:
+    virtual ~FileOpener() {}
+    virtual bool open(const char* fn) = 0;
+    virtual char* read_line() = 0;
+protected:
+    LineReader reader;
+};
+
+class NormalFileOpener : public FileOpener
+{
+public:
+    virtual ~NormalFileOpener() { if (f_) fclose(f_); }
+    virtual bool open(const char* fn) { f_ = fopen(fn, "r"); return f_; }
+    virtual char* read_line() { return reader.next(f_); }
+private:
+    FILE *f_;
+};
+
+class GzipFileOpener : public FileOpener
+{
+public:
+    virtual ~GzipFileOpener() { if (f_) gzclose(f_); }
+    virtual bool open(const char* fn) { f_ = gzopen(fn, "rb"); return f_; }
+    virtual char* read_line() { return reader.gz_next(f_); }
+private:
+    gzFile f_;
+};
+
+
 void UserInterface::exec_script(const string& filename)
 {
     user_interrupt = false;
-    FILE *fp = fopen(filename.c_str(), "r");
-    if (!fp) {
+
+    boost::scoped_ptr<FileOpener> opener;
+    if (endswith(filename, ".gz"))
+        opener.reset(new GzipFileOpener);
+    else
+        opener.reset(new NormalFileOpener);
+    if (!opener->open(filename.c_str())) {
         F_->warn("Can't open file: " + filename);
         return;
     }
 
     string dir = get_directory(filename);
 
-    LineReader reader(fp);
     int line_index = 0;
     char *line;
-    while ((line = reader.next()) != NULL) {
+    while ((line = opener->read_line()) != NULL) {
         ++line_index;
         string s = line;
         if (s.empty())
@@ -224,14 +289,14 @@ void UserInterface::exec_script(const string& filename)
             break;
         }
     }
-    fclose(fp);
 }
+
 
 void UserInterface::exec_stream(FILE *fp)
 {
-    LineReader reader(fp);
+    LineReader reader;
     char *line;
-    while ((line = reader.next()) != NULL) {
+    while ((line = reader.next(fp)) != NULL) {
         string s = line;
         if (F_->get_verbosity() >= 0)
             show_message (kQuoted, "> " + s);
@@ -292,9 +357,8 @@ bool is_fityk_script(string filename)
     if (!f)
         return false;
 
-    int n = filename.size();
-    if ((n > 4 && string(filename, n-4) == ".fit")
-            || (n > 6 && string(filename, n-6) == ".fityk")) {
+    if (endswith(filename, ".fit") || endswith(filename, ".fityk") ||
+            endswith(filename, ".fit.gz") || endswith(filename, ".fityk.gz")) {
         fclose(f);
         return true;
     }
