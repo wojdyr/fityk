@@ -5,7 +5,6 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <fstream>
 
 #include "ui.h"
 #include "settings.h"
@@ -198,18 +197,20 @@ void UserInterface::output_message(Style style, const string& s) const
 void UserInterface::exec_script(const string& filename)
 {
     user_interrupt = false;
-    ifstream file(filename.c_str(), ios::in);
-    if (!file) {
+    FILE *fp = fopen(filename.c_str(), "r");
+    if (!fp) {
         F_->warn("Can't open file: " + filename);
         return;
     }
 
     string dir = get_directory(filename);
 
+    LineReader reader(fp);
     int line_index = 0;
-    string s;
-    while (getline (file, s)) {
+    char *line;
+    while ((line = reader.next()) != NULL) {
         ++line_index;
+        string s = line;
         if (s.empty())
             continue;
         if (F_->get_verbosity() >= 0)
@@ -220,9 +221,10 @@ void UserInterface::exec_script(const string& filename)
             break;
         if (user_interrupt) {
             F_->msg ("Script stopped by signal INT.");
-            return;
+            break;
         }
     }
+    fclose(fp);
 }
 
 void UserInterface::exec_stream(FILE *fp)
@@ -286,18 +288,21 @@ bool is_fityk_script(string filename)
 {
     const char *magic = "# Fityk";
 
-    ifstream f(filename.c_str(), ios::in | ios::binary);
+    FILE *f = fopen(filename.c_str(), "rb");
     if (!f)
         return false;
 
     int n = filename.size();
     if ((n > 4 && string(filename, n-4) == ".fit")
-            || (n > 6 && string(filename, n-6) == ".fityk"))
+            || (n > 6 && string(filename, n-6) == ".fityk")) {
+        fclose(f);
         return true;
+    }
 
     const int magic_len = strlen(magic);
-    char buffer[100];
-    f.read(buffer, magic_len);
+    char buffer[32];
+    fgets(buffer, magic_len, f);
+    fclose(f);
     return !strncmp(magic, buffer, magic_len);
 }
 
