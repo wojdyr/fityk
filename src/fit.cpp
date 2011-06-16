@@ -368,7 +368,6 @@ void Fit::fit(int max_iter, const vector<DataAndModel*>& dms)
     F_->get_fit_container()->push_param_history(a_orig_);
     iter_nr_ = 0;
     evaluations_ = 0;
-    max_evaluations_ = F_->get_settings()->max_wssr_evaluations;
     user_interrupt = false;
     init(); //method specific init
     max_iterations_ = max_iter;
@@ -437,7 +436,8 @@ bool Fit::common_termination_criteria(int iter)
         F_->msg("Maximum iteration number reached.");
         stop = true;
     }
-    if (max_evaluations_ > 0 && evaluations_ >= max_evaluations_) {
+    int max_eval = F_->get_settings()->max_wssr_evaluations;
+    if (max_eval > 0 && evaluations_ >= max_eval) {
         F_->msg("Maximum evaluations number reached.");
         stop = true;
     }
@@ -455,10 +455,11 @@ void Fit::iteration_plot(const vector<realt> &A, realt wssr)
     }
     double elapsed = (clock() - start_time_) / (double) CLOCKS_PER_SEC;
     double percent_change = (wssr - wssr_before_) / wssr_before_ * 100.;
+    int max_eval = F_->get_settings()->max_wssr_evaluations;
     F_->msg("Iter: " + S(iter_nr_) + "/"
             + (max_iterations_ > 0 ? S(max_iterations_) : string("oo"))
             + "  Eval: " + S(evaluations_) + "/"
-            + (max_evaluations_ > 0 ? S(max_evaluations_) : string("oo"))
+            + (max_eval > 0 ? S(max_eval) : string("oo"))
             + "  WSSR=" + F_->settings_mgr()->format_double(wssr)
             + " (" + S(percent_change)+ "%)"
             + "  CPU time: " + format1<double,16>("%.2f", elapsed) + "s.");

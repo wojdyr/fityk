@@ -56,7 +56,6 @@ protected:
     Ftk *F_;
     std::vector<DataAndModel*> dmdm_;
     int evaluations_;
-    int max_evaluations_;
     int max_iterations_; //it is set before calling autoiter()
     int iter_nr_;
     realt wssr_before_;
