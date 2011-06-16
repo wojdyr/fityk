@@ -701,12 +701,14 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
         vector<realt> symb = model->get_symbolic_derivatives(x);
         vector<realt> num = model->get_numeric_derivatives(x, 1e-4);
         assert (symb.size() == num.size());
+        int n = symb.size() - 1;
         r += "F(" + S(x) + ")=" + S(model->value(x));
-        for (int i = 0; i < size(num); ++i) {
+        for (int i = 0; i < n; ++i) {
             if (is_neq(symb[i], 0) || is_neq(num[i], 0))
                 r += "\ndF / d$" + F->find_variable_handling_param(i)->name
                     + " = (symb.) " + S(symb[i]) + " = (num.) " + S(num[i]);
         }
+        r += "\ndF / dx = (symb.) " + S(symb[n]) + " = (num.) " + S(num[n]);
     }
 
     // show %function's bytecode

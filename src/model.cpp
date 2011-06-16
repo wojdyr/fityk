@@ -97,11 +97,10 @@ void Model::compute_model_with_derivs(vector<realt> &x, vector<realt> &y,
 vector<realt> Model::get_symbolic_derivatives(realt x) const
 {
     int n = mgr.parameters().size();
-    vector<realt> dy_da(n+1);
+    vector<realt> dy_da(n+1); // last item is dy/dx
     vector<realt> xx(1, x);
     vector<realt> yy(1);
     compute_model_with_derivs(xx, yy, dy_da);
-    dy_da.resize(n); //throw out last item (dy/dx)
     return dy_da;
 }
 
@@ -109,7 +108,7 @@ vector<realt> Model::get_numeric_derivatives(realt x, realt numerical_h) const
 {
     vector<realt> av_numder = mgr.parameters();
     int n = av_numder.size();
-    vector<realt> dy_da(n);
+    vector<realt> dy_da(n+1);
     const double small_number = 1e-10; //it only prevents h==0
     for (int k = 0; k < n; k++) {
         realt acopy = av_numder[k];
@@ -124,6 +123,8 @@ vector<realt> Model::get_numeric_derivatives(realt x, realt numerical_h) const
         av_numder[k] = acopy;
     }
     mgr.use_parameters();
+    realt h = max(fabs(x), small_number) * numerical_h;
+    dy_da[n] = (value(x+h) - value(x-h)) / (2 * h);
     return dy_da;
 }
 
