@@ -119,6 +119,10 @@ AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
 
 AC_LANG_POP([C++]) dnl C is faster than C++
 
+AC_CHECK_HEADER([zlib.h], [], [AC_MSG_ERROR(
+ [zlib.h header not found. Install zlib library (including development files).
+])])
+
 AC_COMPILE_IFELSE(
   [AC_LANG_PROGRAM([@%:@include <xylib/xylib.h>], [
 #if XYLIB_VERSION < 600

@@ -5,7 +5,7 @@ DIST_SUBDIRS = cli wxgui
 lib_LTLIBRARIES = libfityk.la
 
 libfityk_la_LDFLAGS = $(LIBRARY_VERSION_FLAG)
-libfityk_la_LIBADD = -lxy
+libfityk_la_LIBADD = -lxy -lz
 
 libfityk_la_SOURCES = logic.cpp view.cpp lexer.cpp eparser.cpp cparser.cpp \
 		 runner.cpp info.cpp common.cpp data.cpp var.cpp mgr.cpp \
