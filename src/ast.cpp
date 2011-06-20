@@ -1085,6 +1085,28 @@ vector<OpTree*> calculate_deriv(vector<int>::const_iterator &i, int len,
         break;
     }
 
+    /* to be added:
+    case OP_GAMMA:
+    case OP_ROUND:
+    case OP_MOD:
+    case OP_MIN2:
+    case OP_MAX2:
+    case OP_GT:
+    case OP_GE:
+    case OP_LT:
+    case OP_LE:
+    case OP_EQ:
+    case OP_NEQ:
+    case OP_NOT:
+    case OP_OR:
+    case OP_AFTER_OR:
+    case OP_AND:
+    case OP_AFTER_AND:
+    case OP_TERNARY:
+    case OP_TERNARY_MID:
+    case OP_AFTER_TERNARY:
+    */
+
     default:
         purge_all_elements(results);
         throw ExecuteError("`" + op2str(*i) + "' is not allowed for "
