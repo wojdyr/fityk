@@ -5,7 +5,6 @@
 
 #include "eparser.h"
 
-//#include <iostream>
 #include <cstring>
 #include <cmath>
 
@@ -1028,41 +1027,3 @@ void ExpressionParser::push_assign_lhs(const Token& t)
     vm_.append_code(op);
 }
 
-#if 0
-    if (parse(func.c_str(), lexeme_d["$" >> +(alnum_p | '_')]).full) // $foo
-        ret = string(func, 1);
-    else if (parse(func.c_str(),
-                   ( lexeme_d["%" >> +(alnum_p | '_')]
-                   | !lexeme_d['@' >> uint_p >> '.']
-                     >> (str_p("F[")|"Z[") >> int_p >> ch_p(']')
-                   ) [assign_a(tmp1)]
-                   >> '.' >>
-                   lexeme_d[alpha_p >> *(alnum_p|'_')][assign_a(tmp2)]
-                  ).full) {                     // %bar.bleh
-        string name = parse_and_find_fz_idx(F_, tmp1);
-        const Function* f = F_->find_function(name);
-        ret = f->get_var_name(f->get_param_nr(tmp2));
-    }
-    else {                                     // anything else
-        ret = next_var_name();
-        assign_variable(ret, func);
-    }
-
-static
-string parse_and_find_fz_idx(const Ftk* F, string const &fstr)
-{
-    int pos = 0;
-    int pref = -1;
-    if (fstr[0] == '@') {
-        pos = fstr.find(".") + 1;
-        pref = strtol(fstr.c_str()+1, 0, 10);
-    }
-    vector<string> const &names = F->get_model(pref)->get_fz(fstr[pos]).names;
-    int idx_ = strtol(fstr.c_str()+pos+2, 0, 10);
-    int idx = (idx_ >= 0 ? idx_ : idx_ + names.size());
-    if (!is_index(idx, names))
-        throw ExecuteError("There is no item with index " + S(idx_));
-    return names[idx];
-}
-
-#endif
