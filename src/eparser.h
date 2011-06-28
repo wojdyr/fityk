@@ -69,10 +69,6 @@ private:
     // operator stack for the shunting-yard algorithm
     std::vector<int> opstack_;
 
-    // argument counters for functions
-    // TODO: use opstack_ for arg_cnt_
-    std::vector<int> arg_cnt_;
-
     // expected type of the next token (basic shunting-yard algorithm parses
     // e.g. two numbers in sequence, like "1 2", ignores the the first one
     // and doesn't signal error. The expected_ flag is used to stop parsing

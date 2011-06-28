@@ -324,7 +324,7 @@ void ExpressionParser::put_binary_op(Op op)
 void ExpressionParser::put_function(Op op)
 {
     //cout << "put_function() " << op << endl;
-    arg_cnt_.push_back(0); // start new counter
+    opstack_.push_back(0); // argument counter
     opstack_.push_back(op);
     expected_ = kValue;
 }
@@ -597,7 +597,6 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                                   bool ast_mode)
 {
     opstack_.clear();
-    arg_cnt_.clear();
     finished_ = false;
     expected_ = kValue;
     if (F_ != NULL && default_ds >= F_->get_dm_count())
@@ -813,13 +812,13 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                     int top = opstack_.back();
                     if (is_function(top)) {
                         pop_onto_que();
-                        int n = arg_cnt_.back() + 1;
+                        int n = opstack_.back() + 1;
+                        opstack_.pop_back();
                         int expected_n = get_function_narg(top);
                         if (n != expected_n)
                             lex.throw_syntax_error(
                                S("function ") + function_name(top) + " expects "
                                + S(expected_n) + " arguments, not " + S(n));
-                        arg_cnt_.pop_back();
                         if (top==OP_FUNC || top==OP_SUM_F || top==OP_SUM_Z)
                             pop_onto_que(); // pop function index
                         else if (top==OP_NUMAREA || top==OP_FINDX ||
@@ -844,12 +843,12 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                 else if (opstack_.back() == OP_TERNARY_MID)
                     lex.throw_syntax_error("unexpected ',' after '?'");
                 // if we are here, opstack_.back() == OP_OPEN_ROUND
-                else if (opstack_.size() < 2 ||
+                else if (opstack_.size() < 3 ||
                          !is_function(*(opstack_.end() - 2)))
                     lex.throw_syntax_error("',' outside of function");
                 else
                     // don't pop OP_OPEN_ROUND from the stack
-                    ++ arg_cnt_.back();
+                    ++ *(opstack_.end() - 3);
                 expected_ = kValue;
                 break;
 
