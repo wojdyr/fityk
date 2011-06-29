@@ -45,8 +45,8 @@ string Data::get_info() const
                     + ", " + (given_y_ != INT_MAX ? S(given_y_) : S("_"));
     if (given_s_ != INT_MAX)
         s += ", " + S(given_s_);
-    if (!title.empty())
-        s += "\nData title: " + title;
+    if (!title_.empty())
+        s += "\nData title: " + title_;
     if (active_.size() != p_.size())
         s += "\nActive data range: " + range_as_string();
     return s;
@@ -55,7 +55,7 @@ string Data::get_info() const
 void Data::clear()
 {
     filename_ = "";
-    title = "";
+    title_ = "";
     given_x_ = given_y_ = given_s_ = INT_MAX;
     given_options_.clear();
     given_blocks_.clear();
@@ -95,7 +95,7 @@ int Data::load_arrays(const vector<realt> &x, const vector<realt> &y,
     assert(x.size() == y.size());
     assert(sigma.empty() || sigma.size() == y.size());
     clear();
-    title = data_title;
+    title_ = data_title;
     p_.resize(y.size());
     if (sigma.empty())
         for (size_t i = 0; i != y.size(); ++i)
@@ -123,13 +123,13 @@ void Data::revert()
     if (filename_.empty())
         throw ExecuteError("Dataset can't be reverted, it was not loaded "
                            "from file");
-    string old_title = title;
+    string old_title = title_;
     string old_filename = filename_;
     // this->filename_ should not be passed by ref to load_file(), because it's
     // cleared before being used
     load_file(old_filename, given_x_, given_y_, given_s_,
               given_blocks_, given_format_, given_options_);
-    title = old_title;
+    title_ = old_title;
 }
 
 namespace {
@@ -239,7 +239,7 @@ void Data::load_data_sum(const vector<const Data*>& dd, const string& op)
         apply_operation(new_p, op);
         // data should be sorted after apply_operation()
     clear();
-    title = new_title;
+    title_ = new_title;
     filename_ = new_filename;
     p_ = new_p;
     has_sigma_ = true;
@@ -379,11 +379,11 @@ void Data::load_file (const string& fn,
     }
 
     if (!block_name.empty())
-        title = block_name;
+        title_ = block_name;
     else {
-        title = get_file_basename(fn);
+        title_ = get_file_basename(fn);
         if (idx_x != INT_MAX && idx_y != INT_MAX)
-            title += ":" + S(idx_x) + ":" + S(idx_y);
+            title_ += ":" + S(idx_x) + ":" + S(idx_y);
     }
 
     if (x_step_ == 0) {

@@ -21,7 +21,6 @@ std::string get_file_basename(std::string const& path);
 class Data
 {
 public :
-    std::string title;
     static int count_blocks(const std::string& fn,
                             const std::string& format,
                             const std::string& options);
@@ -62,7 +61,8 @@ public :
     std::string range_as_string () const;
     int get_lower_bound_ac (double x) const;
     int get_upper_bound_ac (double x) const;
-    const std::string& get_title() const { return title; }
+    const std::string& get_title() const { return title_; }
+    void set_title(const std::string& title) { title_ = title; }
     const std::string& get_filename() const { return filename_; }
 
     void find_step();
@@ -82,6 +82,7 @@ public :
 
 private:
     const Ftk* F_;
+    std::string title_;
     std::string filename_;
     int given_x_, given_y_, given_s_;/// columns given when loading the file
     std::vector<int> given_blocks_;

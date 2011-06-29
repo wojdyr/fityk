@@ -733,7 +733,7 @@ void Runner::execute_command(Command& c, int ds)
             command_resize_p(c.args, ds);
             break;
         case kCmdTitle:
-            F_->get_data(ds)->title = Lexer::get_string(c.args[0]);
+            F_->get_data(ds)->set_title(Lexer::get_string(c.args[0]));
             break;
         case kCmdAssignParam:
             if (c.args[2].type == kTokenMult)
