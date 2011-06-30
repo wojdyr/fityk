@@ -806,7 +806,8 @@ bool Parser::parse_statement(Lexer& lex)
     if (st_.datasets.empty())
         st_.datasets.push_back(F_->default_dm());
 
-    if (first.type == kTokenLname && is_command(first, "w","ith")) {
+    if (lex.peek_token().type == kTokenLname &&
+            is_command(lex.peek_token(), "w","ith")) {
         lex.get_token(); // discard "with"
         parse_set_args(lex, st_.with_args);
     }
