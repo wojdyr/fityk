@@ -293,7 +293,7 @@ void SideBar::OnDataButtonNew (wxCommandEvent&)
 
 void SideBar::OnDataButtonDup (wxCommandEvent&)
 {
-    ftk->exec("@+ = sum_same_x " + join_vector(d->get_selected_data(), " + "));
+    ftk->exec("@+ = " + join_vector(d->get_selected_data(), " + "));
 }
 
 void SideBar::OnDataButtonRen (wxCommandEvent&)

@@ -1095,7 +1095,7 @@ void FFrame::OnDataCalcShirley (wxCommandEvent&)
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
         string title = ftk->get_data(*i)->get_title();
         int c = ftk->get_dm_count();
-        ftk->exec("@+ = shirley_bg @" + S(*i));
+        ftk->exec("@+ = shirley_bg(@" + S(*i) + ")");
         ftk->exec("@" + S(c) + ": title = '" + title + "-Shirley'");
     }
 }
@@ -1108,7 +1108,7 @@ void FFrame::OnDataRmShirley (wxCommandEvent&)
         string dstr = "@" + S(*i);
         if (i != sel.begin())
             cmd += "; ";
-        cmd += dstr + " = rm_shirley_bg " + dstr;
+        cmd += dstr + " = " + dstr + " - shirley_bg(" + dstr + ")";
     }
     ftk->exec(cmd);
 }

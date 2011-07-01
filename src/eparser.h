@@ -45,6 +45,13 @@ public:
         kIndex,
     };
 
+    enum ParseMode
+    {
+        kNormalMode,
+        kAstMode,
+        kDatasetTrMode,
+    };
+
     // if F is NULL, $variables, %functions, etc. are not handled
     ExpressionParser(const Ftk* F) : ExprCalculator(F), expected_(kValue),
                                      finished_(false) {}
@@ -56,7 +63,7 @@ public:
     void parse_expr(Lexer& lex, int default_ds,
                     const std::vector<std::string> *custom_vars=NULL,
                     std::vector<std::string> *new_vars=NULL,
-                    bool ast_mode=false);
+                    ParseMode mode=kNormalMode);
 
     // does not throw; returns true if all string is parsed
     bool parse_full(Lexer& lex, int default_ds,

@@ -43,8 +43,8 @@ public :
     int load_arrays(const std::vector<realt>& x, const std::vector<realt>& y,
                     const std::vector<realt>& sigma,
                     const std::string& data_title);
-    void load_data_sum(const std::vector<const Data*>& dd,
-                       const std::string& op);
+    //void load_data_sum(const std::vector<const Data*>& dd,
+    //                   const std::string& op);
     void set_points(const std::vector<Point>& p);
     void clear();
     //void add_point(Point const& pt) { p_.push_back(pt); }; //don't use it

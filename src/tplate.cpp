@@ -52,7 +52,7 @@ vector<string> Tplate::get_missing_default_values() const
         string dv = defvals[i].empty() ? fargs[i] : defvals[i];
         ep.clear_vm();
         Lexer lex(dv.c_str());
-        ep.parse_expr(lex, 0, &gkeys, &missing, false);
+        ep.parse_expr(lex, 0, &gkeys, &missing);
     }
     return missing;
 }

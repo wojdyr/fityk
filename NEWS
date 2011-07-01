@@ -1,4 +1,8 @@
 User-visible changes in version 1.0.3  (2011-  -  ):
+* syntax changes and enhancements in dataset transformations (@n = ...);
+  example: "@0 = @0 - 0.23 * @1" removes (background) @1 with y's scaled
+  by factor 0.23 from dataset @0, if @0 and @1 have different x's, linear
+  interpolation is used.
 * added calculation of Polyline derivatives, what enables weighted least
   squares approximation by broken lines
 * gzipped fit files can be read directly (extension .fit.gz or .fityk.gz)

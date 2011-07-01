@@ -1,25 +1,8 @@
-* subtracting datasets (with interpolation of the subtrahend): @2 = @0 - @1;
-  for consistency, `+' should add interpolated data, and 'U' can stand
-  for a sum of sets.
-
---------------
+* handle mouse wheel and extra buttons
 
 * GUI: a single dialog for Model > Export... options and for "info models"
 
-* GUI: definition mgr - checkbox - show in the list on toolbar
-
-* GUI: definition mgr - show formula images from the manual, if available
-
-* CLI/GUI: use sigaction() instead of signal() to handle SIGINT
-  print a message from interrupt_handler()
-
-* add functions cot and coth
-
 * GUI: pre-defined GUI configuration `black-on-white`
-
-* refactor sidebar; use wxDataViewCtrl for the lists at the sidebar,
-  rewrite ListWithColors::populate(), add sorting by clicking on column
-  header (use case: sort functions by centers)
 
 * GUI, printing (hardcopy): this part has been neglected for some time.
   Make sure it works fine on all platforms and add more options:
@@ -36,10 +19,23 @@
 
 ---
 
+* GUI: definition mgr - checkbox - show in the list on toolbar
+
+* GUI: definition mgr - show formula images from the manual, if available
+
+* CLI/GUI: use sigaction() instead of signal() to handle SIGINT
+  print a message from interrupt_handler()
+
+* refactor sidebar; use wxDataViewCtrl for the lists at the sidebar,
+  rewrite ListWithColors::populate(), add sorting by clicking on column
+  header (use case: sort functions by centers)
+
 * syntax enhancements:  $min = @*.min(y if a)
                         print all: F[*](x) # print all components as columns
 
 * finish the powder diffraction add-on (Pawley fitting)
+
+* add functions cot and coth
 
 * allow all the functions from data transformation in variable/UDF definition
 
@@ -114,6 +110,7 @@
     levmar: http://www.ics.forth.gr/~lourakis/levmar/
     OpenOpt: http://openopt.org/
     http://www.applied-mathematics.net/optimization/rosenbrock.html
+    MPFIT: http://www.physics.wisc.edu/~craigm/idl/cmpfit.html
 
 * fitting: in addition to the least squares fit, add so-called robust fit 
   (it is called robust fit in the Numerical Recipes book), i.e. optimize

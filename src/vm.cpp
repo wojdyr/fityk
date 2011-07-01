@@ -69,7 +69,7 @@ realt find_idx_in_sorted(vector<Point> const& pp, realt x)
                                                   Point(x, 0));
     assert (i > pp.begin() && i < pp.end());
     if (is_eq(x, i->x))
-            return i - pp.begin();
+        return i - pp.begin();
     else
         return i - pp.begin() - (i->x - x) / (i->x - (i-1)->x);
 }
@@ -106,6 +106,7 @@ string op2str(int op)
         OP_(FUNC) OP_(SUM_F) OP_(SUM_Z)
         OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
         OP_(TILDE)
+        OP_(DATASET) OP_(DT_SUM_SAME_X) OP_(DT_AVG_SAME_X) OP_(DT_SHIRLEY_BG)
         OP_(OPEN_ROUND)  OP_(OPEN_SQUARE)
     }
     return S(op);
@@ -122,14 +123,13 @@ string vm2str(vector<int> const& code, vector<realt> const& data)
             assert (*i >= 0 && *i < size(data));
             s += "[" + S(*i) + "](" + S(data[*i]) + ")";
         }
-        else if (*i == OP_SYMBOL || *i == OP_PUT_DERIV) {
+        else if (VMData::has_idx(*i)) {
             ++i;
             s += "[" + S(*i) + "]";
         }
         s += " ";
     }
     return s;
-
 }
 
 
@@ -484,6 +484,10 @@ void run_const_op(const Ftk* F, const std::vector<realt>& numbers,
         case OP_AFTER_OR:
         case OP_AFTER_TERNARY:
         case OP_TILDE:
+            break;
+
+        case OP_DATASET:
+            throw ExecuteError("@n can not be used in this context");
             break;
 
         default:

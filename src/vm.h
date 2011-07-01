@@ -96,6 +96,12 @@ enum Op
 
     OP_TILDE, // ...
 
+    // used only in dataset transformations (@n=...)
+    OP_DATASET, // followed by number
+    OP_DT_SUM_SAME_X,
+    OP_DT_AVG_SAME_X,
+    OP_DT_SHIRLEY_BG,
+
     // these two are not VM operators, but are handy to have here,
     // they and are used in implementation of shunting yard algorithm
     OP_OPEN_ROUND, OP_OPEN_SQUARE
@@ -106,7 +112,8 @@ class VMData
 {
 public:
     static bool has_idx(int op)
-        { return op == OP_NUMBER || op == OP_SYMBOL || op == OP_PUT_DERIV; }
+        { return op == OP_NUMBER || op == OP_SYMBOL || op == OP_PUT_DERIV ||
+                 op == OP_DATASET; }
 
     const std::vector<int>& code() const { return code_; }
     const std::vector<realt>& numbers() const { return numbers_; }

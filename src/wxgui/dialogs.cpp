@@ -253,8 +253,8 @@ string MergePointsDlg::get_command()
     string dat = output_rb->GetSelection() == 0 ? S(focused_data) : S("+");
     s += "@" + dat + " = ";
     if (dx_cb->GetValue())
-        s += y_rb->GetSelection() == 0 ? "sum_same_x " : "avg_same_x ";
-    s += "@" + join_vector(frame->get_selected_data_indices(), " + @");
+        s += y_rb->GetSelection() == 0 ? "sum_same_x" : "avg_same_x";
+    s += "(@" + join_vector(frame->get_selected_data_indices(), " and @") + ")";
     return s;
 }
 

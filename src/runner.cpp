@@ -16,6 +16,7 @@
 #include "fit.h"
 #include "model.h"
 #include "guess.h"
+#include "transform.h"
 
 using namespace std;
 
@@ -302,19 +303,16 @@ void Runner::command_plot(const vector<Token>& args, int ds)
 
 void Runner::command_dataset_tr(const vector<Token>& args)
 {
+    assert(args.size() == 2);
+    assert(args[0].type == kTokenDataset);
+    assert(args[1].type == kTokenExpr);
     int n = args[0].value.i;
-    string tr = args[1].as_string();
-    vector<Data const*> dd;
-    for (size_t i = 2; i < args.size(); ++i)
-        if (args[i].type == kTokenDataset)
-            dd.push_back(F_->get_data(args[i].value.i));
-    if (n == Lexer::kNew) {
-        auto_ptr<Data> data(new Data(F_));
-        data->load_data_sum(dd, tr);
-        F_->append_dm(data.release());
-    }
-    else
-        F_->get_data(n)->load_data_sum(dd, tr);
+    Lexer lex(args[1].str);
+    ep_.clear_vm();
+    ep_.parse_expr(lex, F_->default_dm(), NULL, NULL,
+                   ExpressionParser::kDatasetTrMode);
+    DatasetTransformer dt(F_);
+    dt.run_dt(ep_.vm(), n);
     F_->outdated_plot();
 }
 
@@ -759,7 +757,8 @@ void Runner::execute_command(Command& c, int ds)
 void Runner::recalculate_command(Command& c, int ds, Statement& st)
 {
     // Don't evaluate commands that are parsed in command_*().
-    if (c.type == kCmdAllPointsTr || c.type == kCmdDeleteP)
+    if (c.type == kCmdAllPointsTr || c.type == kCmdDeleteP ||
+            c.type == kCmdDatasetTr)
         return;
 
     const vector<Point>& points = F_->get_data(ds)->points();
@@ -773,7 +772,7 @@ void Runner::recalculate_command(Command& c, int ds, Statement& st)
         else if (t->type == kTokenEVar) {
             Lexer lex(t->str);
             ep_.clear_vm();
-            ep_.parse_expr(lex, ds, NULL, NULL, true);
+            ep_.parse_expr(lex, ds, NULL, NULL, ExpressionParser::kAstMode);
             st.vdlist[t->value.i] = ep_.vm();
         }
 }

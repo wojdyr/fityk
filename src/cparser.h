@@ -98,7 +98,8 @@ private:
     ExpressionParser ep_;
     Statement st_;
 
-    Token read_expr(Lexer& lex);
+    Token read_expr(Lexer& lex,
+                ExpressionParser::ParseMode mode=ExpressionParser::kNormalMode);
     Token read_and_calc_expr(Lexer& lex);
     Token read_var(Lexer& lex);
     Token read_define_arg(Lexer& lex,

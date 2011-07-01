@@ -164,7 +164,7 @@ The kCmd* names in the comments correspond to constants in the code.
     : "use" Dataset                    | (*kCmdUse*)
     : "!" RestOfLine                   | (*kCmdShell*)
     : Dataset "<" `load_arg`             | (*kCmdLoad*)
-    : Dataset "=" `dataset_tr_arg`       | (*kCmdDatasetTr*)
+    : Dataset "=" `dataset_expr`         | (*kCmdDatasetTr*)
     : Funcname "=" `func_rhs`            | (*kCmdNameFunc*)
     : `param_lhs` "=" `v_expr`             | (*kCmdAssignParam*)
     : Varname "=" `v_expr`               | (*kCmdNameVar*)
@@ -207,7 +207,6 @@ The kCmd* names in the comments correspond to constants in the code.
            : "copy" "(" `func_id` ")"
    load_arg: `filename` Lname* |
            : "."
-   dataset_tr_arg: [Lname] (Dataset | "0") % "+"
    p_attr: ("X" | "Y" | "S" | "A")
    model_id: [Dataset "."] ("F"|"Z")
    func_id: Funcname |
@@ -257,6 +256,9 @@ Since ``v_expr`` is used to define variables and user-defined functions,
 the program calculates symbolically derivatives of ``v_expr``.
 That is why not all the function from ``expr`` are supported
 (they may be added in the future).
+
+``dataset_expr`` supports very limited set of operators and a few functions
+that take Dataset token as argument (example: ``@0 - shirley_bg(@0)``).
 
 **Lexer**
 

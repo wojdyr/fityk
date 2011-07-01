@@ -112,7 +112,7 @@ Parser::~Parser()
 {
 }
 
-Token Parser::read_expr(Lexer& lex)
+Token Parser::read_expr(Lexer& lex, ExpressionParser::ParseMode mode)
 {
     Token t;
     t.type = kTokenExpr;
@@ -120,7 +120,7 @@ Token Parser::read_expr(Lexer& lex)
     ep_.clear_vm();
     assert(!st_.datasets.empty());
     int ds = st_.datasets[0];
-    ep_.parse_expr(lex, ds);
+    ep_.parse_expr(lex, ds, NULL, NULL, mode);
     t.length = lex.pchar() - t.str;
     t.value.d = 0.;
     return t;
@@ -143,7 +143,7 @@ Token Parser::read_var(Lexer& lex)
     t.str = lex.pchar();
     int ds = st_.datasets[0];
     ep_.clear_vm();
-    ep_.parse_expr(lex, ds, NULL, NULL, true);
+    ep_.parse_expr(lex, ds, NULL, NULL, ExpressionParser::kAstMode);
     t.value.i = st_.vdlist.size();
     st_.vdlist.push_back(ep_.vm());
     t.length = lex.pchar() - t.str;
@@ -347,7 +347,7 @@ void Parser::parse_define_rhs(Lexer& lex, Tplate *tp)
 
         Lexer lex2(rhs.c_str());
         ExpressionParser ep(NULL);
-        ep.parse_expr(lex2, -1, &tp->fargs, NULL, true);
+        ep.parse_expr(lex2, -1, &tp->fargs, NULL, ExpressionParser::kAstMode);
         tp->op_trees = prepare_ast_with_der(ep.vm(), tp->fargs.size() + 1);
 
         tp->create = &create_CustomFunction;
@@ -650,19 +650,6 @@ CommandType Parser::parse_xysa_args(Lexer& lex, vector<Token>& args)
     }
 }
 
-// [Key] (Dataset | 0) % '+'
-void parse_dataset_tr_args(Lexer& lex, vector<Token>& args)
-{
-    args.push_back(lex.get_token_if(kTokenLname));
-    do {
-        Token t = lex.get_expected_token(kTokenDataset, "0");
-        if (t.type == kTokenDataset && (t.value.i == Lexer::kAll ||
-                                        t.value.i == Lexer::kNew))
-            lex.throw_syntax_error("expected @number");
-        args.push_back(t);
-    } while (lex.discard_token_if(kTokenPlus));
-}
-
 void Parser::parse_assign_func(Lexer& lex, vector<Token>& args)
 {
     Token f = lex.get_expected_token(kTokenCname, "copy");
@@ -785,10 +772,8 @@ bool Parser::parse_statement(Lexer& lex)
     st_.commands[0].defined_tp.reset();
 
     Token first = lex.peek_token();
-
     if (first.type == kTokenNop)
         return false;
-
     if (first.type == kTokenDataset) {
         lex.get_token();
         Token t = lex.get_token();
@@ -999,7 +984,7 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
         cmd.type = kCmdDatasetTr;
         cmd.args.push_back(token);
         lex.get_token(); // discard '='
-        parse_dataset_tr_args(lex, cmd.args);
+        cmd.args.push_back(read_expr(lex, ExpressionParser::kDatasetTrMode));
     }
 
     if (cmd.type == kCmdNull)

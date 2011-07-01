@@ -582,44 +582,48 @@ To print the title of the dataset, type ``@n: info title``.
 Dataset Transformations
 -----------------------
 
-Transformations that are defined for a whole dataset, not for each point
-separately, will be called :dfn:`dataset tranformations`.
-They have the following syntax::
+There are a few transformations defined for a whole dataset
+or for two datasets. The syntax is ``@n = ...`` or ``@+ = ...``.
+The the right hand side expression supports the following operations:
 
-   @n = dataset-transformation @m
+``-@n``
+    negation of all *y* values,
 
-or more generally::
+``d * @n``
+    (e.g. ``0.4*@0``) *y* values are multiplied by *d*,
 
-   @n = dataset-transformation @m + @k + ...
+``@n + @m``
+    returns ``@n`` with added *y* values from interpolated ``@m``,
 
-where *dataset-transformation* can be one of:
+``@n - @m``
+    returns ``@n`` with subtracted *y* values from interpolated ``@m``,
 
-``sum_same_x``
+``@n and @m``
+    returns points from both datasets (re-sorted),
+
+and functions:
+
+``sum_same_x(@n)``
     Merges points which have distance in *x* is smaller than
     :ref:`epsilon <epsilon>`.
     *x* of the merged point is the average,
     and *y* and *σ* are sums of components.
 
-``avg_same_x``
+``avg_same_x(@n)``
     The same as ``sum_same_x``, but *y* and *σ* are set as the average
     of components.
 
-``shirley_bg``
+``shirley_bg(@n)``
     Calculates Shirley background
     (useful in X-ray photoelectron spectroscopy).
-
-``rm_shirley_bg``
-    Calculates data with removed Shirley background.
-
-A sum of datasets (``@n + @m + ...``) contains all points from all component
-datasets. If datasets have the same x values, the sum of y values can be
-obtained using ``@+ = sum_same_x @n + @m + ...``.
 
 Examples::
 
   @+ = @0 # duplicate the dataset
-  @+ = @0 + @1 # create a new dataset from @0 and @1
-  @0 = rm_shirley_bg @0 # remove Shirley background 
+  @+ = @0 and @1 # create a new dataset from @0 and @1
+  @0 = @0 - shirley_bg(@0) # remove Shirley background 
+  @0 = @0 - @1 # subtract @1 from @0
+  @0 = @0 - 0.28*@1 # subtract scaled dataset @1 from @0
 
 
 .. _dexport:

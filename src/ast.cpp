@@ -787,7 +787,7 @@ string simplify_formula(string const &formula)
     // if the formula has not-expanded-functions, like Voigt(2,3,4,5),
     // it throws SyntaxError
     try {
-        ep.parse_expr(lex, -1, NULL, NULL, true);
+        ep.parse_expr(lex, -1, NULL, NULL, ExpressionParser::kAstMode);
     }
     catch (fityk::SyntaxError&) {
         return formula;
@@ -828,7 +828,7 @@ vector<OpTree*> calculate_deriv(vector<int>::const_iterator &i, int len,
   if (*i < 0) {
       --i;
       assert(i >= vm.code().begin());
-      assert(*i == OP_NUMBER || *i == OP_SYMBOL);
+      assert(VMData::has_idx(*i));
   }
 
   switch (*i) {

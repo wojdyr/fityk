@@ -132,94 +132,7 @@ void Data::revert()
     title_ = old_title;
 }
 
-namespace {
-
-void merge_same_x(vector<Point> &pp, bool avg)
-{
-    int count_same = 1;
-    double x0 = 0; // 0 is assigned only to avoid compiler warnings
-    for (int i = pp.size() - 2; i >= 0; --i) {
-        if (count_same == 1)
-            x0 = pp[i+1].x;
-        if (is_eq(pp[i].x, x0)) {
-            pp[i].x += pp[i+1].x;
-            pp[i].y += pp[i+1].y;
-            pp[i].sigma += pp[i+1].sigma;
-            pp[i].is_active = pp[i].is_active || pp[i+1].is_active;
-            pp.erase(pp.begin() + i+1);
-            count_same++;
-            if (i > 0)
-                continue;
-            else
-                i = -1; // to change pp[0]
-        }
-        if (count_same > 1) {
-            pp[i+1].x /= count_same;
-            if (avg) {
-                pp[i+1].y /= count_same;
-                pp[i+1].sigma /= count_same;
-            }
-            count_same = 1;
-        }
-    }
-}
-
-void shirley_bg(vector<Point> &pp, bool remove)
-{
-    const int max_iter = 50;
-    const double max_rdiff = 1e-6;
-    const int n = pp.size();
-    double ya = pp[0].y; // lowest bg
-    double yb = pp[n-1].y; // highest bg
-    double dy = yb - ya;
-    vector<double> B(n, ya);
-    vector<double> PA(n, 0.);
-    double old_A = 0;
-    for (int iter = 0; iter < max_iter; ++iter) {
-        vector<double> Y(n);
-        for (int i = 0; i < n; ++i)
-            Y[i] = pp[i].y - B[i];
-        for (int i = 1; i < n; ++i)
-            PA[i] = PA[i-1] + (Y[i] + Y[i-1]) / 2 * (pp[i].x - pp[i-1].x);
-        double rel_diff = old_A != 0. ? fabs(PA[n-1] - old_A) / old_A : 1.;
-        if (rel_diff < max_rdiff)
-            break;
-        old_A = PA[n-1];
-        for (int i = 0; i < n; ++i)
-            B[i] = ya + dy / PA[n-1] * PA[i];
-    }
-    if (remove)
-        for (int i = 0; i < n; ++i)
-            pp[i].y -= B[i];
-    else
-        for (int i = 0; i < n; ++i)
-            pp[i].y = B[i];
-}
-
-void apply_operation(vector<Point> &pp, const string& op)
-{
-    assert (!pp.empty());
-    assert (!op.empty());
-    if (op == "sum_same_x")
-        merge_same_x(pp, false);
-    else if (op == "avg_same_x")
-        merge_same_x(pp, true);
-    else if (op == "shirley_bg")
-        shirley_bg(pp, false);
-    else if (op == "rm_shirley_bg")
-        shirley_bg(pp, true);
-    else if (op == "fft") {
-        throw ExecuteError("Fourier Transform not implemented yet");
-    }
-    else if (op == "ifft") {
-        throw ExecuteError("Inverse FFT not implemented yet");
-    }
-    else
-        throw ExecuteError("Unknown dataset operation: " + op);
-}
-
-} // anonymous namespace
-
+/*
 void Data::load_data_sum(const vector<const Data*>& dd, const string& op)
 {
     if (dd.empty()) {
@@ -246,6 +159,7 @@ void Data::load_data_sum(const vector<const Data*>& dd, const string& op)
     find_step();
     post_load();
 }
+*/
 
 void Data::add_one_point(realt x, realt y, realt sigma)
 {

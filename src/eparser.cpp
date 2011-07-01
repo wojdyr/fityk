@@ -70,6 +70,9 @@ const char* function_name(int op)
         case OP_ABS: return "abs";
         case OP_ROUND: return "round";
         case OP_XINDEX: return "index";
+        case OP_DT_SUM_SAME_X: return "sum_same_x";
+        case OP_DT_AVG_SAME_X: return "avg_same_x";
+        case OP_DT_SHIRLEY_BG: return "shirley_bg";
         // 2-args functions
         case OP_MOD: return "mod";
         case OP_MIN2: return "min2";
@@ -111,6 +114,9 @@ int get_function_narg(int op)
         case OP_ABS:
         case OP_ROUND:
         case OP_XINDEX:
+        case OP_DT_SUM_SAME_X:
+        case OP_DT_AVG_SAME_X:
+        case OP_DT_SHIRLEY_BG:
             return 1;
         // 2-args functions
         case OP_MOD:
@@ -594,7 +600,7 @@ bool ExpressionParser::parse_full(Lexer& lex, int default_ds,
 void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                                   const vector<string> *custom_vars,
                                   vector<string> *new_vars,
-                                  bool ast_mode)
+                                  ParseMode mode)
 {
     opstack_.clear();
     finished_ = false;
@@ -726,6 +732,15 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                         AggregDArea ag(F_->get_data(default_ds)->points());
                         put_ag_function(lex, default_ds, ag);
                     }
+
+                    // dataset functions
+                    else if (mode == kDatasetTrMode && word == "sum_same_x")
+                        put_function(OP_DT_SUM_SAME_X);
+                    else if (mode == kDatasetTrMode && word == "avg_same_x")
+                        put_function(OP_DT_AVG_SAME_X);
+                    else if (mode == kDatasetTrMode && word == "shirley_bg")
+                        put_function(OP_DT_SHIRLEY_BG);
+
                     else
                         lex.throw_syntax_error("unknown function: " + word);
                 }
@@ -734,7 +749,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                         finished_ = true;
                         break;
                     }
-                    put_name(lex, word, custom_vars, new_vars, ast_mode);
+                    put_name(lex, word, custom_vars, new_vars, mode==kAstMode);
                 }
                 break;
             }
@@ -757,7 +772,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                     expected_ = kOperator;
                 }
                 else if (*token.str == 'F' || *token.str == 'Z') {
-                    put_fz_sth(lex, *token.str, default_ds, ast_mode);
+                    put_fz_sth(lex, *token.str, default_ds, mode==kAstMode);
                 }
                 else
                     lex.throw_syntax_error("unknown name: "+ token.as_string());
@@ -768,13 +783,26 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                     finished_ = true;
                     break;
                 }
-                lex.get_expected_token(kTokenDot); // discard '.'
-                Token t = lex.get_expected_token(kTokenUletter);
-                if (*t.str == 'F' || *t.str == 'Z') {
-                    put_fz_sth(lex, *t.str, token.value.i, ast_mode);
+                if (lex.peek_token().type == kTokenDot) {
+                    lex.get_token(); // discard '.'
+                    Token t = lex.get_expected_token(kTokenUletter);
+                    if (*t.str == 'F' || *t.str == 'Z') {
+                        put_fz_sth(lex, *t.str, token.value.i, mode==kAstMode);
+                    }
+                    else
+                        lex.throw_syntax_error("unknown name: " +
+                                               token.as_string());
                 }
-                else
-                    lex.throw_syntax_error("unknown name: "+ token.as_string());
+                else {
+                    if (mode != kDatasetTrMode)
+                        lex.get_expected_token(kTokenDot);
+                    int n = token.value.i;
+                    if (n == Lexer::kAll || n == Lexer::kNew)
+                        lex.throw_syntax_error("@*/@+ not allowed at RHS");
+                    vm_.append_code(OP_DATASET);
+                    vm_.append_code(n);
+                    expected_ = kOperator;
+                }
                 break;
             }
             case kTokenOpen:
@@ -960,10 +988,10 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                     put_binary_op(OP_AFTER_TERNARY);
                 break;
             case kTokenVarname:
-                put_variable_sth(lex, Lexer::get_string(token), ast_mode);
+                put_variable_sth(lex, Lexer::get_string(token), mode==kAstMode);
                 break;
             case kTokenFuncname:
-                put_func_sth(lex, Lexer::get_string(token), ast_mode);
+                put_func_sth(lex, Lexer::get_string(token), mode==kAstMode);
                 break;
 
             case kTokenTilde:

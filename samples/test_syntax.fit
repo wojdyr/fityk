@@ -1,4 +1,4 @@
-# Fityk 0.9.5
+# Fityk 1.0.4
 
 ### syntax testing
 ### this script doesn't assume location of any other files (ie. no data files
@@ -74,7 +74,7 @@ dele %pe
 F += Pearson7(~2000, ~75, ~0.6, ~2)
 @0: fit 2
 fit+ 15
-with fitting_method=nelder_mead_simplex fit 10
+@*: with fitting_method=nelder_mead_simplex fit 10
 with fitting_method=genetic_algorithms fit 10
 %fun = copy(%_1)
 i prop %ble, %lo
@@ -179,12 +179,16 @@ plo [:50]
 @+ = @0
 @+ = 0
 @2 = @0 + @1
+@2 = @0 - @1
+@2 = @0 - 0.291834*@1
+@2 = @0 and @1
 del @2
-@+ = avg_same_x @0 + @1
+@+ = avg_same_x(@0 and @1)
+@2 = @2 - shirley_bg(@2)
 delete @2
 @1.F = copy(@0.F)
 @1.Z = copy(@0.Z)
-with epsilon=0.1 @1 = sum_same_x @1
+with epsilon=0.1 @1 = sum_same_x(@1)
 
 
 #test variable rhs syntax parsing
