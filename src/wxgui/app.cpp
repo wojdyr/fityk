@@ -19,6 +19,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <string>
+#include <boost/scoped_ptr.hpp>
 
 #ifndef _WIN32
 # include <signal.h>
@@ -145,6 +146,26 @@ void interrupt_handler (int /*signum*/)
     user_interrupt = true;
 }
 
+void write_white_config(wxConfigBase *w)
+{
+    cfg_write_color(w, "MainPlot/Colors/bg", wxColour(255, 255, 255));
+    cfg_write_color(w, "MainPlot/Colors/model", wxColour(0, 0, 127));
+    cfg_write_color(w, "MainPlot/Colors/xAxis", wxColour(0, 0, 0));
+    cfg_write_color(w, "MainPlot/Colors/data/0", wxColour(0, 127, 0));
+    cfg_write_color(w, "MainPlot/Colors/peak/0", wxColour(255, 89, 89));
+    cfg_write_color(w, "AuxPlot_0/Colors/bg", wxColour(255, 255, 255));
+    cfg_write_color(w, "AuxPlot_0/Colors/active_data", wxColour(0, 127, 0));
+    cfg_write_color(w, "AuxPlot_0/Colors/xAxis", wxColour(0, 0, 0));
+    cfg_write_color(w, "AuxPlot_1/Colors/bg", wxColour(255, 255, 255));
+    cfg_write_color(w, "AuxPlot_1/Colors/active_data", wxColour(0, 127, 0));
+    cfg_write_color(w, "AuxPlot_1/Colors/xAxis", wxColour(0, 0, 0));
+    cfg_write_color(w, "OutputWin/Colors/normal", wxColour(51, 51, 51));
+    cfg_write_color(w, "OutputWin/Colors/warn", wxColour(172, 0, 0));
+    cfg_write_color(w, "OutputWin/Colors/quot", wxColour(46, 58, 107));
+    cfg_write_color(w, "OutputWin/Colors/input", wxColour(0, 76, 9));
+    cfg_write_color(w, "OutputWin/Colors/bg", wxColour(255, 255, 255));
+}
+
 
 bool FApp::OnInit(void)
 {
@@ -200,8 +221,13 @@ bool FApp::OnInit(void)
 
     // directory for configs
     config_dir = fityk_dir + wxFILE_SEP_PATH + wxT("configs") + wxFILE_SEP_PATH;
-    if (!wxDirExists(config_dir))
+    if (!wxDirExists(config_dir)) {
         wxMkdir(config_dir);
+        // create white-background config
+        boost::scoped_ptr<wxFileConfig> w(new wxFileConfig("", "",
+                                                           config_dir+"white"));
+        write_white_config(w.get());
+    }
 
     // moving configs from ver. <= 0.9.7 to the current locations
     wxString old_config = get_conf_file("config");

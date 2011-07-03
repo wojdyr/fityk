@@ -2,8 +2,6 @@
 
 * GUI: a single dialog for Model > Export... options and for "info models"
 
-* GUI: pre-defined GUI configuration `black-on-white`
-
 * GUI, printing (hardcopy): this part has been neglected for some time.
   Make sure it works fine on all platforms and add more options:
   it should be possible to add text to the graph (data title or fit info)
