@@ -962,8 +962,20 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
     int count = paths.GetCount();
     string cmd;
     if (count == 1) {
+        string f = wx2s(paths[0]);
+        if (endswith(f, ".fit")) {
+            int r = wxMessageBox(
+                            "The .fit file is probably a Fityk script\n"
+                            "(or a saved session, which is also a script).\n"
+                            "To run the script, click Cancel and use\n"
+                            "Session > Execute Script (Ctrl-X).\n\n"
+                            "To load it as a data file, click OK.",
+                                 wxT("Continue?"),
+                                 wxOK|wxCANCEL | wxCENTRE | wxICON_QUESTION);
+            if (r != wxOK)
+                return;
+        }
         try {
-            string f = wx2s(paths[0]);
             shared_ptr<const xylib::DataSet> d =
                                             xylib::cached_load_file(f, "", "");
             if (d->get_block_count() > 1) {
