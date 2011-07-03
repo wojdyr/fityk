@@ -962,28 +962,32 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
     int count = paths.GetCount();
     string cmd;
     if (count == 1) {
-        string f = wx2s(paths[0]);
-        shared_ptr<const xylib::DataSet> d = xylib::cached_load_file(f, "", "");
-        if (d->get_block_count() > 1) {
-            wxArrayString choices;
-            for (int i = 0; i < d->get_block_count(); ++i) {
-                wxString name = s2wx(d->get_block(i)->get_name());
-                if (name.empty())
-                    name.Printf(wxT("Block #%d"), i+1);
-                choices.push_back(name);
+        try {
+            string f = wx2s(paths[0]);
+            shared_ptr<const xylib::DataSet> d =
+                                            xylib::cached_load_file(f, "", "");
+            if (d->get_block_count() > 1) {
+                wxArrayString choices;
+                for (int i = 0; i < d->get_block_count(); ++i) {
+                    wxString name = s2wx(d->get_block(i)->get_name());
+                    if (name.empty())
+                        name.Printf(wxT("Block #%d"), i+1);
+                    choices.push_back(name);
+                }
+                wxMultiChoiceDialog mdlg(this, wxT("Select data blocks:"),
+                                         wxT("Choose blocks"), choices);
+                wxArrayInt sel;
+                sel.push_back(0);
+                mdlg.SetSelections(sel);
+                if (mdlg.ShowModal() != wxID_OK)
+                    return;
+                sel = mdlg.GetSelections();
+                paths.clear();
+                for (size_t i = 0; i < sel.size(); ++i)
+                    paths.push_back(s2wx(f + "::::" + S(i)));
             }
-            wxMultiChoiceDialog mdlg(this, wxT("Select data blocks:"),
-                                     wxT("Choose blocks"), choices);
-            wxArrayInt sel;
-            sel.push_back(0);
-            mdlg.SetSelections(sel);
-            if (mdlg.ShowModal() != wxID_OK)
-                return;
-            sel = mdlg.GetSelections();
-            paths.clear();
-            for (size_t i = 0; i < sel.size(); ++i)
-                paths.push_back(s2wx(f + "::::" + S(i)));
-        }
+        } catch (const runtime_error& e) {
+        } // ignore the exception here, it'll be thrown later
     }
 
     for (size_t i = 0; i < paths.size(); ++i) {
