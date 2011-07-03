@@ -573,7 +573,7 @@ When loading file, a title is automatically created:
 
 Titles can be changed using the command::
 
-   @n.title = 'new-title'
+   @n: title = 'new-title'
 
 To print the title of the dataset, type ``@n: info title``.
 
