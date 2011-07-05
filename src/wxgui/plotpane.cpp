@@ -7,83 +7,84 @@
 #include "plot.h"
 #include "mplot.h"
 #include "aplot.h"
-#include "../logic.h" //ftk->view
+#include "../logic.h" //ftk->exec
 
 extern Ftk *ftk; // frame.cpp
 
 using namespace std;
 
 
+void ZoomHistory::push(const string& s)
+{
+    if (pos_ + 1 < items_.size())
+        items_.erase(items_.begin() + pos_ + 1, items_.end());
+    items_.push_back(s);
+    ++pos_;
+    if (pos_ > 50) {
+        items_.erase(items_.begin(), items_.begin() + 10);
+        pos_ -= 10;
+    }
+}
+
+void ZoomHistory::set_pos(size_t p)
+{
+    size_t old_pos = pos_;
+    pos_ = std::min(p,  items_.size() - 1);
+    if (pos_ != old_pos)
+        ftk->exec("plot " + items_[pos_]);
+}
+
 PlotPane::PlotPane(wxWindow *parent, wxWindowID id)
     : ProportionalSplitter(parent, id)
 {
-    plot = new MainPlot(this);
-    aux_split = new ProportionalSplitter(this, -1, 0.5);
-    SplitHorizontally(plot, aux_split);
+    plot_ = new MainPlot(this);
+    aux_split_ = new ProportionalSplitter(this, -1, 0.5);
+    SplitHorizontally(plot_, aux_split_);
 
-    aux_plot[0] = new AuxPlot(aux_split, plot, wxT("0"));
-    aux_plot[1] = new AuxPlot(aux_split, plot, wxT("1"));
-    aux_plot[1]->Show(false);
-    aux_split->Initialize(aux_plot[0]);
-}
-
-void PlotPane::zoom_forward()
-{
-    const int max_length_of_zoom_history = 10;
-    zoom_hist.push_back(ftk->view.str());
-    if (size(zoom_hist) > max_length_of_zoom_history)
-        zoom_hist.erase(zoom_hist.begin());
-}
-
-string PlotPane::zoom_backward(int n)
-{
-    if (n < 1 || zoom_hist.empty())
-        return "";
-    int pos = zoom_hist.size() - n;
-    if (pos < 0) pos = 0;
-    string val = zoom_hist[pos];
-    zoom_hist.erase(zoom_hist.begin() + pos, zoom_hist.end());
-    return val;
+    aux_plot_[0] = new AuxPlot(aux_split_, plot_, wxT("0"));
+    aux_plot_[1] = new AuxPlot(aux_split_, plot_, wxT("1"));
+    aux_plot_[1]->Show(false);
+    aux_split_->Initialize(aux_plot_[0]);
 }
 
 void PlotPane::save_settings(wxConfigBase *cf) const
 {
     cf->SetPath(wxT("/PlotPane"));
     cf->Write(wxT("PlotPaneProportion"), GetProportion());
-    cf->Write(wxT("AuxPlotsProportion"), aux_split->GetProportion());
+    cf->Write(wxT("AuxPlotsProportion"), aux_split_->GetProportion());
     cf->Write(wxT("ShowAuxPane0"), aux_visible(0));
     cf->Write(wxT("ShowAuxPane1"), aux_visible(1));
-    plot->save_settings(cf);
+    plot_->save_settings(cf);
     for (int i = 0; i < 2; ++i)
-        aux_plot[i]->save_settings(cf);
+        aux_plot_[i]->save_settings(cf);
 }
 
 void PlotPane::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/PlotPane"));
     SetProportion(cfg_read_double(cf, wxT("PlotPaneProportion"), 0.80));
-    aux_split->SetProportion(
+    aux_split_->SetProportion(
                         cfg_read_double(cf, wxT("AuxPlotsProportion"), 0.5));
     show_aux(0, cfg_read_bool(cf, wxT("ShowAuxPane0"), true));
     show_aux(1, cfg_read_bool(cf, wxT("ShowAuxPane1"), false));
-    plot->read_settings(cf);
+    plot_->read_settings(cf);
     for (int i = 0; i < 2; ++i)
-        aux_plot[i]->read_settings(cf);
+        aux_plot_[i]->read_settings(cf);
 }
 
 void PlotPane::refresh_plots(bool now, WhichPlot which_plot)
 {
     if (now)
-        plot->redraw_now();
+        plot_->redraw_now();
     else
-        plot->refresh();
+        plot_->refresh();
     if (which_plot == kAllPlots) {
         for (int i = 0; i < 2; ++i)
             if (aux_visible(i)) {
                 if (now)
-                    aux_plot[i]->redraw_now();
+                    aux_plot_[i]->redraw_now();
                 else
-                    aux_plot[i]->refresh();
+                    aux_plot_[i]->refresh();
             }
     }
 }
@@ -91,18 +92,18 @@ void PlotPane::refresh_plots(bool now, WhichPlot which_plot)
 bool PlotPane::is_background_white()
 {
     //have all visible plots white background?
-    if (plot->get_bg_color() != *wxWHITE)
+    if (plot_->get_bg_color() != *wxWHITE)
         return false;
     for (int i = 0; i < 2; ++i)
-        if (aux_visible(i) && aux_plot[i]->get_bg_color() != *wxWHITE)
+        if (aux_visible(i) && aux_plot_[i]->get_bg_color() != *wxWHITE)
             return false;
     return true;
 }
 
 bool PlotPane::aux_visible(int n) const
 {
-    return IsSplit() && (aux_split->GetWindow1() == aux_plot[n]
-                         || aux_split->GetWindow2() == aux_plot[n]);
+    return IsSplit() && (aux_split_->GetWindow1() == aux_plot_[n]
+                         || aux_split_->GetWindow2() == aux_plot_[n]);
 }
 
 void PlotPane::show_aux(int n, bool show)
@@ -112,36 +113,36 @@ void PlotPane::show_aux(int n, bool show)
 
     if (show) {
         if (!IsSplit()) { //both where invisible
-            SplitHorizontally(plot, aux_split);
-            aux_split->Show(true);
-            assert(!aux_split->IsSplit());
-            if (aux_split->GetWindow1() == aux_plot[n])
+            SplitHorizontally(plot_, aux_split_);
+            aux_split_->Show(true);
+            assert(!aux_split_->IsSplit());
+            if (aux_split_->GetWindow1() == aux_plot_[n])
                 ;
             else {
-                aux_split->SplitHorizontally(aux_plot[0], aux_plot[1]);
-                aux_plot[n]->Show(true);
-                aux_split->Unsplit(aux_plot[n==0 ? 1 : 0]);
+                aux_split_->SplitHorizontally(aux_plot_[0], aux_plot_[1]);
+                aux_plot_[n]->Show(true);
+                aux_split_->Unsplit(aux_plot_[n==0 ? 1 : 0]);
             }
         }
         else {//one was invisible
-            aux_split->SplitHorizontally(aux_plot[0], aux_plot[1]);
-            aux_plot[n]->Show(true);
+            aux_split_->SplitHorizontally(aux_plot_[0], aux_plot_[1]);
+            aux_plot_[n]->Show(true);
         }
     }
     else { //hide
-        if (aux_split->IsSplit()) //both where visible
-            aux_split->Unsplit(aux_plot[n]);
+        if (aux_split_->IsSplit()) //both where visible
+            aux_split_->Unsplit(aux_plot_[n]);
         else // only one was visible
-            Unsplit(); //hide whole aux_split
+            Unsplit(); //hide whole aux_split_
     }
 }
 
 void PlotPane::draw_vertical_lines(int X1, int X2, FPlot* skip)
 {
-    if (plot != skip)
-        plot->draw_vertical_lines_on_overlay(X1, X2);
+    if (plot_ != skip)
+        plot_->draw_vertical_lines_on_overlay(X1, X2);
     for (int i = 0; i < 2; ++i)
-        if (aux_visible(i) && aux_plot[i] != skip)
-            aux_plot[i]->draw_vertical_lines_on_overlay(X1, X2);
+        if (aux_visible(i) && aux_plot_[i] != skip)
+            aux_plot_[i]->draw_vertical_lines_on_overlay(X1, X2);
 }
 

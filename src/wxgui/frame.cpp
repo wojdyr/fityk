@@ -219,7 +219,8 @@ enum {
     ID_G_V_SCROLL_U            ,
     ID_G_V_EXTH                ,
     ID_G_V_ZOOM_PREV           ,
-    ID_G_V_ZOOM_PREV_END = ID_G_V_ZOOM_PREV+50 ,
+    ID_G_V_ZOOM_FIRST          ,
+    ID_G_V_ZOOM_PREV_END = ID_G_V_ZOOM_FIRST+150,
     ID_G_LCONF                 ,
     ID_G_LCONFB                ,
     ID_G_LCONF_X               ,
@@ -346,7 +347,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_G_V_SCROLL_R,  FFrame::OnGScrollRight)
     EVT_MENU (ID_G_V_SCROLL_U,  FFrame::OnGScrollUp)
     EVT_MENU (ID_G_V_EXTH,      FFrame::OnGExtendH)
-    EVT_MENU_RANGE (ID_G_V_ZOOM_PREV+1, ID_G_V_ZOOM_PREV_END,
+    EVT_MENU_RANGE (ID_G_V_ZOOM_FIRST, ID_G_V_ZOOM_PREV_END,
                                 FFrame::OnPreviousZoom)
     EVT_MENU (ID_G_LCONFB,      FFrame::OnConfigBuiltin)
     EVT_MENU_RANGE (ID_G_LCONF_X, ID_G_LCONF_X_END, FFrame::OnConfigX)
@@ -368,7 +369,8 @@ END_EVENT_TABLE()
 FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style),
-      main_pane_(NULL), sidebar_(NULL), status_bar_(NULL), toolbar_(NULL)
+      main_pane_(NULL), sidebar_(NULL), status_bar_(NULL), toolbar_(NULL),
+      zoom_hist_(ftk->view.str())
 {
     const int default_peak_nr = 7; // Gaussian
     wxConfigBase *config = wxConfig::Get();
@@ -802,7 +804,7 @@ void FFrame::set_menubar()
                               wxT("Tend to include Y=0 when adjusting view."));
 
     wxMenu* gui_menu_zoom_prev = new wxMenu;
-    gui_menu->Append(ID_G_V_ZOOM_PREV, wxT("&Previous Zooms"),
+    gui_menu->Append(ID_G_V_ZOOM_PREV, wxT("&Zoom History"),
                      gui_menu_zoom_prev);
     gui_menu->AppendSeparator();
     wxMenu* gui_menu_lconfig = new wxMenu;
@@ -857,20 +859,22 @@ void FFrame::set_menubar()
 }
 
 
-    //construct GUI->Previous Zooms menu
+//construct GUI->Previous Zooms menu
 void FFrame::update_menu_previous_zooms()
 {
-    static vector<string> old_zoom_hist;
-    const vector<string> &zoom_hist = plot_pane_->get_zoom_hist();
-    if (old_zoom_hist == zoom_hist)
+    static size_t old_pos = (size_t) -1;
+    size_t pos = zoom_hist_.pos();
+    if (old_pos == pos)
         return;
     wxMenu *menu = GetMenuBar()->FindItem(ID_G_V_ZOOM_PREV)->GetSubMenu();
-    while (menu->GetMenuItemCount() > 0) //clear
+    while (menu->GetMenuItemCount() > 0) // clear
         menu->Delete(menu->GetMenuItems().GetLast()->GetData());
-    int last = zoom_hist.size() - 1;
-    for (int i = last, j = 1; i >= 0 && i > last - 10; i--, j++)
-        menu->Append(ID_G_V_ZOOM_PREV + j, s2wx(zoom_hist[i]));
-    old_zoom_hist = zoom_hist;
+    const vector<string>& items = zoom_hist_.items();
+    int last = min(items.size() - 1, pos + 5);
+    for (int i = last; i >= 0 && i > last - 10; i--)
+        menu->AppendRadioItem(ID_G_V_ZOOM_FIRST + i, s2wx(items[i]));
+    menu->Check(ID_G_V_ZOOM_FIRST + pos, true);
+    old_pos = pos;
 }
 
 // construct GUI -> Baseline Handling -> Previous menu
@@ -1682,10 +1686,7 @@ void FFrame::OnGExtendH (wxCommandEvent&)
 
 void FFrame::OnPreviousZoom(wxCommandEvent& event)
 {
-    int id = event.GetId();
-    string s = plot_pane_->zoom_backward(id ? id - ID_G_V_ZOOM_PREV : 1);
-    if (!s.empty())
-        ftk->exec("plot " + s);
+    zoom_hist_.set_pos(event.GetId() - ID_G_V_ZOOM_FIRST);
 }
 
 static
@@ -1701,11 +1702,12 @@ string format_range(const RealRange& r)
 
 void FFrame::change_zoom(const RealRange& h, const RealRange& v)
 {
-    plot_pane_->zoom_forward();
     string cmd = "plot " + format_range(h) + " " + format_range(v);
     if (h.from_inf() || h.to_inf() || v.from_inf() || v.to_inf())
         cmd += sidebar_->get_sel_datasets_as_string();
     ftk->exec(cmd);
+    zoom_hist_.push(ftk->view.str());
+    update_menu_previous_zooms();
 }
 
 void FFrame::scroll_view_horizontally(double step)
@@ -1914,7 +1916,7 @@ void FFrame::update_toolbar()
     toolbar_->ToggleTool(ID_T_STRIP, bgm->has_fn() && bgm->stripped());
     toolbar_->EnableTool(ID_T_RUN, !ftk->parameters().empty());
     toolbar_->EnableTool(ID_T_UNDO, ftk->get_fit_container()->can_undo());
-    toolbar_->EnableTool(ID_T_PZ, !plot_pane_->get_zoom_hist().empty());
+    toolbar_->EnableTool(ID_T_PZ, zoom_hist_.pos() > 0);
 }
 
 int FFrame::get_focused_data_index()
@@ -2185,7 +2187,7 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
 
     switch (event.GetId()) {
         case ID_T_PZ:
-            frame->OnPreviousZoom(dummy_cmd_event);
+            frame->zoom_hist().move(-1);
             break;
         case ID_T_STRIP: {
             BgManager* bgm = frame->get_main_plot()->bgm();

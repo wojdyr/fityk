@@ -9,12 +9,11 @@
 
 #include <wx/filename.h>
 #include "cmn.h"  // enums
+#include "plotpane.h"
 #include "../ui.h" // UserInterface::Style
 
 class ApplicationLogic;
 class FDXLoadDlg;
-class PlotPane;
-class MainPlot;
 class TextPane;
 class SideBar;
 class ProportionalSplitter;
@@ -186,6 +185,7 @@ public:
     std::string get_datasets();
     std::string get_guess_string(const std::string& name);
     PlotPane *plot_pane() { return plot_pane_; }
+    ZoomHistory& zoom_hist() { return zoom_hist_; }
     MainPlot* get_main_plot();
     MainPlot const* get_main_plot() const;
     void update_data_pane();
@@ -210,6 +210,7 @@ private:
     SideBar *sidebar_;
     FStatusBar *status_bar_;
     FToolBar *toolbar_;
+    ZoomHistory zoom_hist_;
 
     int peak_type_nr_;
     std::vector<std::string> peak_types_;
