@@ -413,6 +413,8 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_LEFT_UP   (       MainPlot::OnButtonUp)
     EVT_RIGHT_UP (        MainPlot::OnButtonUp)
     EVT_MIDDLE_UP (       MainPlot::OnButtonUp)
+    EVT_MOUSE_AUX1_DOWN ( MainPlot::OnAuxDown)
+    EVT_MOUSE_AUX2_DOWN ( MainPlot::OnAuxDown)
     EVT_MENU (ID_plot_popup_za,     MainPlot::OnZoomAll)
     EVT_MENU (ID_plot_popup_prefs,  MainPlot::OnConfigure)
     EVT_MENU (ID_peak_popup_info,   MainPlot::OnPeakInfo)
@@ -1250,6 +1252,13 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         frame->set_status_text(status_beginning + act_str + "...");
     }
     update_mouse_hints();
+}
+
+void MainPlot::OnAuxDown(wxMouseEvent &event)
+{
+    cancel_action();
+    int step = (event.GetEventType() == wxEVT_AUX1_DOWN ? -1 : +1);
+    frame->zoom_hist().move(step);
 }
 
 bool MainPlot::can_activate()
