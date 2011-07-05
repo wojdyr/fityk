@@ -56,6 +56,7 @@ public:
     void OnLeftDClick (wxMouseEvent&) { PeakInfo(); }
     void OnButtonUp (wxMouseEvent &event);
     void OnAuxDown(wxMouseEvent &event);
+    void OnMouseWheel(wxMouseEvent &event);
 
     void OnConfigure(wxCommandEvent&);
     void OnZoomAll(wxCommandEvent& event);

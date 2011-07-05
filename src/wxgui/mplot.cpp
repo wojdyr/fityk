@@ -415,6 +415,7 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MIDDLE_UP (       MainPlot::OnButtonUp)
     EVT_MOUSE_AUX1_DOWN ( MainPlot::OnAuxDown)
     EVT_MOUSE_AUX2_DOWN ( MainPlot::OnAuxDown)
+    EVT_MOUSEWHEEL (      MainPlot::OnMouseWheel)
     EVT_MENU (ID_plot_popup_za,     MainPlot::OnZoomAll)
     EVT_MENU (ID_plot_popup_prefs,  MainPlot::OnConfigure)
     EVT_MENU (ID_peak_popup_info,   MainPlot::OnPeakInfo)
@@ -1259,6 +1260,26 @@ void MainPlot::OnAuxDown(wxMouseEvent &event)
     cancel_action();
     int step = (event.GetEventType() == wxEVT_AUX1_DOWN ? -1 : +1);
     frame->zoom_hist().move(step);
+}
+
+void MainPlot::OnMouseWheel(wxMouseEvent &event)
+{
+    cancel_action();
+    // wheel rotation is typically +/-120
+    double scale = -0.0025 * event.GetWheelRotation();
+    int X = event.GetX();
+    int Y = event.GetY();
+    int W = GetClientSize().GetWidth();
+    int H = GetClientSize().GetHeight();
+    double x0 = xs.valr(iround(-scale * X));
+    double x1 = xs.valr(iround(W + scale * (W - X)));
+    if (x1 < x0)
+        swap(x0, x1);
+    double y0 = ys.valr(iround(-scale * Y));
+    double y1 = ys.valr(iround(H + scale * (H - Y)));
+    if (y1 < y0)
+        swap(y0, y1);
+    frame->change_zoom(RealRange(x0, x1), RealRange(y0, y1));
 }
 
 bool MainPlot::can_activate()

@@ -7,6 +7,8 @@ User-visible changes in version 1.0.3  (2011-  -  ):
   squares approximation by broken lines
 * gzipped fit files can be read directly (extension .fit.gz or .fityk.gz)
 * new option max_fitting_time -- stopping criterium based on elapsed time
+* GUI: mouse wheel and mouse extra buttons can be used to zoom in/out
+
 
 User-visible changes in version 1.0.2  (2011-06-08):
 * changed Data > Load File dialog
