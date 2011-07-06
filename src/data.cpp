@@ -213,18 +213,26 @@ static string tr_opt(string options)
 int Data::count_blocks(const string& fn,
                        const string& format, const string& options)
 {
-    shared_ptr<const xylib::DataSet> xyds(
+    try {
+        shared_ptr<const xylib::DataSet> xyds(
                         xylib::cached_load_file(fn, format, tr_opt(options)));
-    return xyds->get_block_count();
+        return xyds->get_block_count();
+    } catch (const runtime_error& e) {
+        throw ExecuteError(e.what());
+    }
 }
 
 int Data::count_columns(const string& fn,
                         const string& format, const string& options,
                         int first_block)
 {
-    shared_ptr<const xylib::DataSet> xyds(
+    try {
+        shared_ptr<const xylib::DataSet> xyds(
                         xylib::cached_load_file(fn, format, tr_opt(options)));
-    return xyds->get_block(first_block)->get_column_count();
+        return xyds->get_block(first_block)->get_column_count();
+    } catch (const runtime_error& e) {
+        throw ExecuteError(e.what());
+    }
 }
 
 // for column indices, INT_MAX is used as not given
