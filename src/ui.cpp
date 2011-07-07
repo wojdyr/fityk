@@ -15,6 +15,16 @@
 #include "cparser.h"
 #include "runner.h"
 
+#ifdef HAVE_LUALIB_H
+extern "C" {
+#include <lua.h>
+#include <lualib.h>
+#include <lauxlib.h>
+#include "swigluarun.h"   // the SWIG external runtime
+extern int luaopen_fityk(lua_State*L); // the SWIG wrappered library
+}
+#endif
+
 using namespace std;
 
 const char* config_dirname = ".fityk";
@@ -255,9 +265,40 @@ private:
 };
 
 
+#ifdef HAVE_LUALIB_H
+static
+void exec_lua_script(Ftk *F_, const string& filename)
+{
+    lua_State *L = lua_open();
+    luaL_openlibs(L);
+    luaopen_fityk(L);
+    swig_type_info *type_info = SWIG_TypeQuery(L, "fityk::Fityk *");
+    assert(type_info != NULL);
+    int owned = 1;
+    fityk::Fityk *f = new fityk::Fityk(F_);
+    SWIG_NewPointerObj(L, f, type_info, owned);
+    lua_setglobal(L, "F");
+    int status = luaL_dofile(L, filename.c_str());
+    if (status != 0) {
+        const char *msg = lua_tostring(L, -1);
+        F_->warn("Lua Error:\n" + S(msg ? msg : "(non-string error)"));
+    }
+    lua_close(L);
+}
+#endif
+
 void UserInterface::exec_script(const string& filename)
 {
     user_interrupt = false;
+
+    if (endswith(filename, ".lua")) {
+#ifdef HAVE_LUALIB_H
+        exec_lua_script(F_, filename);
+#else
+        F_->warn("Lua support is disabled.");
+#endif
+        return;
+    }
 
     boost::scoped_ptr<FileOpener> opener;
     if (endswith(filename, ".gz"))
@@ -374,7 +415,7 @@ void UserInterface::process_cmd_line_filename(const string& par)
 {
     if (startswith(par, "=->"))
         exec_and_log(string(par, 3));
-    else if (is_fityk_script(par))
+    else if (is_fityk_script(par) || endswith(par, ".lua"))
         exec_script(par);
     else {
         exec_and_log("@+ <'" + par + "'");

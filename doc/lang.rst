@@ -22,8 +22,8 @@ adding function, assigning variable, fitting, or writing some values to a file.
 It is possible to write a script (macro) as a sequence of such
 commands. This can automate common tasks, although some complex tasks
 still need to be programmed in a general-purpose language.
-That is why Fityk comes with bindings to Python, Lua and several other
-languages.
+That is why Fityk comes with embedded Lua (lightweight programming language)
+and also with bindings to Python and several other languages.
 
 Now a quick glimps at the syntax. Here, the ``=->`` prompt marks an input::
 

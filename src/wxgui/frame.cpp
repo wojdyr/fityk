@@ -1348,7 +1348,9 @@ void FFrame::OnInclude (wxCommandEvent&)
 {
     wxFileDialog fdlg (this, wxT("Execute commands from file"),
                        script_dir_, wxT(""),
-                       "fityk script (*.fit, *.fit.gz)|*.fit;*.FIT;*.fit.gz|"
+                       "all supported scripts|*.fit;*.FIT;*.fit.gz;*.lua;*.LUA|"
+                       "Fityk script (*.fit, *.fit.gz)|*.fit;*.FIT;*.fit.gz|"
+                       "Lua script (*.lua)|*.lua;*.LUA|"
                        "all files|*",
                        wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {

@@ -82,6 +82,7 @@ class Fityk
 public:
 
     Fityk();
+    Fityk(Ftk* F);
     ~Fityk();
 
     /// @name execute fityk commands or change data
@@ -130,6 +131,9 @@ public:
 
     /// redirect output to ...(e.g. stdout/stderr); cancels set_show_message()
     void redir_messages(std::FILE *stream);
+
+    /// print string in the program's output (useful for embedded Lua)
+    void out(std::string const& s) const;
 
     // @}
 
@@ -190,7 +194,7 @@ public:
 
 private:
     Ftk *ftk_;
-    bool throws_;
+    bool throws_, owns_;
     std::string last_error_;
 };
 

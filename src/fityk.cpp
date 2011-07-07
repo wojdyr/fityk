@@ -93,14 +93,21 @@ string Point::str() const { return "(" + S(x) + "; " + S(y) + "; " +
 
 
 Fityk::Fityk()
-    : throws_(true)
+    : throws_(true), owns_(true)
 {
     ftk_ = new Ftk;
 }
 
+Fityk::Fityk(Ftk* F)
+    : throws_(true), owns_(false)
+{
+    ftk_ = F;
+}
+
 Fityk::~Fityk()
 {
-    delete ftk_;
+    if (owns_)
+        delete ftk_;
 }
 
 void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
@@ -237,6 +244,11 @@ void Fityk::redir_messages(FILE *stream)
 {
     message_sink = stream;
     ftk_->get_ui()->set_show_message(message_redir);
+}
+
+void Fityk::out(string const& s) const
+{
+    ftk_->get_ui()->output_message(UserInterface::kNormal, s);
 }
 
 realt Fityk::get_wssr(int dataset)  throw(ExecuteError)

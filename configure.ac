@@ -182,7 +182,7 @@ AM_CONDITIONAL([PYTHON_ENABLED], [test "$enable_python" = yes])
 if test "$enable_lua" = "yes"; then
     AX_LUA_HEADERS
     AX_LUA_LIBS
-    AX_LUA_LIB_VERSION(500)
+    AX_LUA_LIB_VERSION(501)
 fi
 AM_CONDITIONAL([LUA_ENABLED], [test "$enable_lua" = yes])
 
@@ -202,6 +202,8 @@ AM_COND_IF([SWIG_DIR], [AX_PKG_SWIG(1.3.17)],
 
 AC_SUBST(SRCSUBDIRS)
 AC_SUBST(LIBRARY_VERSION_FLAG)
+AC_SUBST(LUA_INCLUDE)
+AC_SUBST(LUA_LIB)
 
 # before checking erf, see if a basic math function (and linking) works
 AC_CHECK_LIB([m], [sin], [], [])

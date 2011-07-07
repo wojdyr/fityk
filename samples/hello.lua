@@ -1,14 +1,18 @@
 #!/usr/bin/env lua
 
---   You may create a link first:
---   ln -sf /usr/lib/liblua-fityk.so fityk.so
-
-require("fityk")
+-- If this script is run in stand-alone Lua interpreter,
+-- it needs fityk module (ln -sf /usr/lib/liblua-fityk.so fityk.so)
+-- and the line below:
+--require("fityk")
 
 print("fityk is", swig_type(fityk)) -- table
 print("fityk.Fityk is", swig_type(fityk.Fityk)) -- function
 
+-- The interpreter embedded in libfityk sets global F (instance of fityk.Fityk)
+-- which can be used as to access and change the state of the program.
+-- Here, we define a separate engine:
 ftk = fityk.Fityk()
+
 print("fityk.Fityk() gives", swig_type(ftk)) -- fityk::Fityk *
 
 print("libfityk version:", ftk:get_info("version"))

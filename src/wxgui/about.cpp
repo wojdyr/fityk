@@ -10,6 +10,12 @@
 #include "../common.h" // VERSION
 #include "img/fityk96.h"
 
+#ifdef HAVE_LUALIB_H
+extern "C" {
+#include <lua.h> // LUA_RELEASE
+}
+#endif
+
 
 AboutDlg::AboutDlg(wxWindow* parent)
     : wxDialog(parent, -1, wxT("About Fityk"), wxDefaultPosition,
@@ -49,12 +55,15 @@ AboutDlg::AboutDlg(wxWindow* parent)
 #endif
     txt->SetBackgroundColour(bg_col);
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxITALIC_FONT));
-    txt->AppendText(wxT("powered by ") wxVERSION_STRING wxT("\n"));
-    txt->AppendText(wxString::Format(wxT("powered by Boost %d.%d.%d\n"),
+    txt->AppendText(wxT("powered by: ") wxVERSION_STRING);
+    txt->AppendText(wxString::Format(wxT(", Boost %d.%d.%d"),
                                      BOOST_VERSION / 100000,
                                      BOOST_VERSION / 100 % 1000,
                                      BOOST_VERSION % 100));
-    txt->AppendText(wxT("powered by xylib ") + pchar2wx(xylib_get_version())
+#ifdef HAVE_LUALIB_H
+    txt->AppendText(pchar2wx(", " LUA_RELEASE));
+#endif
+    txt->AppendText(wxT(" and xylib ") + pchar2wx(xylib_get_version())
                     + wxT("\n"));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxNORMAL_FONT));
     txt->AppendText(wxT("\nCopyright (C) 2001 - 2011 Marcin Wojdyr\n\n"));
