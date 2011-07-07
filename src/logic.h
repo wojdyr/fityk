@@ -5,7 +5,7 @@
 #define FITYK__LOGIC__H__
 
 #include <string>
-#include <memory>
+#include <boost/scoped_ptr.hpp>
 #include <algorithm>
 #include "mgr.h"
 #include "ui.h" //UserInterface::Status
@@ -31,8 +31,8 @@ public:
     bool has_any_info() const;
 
 private:
-    std::auto_ptr<Data> data_;
-    std::auto_ptr<Model> model_;
+    boost::scoped_ptr<Data> data_;
+    boost::scoped_ptr<Model> model_;
 
     DataAndModel(DataAndModel const&); //disable
 };
