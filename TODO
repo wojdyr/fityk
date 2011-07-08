@@ -1,19 +1,16 @@
-* GUI: a single dialog for Model > Export... options and for "info models"
-
 * GUI, printing (hardcopy): this part has been neglected for some time.
   Make sure it works fine on all platforms and add more options:
   it should be possible to add text to the graph (data title or fit info)
 
+* FFT data transformation using either KISS FFT or FFTW library,
+  fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re @3 
+
+* convolution and deconvolution of two datasets or a dataset with Gaussian:
+  convolve(@0, @1); convolve(@0, 2.3); deconvolve(@0,3.4)
+
+* GUI: a single dialog for Model > Export... options and for "info models"
+
 * GUI: draw points (handles) for dragging peak width at half height
-
-* Mac, GUI: "Session > New Window" that would start an independent process
-  (equivalent of clicking the program icon again on Windows and Linux)
-
----
-
-* embed the Lua interpreter
-
----
 
 * GUI: definition mgr - checkbox - show in the list on toolbar
 
@@ -34,12 +31,6 @@
 * add functions cot and coth
 
 * allow all the functions from data transformation in variable/UDF definition
-
-* FFT data transformation using either KISS FFT or FFTW library,
-  fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re @3 
-
-* convolution and deconvolution of two datasets or a dataset with Gaussian:
-  convolve @0 @1; convolve @0 2.3; deconvolve @0 3.4
 
 * GUI: there is ugly vertical line (a part of the fitted curve) in points
   where the value is undefined (e.g. in ReadShockley function for x=0).

@@ -170,6 +170,7 @@ enum {
     ID_LOG_WITH_OUTPUT         ,
     ID_SAVE_HISTORY            ,
     ID_SESSION_RESET           ,
+    ID_SESSION_NEWWIN          ,
     ID_PAGE_SETUP              ,
     ID_PRINT_PSFILE            ,
     ID_PRINT_CLIPB             ,
@@ -265,6 +266,9 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_LOG_WITH_OUTPUT, FFrame::OnLogWithOutput)
     EVT_MENU (ID_SAVE_HISTORY,  FFrame::OnSaveHistory)
     EVT_MENU (ID_SESSION_RESET, FFrame::OnReset)
+#ifdef __WXMAC__
+    EVT_MENU (ID_SESSION_NEWWIN, FFrame::OnNewWindow)
+#endif
     EVT_MENU (ID_SESSION_INCLUDE, FFrame::OnInclude)
     EVT_MENU (ID_SESSION_REINCLUDE, FFrame::OnReInclude)
     EVT_MENU (ID_SCRIPT_EDIT,   FFrame::OnShowEditor)
@@ -583,6 +587,10 @@ void FFrame::set_menubar()
               wxT("E&dit Script"), wxT("Show script editor"));
     append_mi(session_menu, ID_SESSION_RESET, GET_BMP(reload16), wxT("&Reset"),
                                       wxT("Reset current session"));
+#ifdef __WXMAC__
+    session_menu->Append (ID_SESSION_NEWWIN, "New Window",
+                          "Open new window (new process)");
+#endif
     session_menu->AppendSeparator();
     wxMenu *session_log_menu = new wxMenu;
     append_mi(session_log_menu, ID_LOG_START, GET_BMP(recordmacro16),
@@ -1343,6 +1351,13 @@ void FFrame::OnReset (wxCommandEvent&)
         ftk->exec("reset");
     }
 }
+
+#ifdef __WXMAC__
+void FFrame::OnNewWindow (wxCommandEvent&)
+{
+    open_new_instance();
+}
+#endif
 
 void FFrame::OnInclude (wxCommandEvent&)
 {

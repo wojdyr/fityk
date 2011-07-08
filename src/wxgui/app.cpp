@@ -405,3 +405,13 @@ wxString get_sample_path(const wxString& name)
     return path.GetFullPath();
 }
 
+#ifdef __WXMAC__
+void open_new_instance()
+{
+    string res = wx2s(wxStandardPaths::Get().GetResourcesDir());
+    // it has "/Contents/Resources" (19 chars) after bundle.app
+    if (res.size() > 19)
+        system(("open -n " + res.substr(0, 19)).c_str());
+}
+#endif
+

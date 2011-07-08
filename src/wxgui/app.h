@@ -28,6 +28,9 @@ private:
 
 wxString get_help_url(const wxString& name);
 wxString get_sample_path(const wxString& name);
+#ifdef __WXMAC__
+void open_new_instance()
+#endif
 
 DECLARE_APP(FApp)
 

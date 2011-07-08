@@ -110,6 +110,9 @@ public:
     void OnShowEditor   (wxCommandEvent&) { show_editor(wxT("")); }
     void show_editor (wxString const& path);
     void OnReset       (wxCommandEvent&);
+#ifdef __WXMAC__
+    void OnNewWindow   (wxCommandEvent&);
+#endif
     void OnDump         (wxCommandEvent&);
     void OnSettings      (wxCommandEvent&);
     void OnEditInit      (wxCommandEvent&);

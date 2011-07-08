@@ -1,4 +1,5 @@
 User-visible changes in version 1.0.3  (2011-  -  ):
+* embedded Lua (lightweight programming language)
 * syntax changes and enhancements in dataset transformations (@n = ...);
   example: "@0 = @0 - 0.23 * @1" removes (background) @1 with y's scaled
   by factor 0.23 from dataset @0, if @0 and @1 have different x's, linear
@@ -8,7 +9,7 @@ User-visible changes in version 1.0.3  (2011-  -  ):
 * gzipped fit files can be read directly (extension .fit.gz or .fityk.gz)
 * new option max_fitting_time -- stopping criterium based on elapsed time
 * GUI: mouse wheel and mouse extra buttons can be used to zoom in/out
-
+* Mac GUI: added Session > New Window that opens new window (open -n Fityk.app)
 
 User-visible changes in version 1.0.2  (2011-06-08):
 * changed Data > Load File dialog
