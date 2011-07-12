@@ -1860,12 +1860,16 @@ void FFrame::OnSaveAsImage(wxCommandEvent&)
 {
     wxFileDialog fdlg(this, wxT("Save main plot as image"),
                       export_dir_, wxT(""),
-                      wxT("PNG image (*.png)|*.png;*.PNG"),
+                      wxT("PNG image (*.png)|*.png;*.PNG|")
+                      wxT("Windows Bitmap (*.bmp)|*.bmp;*.BMP"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
         wxString path = fdlg.GetPath();
         wxBitmap const& bmp = get_main_plot()->get_bitmap();
-        bmp.ConvertToImage().SaveFile(path, wxBITMAP_TYPE_PNG);
+        if (path.Lower().EndsWith("bmp"))
+            bmp.SaveFile(path, wxBITMAP_TYPE_BMP);
+        else
+            bmp.ConvertToImage().SaveFile(path, wxBITMAP_TYPE_PNG);
     }
     export_dir_ = fdlg.GetDirectory();
 }
