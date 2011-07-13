@@ -769,22 +769,21 @@ void MainPlot::read_settings(wxConfigBase *cf)
     data_colors_.resize(data_colors_count);
     cf->SetPath(wxT("/MainPlot/Colors"));
     set_bg_color(cfg_read_color(cf, wxT("bg"), wxColour(48, 48, 48)));
-    data_colors_[0] = cfg_read_color(cf, wxT("data/0"), wxColour(0, 255, 0));
-    for (int i = 1; i < (int) data_colors_.size(); i++)
-        data_colors_[i] = cfg_read_color(cf, wxT("data/") + s2wx(S(i)),
-                                         data_colors_[0]);
     inactiveDataCol = cfg_read_color(cf, wxT("inactive_data"),
                                                       wxColour(128, 128, 128));
-    modelCol = cfg_read_color (cf, wxT("model"), wxColour(wxT("YELLOW")));
-    model_line_width_ = cf->Read(wxT("model_line_width"), 1);
-    bg_pointsCol = cfg_read_color(cf, wxT("BgPoints"), wxColour(wxT("RED")));
+    modelCol = cfg_read_color(cf, wxT("model"), wxColour(255, 255, 0));
+    bg_pointsCol = cfg_read_color(cf, wxT("BgPoints"), wxColour(255, 0, 0));
+    cf->SetPath(wxT("data"));
+    data_colors_[0] = cfg_read_color(cf, wxT("0"), wxColour(0, 255, 0));
+    for (int i = 1; i < (int) data_colors_.size(); i++)
+        data_colors_[i] = cfg_read_color(cf, s2wx(S(i)), data_colors_[0]);
+    cf->SetPath(wxT("../peak"));
+    peakCol[0] = cfg_read_color(cf, wxT("0"), wxColour(255, 0, 0));
+    for (int i = 0; i < max_peak_cols; i++)
+        peakCol[i] = cfg_read_color(cf, s2wx(S(i)), peakCol[0]);
     //for (int i = 0; i < max_group_cols; i++)
     //    groupCol[i] = cfg_read_color(cf, wxString::Format(wxT("group/%i"), i),
     //                                 wxColour(173, 216, 230));
-    peakCol[0] = cfg_read_color(cf, wxT("peak/0"), wxColour(255, 0, 0));
-    for (int i = 0; i < max_peak_cols; i++)
-        peakCol[i] = cfg_read_color(cf, wxString::Format(wxT("peak/%i"), i),
-                                    peakCol[0]);
 
     cf->SetPath(wxT("/MainPlot/Visible"));
     peaks_visible_ = cfg_read_bool(cf, wxT("peaks"), true);
@@ -795,6 +794,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
     point_radius = cf->Read (wxT("point_radius"), 2);
     line_between_points = cfg_read_bool(cf,wxT("line_between_points"), false);
     draw_sigma = cfg_read_bool(cf,wxT("draw_sigma"), false);
+    model_line_width_ = cf->Read(wxT("model_line_width"), 1);
     wxFont default_plabel_font(10, wxFONTFAMILY_DEFAULT,
                                wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     plabelFont = cfg_read_font(cf, wxT("plabelFont"), default_plabel_font);
@@ -819,6 +819,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write (wxT("point_radius"), point_radius);
     cf->Write (wxT("line_between_points"), line_between_points);
     cf->Write (wxT("draw_sigma"), draw_sigma);
+    cf->Write(wxT("model_line_width"), model_line_width_);
     cfg_write_font (cf, wxT("plabelFont"), plabelFont);
     cf->Write(wxT("plabel_format"), s2wx(plabel_format_));
     cf->Write (wxT("vertical_plabels"), vertical_plabels_);
@@ -834,20 +835,22 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("data_colors_count"), (long) data_colors_.size());
     cf->SetPath(wxT("/MainPlot/Colors"));
     cfg_write_color(cf, wxT("bg"), get_bg_color());
-    cfg_write_color(cf, wxT("data/0"), data_colors_[0]);
-    for (size_t i = 1; i < data_colors_.size(); i++)
-        if (data_colors_[i] != data_colors_[0])
-            cfg_write_color(cf, wxT("data/") + s2wx(S(i)), data_colors_[i]);
     cfg_write_color (cf, wxT("inactive_data"), inactiveDataCol);
     cfg_write_color (cf, wxT("model"), modelCol);
-    cf->Write(wxT("model_line_width"), model_line_width_);
     cfg_write_color (cf, wxT("BgPoints"), bg_pointsCol);
-    //for (int i = 0; i < max_group_cols; i++)
-    //    cfg_write_color(cf, wxString::Format(wxT("group/%i"), i), groupCol[i]);
-    cfg_write_color(cf, wxT("peak/0"), peakCol[0]);
+    cf->SetPath(wxT("data"));
+    cfg_write_color(cf, wxT("0"), data_colors_[0]);
+    for (size_t i = 1; i < data_colors_.size(); i++)
+        if (data_colors_[i] != data_colors_[0])
+            cfg_write_color(cf, s2wx(S(i)), data_colors_[i]);
+    cf->SetPath(wxT("../peak"));
+    cfg_write_color(cf, wxT("0"), peakCol[0]);
     for (int i = 1; i < max_peak_cols; i++)
         if (peakCol[i] != peakCol[0])
-            cfg_write_color(cf, wxString::Format(wxT("peak/%i"),i), peakCol[i]);
+            cfg_write_color(cf, s2wx(S(i)), peakCol[i]);
+    //cf->SetPath(wxT("../group"));
+    //for (int i = 0; i < max_group_cols; i++)
+    //    cfg_write_color(cf, s2wx(S(i)), groupCol[i]);
 
     cf->SetPath(wxT("/MainPlot/Visible"));
     cf->Write (wxT("peaks"), peaks_visible_);
