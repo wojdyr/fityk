@@ -120,7 +120,7 @@ public:
     void OnPageSetup     (wxCommandEvent&);
     void OnPrint         (wxCommandEvent&);
     void OnPrintPSFile   (wxCommandEvent&);
-    void OnPrintToClipboard (wxCommandEvent&);
+    void OnCopyToClipboard (wxCommandEvent&);
     void OnSaveAsImage (wxCommandEvent&);
     void OnChangeMouseMode (wxCommandEvent&);
     void OnChangePeakType(wxCommandEvent& event);

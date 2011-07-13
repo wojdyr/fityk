@@ -20,9 +20,9 @@
 #include <wx/config.h>
 #include <wx/fileconf.h>
 #include <wx/msgout.h>
-#include <wx/metafile.h>
 #include <wx/dir.h>
 #include <wx/stdpaths.h>
+#include <wx/clipbrd.h>
 
 #include <algorithm>
 #include <string.h>
@@ -173,7 +173,7 @@ enum {
     ID_SESSION_NEWWIN          ,
     ID_PAGE_SETUP              ,
     ID_PRINT_PSFILE            ,
-    ID_PRINT_CLIPB             ,
+    ID_COPY_TO_CLIPB           ,
     ID_SAVE_IMAGE              ,
     ID_SESSION_INCLUDE         ,
     ID_SESSION_REINCLUDE       ,
@@ -274,7 +274,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_SCRIPT_EDIT,   FFrame::OnShowEditor)
     EVT_MENU (wxID_PRINT,       FFrame::OnPrint)
     EVT_MENU (ID_PRINT_PSFILE,  FFrame::OnPrintPSFile)
-    EVT_MENU (ID_PRINT_CLIPB,   FFrame::OnPrintToClipboard)
+    EVT_MENU (ID_COPY_TO_CLIPB, FFrame::OnCopyToClipboard)
     EVT_MENU (ID_PAGE_SETUP,    FFrame::OnPageSetup)
     EVT_MENU (wxID_PREVIEW,     FFrame::OnPrintPreview)
     EVT_MENU (ID_SAVE_IMAGE,    FFrame::OnSaveAsImage)
@@ -622,10 +622,8 @@ void FFrame::set_menubar()
     session_menu->Append(ID_PRINT_PSFILE, wxT("Print to PS &File"),
                          wxT("Export plots to postscript file."));
 #endif
-#if wxUSE_METAFILE
-    session_menu->Append(ID_PRINT_CLIPB, wxT("&Copy to Clipboard"),
-                         wxT("Copy plots to clipboard."));
-#endif
+    session_menu->Append(ID_COPY_TO_CLIPB, wxT("&Copy to Clipboard"),
+                         wxT("Copy main plot to clipboard."));
     append_mi(session_menu, ID_SAVE_IMAGE, GET_BMP(image16),
               wxT("Sa&ve As Image..."), wxT("Save plot as PNG image."));
     session_menu->AppendSeparator();
@@ -1841,19 +1839,13 @@ void FFrame::OnPrintPSFile(wxCommandEvent&)
     print_mgr_->print_to_psfile();
 }
 
-void FFrame::OnPrintToClipboard(wxCommandEvent&)
+void FFrame::OnCopyToClipboard(wxCommandEvent&)
 {
-#if wxUSE_METAFILE
-    wxMetafileDC dc;
-    if (dc.IsOk()) {
-        do_print_plots(&dc, print_mgr_);
-        wxMetafile *mf = dc.Close();
-        if (mf) {
-            mf->SetClipboard(dc.MaxX() + 10, dc.MaxY() + 10);
-            delete mf;
-        }
+    if (wxTheClipboard->Open()) {
+        const wxBitmap & bmp = get_main_plot()->get_bitmap();
+        wxTheClipboard->SetData(new wxBitmapDataObject(bmp));
+        wxTheClipboard->Close();
     }
-#endif
 }
 
 void FFrame::OnSaveAsImage(wxCommandEvent&)
@@ -1865,7 +1857,7 @@ void FFrame::OnSaveAsImage(wxCommandEvent&)
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
         wxString path = fdlg.GetPath();
-        wxBitmap const& bmp = get_main_plot()->get_bitmap();
+        const wxBitmap & bmp = get_main_plot()->get_bitmap();
         if (path.Lower().EndsWith("bmp"))
             bmp.SaveFile(path, wxBITMAP_TYPE_BMP);
         else
