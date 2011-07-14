@@ -437,14 +437,15 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
                 ++ret;
             }
             vector<DataAndModel*> v;
-            ++n;
-            while (args[n].type == kTokenDataset) {
-                int k = args[n].value.i;
+            while (args[n+1].type == kTokenDataset) {
+                int k = args[n+1].value.i;
                 DataAndModel* dm = const_cast<DataAndModel*>(F->get_dm(k));
                 v.push_back(dm);
                 ++n;
                 ++ret;
             }
+            assert(args[n+1].type == kTokenNop); // separator
+            ++ret;
             if (v.empty()) {
                 DataAndModel* dm = const_cast<DataAndModel*>(F->get_dm(ds));
                 v.push_back(dm);
