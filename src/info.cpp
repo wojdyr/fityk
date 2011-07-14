@@ -458,7 +458,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
                 result += format_error_info(F, errors);
             }
             else if (word == "confidence") {
-                result += "Confidence interval for " + S(level) + " %:";
+                result += S(level) + "% confidence intervals:";
                 vector<realt> limits =
                     F->get_fit()->get_confidence_limits(v, level);
                 result += format_error_info(F, limits);

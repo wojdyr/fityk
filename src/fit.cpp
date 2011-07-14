@@ -44,11 +44,11 @@ string Fit::get_goodness_info(const vector<DataAndModel*>& dms)
     int dof = get_dof(dms);
     //update_parameters(dms);
     realt wssr = do_compute_wssr(pp, dms, true);
-    return "WSSR = " + sm->format_double(wssr)
-           + ";  DoF = " + S(dof)
-           + ";  WSSR/DoF = " + sm->format_double(wssr/dof)
-           + ";  SSR = " + sm->format_double(do_compute_wssr(pp, dms, false))
-           + ";  R-squared = " + sm->format_double(compute_r_squared(pp, dms));
+    return "WSSR=" + sm->format_double(wssr)
+           + "  DoF=" + S(dof)
+           + "  WSSR/DoF=" + sm->format_double(wssr/dof)
+           + "  SSR=" + sm->format_double(do_compute_wssr(pp, dms, false))
+           + "  R2=" + sm->format_double(compute_r_squared(pp, dms));
 }
 
 vector<realt> Fit::get_covariance_matrix(const vector<DataAndModel*>& dms)
