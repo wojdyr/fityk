@@ -146,3 +146,33 @@ void PlotPane::draw_vertical_lines(int X1, int X2, FPlot* skip)
             aux_plot_[i]->draw_vertical_lines_on_overlay(X1, X2);
 }
 
+wxBitmap PlotPane::prepare_bitmap_for_export(int W, int H, bool include_aux)
+{
+    int my = get_plot()->get_bitmap().GetSize().y;
+    int th = H;
+    int ah[2] = { 0, 0 };
+    for (int i = 0; i != 2; ++i)
+        if (include_aux && aux_visible(i)) {
+            int ay = get_aux_plot(i)->GetClientSize().y;
+            ah[i] = iround(ay * H / my);
+            th += 5 + ah[i];
+        }
+
+    wxBitmap bmp = wxBitmap(W, th);
+    wxMemoryDC memory_dc(bmp);
+    MainPlot *plot = get_plot();
+    MouseModeEnum old_mode = plot->get_mouse_mode();
+    plot->set_mode(mmd_readonly);
+    memory_dc.DrawBitmap(plot->draw_on_bitmap(W, H), 0, 0);
+    plot->set_mode(old_mode);
+
+    int y = H + 5;
+    for (int i = 0; i != 2; ++i)
+        if (include_aux && aux_visible(i)) {
+            AuxPlot *aplot = get_aux_plot(i);
+            memory_dc.DrawBitmap(aplot->draw_on_bitmap(W, ah[i]), 0, y);
+            y += ah[i] + 5;
+        }
+    return bmp;
+}
+

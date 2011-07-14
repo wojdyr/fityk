@@ -43,6 +43,7 @@ public:
     void show_aux(int n, bool show);
     bool aux_visible(int n) const;
     void draw_vertical_lines(int X1, int X2, FPlot* skip);
+    wxBitmap prepare_bitmap_for_export(int W, int H, bool include_aux);
 
 private:
     MainPlot *plot_;

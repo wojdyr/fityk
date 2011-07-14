@@ -956,12 +956,25 @@ void FFrame::OnExample(wxCommandEvent& event)
     }
 }
 
+
+static
+wxWindow* qload_filedialog_extra(wxWindow* parent)
+{
+    wxCheckBox *cb = new wxCheckBox(parent, -1,
+                                    "data weighting: \u03C3=max(\u221Ay, 1)");
+    bool def_sqrt = (S(ftk->get_settings()->default_sigma) == "sqrt");
+    cb->SetValue(def_sqrt);
+    return cb;
+}
+
+
 void FFrame::OnDataQLoad (wxCommandEvent&)
 {
     wxFileDialog fdlg (this, wxT("Load data from a file"), data_dir_, wxT(""),
                        wxT("All Files (*)|*|")
                                        + s2wx(xylib::get_wildcards_string()),
                        wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
+    fdlg.SetExtraControlCreator(&qload_filedialog_extra);
     int ret = fdlg.ShowModal();
     data_dir_ = fdlg.GetDirectory();
     if (ret != wxID_OK)
@@ -1018,7 +1031,10 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
         cmd += "@+ <'" + wx2s(paths[i]) + "'";
         add_recent_data_file(wx2s(paths[i]));
     }
-
+    wxCheckBox *cb = static_cast<wxCheckBox*>(fdlg.GetExtraControl());
+    bool initial = (S(ftk->get_settings()->default_sigma) == "sqrt");
+    if (cb != NULL && cb->GetValue() != initial)
+        cmd = "with default_sigma=" + S(initial ? "one" : "sqrt") + " " + cmd;
     ftk->exec(cmd);
     if (count > 1)
         SwitchSideBar(true);
@@ -1839,46 +1855,17 @@ void FFrame::OnPrintPSFile(wxCommandEvent&)
     print_mgr_->print_to_psfile();
 }
 
-wxBitmap FFrame::prepare_bitmap_for_export(int W, int H, bool include_aux)
-{
-    int my = get_main_plot()->get_bitmap().GetSize().y;
-    int th = H;
-    int ah[2] = { 0, 0 };
-    for (int i = 0; i != 2; ++i)
-        if (include_aux && plot_pane()->aux_visible(i)) {
-            int ay = plot_pane()->get_aux_plot(i)->GetClientSize().y;
-            ah[i] = iround(ay * H / my);
-            th += 5 + ah[i];
-        }
-
-    wxBitmap bmp = wxBitmap(W, th);
-    wxMemoryDC memory_dc(bmp);
-    MainPlot *plot = get_main_plot();
-    MouseModeEnum old_mode = plot->get_mouse_mode();
-    plot->set_mode(mmd_readonly);
-    memory_dc.DrawBitmap(plot->draw_on_bitmap(W, H), 0, 0);
-    plot->set_mode(old_mode);
-
-    int y = H + 5;
-    for (int i = 0; i != 2; ++i)
-        if (include_aux && plot_pane()->aux_visible(i)) {
-            AuxPlot *aplot = plot_pane()->get_aux_plot(i);
-            memory_dc.DrawBitmap(aplot->draw_on_bitmap(W, ah[i]), 0, y);
-            y += ah[i] + 5;
-        }
-    return bmp;
-}
-
 void FFrame::OnCopyToClipboard(wxCommandEvent&)
 {
     if (!wxTheClipboard->Open())
         return;
-    wxSize mp_size = get_main_plot()->get_bitmap().GetSize();
-    wxBitmap bmp = prepare_bitmap_for_export(mp_size.x, mp_size.y, true);
+    wxSize size = get_main_plot()->get_bitmap().GetSize();
+    wxBitmap bmp = plot_pane()->prepare_bitmap_for_export(size.x, size.y, true);
     wxTheClipboard->SetData(new wxBitmapDataObject(bmp));
     wxTheClipboard->Close();
 }
 
+namespace {
 
 class SaveImageDlgExtra : public wxPanel
 {
@@ -1908,11 +1895,12 @@ public:
 
 wxSize SaveImageDlgExtra::size;
 
-static
 wxWindow* save_image_filedialog_extra(wxWindow* parent)
 {
     return new SaveImageDlgExtra(parent);
 }
+
+} // anonymous namespace
 
 void FFrame::OnSaveAsImage(wxCommandEvent&)
 {
@@ -1934,7 +1922,8 @@ void FFrame::OnSaveAsImage(wxCommandEvent&)
             size.x = extra->w_spin->GetValue();
             size.y = extra->h_spin->GetValue();
         }
-        wxBitmap bmp = prepare_bitmap_for_export(size.x, size.y, aux);
+        wxBitmap bmp =
+            plot_pane()->prepare_bitmap_for_export(size.x, size.y, aux);
         if (path.Lower().EndsWith("bmp"))
             bmp.SaveFile(path, wxBITMAP_TYPE_BMP);
         else
