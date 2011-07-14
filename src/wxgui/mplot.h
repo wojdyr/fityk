@@ -72,7 +72,8 @@ public:
     void read_settings(wxConfigBase *cf);
     void update_mouse_hints();
     void set_cursor();
-    void set_mouse_mode(MouseModeEnum m);
+    void switch_to_mode(MouseModeEnum m);
+    void set_mode(MouseModeEnum m) { mode_ = m; }
     MouseModeEnum get_mouse_mode() const { return mode_; }
     const wxColour& get_data_color(int n) const
         { return data_colors_[n % data_colors_.size()]; }

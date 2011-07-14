@@ -34,6 +34,28 @@ void BufferedPanel::redraw_now()
     Update();
 }
 
+void BufferedPanel::gc_draw(wxMemoryDC& dc)
+{
+    if (antialias() && support_antialiasing_) {
+        wxGCDC gdc(dc);
+        draw(gdc);
+    }
+    else
+        draw(dc);
+}
+
+wxBitmap BufferedPanel::draw_on_bitmap(int w, int h)
+{
+    wxBitmap bmp = wxBitmap(w, h);
+    memory_dc_.SelectObject(bmp);
+    memory_dc_.SetBackground(wxBrush(bg_color_));
+    memory_dc_.Clear();
+    gc_draw(memory_dc_);
+    memory_dc_.SelectObject(buffer_);
+    return bmp;
+}
+
+
 void BufferedPanel::update_buffer_and_blit()
 {
     //cout << "BufferedPanel::update_buffer_and_blit()" << endl;
@@ -53,12 +75,7 @@ void BufferedPanel::update_buffer_and_blit()
     if (dirty_) {
         memory_dc_.SetLogicalFunction(wxCOPY);
         memory_dc_.Clear();
-        if (antialias() && support_antialiasing_) {
-            wxGCDC gdc(memory_dc_);
-            draw(gdc);
-        }
-        else
-            draw(memory_dc_);
+        gc_draw(memory_dc_);
         // This condition is almost always true. It was added because on
         // wxGTK 2.8 with some window managers, after loading a data file
         // the next paint event had the update region set to the area

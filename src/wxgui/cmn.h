@@ -12,7 +12,14 @@
 #include <wx/mstream.h>
 
 // input mode, changes functions of left and right clicks
-enum MouseModeEnum { mmd_zoom=0, mmd_bg, mmd_add, mmd_activate, mmd_peak };
+enum MouseModeEnum {
+    mmd_zoom=0,     // normal mode
+    mmd_bg,         // baseline mode
+    mmd_add,        // add-peak mode
+    mmd_activate,   // data-range mode
+    mmd_peak,       // mouse-over-peak-top mode
+    mmd_readonly    // read-only mode, used for saving the plot as image
+};
 
 // plot types, e.g. to tell where is mouse
 enum PlotTypeEnum { pte_main, pte_aux };

@@ -231,6 +231,7 @@ private:
     void read_recent_data_files();
     void write_recent_data_files();
     void change_mouse_mode(MouseModeEnum mode);
+    wxBitmap prepare_bitmap_for_export(int W, int H, bool include_aux);
 
     DECLARE_EVENT_TABLE()
 };

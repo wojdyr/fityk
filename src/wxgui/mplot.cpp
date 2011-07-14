@@ -938,7 +938,7 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
 //   Middle Button                 -- rectangle zoom
 //   Shift sometimes makes a difference
 
-void MainPlot::set_mouse_mode(MouseModeEnum m)
+void MainPlot::switch_to_mode(MouseModeEnum m)
 {
     if (pressed_mouse_button_) {
         fmd_->stop();
@@ -1080,7 +1080,7 @@ void MainPlot::look_for_peaktop(wxMouseEvent& event)
         // change cursor, statusbar text and draw limits
         over_peak_ = nearest;
         frame->set_status_text(get_peak_description(nearest));
-        set_mouse_mode(nearest == -1 ? basic_mode_ : mmd_peak);
+        switch_to_mode(nearest == -1 ? basic_mode_ : mmd_peak);
     }
 }
 

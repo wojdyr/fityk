@@ -1422,7 +1422,7 @@ void FFrame::change_mouse_mode(MouseModeEnum mode)
     if (toolbar_)
         toolbar_->ToggleTool(tool_ids[idx], true);
     toolbar_->EnableTool(ID_T_STRIP, (mode == mmd_bg));
-    get_main_plot()->set_mouse_mode(mode);
+    get_main_plot()->switch_to_mode(mode);
 }
 
 void FFrame::OnChangeMouseMode (wxCommandEvent& event)
@@ -1839,13 +1839,79 @@ void FFrame::OnPrintPSFile(wxCommandEvent&)
     print_mgr_->print_to_psfile();
 }
 
+wxBitmap FFrame::prepare_bitmap_for_export(int W, int H, bool include_aux)
+{
+    int my = get_main_plot()->get_bitmap().GetSize().y;
+    int th = H;
+    int ah[2] = { 0, 0 };
+    for (int i = 0; i != 2; ++i)
+        if (include_aux && plot_pane()->aux_visible(i)) {
+            int ay = plot_pane()->get_aux_plot(i)->GetClientSize().y;
+            ah[i] = iround(ay * H / my);
+            th += 5 + ah[i];
+        }
+
+    wxBitmap bmp = wxBitmap(W, th);
+    wxMemoryDC memory_dc(bmp);
+    MainPlot *plot = get_main_plot();
+    MouseModeEnum old_mode = plot->get_mouse_mode();
+    plot->set_mode(mmd_readonly);
+    memory_dc.DrawBitmap(plot->draw_on_bitmap(W, H), 0, 0);
+    plot->set_mode(old_mode);
+
+    int y = H + 5;
+    for (int i = 0; i != 2; ++i)
+        if (include_aux && plot_pane()->aux_visible(i)) {
+            AuxPlot *aplot = plot_pane()->get_aux_plot(i);
+            memory_dc.DrawBitmap(aplot->draw_on_bitmap(W, ah[i]), 0, y);
+            y += ah[i] + 5;
+        }
+    return bmp;
+}
+
 void FFrame::OnCopyToClipboard(wxCommandEvent&)
 {
-    if (wxTheClipboard->Open()) {
-        const wxBitmap & bmp = get_main_plot()->get_bitmap();
-        wxTheClipboard->SetData(new wxBitmapDataObject(bmp));
-        wxTheClipboard->Close();
+    if (!wxTheClipboard->Open())
+        return;
+    wxSize mp_size = get_main_plot()->get_bitmap().GetSize();
+    wxBitmap bmp = prepare_bitmap_for_export(mp_size.x, mp_size.y, true);
+    wxTheClipboard->SetData(new wxBitmapDataObject(bmp));
+    wxTheClipboard->Close();
+}
+
+
+class SaveImageDlgExtra : public wxPanel
+{
+public:
+    static wxSize size;
+    SaveImageDlgExtra(wxWindow* parent) : wxPanel(parent, -1)
+    {
+        wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
+        wxSizerFlags c = wxSizerFlags().Center();
+        sizer->Add(new wxStaticText(this, -1, "width:"), c);
+        w_spin = new SpinCtrl(this, -1, size.x, 0, 9999, 70);
+        sizer->Add(w_spin, c);
+        sizer->AddSpacer(10);
+        sizer->Add(new wxStaticText(this, -1, "height:"), c);
+        h_spin = new SpinCtrl(this, -1, size.y, 0, 9999, 70);
+        sizer->Add(h_spin, c);
+        sizer->AddSpacer(10);
+        aux_cb = new wxCheckBox(this, -1, "with auxiliary plots");
+        aux_cb->SetValue(false);
+        sizer->Add(aux_cb, c);
+        SetSizerAndFit(sizer);
     }
+
+    wxCheckBox *aux_cb;
+    wxSpinCtrl *w_spin, *h_spin;
+};
+
+wxSize SaveImageDlgExtra::size;
+
+static
+wxWindow* save_image_filedialog_extra(wxWindow* parent)
+{
+    return new SaveImageDlgExtra(parent);
 }
 
 void FFrame::OnSaveAsImage(wxCommandEvent&)
@@ -1855,9 +1921,20 @@ void FFrame::OnSaveAsImage(wxCommandEvent&)
                       wxT("PNG image (*.png)|*.png;*.PNG|")
                       wxT("Windows Bitmap (*.bmp)|*.bmp;*.BMP"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxSize size = get_main_plot()->get_bitmap().GetSize();
+    SaveImageDlgExtra::size = size;
+    fdlg.SetExtraControlCreator(&save_image_filedialog_extra);
     if (fdlg.ShowModal() == wxID_OK) {
         wxString path = fdlg.GetPath();
-        const wxBitmap & bmp = get_main_plot()->get_bitmap();
+        SaveImageDlgExtra *extra =
+            static_cast<SaveImageDlgExtra*>(fdlg.GetExtraControl());
+        bool aux = false;
+        if (extra != NULL) {
+            aux = extra->aux_cb->GetValue();
+            size.x = extra->w_spin->GetValue();
+            size.y = extra->h_spin->GetValue();
+        }
+        wxBitmap bmp = prepare_bitmap_for_export(size.x, size.y, aux);
         if (path.Lower().EndsWith("bmp"))
             bmp.SaveFile(path, wxBITMAP_TYPE_BMP);
         else
