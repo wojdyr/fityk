@@ -180,9 +180,13 @@ fi
 AM_CONDITIONAL([PYTHON_ENABLED], [test "$enable_python" = yes])
 
 if test "$enable_lua" = "yes"; then
-    AX_LUA_HEADERS
+    # macro AX_LUA_HEADERS_VERSION does not support cross-compiling
+    if test "$cross_compiling" = "yes"; then
+	AX_LUA_HEADERS
+    else
+	AX_LUA_HEADERS_VERSION(501)
+	fi
     AX_LUA_LIBS
-    AX_LUA_LIB_VERSION(501)
 fi
 AM_CONDITIONAL([LUA_ENABLED], [test "$enable_lua" = yes])
 

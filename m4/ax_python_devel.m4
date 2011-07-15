@@ -66,7 +66,7 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 4
+#serial 8
 
 AU_ALIAS([AC_PYTHON_DEVEL], [AX_PYTHON_DEVEL])
 AC_DEFUN([AX_PYTHON_DEVEL],[
@@ -119,7 +119,7 @@ to something else than an empty string.
 			ver = sys.version.split ()[[0]]; \
 			print (ver $1)"`
 		if test "$ac_supports_python_ver" = "True"; then
-	   	   AC_MSG_RESULT([yes])
+		   AC_MSG_RESULT([yes])
 		else
 			AC_MSG_RESULT([no])
 			AC_MSG_ERROR([this package requires Python $1.
@@ -152,9 +152,9 @@ $ac_distutils_result])
 	AC_MSG_CHECKING([for Python include path])
 	if test -z "$PYTHON_CPPFLAGS"; then
 		python_path=`$PYTHON -c "import distutils.sysconfig; \
-           		print (distutils.sysconfig.get_python_inc ());"`
+			print (distutils.sysconfig.get_python_inc ());"`
 		if test -n "${python_path}"; then
-		   	python_path="-I$python_path"
+			python_path="-I$python_path"
 		fi
 		PYTHON_CPPFLAGS=$python_path
 	fi
@@ -254,7 +254,7 @@ EOD`
 	AC_MSG_CHECKING([for Python site-packages path])
 	if test -z "$PYTHON_SITE_PKG"; then
 		PYTHON_SITE_PKG=`$PYTHON -c "import distutils.sysconfig; \
-		        print (distutils.sysconfig.get_python_lib(0,0));"`
+			print (distutils.sysconfig.get_python_lib(0,0));"`
 	fi
 	AC_MSG_RESULT([$PYTHON_SITE_PKG])
 	AC_SUBST([PYTHON_SITE_PKG])

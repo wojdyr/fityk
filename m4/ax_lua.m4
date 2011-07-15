@@ -5,17 +5,23 @@
 # SYNOPSIS
 #
 #   AX_WITH_LUA
+#   AX_PROG_LUA [(MIN-VERSION, [TOO-BIG-VERSION])]
 #   AX_LUA_VERSION (MIN-VERSION, [TOO-BIG-VERSION])
 #   AX_LUA_HEADERS
+#   AX_LUA_HEADERS_VERSION (MIN-VERSION, [TOO-BIG-VERSION])
 #   AX_LUA_LIBS
-#   AX_LUA_LIB_VERSION (MIN-VERSION, [TOO-BIG-VERSION])
+#   AX_LUA_READLINE
 #
 # DESCRIPTION
 #
 #   Detect Lua interpreter, headers and libraries, optionally enforcing a
-#   particular range of versions.
+#   particular range of versions. If only one version is given, then exactly
+#   this version is required.
 #
-#   AX_WITH_LUA searches for Lua interpreter and defines LUA if found.
+#   AX_WITH_LUA searches for a Lua interpreter and defines LUA if found.
+#
+#   AX_PROG_LUA searches for a Lua interpreter in the given version range,
+#   if any, and defines LUA if found, or stops with an error if not.
 #
 #   AX_LUA_VERSION checks that the version of Lua is at least MIN-VERSION
 #   and less than TOO-BIG-VERSION, if given.
@@ -24,10 +30,13 @@
 #   HAVE_LUALIB_H if found, and defines LUA_INCLUDE to the preprocessor
 #   flags needed, if any.
 #
+#   AX_LUA_HEADERS_VERSION checks that the Lua headers' version is at least
+#   MIN-VERSION, and less than TOO-BIG-VERSION, if given.
+#
 #   AX_LUA_LIBS searches for Lua libraries and defines LUA_LIB if found.
 #
-#   AX_LUA_LIB_VERSION checks that the Lua libraries' version is at least
-#   MIN-VERSION, and less than TOO-BIG-VERSION, if given.
+#   AX_LUA_READLINE configures Lua to be built with readline support, if
+#   available. This macro requires AX_LIB_READLINE.
 #
 #   Versions are specified as three-digit integers whose first digit is the
 #   major version and last two are the minor version (the same format as
@@ -36,13 +45,12 @@
 #
 #   The following options are added by these macros:
 #
-#     --with-lua-prefix=DIR     Lua files are in DIR.
 #     --with-lua-suffix=ARG     Lua binaries and library files are
 #                               suffixed with ARG.
 #
 # LICENSE
 #
-#   Copyright (c) 2009 Reuben Thomas <rrt@sc3d.org>
+#   Copyright (c) 2011 Reuben Thomas <rrt@sc3d.org>
 #   Copyright (c) 2009 Matthieu Moy <Matthieu.Moy@imag.fr>
 #   Copyright (c) 2009 Tom Payne <twpayne@gmail.com>
 #
@@ -72,27 +80,31 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 7
+#serial 14
 
 dnl Helper function to declare extra options
 AC_DEFUN([_AX_LUA_OPTS],
-  [AC_ARG_WITH([lua-prefix],
-     [AS_HELP_STRING([--with-lua-prefix=DIR],
-        [Lua files are in DIR])])
-   AC_ARG_WITH([lua-suffix],
+   [AC_ARG_WITH([lua-suffix],
      [AS_HELP_STRING([--with-lua-suffix=ARG],
         [Lua binary and library files are suffixed with ARG])])])dnl
 
 AC_DEFUN([AX_WITH_LUA],
   [_AX_LUA_OPTS
-  if test "x$with_lua_prefix" = x; then
-    lua_search_path="$PATH"
-  else
-    lua_search_path="$with_lua_prefix/bin"
-  fi
   if test "x$LUA" = x; then
-    AC_PATH_PROG([LUA], [lua$with_lua_suffix], [], [$lua_search_path])
+    AC_PATH_PROG(LUA, lua$with_lua_suffix)
   fi])dnl
+
+AC_DEFUN([AX_PROG_LUA],
+  [lua_min_version=$1
+  lua_max_version=$2
+  AX_WITH_LUA
+  if test -z "$LUA"; then
+    AC_MSG_FAILURE([Lua not found])
+  fi
+  if test -n "$lua_min_version"; then
+    AX_LUA_VERSION($lua_min_version, $lua_max_version)
+  fi
+  AC_SUBST(LUA)])dnl
 
 dnl Helper function to parse minimum & maximum versions
 AC_DEFUN([_AX_LUA_VERSIONS],
@@ -102,16 +114,19 @@ AC_DEFUN([_AX_LUA_VERSIONS],
     lua_min_version=0
   fi
   if test "x$lua_max_version" = x; then
-    lua_max_version=1000
+    lua_max_version=$(($lua_min_version + 1))
   fi])
 
 AC_DEFUN([AX_LUA_VERSION],
   [_AX_LUA_OPTS
-  AC_MSG_CHECKING([Lua version is in range $1 <= v < $2])
   _AX_LUA_VERSIONS($1, $2)
+  AC_MSG_CHECKING([Lua version is in range $1 <= v < $2])
   if test "x$LUA" != x; then
-    lua_text_version=$(LUA_INIT= $LUA -v 2>&1 | head -n 1 | cut -d' ' -f2)
+    lua_text_version=$(LUA_INIT= $LUA -e 'print(_VERSION)' 2>&1 | cut -d' ' -f2)
     case $lua_text_version in
+    5.2*)
+      lua_version=502
+      ;;
     5.1*)
       lua_version=501
       ;;
@@ -125,7 +140,7 @@ AC_DEFUN([AX_LUA_VERSION],
       lua_version=-1
       ;;
     esac
-    if test $lua_version -ge "$lua_min_version" -a $lua_version -lt "$lua_max_version"; then
+    if test $lua_version -ge "$lua_min_version" && test $lua_version -lt "$lua_max_version"; then
       AC_MSG_RESULT([yes])
     else
       AC_MSG_RESULT([no])
@@ -138,9 +153,6 @@ AC_DEFUN([AX_LUA_VERSION],
 
 AC_DEFUN([AX_LUA_HEADERS],
   [_AX_LUA_OPTS
-  if test "x$with_lua_prefix" != x; then
-    LUA_INCLUDE="-I$with_lua_prefix/include"
-  fi
   LUA_OLD_CPPFLAGS="$CPPFLAGS"
   CPPFLAGS="$CPPFLAGS $LUA_INCLUDE"
   AC_CHECK_HEADERS([lua.h lualib.h])
@@ -148,9 +160,6 @@ AC_DEFUN([AX_LUA_HEADERS],
 
 AC_DEFUN([AX_LUA_LIBS],
   [_AX_LUA_OPTS
-  if test "x$with_lua_prefix" != x; then
-    LUA_LIB="-L$with_lua_prefix/lib"
-  fi
   AC_CHECK_LIB([m], [exp], [lua_extra_libs="$lua_extra_libs -lm"], [])
   AC_CHECK_LIB([dl], [dlopen], [lua_extra_libs="$lua_extra_libs -ldl"], [])
   AC_CHECK_LIB([lua$with_lua_suffix],
@@ -159,10 +168,10 @@ AC_DEFUN([AX_LUA_LIBS],
     [],
     [$LUA_LIB $lua_extra_libs])])dnl
 
-AC_DEFUN([AX_LUA_LIB_VERSION],
+AC_DEFUN([AX_LUA_HEADERS_VERSION],
   [_AX_LUA_OPTS
-  AC_MSG_CHECKING([liblua version is in range $1 <= v < $2])
   _AX_LUA_VERSIONS($1, $2)
+  AC_MSG_CHECKING([lua.h version is in range $1 <= v < $2])
   LUA_OLD_LIBS="$LIBS"
   LIBS="$LIBS $LUA_LIB"
   LUA_OLD_CPPFLAGS="$CPPFLAGS"
@@ -181,6 +190,12 @@ int main()
 ]])],
   [AC_MSG_RESULT([yes])],
   [AC_MSG_RESULT([no])
-  AC_MSG_FAILURE([Lua libraries version not in desired range])])
+  AC_MSG_FAILURE([lua.h version not in desired range])])
   LIBS="$LUA_OLD_LIBS"
   CPPFLAGS="$LUA_OLD_CPPFLAGS"])dnl
+
+AC_DEFUN([AX_LUA_READLINE],
+  [AX_LIB_READLINE
+  if test -n "$ac_cv_header_readline_readline_h" && test -n "$ac_cv_header_readline_history_h"; then
+    LUA_LIBS_CFLAGS="-DLUA_USE_READLINE $LUA_LIBS_CFLAGS"
+  fi])dnl
