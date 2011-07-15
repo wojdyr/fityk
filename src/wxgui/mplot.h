@@ -113,9 +113,9 @@ private:
     //static const int max_group_cols = 8;
     static const int max_peak_cols = 32;
     bool peaks_visible_, /*groups_visible_,*/ model_visible_,
-         plabels_visible_, x_reversed_;
+         plabels_visible_, desc_visible_, x_reversed_;
     wxFont plabelFont;
-    std::string plabel_format_;
+    std::string plabel_format_, desc_format_;
     bool vertical_plabels_;
     wxColour modelCol, bg_pointsCol;
     int model_line_width_;
@@ -140,6 +140,7 @@ private:
     void draw_peaks (wxDC& dc, const Model* model, bool set_pen=true);
     void draw_peaktops (wxDC& dc, const Model* model);
     void draw_peaktop_selection(wxDC& dc, const Model* model);
+    void draw_desc(wxDC& dc, int dataset, bool set_pen=true);
     void draw_plabels (wxDC& dc, const Model* model, bool set_pen=true);
     void draw_dataset(wxDC& dc, int n, bool set_pen=true);
     void prepare_peaktops(const Model* model, int Ymax);

@@ -1,9 +1,5 @@
-* GUI, printing (hardcopy): this part has been neglected for some time.
-  Make sure it works fine on all platforms and add more options:
-  it should be possible to add text to the graph (data title or fit info)
-
-* FFT data transformation using either KISS FFT or FFTW library,
-  fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re @3 
+* FFT data transformation using FFTW library,
+  fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re(@3)
 
 * convolution and deconvolution of two datasets or a dataset with Gaussian:
   convolve(@0, @1); convolve(@0, 2.3); deconvolve(@0,3.4)

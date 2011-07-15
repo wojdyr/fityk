@@ -24,6 +24,7 @@
 #include "../ui.h"
 #include "../settings.h"
 #include "../ast.h"
+#include "../info.h"
 
 using namespace std;
 
@@ -45,8 +46,9 @@ public:
 
 private:
     MainPlot *mp_;
-    wxCheckBox *model_cb_, *func_cb_, *labels_cb_, *vertical_labels_cb_;
-    wxComboBox *label_combo_;
+    wxCheckBox *model_cb_, *func_cb_, *labels_cb_, *vertical_labels_cb_,
+               *desc_cb_;
+    wxComboBox *label_combo_, *desc_combo_;
     wxColourPickerCtrl *bg_cp_, *inactive_cp_, *axis_cp_, *model_cp_, *func_cp_;
     wxSpinCtrl *data_colors_sc_, *model_width_sc_;
     MultiColorCombo *data_color_combo_;
@@ -66,6 +68,9 @@ private:
 
     void OnLabelsCheckbox(wxCommandEvent& event)
         { mp_->plabels_visible_ = event.IsChecked(); mp_->refresh(); }
+
+    void OnDescCheckbox(wxCommandEvent& event)
+        { mp_->desc_visible_ = event.IsChecked(); mp_->refresh(); }
 
     void OnModelWidthSpin(wxSpinEvent& event)
         { mp_->model_line_width_ = event.GetPosition(); mp_->refresh(); }
@@ -103,6 +108,13 @@ private:
     {
         mp_->plabel_format_ = wx2s(label_combo_->GetValue());
         if (mp_->plabels_visible_)
+            mp_->refresh();
+    }
+
+    void OnDescTextChanged(wxCommandEvent&)
+    {
+        mp_->desc_format_ = wx2s(desc_combo_->GetValue());
+        if (mp_->desc_visible_)
             mp_->refresh();
     }
 
@@ -491,6 +503,10 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
         dc.SetPen(*wxBLACK_PEN);
         dc.SetBrush(*wxBLACK_BRUSH);
     }
+
+    if (desc_visible_)
+        draw_desc(dc, focused_data, !monochrome);
+
     //draw datasets (selected and focused at the end)
     vector<int> ord = frame->get_sidebar()->get_ordered_dataset_numbers();
     v_foreach (int, i, ord)
@@ -742,6 +758,28 @@ void MainPlot::prepare_peak_labels(const Model* model)
     }
 }
 
+void MainPlot::draw_desc(wxDC& dc, int dataset, bool set_pen)
+{
+    string result;
+    try {
+        parse_and_eval_info(ftk, desc_format_, dataset, result);
+    }
+    catch (const fityk::SyntaxError& e) {
+        result = "syntax error!";
+    }
+    catch (const ExecuteError& e) {
+        result = "(---)";
+    }
+    wxString label = s2wx(result);
+    set_font(dc, plabelFont);
+    if (set_pen)
+        dc.SetTextForeground(xAxisCol);
+    wxCoord w, h;
+    dc.GetMultiLineTextExtent(label, &w, &h);
+    wxSize size = dc.GetSize();
+    wxRect rect(size.x - w - 5, 5, w, h);
+    dc.DrawLabel(label, rect, wxALIGN_RIGHT);
+}
 
 void MainPlot::draw_baseline(wxDC& dc, bool set_pen)
 {
@@ -788,6 +826,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
     cf->SetPath(wxT("/MainPlot/Visible"));
     peaks_visible_ = cfg_read_bool(cf, wxT("peaks"), true);
     plabels_visible_ = cfg_read_bool(cf, wxT("plabels"), false);
+    desc_visible_ = cfg_read_bool(cf, wxT("desc"), false);
     //groups_visible_ = cfg_read_bool(cf, wxT("groups"), false);
     model_visible_ = cfg_read_bool(cf, wxT("model"), true);
     cf->SetPath(wxT("/MainPlot"));
@@ -799,6 +838,7 @@ void MainPlot::read_settings(wxConfigBase *cf)
                                wxFONTSTYLE_NORMAL, wxFONTWEIGHT_NORMAL);
     plabelFont = cfg_read_font(cf, wxT("plabelFont"), default_plabel_font);
     plabel_format_ = wx2s(cf->Read(wxT("plabel_format"), wxT("<area>")));
+    desc_format_ = wx2s(cf->Read(wxT("desc_format"), wxT("filename")));
     vertical_plabels_ = cfg_read_bool(cf, wxT("vertical_plabels"), false);
     x_max_tics = cf->Read(wxT("xMaxTics"), 7);
     y_max_tics = cf->Read(wxT("yMaxTics"), 7);
@@ -822,6 +862,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->Write(wxT("model_line_width"), model_line_width_);
     cfg_write_font (cf, wxT("plabelFont"), plabelFont);
     cf->Write(wxT("plabel_format"), s2wx(plabel_format_));
+    cf->Write(wxT("desc_format"), s2wx(desc_format_));
     cf->Write (wxT("vertical_plabels"), vertical_plabels_);
     cf->Write(wxT("xMaxTics"), x_max_tics);
     cf->Write(wxT("yMaxTics"), y_max_tics);
@@ -855,6 +896,7 @@ void MainPlot::save_settings(wxConfigBase *cf) const
     cf->SetPath(wxT("/MainPlot/Visible"));
     cf->Write (wxT("peaks"), peaks_visible_);
     cf->Write (wxT("plabels"), plabels_visible_);
+    cf->Write (wxT("desc"), desc_visible_);
     //cf->Write (wxT("groups"), groups_visible_);
     cf->Write (wxT("model"), model_visible_);
     cf->SetPath(wxT("/MainPlot"));
@@ -1624,8 +1666,24 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
                              wxT("<ib>     integral breadth (area/FWHM)\n")
                              wxT("<name>   function's name\n")
                              wxT("<br>     line break\n"));
-    vertical_labels_cb_->SetValue(mp_->vertical_plabels_);
     gsizer->Add(label_combo_, cl);
+
+    desc_cb_ = new wxCheckBox(this, -1, wxT("plot description"));
+    desc_cb_->SetValue(mp_->desc_visible_);
+    gsizer->Add(desc_cb_, cr);
+
+    wxArrayString desc_choices;
+    desc_choices.Add("title");
+    desc_choices.Add("filename");
+    desc_choices.Add("fit");
+    desc_choices.Add("filename,fit");
+    desc_combo_ = new wxComboBox(this, -1, s2wx(mp_->desc_format_),
+                                 wxDefaultPosition, wxDefaultSize,
+                                 desc_choices);
+    desc_combo_->SetToolTip("Description (in the right top corner)\n"
+                            "is an output of the info command.\n"
+                            "You can give any info arguments here.");
+    gsizer->Add(desc_combo_, cl);
 
     gsizer->Add(new wxStaticText(this, -1, wxT("axis & tics color")), cr);
     axis_cp_ = new wxColourPickerCtrl(this, -1, mp_->xAxisCol);
@@ -1736,6 +1794,8 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
             wxCommandEventHandler(MainPlotConfDlg::OnFuncCheckbox));
     Connect(labels_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
             wxCommandEventHandler(MainPlotConfDlg::OnLabelsCheckbox));
+    Connect(desc_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(MainPlotConfDlg::OnDescCheckbox));
     Connect(vertical_labels_cb_->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
             wxCommandEventHandler(MainPlotConfDlg::OnVerticalCheckbox));
     Connect(-1, wxEVT_COMMAND_COLOURPICKER_CHANGED,
@@ -1748,6 +1808,10 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
             wxCommandEventHandler(MainPlotConfDlg::OnLabelTextChanged));
     Connect(label_combo_->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
             wxCommandEventHandler(MainPlotConfDlg::OnLabelTextChanged));
+    Connect(desc_combo_->GetId(), wxEVT_COMMAND_COMBOBOX_SELECTED,
+            wxCommandEventHandler(MainPlotConfDlg::OnDescTextChanged));
+    Connect(desc_combo_->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
+            wxCommandEventHandler(MainPlotConfDlg::OnDescTextChanged));
     Connect(data_colors_sc_->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
             wxSpinEventHandler(MainPlotConfDlg::OnDataColorsSpin));
     Connect(data_color_combo_->GetId(), wxEVT_COMMAND_COMBOBOX_SELECTED,

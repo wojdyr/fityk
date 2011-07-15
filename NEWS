@@ -2,7 +2,7 @@ User-visible changes in version 1.0.3  (2011-  -  ):
 * embedded Lua (lightweight programming language)
 * syntax changes and enhancements in dataset transformations (@n = ...);
   example: "@0 = @0 - 0.23 * @1" removes (background) @1 with y's scaled
-  by factor 0.23 from dataset @0, if @0 and @1 have different x's, linear
+  by factor 0.23 from dataset @0; if @0 and @1 have different x's, linear
   interpolation is used.
 * added calculation of Polyline derivatives, what enables weighted least
   squares approximation by broken lines
@@ -10,6 +10,10 @@ User-visible changes in version 1.0.3  (2011-  -  ):
 * new option max_fitting_time -- stopping criterium based on elapsed time
 * GUI: mouse wheel and mouse extra buttons can be used to zoom in/out
 * Mac GUI: added Session > New Window that opens new window (open -n Fityk.app)
+* GUI: added optional, configurable description in the corner of the main plot
+* GUI: Session > Copy to Clipboard works differently and on all platforms now
+* GUI: enhanced file dialogs: Data > Quick Load and Session > Save as Image
+* fixed all reported bugs
 
 User-visible changes in version 1.0.2  (2011-06-08):
 * changed Data > Load File dialog

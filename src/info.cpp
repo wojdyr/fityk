@@ -760,3 +760,15 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
     F->rmsg(r);
 }
 
+void parse_and_eval_info(Ftk *F, const string& s, int dataset,
+                         string& result)
+{
+    Lexer lex(s.c_str());
+    Parser parser(F);
+    vector<Token> args;
+    parser.parse_info_args(lex, args);
+    if (lex.peek_token().type != kTokenNop)
+        lex.throw_syntax_error("unexpected argument");
+    eval_info_args(F, dataset, args, args.size(), result);
+}
+

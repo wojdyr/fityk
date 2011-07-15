@@ -113,7 +113,6 @@ Fityk::~Fityk()
 void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
                                             ExitRequestedException)
 {
-    // TODO: execute_line() doesn't throw, wrap it differently
     try {
         ftk_->get_ui()->raw_execute_line(s);
     }
@@ -125,14 +124,8 @@ string Fityk::get_info(string const& s, int dataset)  throw(SyntaxError,
                                                             ExecuteError)
 {
     try {
-        Lexer lex(s.c_str());
-        Parser parser(ftk_);
-        vector<Token> args;
-        parser.parse_info_args(lex, args);
-        if (lex.peek_token().type != kTokenNop)
-            lex.throw_syntax_error("unexpected argument");
         string result;
-        eval_info_args(ftk_, dataset, args, args.size(), result);
+        parse_and_eval_info(ftk_, s, dataset, result);
         return result;
     }
     CATCH_SYNTAX_ERROR

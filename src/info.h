@@ -21,4 +21,7 @@ void command_redirectable(Ftk const* F, int ds,
 
 void command_debug(const Ftk* F, int ds, const Token& key, const Token&rest);
 
+void parse_and_eval_info(Ftk *F, const std::string& s, int dataset,
+                         std::string& result);
+
 #endif // FITYK_INFO_H_
