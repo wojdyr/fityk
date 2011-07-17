@@ -411,7 +411,7 @@ void open_new_instance()
     string res = wx2s(wxStandardPaths::Get().GetResourcesDir());
     // it has "/Contents/Resources" (19 chars) after bundle.app
     if (res.size() > 19)
-        system(("open -n " + res.substr(0, 19)).c_str());
+        system(("open -n " + res.substr(0, res.size()-19)).c_str());
 }
 #endif
 
