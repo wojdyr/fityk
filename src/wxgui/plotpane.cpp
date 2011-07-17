@@ -158,7 +158,7 @@ wxBitmap PlotPane::prepare_bitmap_for_export(int W, int H, bool include_aux)
             th += 5 + ah[i];
         }
 
-    wxBitmap bmp = wxBitmap(W, th);
+    wxBitmap bmp(W, th);
     wxMemoryDC memory_dc(bmp);
     MainPlot *plot = get_plot();
     MouseModeEnum old_mode = plot->get_mouse_mode();

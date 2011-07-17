@@ -527,7 +527,7 @@ void FFrame::read_settings(wxConfigBase *cf)
     SwitchStatbar(cfg_read_bool(cf, wxT("ShowStatbar"), true));
     int display_w, display_h;
     wxDisplaySize(&display_w, &display_h);
-    int default_h = display_h >= 768 ? 670 : 400;
+    int default_h = display_h >= 768 ? 670 : 480;
     int default_w = default_h * 3 / 2;
     int w = cf->Read(wxT("w"), default_w),
         h = cf->Read(wxT("h"), default_h);
@@ -956,17 +956,38 @@ void FFrame::OnExample(wxCommandEvent& event)
     }
 }
 
+namespace {
 
-static
+class ExtraCheckBox: public wxPanel
+{
+public:
+    ExtraCheckBox(wxWindow* parent, wxString label, bool value)
+        : wxPanel(parent, -1)
+    {
+        cb = new wxCheckBox(this, -1, label);
+        cb->SetValue(value);
+        wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
+#ifdef __WXMSW__
+        sizer->AddSpacer(100);
+        sizer->Add(cb, 0, wxLEFT|wxBOTTOM, 5);
+#else
+        sizer->Add(cb);
+#endif
+        SetSizerAndFit(sizer);
+    }
+    wxCheckBox *cb;
+};
+
+
 wxWindow* qload_filedialog_extra(wxWindow* parent)
 {
-    wxCheckBox *cb = new wxCheckBox(parent, -1,
-                                    "data weighting: \u03C3=max(\u221Ay, 1)");
     bool def_sqrt = (S(ftk->get_settings()->default_sigma) == "sqrt");
-    cb->SetValue(def_sqrt);
-    return cb;
+    return new ExtraCheckBox(parent,
+                             wxT("data weighting: \u03C3=max(\u221Ay, 1)"),
+                             def_sqrt);
 }
 
+} // anonymous namespace
 
 void FFrame::OnDataQLoad (wxCommandEvent&)
 {
@@ -1302,9 +1323,8 @@ void FFrame::OnMenuLogOutputUpdate (wxUpdateUIEvent& event)
 static
 wxWindow* log_filedialog_extra(wxWindow* parent)
 {
-    wxCheckBox *cb = new wxCheckBox(parent, -1, "log also output");
-    cb->SetValue(ftk->get_settings()->log_full);
-    return cb;
+    bool init_value = ftk->get_settings()->log_full;
+    return new ExtraCheckBox(parent, "log also output", init_value);
 }
 
 void FFrame::OnLogStart (wxCommandEvent&)
@@ -1319,9 +1339,9 @@ void FFrame::OnLogStart (wxCommandEvent&)
         fdlg.SetPath(s2wx(logfile));
     if (fdlg.ShowModal() == wxID_OK) {
         string cmd = "set logfile='" + wx2s(fdlg.GetPath()) + "'";
-        wxWindow *cb = fdlg.GetExtraControl();
-        if (cb != NULL) {
-            bool checked = static_cast<wxCheckBox*>(cb)->GetValue();
+        wxWindow *extra = fdlg.GetExtraControl();
+        if (extra != NULL) {
+            bool checked = wxDynamicCast(extra,ExtraCheckBox)->cb->GetValue();
             if (checked != ftk->get_settings()->log_full)
                 cmd += ", log_full=" + S(checked ? "1" : "0");
         }
@@ -1875,6 +1895,10 @@ public:
     {
         wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
         wxSizerFlags c = wxSizerFlags().Center();
+#ifdef __WXMSW__
+        sizer->AddSpacer(100);
+        c.Border(wxBOTTOM);
+#endif
         sizer->Add(new wxStaticText(this, -1, "width:"), c);
         w_spin = new SpinCtrl(this, -1, size.x, 0, 9999, 70);
         sizer->Add(w_spin, c);
@@ -1887,10 +1911,23 @@ public:
         aux_cb->SetValue(false);
         sizer->Add(aux_cb, c);
         SetSizerAndFit(sizer);
+        // workaround for wxMSW problem: GetValue() returned minimal value
+        Connect(-1, wxEVT_COMMAND_SPINCTRL_UPDATED,
+                wxSpinEventHandler(SaveImageDlgExtra::OnSpin));
     }
 
-    wxCheckBox *aux_cb;
+    // workaround for wxMSW problem: GetValue() returned minimal value
+    void OnSpin(wxSpinEvent& event)
+    {
+        int n = event.GetPosition();
+        if (event.GetId() == w_spin->GetId())
+            size.x = n;
+        else
+            size.y = n;
+    }
+
     wxSpinCtrl *w_spin, *h_spin;
+    wxCheckBox *aux_cb;
 };
 
 wxSize SaveImageDlgExtra::size;
@@ -1906,7 +1943,11 @@ void FFrame::OnSaveAsImage(wxCommandEvent&)
 {
     wxFileDialog fdlg(this, wxT("Save main plot as image"),
                       export_dir_, wxT(""),
+// Because of a bug in wxMSW 2.9 (http://trac.wxwidgets.org/ticket/13328),
+// we can't export png on this platform.
+#ifndef __WXMSW__
                       wxT("PNG image (*.png)|*.png;*.PNG|")
+#endif
                       wxT("Windows Bitmap (*.bmp)|*.bmp;*.BMP"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     wxSize size = get_main_plot()->get_bitmap().GetSize();
@@ -1914,13 +1955,17 @@ void FFrame::OnSaveAsImage(wxCommandEvent&)
     fdlg.SetExtraControlCreator(&save_image_filedialog_extra);
     if (fdlg.ShowModal() == wxID_OK) {
         wxString path = fdlg.GetPath();
-        SaveImageDlgExtra *extra =
-            static_cast<SaveImageDlgExtra*>(fdlg.GetExtraControl());
+        wxWindow *extra = fdlg.GetExtraControl();
         bool aux = false;
         if (extra != NULL) {
-            aux = extra->aux_cb->GetValue();
-            size.x = extra->w_spin->GetValue();
-            size.y = extra->h_spin->GetValue();
+            SaveImageDlgExtra *sie = wxDynamicCast(extra,SaveImageDlgExtra);
+            size.x = sie->w_spin->GetValue();
+            size.y = sie->h_spin->GetValue();
+            //wxMessageBox(wxString::Format("%d x %d", size.x, size.y));
+            // workaround for wxMSW problem: GetValue() returned minimal value
+            if (size.x <= 10)
+                size = SaveImageDlgExtra::size;
+            aux = sie->aux_cb->GetValue();
         }
         wxBitmap bmp =
             plot_pane()->prepare_bitmap_for_export(size.x, size.y, aux);
