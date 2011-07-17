@@ -140,7 +140,7 @@ and Linux (Ubuntu PPA_ and RPMs from OBS_).
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 :html:`<a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://fityk.nieto.pl"></a>`
 
-Version 1.0.2 was released on 2011-06-08
+Version 1.1.0 was released on 2011-07-18
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
 New version `notifications <http://fityk-announce.nieto.pl/>`_
 are delivered via email and feeds.

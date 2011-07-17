@@ -1,4 +1,4 @@
-User-visible changes in version 1.0.3  (2011-  -  ):
+User-visible changes in version 1.1.0  (2011-07-18):
 * embedded Lua (lightweight programming language)
 * syntax changes and enhancements in dataset transformations (@n = ...);
   example: "@0 = @0 - 0.23 * @1" removes (background) @1 with y's scaled
