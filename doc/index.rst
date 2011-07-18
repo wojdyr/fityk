@@ -70,7 +70,7 @@ Features
 * various optimization methods (standard Marquardt least-squares algorithm,
   Genetic Algorithms, Nelder-Mead simplex),
 * handling series of datasets,
-* automation with macros (scripts),
+* automation with macros (scripts) and embedded Lua for more complex scripting
 * the accuracy of nonlinear regression :wiki:`verified <NIST-certified-data>`
   with reference datasets from NIST,
 * an add-on for powder diffraction data (Pawley refinement)
@@ -102,30 +102,24 @@ Subscribers have access to all versions of the program and to e-mail support.
 The program can be installed on many computers and can be also used
 after the end of subscription.
 
-* `1 month subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918496>`_: €90 / $115
+* `1 month subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918496>`_: $115 (≈ €90)
 
-* `1 year subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918202>`_: €210 / $265
-
-* `1 year subscription + 30 hours of coding <https://www.plimus.com/jsp/buynow.jsp?contractId=2918292>`_ €630 / $795.
-  :smallfont:`The maintainer of the program will devote up to 30 hours
-  to implement features requested by the customer.
-  (But feel free to suggest new features even if you are not going to pay).
-  Contact me to discuss details.`
+* `1 year subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918202>`_: $265 (≈ €200)
 
 .. raw:: html
 
    <div class="smallfont">
 
-The exact price in € depends on the exchange rate.
-If you prefer to transfer money directly to my bank account (PL),
-drop me a line.
-Alternatively, students and home users may
-donate 20% of the normal price to ``wojdyr@gmail.com`` using
+Students and home users may donate 20% of the normal price to
+``wojdyr@gmail.com`` using
 `PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=E98FRTPDBQ3L6&lc=US&currency_code=USD&item_name=Fityk>`_,
 `MoneyBookers <https://www.moneybookers.com/app/payment.pl?pay_to_email=wojdyr@gmail.com&language=EN&detail1_text=The+amount+can+be+changed+at+the+end+of+the+URL&detail1_description=Fityk&currency=USD&amount=53>`_
 or `Flattr <https://flattr.com/donation/give/to/wojdyr>`_.
+
 If you have made any donation before the release of 1.0 you get free
 subscription, just let me know you are interested.
+
+10-31 August 2011 - vacations.
 
 .. raw:: html
 
