@@ -79,7 +79,7 @@ elif [ $1 -eq 4 ]; then
  $SRC_DIR/configure --build=x86_64-pc-linux-gnu --host=i586-mingw32msvc \
    CPPFLAGS="-I$BOOST_DIR -I$MDIR/include/" \
    CXXFLAGS="-O3" LDFLAGS="-s -L$MDIR/lib" \
-   --without-readline --enable-lua --enable-static --disable-shared \
+   --without-readline --enable-static --disable-shared \
    --with-wx-config=$MDIR/bin/wx-config
  make || exit
  mkdir -p $ALL_WIN_FILES/samples $ALL_WIN_FILES/src

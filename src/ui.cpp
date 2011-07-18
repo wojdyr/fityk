@@ -15,7 +15,6 @@
 #include "cparser.h"
 #include "runner.h"
 
-#ifdef HAVE_LUALIB_H
 extern "C" {
 #include <lua.h>
 #include <lualib.h>
@@ -23,7 +22,6 @@ extern "C" {
 #include "swigluarun.h"   // the SWIG external runtime
 extern int luaopen_fityk(lua_State*L); // the SWIG wrappered library
 }
-#endif
 
 using namespace std;
 
@@ -265,7 +263,6 @@ private:
 };
 
 
-#ifdef HAVE_LUALIB_H
 static
 void exec_lua_script(Ftk *F_, const string& filename)
 {
@@ -285,18 +282,13 @@ void exec_lua_script(Ftk *F_, const string& filename)
     }
     lua_close(L);
 }
-#endif
 
 void UserInterface::exec_script(const string& filename)
 {
     user_interrupt = false;
 
     if (endswith(filename, ".lua")) {
-#ifdef HAVE_LUALIB_H
         exec_lua_script(F_, filename);
-#else
-        F_->warn("Lua support is disabled.");
-#endif
         return;
     }
 

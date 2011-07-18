@@ -1,5 +1,5 @@
 
-EXTRA_DIST =
+EXTRA_DIST = $(srcdir)/fityk_perl.cpp $(srcdir)/Fityk.pm
 
 SWIG_SOURCES = fityk.i
 BUILT_SOURCES = $(srcdir)/fityk_python.cpp $(srcdir)/fityk_lua.cpp \

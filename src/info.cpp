@@ -11,11 +11,9 @@
 
 #include <xylib/xylib.h> //get_version()
 #include <boost/version.hpp> // BOOST_VERSION
-#ifdef HAVE_LUALIB_H
 extern "C" {
 #include <lua.h> // LUA_RELEASE
 }
-#endif
 
 #include "logic.h"
 #include "func.h"
@@ -94,9 +92,7 @@ string info_compiler()
                       + "." + S(BOOST_VERSION / 100 % 1000)
                       + "." + S(BOOST_VERSION % 100)
         + "\nxylib version: " + xylib_get_version()
-#ifdef HAVE_LUALIB_H
         + "\n" LUA_RELEASE
-#endif
         ;
 }
 

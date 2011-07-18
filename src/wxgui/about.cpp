@@ -10,11 +10,9 @@
 #include "../common.h" // VERSION
 #include "img/fityk96.h"
 
-#ifdef HAVE_LUALIB_H
 extern "C" {
 #include <lua.h> // LUA_RELEASE
 }
-#endif
 
 
 AboutDlg::AboutDlg(wxWindow* parent)
@@ -60,9 +58,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
                                      BOOST_VERSION / 100000,
                                      BOOST_VERSION / 100 % 1000,
                                      BOOST_VERSION % 100));
-#ifdef HAVE_LUALIB_H
     txt->AppendText(pchar2wx(", " LUA_RELEASE));
-#endif
     txt->AppendText(wxT(" and xylib ") + pchar2wx(xylib_get_version())
                     + wxT("\n"));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxNORMAL_FONT));

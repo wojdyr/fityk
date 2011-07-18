@@ -29,11 +29,8 @@ libfityk_la_SOURCES = logic.cpp view.cpp lexer.cpp eparser.cpp cparser.cpp \
 		 tplate.h func.h udf.h bfunc.h ast.h \
 		 vm.h transform.h \
 		 settings.h ui.h GAfit.h LMfit.h guess.h NMfit.h \
-		 model.h fit.h voigt.h numfuncs.h
-
-if LUA_ENABLED
-libfityk_la_SOURCES += $(srcdir)/../swig/fityk_lua.cpp
-endif
+		 model.h fit.h voigt.h numfuncs.h \
+		 $(srcdir)/../swig/fityk_lua.cpp swigluarun.h
 
 include_HEADERS = fityk.h
 

@@ -179,15 +179,20 @@ if test "$enable_python" = "yes"; then
 fi
 AM_CONDITIONAL([PYTHON_ENABLED], [test "$enable_python" = yes])
 
-if test "$enable_lua" = "yes"; then
-    # macro AX_LUA_HEADERS_VERSION does not support cross-compiling
-    if test "$cross_compiling" = "yes"; then
-	AX_LUA_HEADERS
-    else
-	AX_LUA_HEADERS_VERSION(501)
-	fi
-    AX_LUA_LIBS
+AC_CHECK_HEADERS([lua.h lualib.h], [], [AC_MSG_ERROR(
+  [Lua headers not found. If they are installed,
+   you may need to specify the path, e.g. CPPFLAGS="-I/usr/include/lua5.1"
+		  ])])
+# macro AX_LUA_HEADERS_VERSION does not support cross-compiling
+if test "$cross_compiling" != "yes"; then
+    AX_LUA_HEADERS_VERSION(501)
 fi
+AX_LUA_LIBS
+if test x"$LUA_LIB" = x; then
+    AC_MSG_ERROR([Lua library not found. You may try option --with-lua-suffix.])
+fi
+
+# Lua is always required by libfityk, --enable-lua adds separate lua bindings
 AM_CONDITIONAL([LUA_ENABLED], [test "$enable_lua" = yes])
 
 #if test "$enable_perl" = "yes"; then
