@@ -1057,10 +1057,13 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
         cmd += "@+ <'" + wx2s(paths[i]) + "'";
         add_recent_data_file(wx2s(paths[i]));
     }
-    wxCheckBox *cb = static_cast<wxCheckBox*>(fdlg.GetExtraControl());
-    bool initial = (S(ftk->get_settings()->default_sigma) == "sqrt");
-    if (cb != NULL && cb->GetValue() != initial)
-        cmd = "with default_sigma=" + S(initial ? "one" : "sqrt") + " " + cmd;
+    wxWindow *extra = fdlg.GetExtraControl();
+    if (extra != NULL) {
+        bool checked = wxDynamicCast(extra,ExtraCheckBox)->cb->GetValue();
+        string selected = checked ? "sqrt" : "one";
+        if (ftk->get_settings()->default_sigma != selected)
+            cmd = "with default_sigma=" + selected + " " + cmd;
+    }
     ftk->exec(cmd);
     if (count > 1)
         SwitchSideBar(true);
