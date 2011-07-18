@@ -837,8 +837,10 @@ void FFrame::set_menubar()
               wiki_url);
     append_mi(help_menu, ID_H_DISCUSSIONS, GET_BMP(web16),
               wxT("&Visit Discussions"), discussions_url);
+    /*
     append_mi(help_menu, ID_H_FEEDBACK, GET_BMP(web16),
               wxT("&Anonymous Feedback"), feedback_url);
+    */
     wxMenu* help_menu_examples = new wxMenu;
     help_menu_examples->Append(ID_H_EXAMPLE1, wxT("&Single Peak"),
                                wxT("nacl01.fit"));
