@@ -162,7 +162,11 @@ wxBitmap PlotPane::prepare_bitmap_for_export(int W, int H, bool include_aux)
     wxMemoryDC memory_dc(bmp);
     MainPlot *plot = get_plot();
     MouseModeEnum old_mode = plot->get_mouse_mode();
-    plot->set_mode(mmd_readonly);
+    // We change the mode to avoid drawing peaktops.
+    // In the case of mmd_bg peaktops are not drawn anyway,
+    // and changing the mode would prevent drawing the baseline.
+    if (plot->get_mouse_mode() != mmd_bg)
+        plot->set_mode(mmd_readonly);
     memory_dc.DrawBitmap(plot->draw_on_bitmap(W, H), 0, 0);
     plot->set_mode(old_mode);
 
