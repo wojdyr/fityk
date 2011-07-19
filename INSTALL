@@ -2,8 +2,9 @@
 Prerequisites
 =============
 
-*  c++ compiler (e.g. GCC)
+*  C++ compiler (e.g. GCC)
 *  Boost libraries (headers only)
+*  Lua >= 5.1
 *  xylib library - http://xylib.sf.net
 *  wxWidgets (wxGTK or wxMSW) >= 2.9.2 (for the GUI)
 *  readline library >= 4.2 (optional, for the CLI)
