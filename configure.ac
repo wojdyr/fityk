@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([fityk], [1.1.0])
+AC_INIT([fityk], [1.1.1])
 LIBRARY_VERSION_FLAG="-version-info 3:0:0"
 
 AC_CONFIG_SRCDIR([src/voigt.h])
