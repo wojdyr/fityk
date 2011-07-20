@@ -21,6 +21,31 @@ Uninstallation of the program installed from source is also easy:
 either do "make uninstall" or manually find and remove all files, e.g.: 
 find /usr/local/ -name \*fityk\* -exec rm -r \{} \;
 
+wxWidgets
+=========
+
+If you compile wxWidgets only to build fityk, you may use the following
+configure flags to disable unused features and make the compilation faster.
+
+--disable-compat26 --disable-compat28 \
+--without-regex --without-expat --without-opengl \
+--without-libjpeg --without-libtiff \
+--disable-threads --disable-html --disable-htmlhelp --disable-stc \
+--disable-xlocale --disable-protocols --disable-protocol --disable-fs_inet \
+--disable-sockets --disable-ipc --disable-apple_ieee --disable-backtrace \
+--disable-dialupman --disable-tarstream --disable-sound \
+--disable-mediactrl --disable-url --disable-aui --disable-xrc \
+--disable-docview --disable-logdialog --disable-animatectrl \
+--disable-calendar --disable-datepick --disable-tipwindow --disable-splash \
+--disable-tipdlg --disable-wizarddlg --disable-miniframe --disable-joystick \
+--disable-gif --disable-pcx --disable-tga --disable-iff --disable-pnm \
+--disable-mdi --disable-richtext --disable-rearrangectrl --disable-fswatcher \
+--disable-ribbon --disable-propgrid --disable-infobar --disable-arcstream \
+--disable-dataviewctrl --disable-detect_sm
+
+and optionally:
+--disable-shared --enable-optimise --disable-debug_flag --disable-debugreport
+
 
 To install the latest version from Git
 ======================================
