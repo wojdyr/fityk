@@ -1,49 +1,47 @@
 #!/usr/bin/env lua
 
--- If this script is run in stand-alone Lua interpreter,
--- it needs fityk module (ln -sf /usr/lib/liblua-fityk.so fityk.so)
--- and the line below:
---require("fityk")
+-- First, check if the script is called from stand-alone Lua interpreter.
+-- The interpreter embedded in libfityk sets global F (an instance of
+-- fityk.Fityk) which can be used to access and change the state of the program.
+-- In other Lua interpreters we must import fityk module (it can be named
+-- liblua-fityk to avoid conflicts and you may need to rename it to fityk.so)
+if type(F) ~= 'userdata' or swig_type(F) ~= "fityk::Fityk *" then
+    print("we are NOT inside fityk...")
+    require("fityk")
+    F = fityk.Fityk()
+    -- in fityk messages from the program and from F:out go to the output
+    -- window, in cfityk to console output, in stand-alone Lua we must
+    -- set the output
+    F:redir_messages(io.stdout)
+    -- the output can be disabled using redir_messages(nil)
+end
 
+-- basic checks
 print("fityk is", swig_type(fityk)) -- table
 print("fityk.Fityk is", swig_type(fityk.Fityk)) -- function
 
--- The interpreter embedded in libfityk sets global F (instance of fityk.Fityk)
--- which can be used as to access and change the state of the program.
--- Here, we define a separate engine:
-ftk = fityk.Fityk()
-
-print("fityk.Fityk() gives", swig_type(ftk)) -- fityk::Fityk *
-
-print("libfityk version:", ftk:get_info("version"))
-print("ln(2) =", ftk:calculate_expr("ln(2)"))
+F:out("libfityk version: " .. F:get_info("version"))
+F:out("ln(2) = " .. F:calculate_expr("ln(2)"))
 
 -- check error handling
-status, err = pcall(function() ftk:execute("fit") end)
+status, err = pcall(function() F:execute("fit") end)
 if status == false then
-    print("Error: " .. err)
+    F:out("Error caught: " .. err)
 end
 
-
-GaussianFitter = { f = ftk }
-
-function GaussianFitter:read_data(filename)
-    self.f:execute("@0 < '"..filename.."'")
-    self.filename = filename
-    print("Data info:", self.f:get_info("data", 0))
+if type(arg) == 'table' then
+    directory = string.match(arg[0], "^.*[/\\]")
+else
+    directory = ""
 end
+filename = directory .. "nacl01.dat"
 
-function GaussianFitter:run()
-    self.f:execute("guess %gauss = Gaussian")
-    print("Fitting "..self.filename.." ...")
-    self.f:execute("fit")
-    print("WSSR="..self.f:get_wssr())
-    print("Gaussian center: ".. self.f:calculate_expr("%gauss.center"))
-end
-
-ftk:redir_messages(io.stdout)
--- ftk:redir_messages(nil) -- nil disables output
-GaussianFitter:read_data("nacl01.dat")
-GaussianFitter:run()
-ftk:execute("info state >tmp_save.fit")
+F:execute("@0 < '"..filename.."'")
+F:out("Data info: "..F:get_info("data", 0))
+F:execute("guess %gauss = Gaussian")
+F:out("Fitting "..filename.." ...")
+F:execute("fit")
+F:out("WSSR="..F:get_wssr())
+F:out("Gaussian center: "..F:calculate_expr("%gauss.center"))
+F:execute("info state >tmp_save.fit")
 
