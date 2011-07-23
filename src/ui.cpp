@@ -273,8 +273,16 @@ void exec_lua_script(Ftk *F_, const string& filename)
     assert(type_info != NULL);
     int owned = 1;
     fityk::Fityk *f = new fityk::Fityk(F_);
+
     SWIG_NewPointerObj(L, f, type_info, owned);
     lua_setglobal(L, "F");
+
+    // pass filename in arg[0], like in the Lua stand-alone interpreter
+    lua_createtable(L, 1, 0);
+    lua_pushstring(L, filename.c_str());
+    lua_rawseti(L, -2, 0);
+    lua_setglobal(L, "arg");
+
     int status = luaL_dofile(L, filename.c_str());
     if (status != 0) {
         const char *msg = lua_tostring(L, -1);
