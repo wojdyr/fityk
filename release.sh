@@ -24,6 +24,7 @@ if [ $# -eq 0 ]; then
  echo "10. http://freshmeat.net/projects/fityk/releases/new "
  echo "    http://www.gnomefiles.org/devs/index.php?login    "
  echo "11. (optional) update xyconvert"
+ echo "12. git tag -a v$version -m 'version $version'; git push --tags"
  exit
 fi
 
