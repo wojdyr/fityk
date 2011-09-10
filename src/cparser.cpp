@@ -23,7 +23,8 @@ using fityk::SyntaxError;
 
 const char *command_list[] = {
     "debug", "define", "delete", "exec", "fit", "guess", "info", "plot",
-    "quit", "reset", "set", "sleep", "title", "undefine", "use"
+    "quit", "reset", "set", "sleep", "title", "undefine", "use",
+    NULL
 };
 
 const char* info_args[] = {
@@ -42,7 +43,8 @@ const char* info_args[] = {
 
 const char* debug_args[] = {
     // "%" and "$" mean that any %functions and $variables are accepted as args
-    "parse", "lex", "expr", "der", "rd", "idx", "df", "%", "$", NULL
+    "parse", "lex", "expr", "der", "rd", "idx", "df", "%", "$",
+    NULL
 };
 
 
