@@ -162,7 +162,7 @@ char *type_generator(const char *text, int state)
     if (list_index < e.size())
         return strdup(e[list_index].c_str());
     else
-        return 0;
+        return NULL;
 }
 
 char *type_or_guess_generator(const char *text, int state)
@@ -199,7 +199,7 @@ char *info_generator(const char *text, int state)
     if (list_index < e.size())
         return strdup(e[list_index].c_str());
     else
-        return 0;
+        return NULL;
 }
 
 char *debug_generator (const char *text, int state)
@@ -233,7 +233,7 @@ char *function_generator(const char *text, int state)
     if (list_index < e.size())
         return strdup(e[list_index].c_str());
     else
-        return 0;
+        return NULL;
 }
 
 char *variable_generator(const char *text, int state)
@@ -252,7 +252,7 @@ char *variable_generator(const char *text, int state)
     if (list_index < e.size())
         return strdup(e[list_index].c_str());
     else
-        return 0;
+        return NULL;
 }
 
 char *set_generator(const char *text, int state)
@@ -268,7 +268,7 @@ char *set_generator(const char *text, int state)
     if (list_index < e.size())
         return strdup(e[list_index].c_str());
     else
-        return 0;
+        return NULL;
 }
 
 char *set_eq_generator(const char *text, int state)
@@ -328,7 +328,7 @@ char **my_completion (const char *text, int start, int end)
         --prev_nonblank;
     if (*prev_nonblank == '>' || *prev_nonblank == '<') { //filename completion
         rl_attempted_completion_over = 0;
-        return 0;
+        return NULL;
     }
 
     //check if it is after set command or after with
@@ -397,10 +397,10 @@ char **my_completion (const char *text, int start, int end)
     // filename completion after exec
     if (starts_with_command(ptr, start - cmd_start, "e","xecute")) {
         rl_attempted_completion_over = 0;
-        return 0;
+        return NULL;
     }
 
-    return 0;
+    return NULL;
 }
 
 
