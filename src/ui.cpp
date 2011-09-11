@@ -180,24 +180,25 @@ void UserInterface::raw_execute_line(const string& str)
 
 UserInterface::Status UserInterface::execute_line(const string& str)
 {
+    UserInterface::Status status = UserInterface::kStatusOk;
     try {
         raw_execute_line(str);
     }
     catch (fityk::SyntaxError &e) {
         F_->warn(string("Syntax error: ") + e.what());
-        return UserInterface::kStatusSyntaxError;
+        status = UserInterface::kStatusSyntaxError;
     }
     // ExecuteError and xylib::FormatError and xylib::RunTimeError
     // are derived from std::runtime_error
     catch (runtime_error &e) {
         F_->warn(string("Error: ") + e.what());
-        return UserInterface::kStatusExecuteError;
+        status = UserInterface::kStatusExecuteError;
     }
 
     if (F_->is_plot_outdated() && F_->get_settings()->autoplot)
         draw_plot(UserInterface::kRepaint);
 
-    return UserInterface::kStatusOk;
+    return status;
 }
 
 bool UserInterface::check_syntax(const string& str)
