@@ -36,6 +36,22 @@ private:
 };
 
 
+void exec_redirected_command(const vector<int>& sel,
+                             const string& cmd, const wxString& path)
+{
+    if (sel.size() == 1) {
+        ftk->exec("@" + S(sel[0]) + ": " + cmd + " > '" + wx2s(path) + "'");
+        return;
+    }
+    string datasets;
+    if (ftk->get_dm_count() == size(sel))
+        datasets = "@*";
+    else
+        datasets = "@" + join_vector(sel, " @");
+    if (wxFileExists(path))
+        ftk->exec("delete file '" + wx2s(path) + "'");
+    ftk->exec(datasets + ": " + cmd + " >> '" + wx2s(path) + "'");
+}
 
 /// show "Export data" dialog
 bool export_data_dlg(wxWindow *parent)
@@ -43,17 +59,10 @@ bool export_data_dlg(wxWindow *parent)
     static wxString dir = wxConfig::Get()->Read(wxT("/exportDir"));
 
     vector<int> sel = frame->get_selected_data_indices();
-    int data_idx;
-    if (sel.size() == 1)
-        data_idx = sel[0];
-    else if ((int) sel.size() == ftk->get_dm_count())
-        data_idx = -1;
-    else
-        return false;
 
     int f_count = 0;
-    if (data_idx >= 0)
-        f_count = ftk->get_model(data_idx)->get_ff().names.size();
+    if (sel.size() == 1)
+        f_count = ftk->get_model(sel[0])->get_ff().names.size();
 
     DataExportDlg ded(parent, -1, f_count);
     if (ded.ShowModal() != wxID_OK)
@@ -65,10 +74,7 @@ bool export_data_dlg(wxWindow *parent)
     dir = filedlg.GetDirectory();
     if (filedlg.ShowModal() != wxID_OK)
         return false;
-    string path = wx2s(filedlg.GetPath());
-    string cmd = (data_idx == -1 ? string("@*") : "@" + S(data_idx))
-                 + ": print " + ded.get_text() + " > '" + path + "'";
-    ftk->exec(cmd);
+    exec_redirected_command(sel, "print " + ded.get_text(), filedlg.GetPath());
     return true;
 }
 

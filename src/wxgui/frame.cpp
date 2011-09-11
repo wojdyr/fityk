@@ -293,7 +293,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_D_MERGE,       FFrame::OnDataMerge)
     EVT_MENU (ID_D_RM_SHIRLEY,  FFrame::OnDataRmShirley)
     EVT_MENU (ID_D_CALC_SHIRLEY,FFrame::OnDataCalcShirley)
-    EVT_UPDATE_UI (ID_D_EXPORT, FFrame::OnDataExportUpdate)
     EVT_MENU (ID_D_EXPORT,      FFrame::OnDataExport)
 
     EVT_MENU (ID_DEFMGR,        FFrame::OnDefinitionMgr)
@@ -1184,12 +1183,6 @@ void FFrame::OnDataRmShirley (wxCommandEvent&)
     ftk->exec(cmd);
 }
 
-void FFrame::OnDataExportUpdate (wxUpdateUIEvent& event)
-{
-    int nsel = get_selected_data_indices().size();
-    event.Enable(nsel == 1 || nsel == ftk->get_dm_count());
-}
-
 void FFrame::OnDataExport (wxCommandEvent&)
 {
     export_data_dlg(this);
@@ -1227,8 +1220,9 @@ void FFrame::OnSExport (wxCommandEvent& event)
     wxString name;
     vector<int> sel = get_selected_data_indices();
     if (sel.size() == 1) {
-        string const& filename = ftk->get_data(sel[0])->get_filename();
-        name = wxFileName(s2wx(filename)).GetName()
+        const string& filename = ftk->get_data(sel[0])->get_filename();
+        if (!filename.empty())
+            name = wxFileName(s2wx(filename)).GetName()
                                 + (as_peaks ? wxT(".peaks") : wxT(".formula"));
     }
     wxFileDialog fdlg (this, wxT("Export curve to file"), export_dir_, name,
@@ -1237,9 +1231,10 @@ void FFrame::OnSExport (wxCommandEvent& event)
                             : wxT("mathematic formula (*.formula)|*.formula"))
                         + wxString(wxT("|all files|*")),
                        wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (fdlg.ShowModal() == wxID_OK)
-        ftk->exec(get_datasets() + "info " + (as_peaks ? "peaks" : "formula")
-                  + " > '" + wx2s(fdlg.GetPath()) + "'");
+    if (fdlg.ShowModal() == wxID_OK) {
+        string cmd = (as_peaks ? "info peaks" : "info formula");
+        exec_redirected_command(sel, cmd, fdlg.GetPath());
+    }
     export_dir_ = fdlg.GetDirectory();
 }
 
