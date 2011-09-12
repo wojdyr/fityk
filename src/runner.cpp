@@ -41,6 +41,10 @@ void Runner::command_set(const vector<Token>& args)
     SettingsMgr *sm = F_->settings_mgr();
     for (size_t i = 1; i < args.size(); i += 2) {
         string key = args[i-1].as_string();
+        if (key == "exit_on_warning" /*unused since 1.1.1*/) {
+            F_->msg("Option `exit_on_warning' is obsolete.");
+            continue;
+        }
         if (args[i].type == kTokenExpr)
             sm->set_as_number(key, args[i].value.d);
         else

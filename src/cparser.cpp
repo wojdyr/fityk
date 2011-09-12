@@ -238,7 +238,8 @@ void Parser::parse_set_args(Lexer& lex, vector<Token>& args)
         lex.get_expected_token(kTokenAssign); // discard '='
         SettingsMgr::ValueType t =
             F_->settings_mgr()->get_value_type(key.as_string());
-        if (t == SettingsMgr::kNotFound)
+        // exit_on_warning is unused since v. 1.1.1
+        if (t == SettingsMgr::kNotFound && key.as_string() != "exit_on_warning")
             lex.throw_syntax_error("no such option: " + key.as_string());
         Token value;
         if (t == SettingsMgr::kString)

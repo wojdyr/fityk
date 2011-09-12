@@ -159,10 +159,11 @@ epsilon
     to the application): \|\ *a−b*\ | < *ε*. Default value: 10\ :sup:`-12`.
     You may need to decrease it when working with very small numbers.
 
-exit_on_warning
-    If the option :option:`exit_on_warning`
-    is set, any warning will close the program.
-    This ensures that no warnings can be overlooked.
+on_error
+    Action performed on error. If the option is set to ``stop``
+    (default) and the error happens in script, the script is stopped.
+    Other possible values are ``nothing`` (do nothing) and ``exit``
+    (finish program -- ensures that no error can be overlooked).
 
 fit_replot
     Refresh the plot when fitting (0/1).

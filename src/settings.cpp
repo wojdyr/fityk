@@ -37,6 +37,9 @@ struct Option
 
 double epsilon = 1e-12; // declared in common.h
 
+static const char* on_error_enum[] =
+{ "nothing", "stop", "exit", NULL };
+
 static const char* default_sigma_enum[] =
 { "sqrt", "one", NULL };
 
@@ -52,7 +55,7 @@ static const char* nm_distribution_enum[] =
 static const Option options[] = {
     OPT(verbosity, kInt, 0, NULL),
     OPT(autoplot, kBool, true, NULL),
-    OPT(exit_on_warning, kBool, false, NULL),
+    OPT(on_error, kEnum, on_error_enum[1], on_error_enum),
     OPT(epsilon, kDouble, 1e-12, NULL),
     OPT(default_sigma, kEnum, default_sigma_enum[0], default_sigma_enum),
     OPT(pseudo_random_seed, kInt, 0, NULL),

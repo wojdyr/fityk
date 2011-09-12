@@ -15,8 +15,7 @@ public:
     SettingsDlg(wxWindow* parent);
     void OnOK(wxCommandEvent& event);
 private:
-    wxChoice *sigma_ch, *nm_distrib;
-    wxCheckBox *exit_cb;
+    wxChoice *sigma_ch, *nm_distrib, *onerror_ch;
     wxSpinCtrl *delay_sp, *seed_sp, *mwssre_sp, *verbosity_sp;
     RealNumberCtrl *cut_func, *eps_rc, *height_correction, *width_correction,
                    *domain_p, *fit_max_time,

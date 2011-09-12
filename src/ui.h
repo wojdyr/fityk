@@ -48,7 +48,7 @@ public:
     void draw_plot(RepaintMode mode);
 
     /// Calls the show_message(), logs the message to file if logging is on,
-    /// handles the exit_on_warning option.
+    /// handles option on_error=exit.
     void output_message (Style style, const std::string& s) const;
 
     /// Excute commands from file, i.e. run a script (.fit).

@@ -15,7 +15,7 @@ struct Settings
     // general
     int verbosity;
     bool autoplot;
-    bool exit_on_warning;
+    const char* on_error;
     double epsilon; // for now, there is also global epsilon
     const char* default_sigma;
     int pseudo_random_seed;

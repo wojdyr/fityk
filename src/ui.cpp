@@ -226,7 +226,7 @@ void UserInterface::output_message(Style style, const string& s) const
         }
     }
 
-    if (style == kWarning && F_->get_settings()->exit_on_warning) {
+    if (style == kWarning && F_->get_settings()->on_error[0] == 'e'/*exit*/) {
         show_message(kNormal, "Warning -> exiting program.");
         throw ExitRequestedException();
     }
@@ -324,7 +324,7 @@ void UserInterface::exec_script(const string& filename)
             show_message (kQuoted, S(line_index) + "> " + s);
         replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
         bool r = execute_line(s);
-        if (r != kStatusOk)
+        if (r != kStatusOk && F_->get_settings()->on_error[0] != 'n'/*nothing*/)
             break;
         if (user_interrupt) {
             F_->msg ("Script stopped by signal INT.");

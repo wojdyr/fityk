@@ -139,10 +139,10 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
     verbosity_sp = addSpinCtrl(page_general, wxT("verbosity level (in output pane)"),
                                settings->verbosity, -1, 2, sizer_general);
 
-    exit_cb = addCheckbox(page_general,
-                          wxT("quit if error or warning was generated"),
-                          settings->exit_on_warning,
-                          sizer_general);
+    sigma_ch = addEnumSetting(page_general, wxT("default std. dev. of data y:"),
+                              "default_sigma", sizer_general);
+    onerror_ch = addEnumSetting(page_general, "action on error", "on_error",
+                                sizer_general);
 
     seed_sp = addSpinCtrl(page_general,
                           wxT("pseudo-random generator seed (0 = time-based)"),
@@ -292,7 +292,7 @@ void SettingsDlg::exec_set_command()
     assign += add("default_sigma", wx2s(sigma_ch->GetStringSelection()));
     assign += add("function_cutoff", wx2s(cut_func->GetValue()));
     assign += add("verbosity", S(verbosity_sp->GetValue()));
-    assign += add("exit_on_warning", exit_cb->GetValue() ? "1" : "0");
+    assign += add("on_error", wx2s(onerror_ch->GetStringSelection()));
     assign += add("pseudo_random_seed", S(seed_sp->GetValue()));
     assign += add("epsilon", wx2s(eps_rc->GetValue()));
     assign += add("numeric_format", "'" + wx2s(format_tc->GetValue()) + "'");
