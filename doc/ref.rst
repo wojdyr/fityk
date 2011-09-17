@@ -143,12 +143,12 @@ The list of available options:
 autoplot
     See :ref:`autoplot <autoplot>`.
 
-function_cutoff
-    See :ref:`description in the chapter about model <function_cutoff>`.
-
 default_sigma
     Default *y* standard deviation. See :ref:`weights`.
     Possible values: ``sqrt`` max(*y*:sup:`1/2`, 1) and ``one`` (1).
+
+domain_percent
+    See :ref:`the section about variables <domain>`.
 
 .. _epsilon:
 
@@ -159,17 +159,14 @@ epsilon
     to the application): \|\ *a−b*\ | < *ε*. Default value: 10\ :sup:`-12`.
     You may need to decrease it when working with very small numbers.
 
-on_error
-    Action performed on error. If the option is set to ``stop``
-    (default) and the error happens in script, the script is stopped.
-    Other possible values are ``nothing`` (do nothing) and ``exit``
-    (finish program -- ensures that no error can be overlooked).
-
 fit_replot
     Refresh the plot when fitting (0/1).
 
 fitting_method
     See :ref:`fitting_cmd`.
+
+function_cutoff
+    See :ref:`description in the chapter about model <function_cutoff>`.
 
 height_correction
     See :ref:`guess`.
@@ -202,6 +199,12 @@ numeric_format
     For example ``set numeric_format='%.3f'`` changes the precision
     of numbers to 3 digits after the decimal point. Default value: ``%g``.
 
+on_error
+    Action performed on error. If the option is set to ``stop``
+    (default) and the error happens in script, the script is stopped.
+    Other possible values are ``nothing`` (do nothing) and ``exit``
+    (finish program -- ensures that no error can be overlooked).
+
 pseudo_random_seed
     Some fitting methods and functions, such as
     ``randnormal`` in data expressions use a pseudo-random
@@ -218,9 +221,6 @@ refresh_period
     This option was introduced, because on one hand frequent refreshing of
     the program's window notably slows down fitting, and on the other hand
     irresponsive program is a frustrating experience.
-
-domain_percent
-    See :ref:`the section about variables <domain>`.
 
 verbosity
     Possible values: -1 (silent), 0 (normal), 1 (verbose), 2 (very verbose).
