@@ -23,6 +23,7 @@ struct Settings
     std::string logfile;
     bool log_full;
     double function_cutoff;
+    std::string cwd; // current working directory
 
     // guess
     double height_correction;

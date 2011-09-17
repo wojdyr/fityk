@@ -9,6 +9,11 @@
 #include <algorithm>
 #include <stdlib.h>
 #include <ctime> //time()
+#ifdef _WIN32
+#include <Windows.h> // SetCurrentDirectoryA()
+#else
+#include <unistd.h> // chdir()
+#endif
 
 using namespace std;
 
@@ -63,6 +68,7 @@ static const Option options[] = {
     OPT(logfile, kString, "", NULL),
     OPT(log_full, kBool, false, NULL),
     OPT(function_cutoff, kDouble, 0., NULL),
+    OPT(cwd, kString, "", NULL),
 
     OPT(height_correction, kDouble, 1., NULL),
     OPT(width_correction, kDouble, 1., NULL),
@@ -94,6 +100,18 @@ const Option& find_option(const string& name)
         if (options[i].name == name)
             return options[i];
     throw ExecuteError("Unknown option: " +  name);
+}
+
+static
+void change_current_working_dir(const char* path)
+{
+#ifdef _WIN32
+    bool ok = SetCurrentDirectoryA(path);
+#else
+    bool ok = (chdir(path) == 0);
+#endif
+    if (!ok)
+        throw ExecuteError("Changing current working directory failed.");
 }
 
 SettingsMgr::SettingsMgr(Ftk const* F)
@@ -180,6 +198,9 @@ void SettingsMgr::set_as_string(string const& k, string const& v)
             if (count(v.begin(), v.end(), '%') != 1)
                 throw ExecuteError("Exactly one `%' expected, e.g. '%.9g'");
             set_long_double_format(v);
+        }
+        else if (k == "cwd") {
+            change_current_working_dir(v.c_str());
         }
         m_.*opt.val.s.ptr = v;
     }

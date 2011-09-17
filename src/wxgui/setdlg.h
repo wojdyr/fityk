@@ -9,6 +9,8 @@
 #include <utility>
 #include "cmn.h" //s2wx, RealNumberCtrl
 
+class wxDirPickerCtrl;
+
 class SettingsDlg : public wxDialog
 {
 public:
@@ -24,6 +26,7 @@ private:
                    *nm_convergence, *nm_move_factor;
     wxCheckBox *nm_move_all, *fit_replot_cb;
     wxTextCtrl *format_tc;
+    wxDirPickerCtrl *cwd_dp;
 
     void exec_set_command();
 };

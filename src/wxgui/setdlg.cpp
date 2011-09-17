@@ -7,6 +7,7 @@
 #include <wx/statline.h>
 #include <wx/notebook.h>
 #include <wx/config.h>
+#include <wx/filepicker.h>
 
 #include "setdlg.h"
 #include "../settings.h"
@@ -48,6 +49,19 @@ wxTextCtrl *addTextCtrl(wxWindow *parent, const wxString& label,
     sizer->Add(hsizer, 0, wxEXPAND);
     return ctrl;
 }
+
+wxDirPickerCtrl *addDirPicker(wxWindow *parent, const wxString& label,
+                              const string& path, wxSizer *sizer)
+{
+    wxStaticText *st = new wxStaticText(parent, -1, label);
+    wxDirPickerCtrl *ctrl = new wxDirPickerCtrl(parent, -1, s2wx(path));
+    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
+    hsizer->Add(st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    hsizer->Add(ctrl, 0, wxALL, 5);
+    sizer->Add(hsizer, 0, wxEXPAND);
+    return ctrl;
+}
+
 
 wxCheckBox *addCheckbox(wxWindow *parent, const wxString& label,
                         bool value, wxSizer *sizer,
@@ -158,6 +172,11 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
                             wxT("numeric format used by info/print"),
                             settings->numeric_format,
                             sizer_general);
+
+    cwd_dp = addDirPicker(page_general,
+                          "working directory",
+                          settings->cwd,
+                          sizer_general);
 
     page_general->SetSizerAndFit(sizer_general);
 
@@ -296,6 +315,7 @@ void SettingsDlg::exec_set_command()
     assign += add("pseudo_random_seed", S(seed_sp->GetValue()));
     assign += add("epsilon", wx2s(eps_rc->GetValue()));
     assign += add("numeric_format", "'" + wx2s(format_tc->GetValue()) + "'");
+    assign += add("cwd", "'" + wx2s(cwd_dp->GetPath()) + "'");
     assign += add("height_correction", wx2s(height_correction->GetValue()));
     assign += add("width_correction", wx2s(width_correction->GetValue()));
     assign += add("max_wssr_evaluations", S(mwssre_sp->GetValue()));

@@ -143,6 +143,10 @@ The list of available options:
 autoplot
     See :ref:`autoplot <autoplot>`.
 
+cwd
+    Current working directory or empty string if it was not set explicitely.
+    Affects relative paths.
+
 default_sigma
     Default *y* standard deviation. See :ref:`weights`.
     Possible values: ``sqrt`` max(*y*:sup:`1/2`, 1) and ``one`` (1).

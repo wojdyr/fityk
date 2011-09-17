@@ -8,7 +8,7 @@
 
 # first set some options useful for testing
 
-set exit_on_warning = 1
+set on_error = exit
 set autoplot = 0
 set pseudo_random_seed = 174924
 set verbosity = 1
@@ -270,8 +270,13 @@ set epsilon = 1e-12
 set default_sigma=one
 set default_sigma=sqrt
 set verbosity = 1
+set numeric_format = '%.2f'
+set on_error = nothing
+set cwd = '/tmp' # it can cause error, paths are not cross-platform
+set cwd = 'C:\'  # it can cause error, paths are not cross-platform
+info set cwd
 
-set exit_on_warning = 0
+set on_error = stop
 reset
 #quit
 
