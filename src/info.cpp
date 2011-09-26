@@ -274,7 +274,9 @@ void save_state(const Ftk* F, string& r)
         if (*i == "autoplot" || *i == "verbosity")
             continue;
         string v = F->settings_mgr()->get_as_string(*i);
-        r += "\nset " + *i + " = " + (v.empty() ? "''" : v);
+        if (*i == "cwd" && v == "''") // avoid this: set cwd=''
+            continue;
+        r += "\nset " + *i + " = " + v;
     }
     r += "\n";
     r += "\n# ------------  datasets ------------";
