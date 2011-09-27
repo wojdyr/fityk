@@ -49,7 +49,8 @@ public:
     /// estimate max. value in given range (probe at peak centers and between)
     realt approx_max(realt x_min, realt x_max) const;
 
-    std::string get_formula(bool simplify) const;
+    std::string get_formula(bool simplify, const char *num_fmt,
+                            bool extra_breaks) const;
     std::string get_peak_parameters(const std::vector<realt>& errors) const;
     std::vector<realt> get_symbolic_derivatives(realt x) const;
     std::vector<realt> get_numeric_derivatives(realt x, realt numerical_h)const;

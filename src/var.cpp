@@ -110,7 +110,9 @@ string Variable::get_formula(vector<realt> const &parameters) const
     vector<string> vn;
     v_foreach (string, i, varnames)
         vn.push_back("$" + *i);
-    return nr_ == -1 ? get_op_trees().back()->str(&vn)
+    const char* num_format = "%.12g";
+    OpTreeFormat fmt = { num_format, &vn };
+    return nr_ == -1 ? get_op_trees().back()->str(fmt)
                     : "~" + eS(parameters[nr_]);
 }
 

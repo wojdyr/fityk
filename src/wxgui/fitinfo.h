@@ -18,6 +18,7 @@ class NumericFormatPanel: public wxPanel
 public:
     NumericFormatPanel(wxWindow* parent);
     std::string fmt(realt d) { return format1<realt, 64>(format_.c_str(), d); }
+    const std::string& format() const { return format_; }
 
 private:
     std::string format_;

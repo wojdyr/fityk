@@ -35,6 +35,7 @@ fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
 		setdlg.cpp setdlg.h print.cpp print.h sdebug.cpp sdebug.h \
 		plot.cpp plot.h aplot.cpp aplot.h mplot.cpp mplot.h \
 		uplot.cpp uplot.h about.cpp about.h fitinfo.cpp fitinfo.h \
+		modelinfo.cpp modelinfo.h \
 		dialogs.cpp dialogs.h exportd.cpp exportd.h bgm.cpp bgm.h \
 		frame.cpp frame.h app.cpp app.h \
 		powdifpat.cpp powdifpat.h sgchooser.cpp sgchooser.h

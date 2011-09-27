@@ -197,29 +197,25 @@ string Model::get_peak_parameters(const vector<realt>& errors) const
 }
 
 
-string Model::get_formula(bool simplify) const
+string Model::get_formula(bool simplify, const char* num_fmt,
+                          bool extra_breaks) const
 {
     if (ff_.names.empty())
         return "0";
     string shift;
-    v_foreach (int, i, zz_.idx)
-        shift += "+(" + mgr.get_function(*i)->get_current_formula() + ")";
-    string x = "(x" + shift + ")";
+    v_foreach (int, i, zz_.idx) {
+        string expr = mgr.get_function(*i)->get_current_formula("x", num_fmt);
+        shift += "+" + (simplify ? simplify_formula(expr, num_fmt) : expr);
+    }
+    string x = "x";
+    if (!shift.empty())
+        x = "(x" + shift + ")";
     string formula;
-    v_foreach (int, i, ff_.idx)
-        formula += (i==ff_.idx.begin() ? "" : "+")
-                   + mgr.get_function(*i)->get_current_formula(x);
-    if (simplify) {
-        // check if formula has not-expanded-functions, like Voigt(2,3,4,5)
-        bool has_upper = false;
-        for (size_t i = 0; i < formula.size(); ++i)
-            if (isupper(formula[i])) {
-                has_upper = true;
-                break;
-            }
-        // the simplify_formula() is not working with not-expanded-functions
-        if (!has_upper)
-            formula = simplify_formula(formula);
+    v_foreach (int, i, ff_.idx) {
+        string expr = mgr.get_function(*i)->get_current_formula(x, num_fmt);
+        if (i != ff_.idx.begin())
+            formula += (extra_breaks ? " +\n" : " + ");
+        formula += (simplify ? simplify_formula(expr, num_fmt) : expr);
     }
     return formula;
 }

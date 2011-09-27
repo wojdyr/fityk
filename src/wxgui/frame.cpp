@@ -52,6 +52,7 @@
 #include "setdlg.h"
 #include "statbar.h"
 #include "fitinfo.h"
+#include "modelinfo.h"
 #include "inputline.h"
 #include "app.h"
 #include "powdifpat.h"
@@ -300,7 +301,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_S_PFINFO,      FFrame::OnSPFInfo)
     EVT_MENU (ID_S_AUTOFREEZE,  FFrame::OnAutoFreeze)
     EVT_MENU (ID_S_EXPORTP,     FFrame::OnSExport)
-    EVT_MENU (ID_S_EXPORTF,     FFrame::OnSExport)
+    EVT_MENU (ID_S_EXPORTF,     FFrame::OnModelExport)
     EVT_MENU (ID_S_EXPORTD,     FFrame::OnDataExport)
 
     EVT_UPDATE_UI_RANGE (ID_F_M, ID_F_M_END, FFrame::OnFMethodUpdate)
@@ -1214,26 +1215,37 @@ void FFrame::OnAutoFreeze(wxCommandEvent& event)
     plot_pane_->get_plot()->set_auto_freeze(event.IsChecked());
 }
 
-void FFrame::OnSExport (wxCommandEvent& event)
+void FFrame::OnModelExport(wxCommandEvent&)
 {
-    bool as_peaks = (event.GetId() == ID_S_EXPORTP);
+    ModelInfoDlg dlg(this, -1);
+    if (!dlg.Initialize())
+        return;
+    if (dlg.ShowModal() == wxID_OK)
+        export_as_info(dlg.get_info_cmd(), ".formula",
+                       "mathematic formula (*.formula)|*.formula");
+}
+
+void FFrame::OnSExport(wxCommandEvent&)
+{
+    export_as_info("info peaks", ".peaks",
+                   "parameters of functions (*.peaks)|*.peaks");
+}
+
+void FFrame::export_as_info(const string& info, const char* ext,
+                            const char* wildcards)
+{
     wxString name;
     vector<int> sel = get_selected_data_indices();
     if (sel.size() == 1) {
         const string& filename = ftk->get_data(sel[0])->get_filename();
         if (!filename.empty())
-            name = wxFileName(s2wx(filename)).GetName()
-                                + (as_peaks ? wxT(".peaks") : wxT(".formula"));
+            name = wxFileName(s2wx(filename)).GetName() + ext;
     }
-    wxFileDialog fdlg (this, wxT("Export curve to file"), export_dir_, name,
-                       (as_peaks
-                            ? wxT("parameters of functions (*.peaks)|*.peaks")
-                            : wxT("mathematic formula (*.formula)|*.formula"))
-                        + wxString(wxT("|all files|*")),
-                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    wxFileDialog fdlg(this, "Export curve to file", export_dir_, name,
+                      wildcards + wxString("|all files|*"),
+                      wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
-        string cmd = (as_peaks ? "info peaks" : "info formula");
-        exec_redirected_command(sel, cmd, fdlg.GetPath());
+        exec_redirected_command(sel, info, fdlg.GetPath());
     }
     export_dir_ = fdlg.GetDirectory();
 }

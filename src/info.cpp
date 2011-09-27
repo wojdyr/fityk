@@ -31,7 +31,6 @@ extern "C" {
 
 using namespace std;
 
-namespace {
 
 // get standard formula and make it parsable by the gnuplot program
 string& gnuplotize_formula(string& formula)
@@ -39,20 +38,62 @@ string& gnuplotize_formula(string& formula)
     replace_all(formula, "^", "**");
     replace_words(formula, "ln", "log");
     // avoid integer division (1/2 == 0)
-    string::size_type pos = 0;
+    size_t pos = 0;
+    size_t len = formula.length();
     while ((pos = formula.find('/', pos)) != string::npos) {
-        ++pos;
-        if (!isdigit(formula[pos]))
+        pos = formula.find_first_not_of(' ', pos+1);
+        if (pos == string::npos || !isdigit(formula[pos]))
             continue;
-        while (pos < formula.length() && isdigit(formula[pos]))
+        while (pos < len && isdigit(formula[pos]))
             ++pos;
-        if (pos == formula.length())
-            formula += ".";
-        else if (pos != '.')
+        if (pos == formula.length() || formula[pos] != '.')
             formula.insert(pos, ".");
     }
     return formula;
 }
+
+
+void models_as_script(const Ftk* F, string& r, bool commented_defines)
+{
+    r += "# ------------  (un)defines  ------------";
+    TplateMgr default_tpm;
+    default_tpm.add_builtin_types(F->get_ui()->parser());
+    v_foreach (Tplate::Ptr, i, default_tpm.tpvec()) {
+        const Tplate* t = F->get_tpm()->get_tp((*i)->name);
+        if (t == NULL || t->as_formula() != (*i)->as_formula())
+            r += "\nundefine " + (*i)->name;
+    }
+    v_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec()) {
+        string formula = (*i)->as_formula();
+        const Tplate* t = default_tpm.get_tp((*i)->name);
+        if (t == NULL || t->as_formula() != formula)
+            r += "\ndefine " + formula;
+        else if (commented_defines)
+            r += "\n# define " + formula;
+    }
+    r += "\n\n# ------------  variables and functions  ------------";
+    // The script must not trigger VariableManager::remove_unreferred()
+    // or VariableManager::auto_remove_functions() until all references
+    // are reproduced.
+    v_foreach (Variable*, i, F->variables())
+        r += "\n$" + (*i)->name + " = " + (*i)->get_formula(F->parameters());
+    r += "\n";
+    v_foreach (Function*, i, F->functions())
+        r +="\n" + (*i)->get_basic_assignment();
+    r += "\n\n# ------------  models  ------------";
+    for (int i = 0; i != F->get_dm_count(); ++i) {
+        const Model* model = F->get_model(i);
+        const vector<string>& ff = model->get_ff().names;
+        if (!ff.empty())
+            r += "\n@" + S(i) +  ": F = %" + join_vector(ff, " + %");
+        vector<string> const& zz = model->get_zz().names;
+        if (!zz.empty())
+            r += "\n@" + S(i) +  ": Z = %" + join_vector(zz, " + %");
+    }
+}
+
+
+namespace {
 
 string info_compiler()
 {
@@ -148,7 +189,9 @@ void info_func_type(const Ftk* F, const string& functype, string& result)
         if (!tp->op_trees.empty()) {
             vector<string> args = tp->fargs;
             args.push_back("x");
-            result += "\n = " + tp->op_trees.back()->str(&args);
+            const char* num_format = F->get_settings()->numeric_format.c_str();
+            OpTreeFormat fmt = { num_format, &args };
+            result += "\n = " + tp->op_trees.back()->str(fmt);
         }
     }
 }
@@ -220,45 +263,6 @@ void info_guess(const Ftk* F, int ds, const RealRange& range, string& result)
     }
 }
 
-void save_models(const Ftk* F, string& r, bool commented_defines)
-{
-    r += "# ------------  (un)defines  ------------";
-    TplateMgr default_tpm;
-    default_tpm.add_builtin_types(F->get_ui()->parser());
-    v_foreach (Tplate::Ptr, i, default_tpm.tpvec()) {
-        const Tplate* t = F->get_tpm()->get_tp((*i)->name);
-        if (t == NULL || t->as_formula() != (*i)->as_formula())
-            r += "\nundefine " + (*i)->name;
-    }
-    v_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec()) {
-        string formula = (*i)->as_formula();
-        const Tplate* t = default_tpm.get_tp((*i)->name);
-        if (t == NULL || t->as_formula() != formula)
-            r += "\ndefine " + formula;
-        else if (commented_defines)
-            r += "\n# define " + formula;
-    }
-    r += "\n\n# ------------  variables and functions  ------------";
-    // The script must not trigger VariableManager::remove_unreferred()
-    // or VariableManager::auto_remove_functions() until all references
-    // are reproduced.
-    v_foreach (Variable*, i, F->variables())
-        r += "\n$" + (*i)->name + " = " + (*i)->get_formula(F->parameters());
-    r += "\n";
-    v_foreach (Function*, i, F->functions())
-        r +="\n" + (*i)->get_basic_assignment();
-    r += "\n\n# ------------  models  ------------";
-    for (int i = 0; i != F->get_dm_count(); ++i) {
-        const Model* model = F->get_model(i);
-        const vector<string>& ff = model->get_ff().names;
-        if (!ff.empty())
-            r += "\n@" + S(i) +  ": F = %" + join_vector(ff, " + %");
-        vector<string> const& zz = model->get_zz().names;
-        if (!zz.empty())
-            r += "\n@" + S(i) +  ": Z = %" + join_vector(zz, " + %");
-    }
-}
-
 void save_state(const Ftk* F, string& r)
 {
     if (!r.empty())
@@ -300,7 +304,7 @@ void save_state(const Ftk* F, string& r)
         r += "\n";
     }
     r += "\n\n";
-    save_models(F, r, true);
+    models_as_script(F, r, true);
     r += "\n";
     r += "\nplot " + F->view.str();
     r += "\nuse @" + S(F->default_dm());
@@ -363,20 +367,26 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         else if (word == "data") {
             result += F->get_data(ds)->get_info();
         }
-        else if (word == "formula")
-            result += F->get_model(ds)->get_formula(false);
+        else if (word == "formula") {
+            const char* fmt = F->get_settings()->numeric_format.c_str();
+            result += F->get_model(ds)->get_formula(false, fmt, false);
+        }
         else if (word == "gnuplot_formula") {
-            string formula = F->get_model(ds)->get_formula(false);
+            const char* fmt = F->get_settings()->numeric_format.c_str();
+            string formula = F->get_model(ds)->get_formula(false, fmt, false);
             result += gnuplotize_formula(formula);
         }
-        else if (word == "simplified_formula")
-            result += F->get_model(ds)->get_formula(true);
+        else if (word == "simplified_formula") {
+            const char* fmt = F->get_settings()->numeric_format.c_str();
+            result += F->get_model(ds)->get_formula(true, fmt, false);
+        }
         else if (word == "simplified_gnuplot_formula") {
-            string formula = F->get_model(ds)->get_formula(true);
+            const char* fmt = F->get_settings()->numeric_format.c_str();
+            string formula = F->get_model(ds)->get_formula(true, fmt, false);
             result += gnuplotize_formula(formula);
         }
         else if (word == "models") {
-            save_models(F, result, false);
+            models_as_script(F, result, false);
         }
         else if (word == "state") {
             save_state(F, result);
@@ -732,7 +742,9 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
         v_foreach (string, i, v->get_varnames())
             vn.push_back("$" + *i);
         for (int i = 0; i < v->get_vars_count(); ++i) {
-            string formula = v->get_op_trees()[i]->str(&vn);
+            const char* num_format = F->get_settings()->numeric_format.c_str();
+            OpTreeFormat fmt = { num_format, &vn };
+            string formula = v->get_op_trees()[i]->str(fmt);
             double value = v->get_derivative(i);
             if (i != 0)
                 r += "\n";

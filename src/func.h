@@ -81,7 +81,8 @@ public:
     std::string get_basic_assignment() const;
     std::string get_current_assignment(const std::vector<Variable*> &variables,
                                     const std::vector<realt> &parameters) const;
-    virtual std::string get_current_formula(const std::string& x = "x") const;
+    virtual std::string get_current_formula(const std::string& x,
+                                            const char* num_fmt) const;
 
     // VarArgFunction overrides this defintion (that's why value is returned)
     virtual std::string get_param(int n) const { return tp_->fargs[n]; }

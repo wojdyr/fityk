@@ -91,6 +91,7 @@ public:
     void parse_info_args(Lexer& lex, std::vector<Token>& args);
     void parse_print_args(Lexer& lex, std::vector<Token>& args);
     void parse_define_rhs(Lexer& lex, Tplate *tp);
+    std::string read_define_rhs_with_custom_func(Lexer& lex, const Tplate *tp);
     Tplate::Ptr parse_define_args(Lexer& lex);
 
 private:

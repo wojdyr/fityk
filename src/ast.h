@@ -9,6 +9,12 @@
 
 struct Tplate;
 
+struct OpTreeFormat
+{
+    const char *num_format;
+    const std::vector<std::string> *vars;
+};
+
 /// Node in abstract syntax tree (AST)
 struct OpTree
 {
@@ -33,10 +39,9 @@ struct OpTree
 
     ~OpTree() { delete c1; delete c2; }
 
-    std::string str(const std::vector<std::string> *vars=NULL);
-
-    std::string str_b(bool b, const std::vector<std::string> *vars)
-                            { return b ? "(" + str(vars) + ")" : str(vars); }
+    std::string str(const OpTreeFormat& fmt);
+    std::string str_b(bool b, const OpTreeFormat& fmt)
+                            { return b ? "(" + str(fmt) + ")" : str(fmt); }
     OpTree* clone() const;
     //void swap_args() { assert(c1 && c2); OpTree *t=c1; c1=c2; c2=t; }
     OpTree* remove_c1() { OpTree *t=c1; c1=0; return t; }
@@ -50,7 +55,7 @@ struct OpTree
 };
 
 std::vector<OpTree*> prepare_ast_with_der(const VMData& vm, int len);
-std::string simplify_formula(const std::string &formula);
+std::string simplify_formula(const std::string &formula, const char* num_fmt);
 void get_derivatives_str(const char* formula, std::string& result);
 void add_bytecode_from_tree(const OpTree* tree,
                             const std::vector<int> &symbol_map, VMData& vm);

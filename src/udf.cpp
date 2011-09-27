@@ -3,6 +3,8 @@
 
 #include "udf.h"
 #include "ast.h"
+#include "lexer.h"
+#include "cparser.h"
 
 using namespace std;
 
@@ -103,13 +105,14 @@ void CompoundFunction::calculate_value_deriv_in_range(const vector<realt> &xx,
         (*i)->calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, first, last);
 }
 
-string CompoundFunction::get_current_formula(const string& x) const
+string CompoundFunction::get_current_formula(const string& x,
+                                             const char *num_fmt) const
 {
     string t;
     v_foreach (Function*, i, intern_functions_) {
         if (!t.empty())
             t += "+";
-        t += (*i)->get_current_formula(x);
+        t += (*i)->get_current_formula(x, num_fmt);
     }
     return t;
 }
@@ -266,6 +269,19 @@ string CustomFunction::get_bytecode() const
         + "\nvalue: " + vm2str(val_code, s.numbers());
 }
 
+string CustomFunction::get_current_formula(const string& x,
+                                           const char *num_fmt) const
+{
+    Lexer lex(tp_->rhs.c_str());
+    string s = Parser(NULL).read_define_rhs_with_custom_func(lex, tp_.get());
+    for (size_t i = 0; i < tp_->fargs.size(); ++i) {
+        string value = format1<double, 32>(num_fmt, av_[i]);
+        replace_words(s, tp_->fargs[i], value);
+    }
+    replace_words(s, "x", x);
+    return s;
+}
+
 ///////////////////////////////////////////////////////////////////////
 
 SplitFunction::SplitFunction(const Settings* settings,
@@ -345,11 +361,12 @@ void SplitFunction::calculate_value_deriv_in_range(const vector<realt> &xx,
     right_-> calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, t, last);
 }
 
-string SplitFunction::get_current_formula(const string& x) const
+string SplitFunction::get_current_formula(const string& x,
+                                          const char* num_fmt) const
 {
     realt xsplit = intern_variables_.back()->get_value();
-    return "x < " + S(xsplit) + " ? " + left_->get_current_formula(x)
-                              + " : " + right_->get_current_formula(x);
+    return "x < " + S(xsplit) + " ? " + left_->get_current_formula(x, num_fmt)
+                              + " : " + right_->get_current_formula(x, num_fmt);
 }
 
 bool SplitFunction::get_height(realt* a) const

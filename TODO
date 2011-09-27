@@ -1,10 +1,10 @@
+* fitting (Lev-Mar): a better way of handling singular matrix error
+
 * FFT data transformation using FFTW library,
   fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re(@3)
 
 * convolution and deconvolution of two datasets or a dataset with Gaussian:
   convolve(@0, @1); convolve(@0, 2.3); deconvolve(@0,3.4)
-
-* GUI: a single dialog for Model > Export... options and for "info models"
 
 * GUI: draw points (handles) for dragging peak width at half height
 
@@ -104,4 +104,7 @@
 * fitting: box-constrained parameters (simple-variables)
            the constraints could be automatic for some function parameters,
 	   e.g. "guess PseudoVoigt" could give shape with bounds <0,1>
+
+* GUI: a dialog for setting default directories for file dialogs
+  (the settings are stored in wxoptions config file)
 

@@ -22,48 +22,48 @@
 
 using namespace std;
 
-
-string OpTree::str(const vector<string> *vars)
+string OpTree::str(const OpTreeFormat& fmt)
 {
     if (op < 0) {
         int v_nr = -op-1;
-        return vars == NULL || vars->empty() ? "var"+S(v_nr) : (*vars)[v_nr];
+        return fmt.vars == NULL || fmt.vars->empty() ? "var"+S(v_nr)
+                                                     : (*fmt.vars)[v_nr];
     }
     switch (op) {
-        case OP_NUMBER: return S(val); // OP_NUMBER == 0
-        case OP_NEG:  return "-" + c1->str_b(c1->op >= OP_POW, vars);
-        case OP_EXP:  return "exp(" + c1->str(vars) + ")";
-        case OP_ERFC: return "erfc(" + c1->str(vars) + ")";
-        case OP_ERF:  return "erf(" + c1->str(vars) + ")";
-        case OP_SINH:  return "sinh(" + c1->str(vars) + ")";
-        case OP_COSH:  return "cosh(" + c1->str(vars) + ")";
-        case OP_TANH: return "tanh("+ c1->str(vars) + ")";
-        case OP_SIN:  return "sin(" + c1->str(vars) + ")";
-        case OP_COS:  return "cos(" + c1->str(vars) + ")";
-        case OP_TAN:  return "tan(" + c1->str(vars) + ")";
-        case OP_ASIN: return "asin("+ c1->str(vars) + ")";
-        case OP_ACOS: return "acos("+ c1->str(vars) + ")";
-        case OP_ATAN: return "atan("+ c1->str(vars) + ")";
-        case OP_LGAMMA: return "lgamma("+ c1->str(vars) + ")";
-        case OP_DIGAMMA: return "digamma("+ c1->str(vars) + ")";
-        case OP_ABS: return "abs(" + c1->str(vars) + ")";
-        case OP_LOG10:return "log10("+c1->str(vars) + ")";
-        case OP_LN:   return "ln("  + c1->str(vars) + ")";
-        case OP_SQRT: return "sqrt("+ c1->str(vars) + ")";
-        case OP_VOIGT: return "voigt("+ c1->str(vars) +","+ c2->str(vars) +")";
-        case OP_DVOIGT_DX: return "dvoigt_dx("+ c1->str(vars)
-                                                   + "," + c2->str(vars) + ")";
-        case OP_DVOIGT_DY: return "dvoigt_dy("+ c1->str(vars)
-                                                   + "," + c2->str(vars) + ")";
-        case OP_POW:  return c1->str_b(c1->op >= OP_POW, vars)
-                             + "^" + c2->str_b(c2->op >= OP_POW, vars);
-        case OP_ADD:  return c1->str(vars) + "+" + c2->str(vars);
-        case OP_SUB:  return c1->str(vars) + "-"
-                                         + c2->str_b(c2->op >= OP_ADD, vars);
-        case OP_MUL:  return c1->str_b(c1->op >= OP_ADD, vars)
-                             + "*" + c2->str_b(c2->op >= OP_ADD, vars);
-        case OP_DIV:  return c1->str_b(c1->op >= OP_ADD, vars)
-                             + "/" + c2->str_b(c2->op >= OP_MUL, vars);
+        case OP_NUMBER: return format1<double, 32>(fmt.num_format, val);
+        case OP_NEG:  return "-" + c1->str_b(c1->op >= OP_POW, fmt);
+        case OP_EXP:  return "exp(" + c1->str(fmt) + ")";
+        case OP_ERFC: return "erfc(" + c1->str(fmt) + ")";
+        case OP_ERF:  return "erf(" + c1->str(fmt) + ")";
+        case OP_SINH:  return "sinh(" + c1->str(fmt) + ")";
+        case OP_COSH:  return "cosh(" + c1->str(fmt) + ")";
+        case OP_TANH: return "tanh("+ c1->str(fmt) + ")";
+        case OP_SIN:  return "sin(" + c1->str(fmt) + ")";
+        case OP_COS:  return "cos(" + c1->str(fmt) + ")";
+        case OP_TAN:  return "tan(" + c1->str(fmt) + ")";
+        case OP_ASIN: return "asin("+ c1->str(fmt) + ")";
+        case OP_ACOS: return "acos("+ c1->str(fmt) + ")";
+        case OP_ATAN: return "atan("+ c1->str(fmt) + ")";
+        case OP_LGAMMA: return "lgamma("+ c1->str(fmt) + ")";
+        case OP_DIGAMMA: return "digamma("+ c1->str(fmt) + ")";
+        case OP_ABS: return "abs(" + c1->str(fmt) + ")";
+        case OP_LOG10:return "log10("+c1->str(fmt) + ")";
+        case OP_LN:   return "ln("  + c1->str(fmt) + ")";
+        case OP_SQRT: return "sqrt("+ c1->str(fmt) + ")";
+        case OP_VOIGT: return "voigt("+ c1->str(fmt) +","+ c2->str(fmt) +")";
+        case OP_DVOIGT_DX: return "dvoigt_dx("+ c1->str(fmt)
+                                                   + "," + c2->str(fmt) + ")";
+        case OP_DVOIGT_DY: return "dvoigt_dy("+ c1->str(fmt)
+                                                   + "," + c2->str(fmt) + ")";
+        case OP_POW:  return c1->str_b(c1->op >= OP_POW, fmt)
+                             + "^" + c2->str_b(c2->op >= OP_POW, fmt);
+        case OP_ADD:  return c1->str(fmt) + "+" + c2->str(fmt);
+        case OP_SUB:  return c1->str(fmt) + "-"
+                                         + c2->str_b(c2->op >= OP_ADD, fmt);
+        case OP_MUL:  return c1->str_b(c1->op >= OP_ADD, fmt)
+                             + "*" + c2->str_b(c2->op >= OP_ADD, fmt);
+        case OP_DIV:  return c1->str_b(c1->op >= OP_ADD, fmt)
+                             + "/" + c2->str_b(c2->op >= OP_MUL, fmt);
         default: assert(0); return "";
     }
 }
@@ -780,7 +780,7 @@ OpTree* simplify_terms(OpTree *a)
 
 /// simplify exportable formula, i.e. mathematical function f(x),
 /// without variables other than x
-string simplify_formula(string const &formula)
+string simplify_formula(string const &formula, const char* num_fmt)
 {
     Lexer lex(formula.c_str());
     ExpressionParser ep(NULL);
@@ -795,7 +795,8 @@ string simplify_formula(string const &formula)
     // derivatives are calculated only as a side effect
     vector<OpTree*> trees = prepare_ast_with_der(ep.vm(), 1);
     vector<string> vars(1, "x");
-    string simplified = trees.back()->str(&vars);
+    OpTreeFormat fmt = { num_fmt, &vars };
+    string simplified = trees.back()->str(fmt);
     purge_all_elements(trees);
     return simplified;
 }
@@ -809,9 +810,10 @@ void get_derivatives_str(const char* formula, string& result)
     ep.parse_expr(lex, -1, NULL, &vars);
     vector<OpTree*> trees = prepare_ast_with_der(ep.vm(), vars.size());
 
-    result += "f(" + join_vector(vars,", ") + ") = " + trees.back()->str(&vars);
+    OpTreeFormat fmt = { "%g", &vars };
+    result += "f(" + join_vector(vars,", ") + ") = " + trees.back()->str(fmt);
     for (size_t i = 0; i != vars.size(); ++i)
-        result += "\ndf / d " + vars[i] + " = " + trees[i]->str(&vars);
+        result += "\ndf / d " + vars[i] + " = " + trees[i]->str(fmt);
     purge_all_elements(trees);
 }
 

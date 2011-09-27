@@ -170,16 +170,24 @@ string Function::get_current_assignment(const vector<Variable*> &variables,
     return "%" + name + " = " + tp_->name + "(" + join_vector(vs, ", ") + ")";
 }
 
-string Function::get_current_formula(const string& x) const
+
+string Function::get_current_formula(const string& x, const char* num_fmt) const
 {
     string t;
     if (contains_element(tp_->rhs, '#')) {
-        t = tp_->name + "(" + join(av_.begin(), av_.begin() + nv(), ", ") + ")";
+        t = tp_->name + "(";
+        for (int i = 0; i != nv(); ++i) {
+            string value = format1<double, 32>(num_fmt, av_[i]);
+            t += value;
+            t += (i+1 < nv() ? ", " : ")");
+        }
     }
     else {
         t = tp_->rhs;
-        for (size_t i = 0; i < tp_->fargs.size(); ++i)
-            replace_words(t, tp_->fargs[i], S(av_[i]));
+        for (size_t i = 0; i < tp_->fargs.size(); ++i) {
+            string value = format1<double, 32>(num_fmt, av_[i]);
+            replace_words(t, tp_->fargs[i], value);
+        }
     }
 
     replace_words(t, "x", x);

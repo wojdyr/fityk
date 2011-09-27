@@ -28,7 +28,8 @@ public:
                                         std::vector<realt> &dy_da,
                                         bool in_dx,
                                         int first, int last) const;
-    std::string get_current_formula(const std::string& x = "x") const;
+    std::string get_current_formula(const std::string& x,
+                                    const char *num_fmt) const;
     bool get_center(realt* a) const;
     bool get_height(realt* a) const;
     bool get_fwhm(realt* a) const;
@@ -65,6 +66,8 @@ public:
                                         std::vector<realt> &dy_da,
                                         bool in_dx,
                                         int first, int last) const;
+    std::string get_current_formula(const std::string& x,
+                                    const char *num_fmt) const;
     void set_var_idx(std::vector<Variable*> const& variables);
     std::string get_bytecode() const;
 
@@ -104,7 +107,8 @@ public:
                                         std::vector<realt> &dy_da,
                                         bool in_dx,
                                         int first, int last) const;
-    std::string get_current_formula(const std::string& x = "x") const;
+    std::string get_current_formula(const std::string& x,
+                                    const char *num_fmt) const;
     virtual bool get_center(realt* a) const;
     virtual bool get_height(realt* a) const;
     virtual bool get_fwhm(realt*) const { return false; }

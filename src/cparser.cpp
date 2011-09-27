@@ -299,6 +299,31 @@ void Parser::parse_component(Lexer& lex, const vector<string>& lhs_vars,
                                + S(c->cargs.size()) + ")");
 }
 
+
+string Parser::read_define_rhs_with_custom_func(Lexer& lex, const Tplate *tp)
+{
+    vector<string> extra_names;
+    string rhs = read_define_arg(lex, tp->fargs, &extra_names).as_string();
+    if (lex.peek_token().as_string() == "where") {
+        lex.get_token(); // discard "where"
+        do {
+            string name = lex.get_expected_token(kTokenLname).as_string();
+            lex.get_expected_token(kTokenAssign); // discard '='
+            int idx = index_of_element(extra_names, name);
+            if (idx == -1)
+                lex.throw_syntax_error("unused substitution: " + name);
+            extra_names.erase(extra_names.begin() + idx);
+            Token s = read_define_arg(lex, tp->fargs, &extra_names);
+            replace_words(rhs, name, "("+s.as_string()+")");
+        } while (lex.discard_token_if(kTokenComma));
+    }
+    v_foreach (string, i, extra_names) {
+        if (*i != "x")
+            lex.throw_syntax_error("unknown argument: " + *i);
+    }
+    return rhs;
+}
+
 void Parser::parse_define_rhs(Lexer& lex, Tplate *tp)
 {
     Token t = lex.get_token();
@@ -328,26 +353,7 @@ void Parser::parse_define_rhs(Lexer& lex, Tplate *tp)
     // CustomFunction
     else {
         lex.go_back(t);
-        vector<string> extra_names;
-        string rhs = read_define_arg(lex, tp->fargs, &extra_names).as_string();
-        if (lex.peek_token().as_string() == "where") {
-            lex.get_token(); // discard "where"
-            do {
-                string name = lex.get_expected_token(kTokenLname).as_string();
-                lex.get_expected_token(kTokenAssign); // discard '='
-                int idx = index_of_element(extra_names, name);
-                if (idx == -1)
-                    lex.throw_syntax_error("unused substitution: " + name);
-                extra_names.erase(extra_names.begin() + idx);
-                Token s = read_define_arg(lex, tp->fargs, &extra_names);
-                replace_words(rhs, name, "("+s.as_string()+")");
-            } while (lex.discard_token_if(kTokenComma));
-        }
-        v_foreach (string, i, extra_names) {
-            if (*i != "x")
-                lex.throw_syntax_error("unknown argument: " + *i);
-        }
-
+        string rhs = read_define_rhs_with_custom_func(lex, tp);
         Lexer lex2(rhs.c_str());
         ExpressionParser ep(NULL);
         ep.parse_expr(lex2, -1, &tp->fargs, NULL, ExpressionParser::kAstMode);
