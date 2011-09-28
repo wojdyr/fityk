@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <ctime> //time()
 #ifdef _WIN32
-#include <Windows.h> // SetCurrentDirectoryA()
+#include <windows.h> // SetCurrentDirectoryA()
 #else
 #include <unistd.h> // chdir()
 #endif
