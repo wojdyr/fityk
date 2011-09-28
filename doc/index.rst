@@ -116,11 +116,6 @@ Students and home users may donate 20% of the normal price to
 `MoneyBookers <https://www.moneybookers.com/app/payment.pl?pay_to_email=wojdyr@gmail.com&language=EN&detail1_text=The+amount+can+be+changed+at+the+end+of+the+URL&detail1_description=Fityk&currency=USD&amount=53>`_
 or `Flattr <https://flattr.com/donation/give/to/wojdyr>`_.
 
-If you have made any donation before the release of 1.0 you get free
-subscription, just let me know you are interested.
-
-10-31 August 2011 - vacations.
-
 .. raw:: html
 
     </div>
@@ -134,7 +129,7 @@ and Linux (Ubuntu PPA_ and RPMs from OBS_).
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 :html:`<a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://fityk.nieto.pl"></a>`
 
-Version 1.1.0 was released on 2011-07-18
+Version 1.1.1 was released on 2011-09-28
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
 New version `notifications <http://fityk-announce.nieto.pl/>`_
 are delivered via email and feeds.
@@ -174,7 +169,7 @@ Questions?
 
 * or wojdyr@gmail.com
 
-Feel free to send questions, comments, bug reports, new feature requests
+Feel free to send questions, comments, requests, bug reports,
 and success stories.
 Asking for a new feature usually results in adding the request to
 the `TODO list <https://github.com/wojdyr/fityk/raw/master/TODO>`_
