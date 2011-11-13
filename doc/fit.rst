@@ -206,10 +206,12 @@ In Fityk:
     select :menuselection:`Fit --> Info` from the menu to see uncertainties,
     confidence intervals and and the covariance matrix.
 
-.. note:: In Fityk 0.9.0 and earlier ``info errors`` reported values of
-          :math:`\sqrt{C_{kk}^{-1}}`, which makes sense if the standard
-          deviations of *y*'s are set accurately. This formula is derived
-          in *Numerical Recipes*.
+.. note::
+
+    In Fityk 0.9.0 and earlier ``info errors`` reported values of
+    :math:`\sqrt{C_{kk}^{-1}}`, which makes sense if the standard
+    deviations of *y*'s are set accurately. This formula is derived
+    in *Numerical Recipes*.
  
 .. _levmar:
 
