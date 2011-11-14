@@ -104,7 +104,10 @@ $(srcdir)/html/model.html: $(srcdir)/*.rst $(srcdir)/fityk.css $(srcdir)/conf.py
 	$(SPHINX) -b html $(srcdir) $(srcdir)/html
 	rm -f $(srcdir)/html/objects.inv $(srcdir)/html/.buildinfo
 
-pdf:
+#fityk-banner.pdf: fityk-banner.svg
+#	inkscape --export-text-to-path --export-pdf=$@ $<
+
+pdf-local:
 	rm -rf $(srcdir)/doctrees/
 	$(SPHINX) -b latex $(srcdir) latex
 	cd latex/ && make all-pdf
