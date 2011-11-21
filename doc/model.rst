@@ -85,9 +85,10 @@ or are constant (``$c``).
 
 .. important::
 
-  Unlike in popular programming languages, in Fityk variables store
-  formula, not a numeric value. If we define ``$b=2*$a``,
-  every time ``$a`` changes, the value of ``$b`` will be recalculated.
+  Unlike in popular programming languages, variable can store either a single
+  numeric (floating-point) value or a mathematical expression. Nothing else.
+  In case of expression, if we define ``$b=2*$a``
+  the value of ``$b`` will be recalculated every time ``$a`` changes.
 
 To assign a value (constant) of another variable, use:
 ``$b={$a}``. Braces return the current value of the enclosed expression.
@@ -122,6 +123,7 @@ The braces may contain any data expression::
     $x0 = {x[0]}
     $min_y = {min(y if a)}
     $c = {max2($a, $b)}
+    $t = {max(x) < 78 ? $a : $b}
 
 Sometimes it is useful to freeze a variable, i.e. to prevent it from
 changing while fitting::
