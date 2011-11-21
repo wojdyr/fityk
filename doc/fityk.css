@@ -440,3 +440,8 @@ div.admonition-in-the-gui p.admonition-title {
 .quote-author, div.body span.quote-author a { color: #888; }
 
 .FlattrButton { text-align: center; float: right; }
+
+input, textarea {
+        color: #000;
+        background-color: #fff;
+}
