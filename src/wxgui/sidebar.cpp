@@ -1099,7 +1099,12 @@ void SideBar::update_param_panel()
     if (param_panel->get_title() != new_label)
         param_panel->set_title(new_label);
 
-    int new_count = min(pp_func->nv(), 8);
+    int new_count = pp_func->nv();
+    // don't show too many parameters of vararg functions
+    // (but if user defined function with large number of arguments
+    // let him see all parameters)
+    if (new_count > 8 && !pp_func->tp()->fargs.empty())
+        new_count = 8;
     if (new_count < old_count)
         param_panel->delete_row_range(new_count, old_count);
 
