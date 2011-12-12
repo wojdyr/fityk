@@ -1,8 +1,19 @@
 
-SUBDIRS = . $(SRCSUBDIRS)
-DIST_SUBDIRS = cli wxgui
+SUBDIRS = .
+if CLI_DIR
+bin_PROGRAMS = cli/cfityk
+endif
+if GUI_DIR
+SUBDIRS += wxgui
+endif
 
-BUILT_SOURCES = $(srcdir)/swigluarun.h $(srcdir)/../swig/fityk_lua.cpp
+EXTRA_DIST = $(srcdir)/swig/fityk_perl.cpp $(srcdir)/swig/Fityk.pm
+
+BUILT_SOURCES = $(srcdir)/swig/luarun.h \
+                $(srcdir)/swig/fityk_python.cpp \
+		$(srcdir)/swig/fityk_lua.cpp \
+		$(srcdir)/swig/fityk_perl.cpp \
+		$(srcdir)/swig/Fityk.pm
 
 lib_LTLIBRARIES = libfityk.la
 
@@ -10,12 +21,6 @@ libfityk_la_LDFLAGS = $(LIBRARY_VERSION_FLAG)
 libfityk_la_LIBADD = -lxy -lz $(LUA_LIB)
 libfityk_la_CPPFLAGS = $(LUA_INCLUDE)
 
-$(srcdir)/swigluarun.h:
-	$(SWIG) -c++ -lua -external-runtime $@
-
-# this rule is also in swig/Makefile.am
-$(srcdir)/../swig/fityk_lua.cpp: $(srcdir)/../swig/fityk.i  $(srcdir)/fityk.h
-	$(SWIG) -c++ -lua -I$(srcdir) -o $@ $<
 
 libfityk_la_SOURCES = logic.cpp view.cpp lexer.cpp eparser.cpp cparser.cpp \
 		 runner.cpp info.cpp common.cpp data.cpp var.cpp mgr.cpp \
@@ -30,7 +35,48 @@ libfityk_la_SOURCES = logic.cpp view.cpp lexer.cpp eparser.cpp cparser.cpp \
 		 vm.h transform.h \
 		 settings.h ui.h GAfit.h LMfit.h guess.h NMfit.h \
 		 model.h fit.h voigt.h numfuncs.h \
-		 $(srcdir)/../swig/fityk_lua.cpp swigluarun.h
+		 swig/fityk_lua.cpp swig/luarun.h
 
 include_HEADERS = fityk.h
+
+
+# ---  directory cli/ ---
+cli_cfityk_SOURCES = cli/gnuplot.cpp cli/main.cpp cli/gnuplot.h
+cli_cfityk_LDADD = libfityk.la $(READLINE_LIBS)
+
+
+# --- directory swig/ ---
+
+python_PYTHON = $(srcdir)/swig/fityk.py
+
+if PYTHON_ENABLED
+pyexec_LTLIBRARIES = swig/_fityk.la
+endif
+
+swig__fityk_la_SOURCES = swig/fityk_python.cpp
+swig__fityk_la_CPPFLAGS = $(PYTHON_CPPFLAGS) -I$(srcdir)
+swig__fityk_la_LDFLAGS = $(LIBRARY_VERSION_FLAG) -module
+swig__fityk_la_LIBADD = libfityk.la
+
+$(srcdir)/swig/luarun.h:
+	$(SWIG) -c++ -lua -external-runtime $@
+
+$(srcdir)/swig/fityk_python.cpp: swig/fityk.i fityk.h
+	$(SWIG) -c++ -python -I$(srcdir) -o $@ $<
+$(srcdir)/fityk.py: $(srcdir)/fityk_python.cpp
+
+$(srcdir)/swig/fityk_lua.cpp: swig/fityk.i fityk.h
+	$(SWIG) -c++ -lua -I$(srcdir) -o $@ $<
+
+$(srcdir)/swig/fityk_perl.cpp: swig/fityk.i fityk.h
+	$(SWIG) -c++ -perl -I$(srcdir) -o $@ $<
+
+$(srcdir)/swig/Fityk.pm: $(srcdir)/swig/fityk_perl.cpp
+
+perl: swig/fityk_perl.o
+	$(CXX) -shared $< -L./.libs -lfityk -o Fityk.so
+
+# requires perl-ExtUtils-Embed
+swig/fityk_perl.o: swig/fityk_perl.cpp
+	$(CXX) -fPIC `perl -MExtUtils::Embed -e perl_inc` -I$(srcdir) -o $@ -c $<
 

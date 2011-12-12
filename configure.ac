@@ -1,103 +1,69 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([fityk], [1.1.1])
+AC_INIT([fityk],[1.1.2])
 LIBRARY_VERSION_FLAG="-version-info 3:0:0"
 
 AC_CONFIG_SRCDIR([src/voigt.h])
 AC_CONFIG_AUX_DIR(config)
 AC_CONFIG_MACRO_DIR([m4])
-# AM_CONFIG_HEADER is obsolete, but we are using it for compatibility with
-# older versions.
-AM_CONFIG_HEADER([config.h])
-#AC_CONFIG_HEADERS([config.h])
-AC_CANONICAL_TARGET([])
-AM_INIT_AUTOMAKE([foreign])
-AM_MAINTAINER_MODE
+AC_CONFIG_HEADER([config.h])
+AM_INIT_AUTOMAKE([1.11 foreign subdir-objects silent-rules -Wall])
 
-# What versions of program are to be made
-AC_ARG_ENABLE(GUI,
-[  --disable-GUI           do not build the GUI])
-test -z "$enable_GUI" && enable_GUI="yes"
+AC_PROG_CXX
+LT_INIT([disable-static])
 
-AC_ARG_ENABLE(CLI,
-[  --disable-CLI           do not build the CLI])
-test -z "$enable_CLI" && enable_CLI="yes"
 
-AC_ARG_ENABLE(xyconvert,
-[  --disable-xyconvert     do not build xyconvert program])
-test -z "$enable_xyconvert" && enable_xyconvert="yes"
+AC_ARG_ENABLE(GUI, AS_HELP_STRING([--disable-GUI], [do not build the GUI]))
+AC_ARG_ENABLE(CLI, AS_HELP_STRING([--disable-CLI], [do not build the CLI]))
+AC_ARG_ENABLE(xyconvert, AS_HELP_STRING([--disable-xyconvert],
+                              [do not build xyconvert program]))
+AC_ARG_ENABLE(powdifpat, AS_HELP_STRING([--enable-powdifpat],
+                              [build (not working) powdifpat program]))
+AC_ARG_ENABLE(python, AS_HELP_STRING([--enable-python],
+                              [build Python bindings to libfityk]))
+#AC_ARG_ENABLE(perl, AS_HELP_STRING([--enable-perl],
+#                              [build Perl bindings to libfityk]))
 
-AC_ARG_ENABLE(powdifpat,
-[  --enable-powdifpat      build (not working) powdifpat program])
-test -z "$enable_powdifpat" && enable_powdifpat="no"
+AC_ARG_WITH(doc, AS_HELP_STRING([--without-doc],
+                       [do not build and install documentation]))
 
-AC_ARG_ENABLE(python,
-[  --enable-python         build Python bindings to libfityk])
-AC_ARG_ENABLE(lua,
-[  --enable-lua            build Lua bindings to libfityk])
-#AC_ARG_ENABLE(perl,
-#[  --enable-perl           build Perl bindings to libfityk])
+# this option is handled in m4/readline.m4
+AC_ARG_WITH(readline, AS_HELP_STRING([--without-readline],
+                       [do not use the GNU readline library for cfityk]))
 
-# The GNU readline library
-AC_ARG_WITH(readline,
-[  --without-readline      do not use the GNU readline library for cfityk])
-test -z "$with_readline" && with_readline="yes"
-
-# don't run make in docs/
-AC_ARG_WITH(doc,
-[  --without-doc           do not build and install documentation])
-test -z "$with_doc" && with_doc="yes"
-
-# option added just after CC, CXX and LD. Can be used on Mac for "-isysroot ..."
-AC_ARG_WITH(options,
-[  --with-options=OPTIONS  options appended to CC, CXX and LD (e.g. -isysroot)],
+AC_ARG_WITH(options, AS_HELP_STRING([--with-options=OPTIONS],
+                       [options appended to CC, CXX and LD (e.g. -isysroot)]),
             [UNIV_OPTION=$withval])
 
 
 AM_OPTIONS_WXCONFIG
 
-#################################
-# MS Windows specific macros
 
-AC_MSG_CHECKING([for native Win32 - MinGW])
-case "${host}" in
-    *-*-mingw*)
-        os_win32=yes
+AC_MSG_CHECKING([for MinGW compiler])
+case "$host_os" in
+    mingw*)
+        windows=yes
 	;;
     *)
-        os_win32=no
+        windows=no
 	;;
 esac
-AC_MSG_RESULT([$os_win32])
-AM_CONDITIONAL(OS_WIN32, test "$os_win32" = "yes")
-
-if test "$os_win32" = "yes"; then
+AC_MSG_RESULT([$windows])
+AM_CONDITIONAL(OS_WIN32, test "$windows" = "yes")
+if test "$windows" = "yes"; then
     AC_CHECK_TOOL(RC, windres)
-    if test "${RC}" = "" ; then
+    if test "x$RC" = "x"; then
         AC_MSG_ERROR([Required resource tool 'windres' not found on PATH.])
     fi
 fi
-#################################
 
 
-# Checks for programs.
-AC_PROG_CXX
-AC_DISABLE_STATIC
-AC_PROG_LIBTOOL
-
-if test "x$UNIV_OPTION" != "x"; then
-    CC="$CC $UNIV_OPTION"
-    CXX="$CXX $UNIV_OPTION"
-    LD="$LD $UNIV_OPTION"
+if test "x$with_options" != "x"; then
+    CC="$CC $with_options"
+    CXX="$CXX $with_options"
+    LD="$LD $with_options"
 fi
 
-# Checks for common header files.
-AC_HEADER_STDC
-if test "$ac_cv_header_stdc" != yes; then
-	AC_MSG_ERROR([ANSI C header files not found :-(])
-fi
-
-# use c++ for testing <sstream>
 AC_LANG_PUSH([C++])
 
 AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
@@ -113,15 +79,22 @@ AC_CHECK_HEADER([boost/array.hpp], [], [AC_MSG_ERROR(
 AC_CHECK_HEADER([boost/scoped_ptr.hpp], [], [AC_MSG_ERROR(
  [Boost Smart Pointers not found.  Make sure you have Boost installed.])])
 
-AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
- [xylib headers were not found. You may need to install xylib first.
- ])])
-
-AC_LANG_POP([C++]) dnl C is faster than C++
+AC_LANG_POP([C++])
 
 AC_CHECK_HEADER([zlib.h], [], [AC_MSG_ERROR(
- [zlib.h header not found. Install zlib library (including development files).
-])])
+ [zlib.h header not found. Install zlib library (with development files).])])
+
+AC_CHECK_FUNCS([popen getline])
+AC_SEARCH_LIBS([cos], [m], [], [
+                AC_MSG_ERROR([unable to find the dlopen() function])])
+AC_CHECK_FUNC(erf, [], [AC_MSG_ERROR([erf function not found (?).
+                  Please inform program developer(s) about this problem.])])
+AC_CHECK_FUNC(erfc, [], [AC_MSG_ERROR([erfc function not found (?).
+                  Please inform program developer(s) about this problem.])])
+AC_CHECK_FUNCS([finite isnan])
+
+AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
+ [xylib headers were not found. You may need to install xylib first.])])
 
 AC_COMPILE_IFELSE(
   [AC_LANG_PROGRAM([@%:@include <xylib/xylib.h>], [
@@ -132,10 +105,8 @@ AC_COMPILE_IFELSE(
   [], [AC_MSG_ERROR([xylib >= 0.6 is not installed])])
 
 
-SRCSUBDIRS=
 # Checks for version specific libraries and headers.
-if test "$enable_GUI" != "no" ; then
-    SRCSUBDIRS="$SRCSUBDIRS wxgui"
+AS_IF([test "x$enable_GUI" != "xno"], [
     AM_PATH_WXCONFIG([2.9.2], [wxWin=1], [wxWin=0], [adv,core,base])
     if test "$wxWin" != 1; then
     	AC_MSG_ERROR([
@@ -148,41 +119,40 @@ if test "$enable_GUI" != "no" ; then
 	      equivalent variable and wxWindows version is 2.9.2 or above.
 	     ])
     fi
-fi
-
-AM_CONDITIONAL([XYCONVERT], [test $enable_xyconvert != no])
-
-AM_CONDITIONAL([POWDIFPAT], [test $enable_powdifpat != no])
+])
 
 
-if test "$enable_CLI" != "no"; then
-    SRCSUBDIRS="$SRCSUBDIRS cli"
+AS_IF([test "x$enable_CLI" != "xno"], [
     READLINE_STUFF
 
     AC_CHECK_PROG(gnuplot_in_path, gnuplot, yes)
-    if test "$gnuplot_in_path" != "yes" ; then
-	    AC_MSG_RESULT(
-	  [ gnuplot is used by cfityk (command line version) for drawing plots,
-		       but it is not necessery])
+    if test "x$gnuplot_in_path" != "xyes" ; then
+	    AC_MSG_RESULT([gnuplot not found (it is not necessary)])
     fi
 
     AC_CHECK_HEADER(unistd.h, [], [AC_MSG_ERROR(
-      [You do not have an unistd.h header, that is required to build cfityk.])])
+                     [unistd.h header not found (required for cfityk.])])
+])
 
-fi
-
-AM_CONDITIONAL([DOC_DIR], [test "$with_doc" != no])
-
-if test "$enable_python" = "yes"; then
+if test "x$enable_python" = "xyes"; then
     AM_PATH_PYTHON(2.3)
     AX_PYTHON_DEVEL
 fi
-AM_CONDITIONAL([PYTHON_ENABLED], [test "$enable_python" = yes])
+
+AM_CONDITIONAL([XYCONVERT], [test x$enable_xyconvert != xno])
+AM_CONDITIONAL([POWDIFPAT], [test x$enable_powdifpat = xyes])
+AM_CONDITIONAL([DOC_DIR], [test "x$with_doc" != xno])
+AM_CONDITIONAL([GUI_DIR], [test "x$enable_GUI" != xno])
+AM_CONDITIONAL([CLI_DIR], [test "x$enable_CLI" != xno])
+AM_CONDITIONAL([PYTHON_ENABLED], [test "x$enable_python" = xyes])
+# Lua is always required by libfityk, --enable-lua adds separate lua bindings
+AM_CONDITIONAL([LUA_ENABLED], [test "x$enable_lua" = xyes])
+#AM_CONDITIONAL([PERL_ENABLED], [test "x$enable_perl" = xyes])
 
 AC_CHECK_HEADERS([lua.h lualib.h], [], [AC_MSG_ERROR(
   [Lua headers not found. If they are installed,
-   you may need to specify the path, e.g. CPPFLAGS="-I/usr/include/lua5.1"
-		  ])])
+   you may need to specify the path, e.g. CPPFLAGS="-I/usr/include/lua5.1"])])
+
 # macro AX_LUA_HEADERS_VERSION does not support cross-compiling
 if test "$cross_compiling" != "yes"; then
     AX_LUA_HEADERS_VERSION(501)
@@ -192,54 +162,22 @@ if test x"$LUA_LIB" = x; then
     AC_MSG_ERROR([Lua library not found. You may try option --with-lua-suffix.])
 fi
 
-# Lua is always required by libfityk, --enable-lua adds separate lua bindings
-AM_CONDITIONAL([LUA_ENABLED], [test "$enable_lua" = yes])
-
-#if test "$enable_perl" = "yes"; then
+#if test "x$enable_perl" = "xyes"; then
 #    AC_CHECK_PROG(PERL, perl, "yes")
 #fi
-#AM_CONDITIONAL([PERL_ENABLED], [test "$enable_perl" = yes])
 
-AM_CONDITIONAL([SWIG_DIR], [test "$enable_python" = yes \
-				 -o "$enable_lua" = yes \
-				 -o "$enable_perl" = yes])
-# check for SWIG even if it's not needed, because "make dist" may need it,
-# but don't show an error if it is not needed
-AM_COND_IF([SWIG_DIR], [AX_PKG_SWIG(1.3.17)],
-                       [AX_PKG_SWIG(1.3.17, [], [])])
+AX_PKG_SWIG(1.3.17, [], [])
 
-
-AC_SUBST(SRCSUBDIRS)
 AC_SUBST(LIBRARY_VERSION_FLAG)
 AC_SUBST(LUA_INCLUDE)
 AC_SUBST(LUA_LIB)
 
-# before checking erf, see if a basic math function (and linking) works
-AC_CHECK_LIB([m], [sin], [], [])
-# check for erf and erfc function
-AC_CHECK_LIB([m], [erf], [], [AC_MSG_ERROR(
-      [You don't have an erf function(?).
-       Please inform program developer(s) about this problem.])])
-AC_CHECK_LIB([m], [erfc], [], [AC_MSG_ERROR(
-      [You don't have an erfc function(?).
-       Please inform program developer(s) about this problem.])])
-
-AC_CHECK_LIB([m], [finite], [AC_DEFINE([HAVE_FINITE], [1],
-	                            [Define if finite function is available])])
-AC_CHECK_LIB([m], [isnan], [AC_DEFINE([HAVE_ISNAN], [1],
-	                            [Define if isnan function is available])])
-
-AC_CHECK_FUNCS([popen getline])
-
 AC_DEFINE_UNQUOTED(CONFIGURE_BUILD, "$ac_cv_build", [ac_cv_build])
 AC_DEFINE_UNQUOTED(CONFIGURE_ARGS, "$ac_configure_args", [ac_configure_args])
 
-AC_CONFIG_FILES([Makefile fityk.iss
-		 src/Makefile
-		 src/wxgui/Makefile
-		 src/cli/Makefile
-		 doc/Makefile
-		 samples/Makefile
-		 swig/Makefile])
-AC_OUTPUT
+AC_OUTPUT([Makefile
+           fityk.iss
+	   src/Makefile
+	   src/wxgui/Makefile
+	   doc/Makefile])
 

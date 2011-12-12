@@ -62,7 +62,14 @@ Configuration Options
 =====================
 
 ./configure --help shows all the options.
-For example, to build python bindings, use --enable-python option.
+
+To build python bindings, use --enable-python option.
+
+To build perl bindings, install perl-ExtUtils-Embed and do "make perl"
+in src/ subdirectory. Fityk.pm and Fityk.so should be in swig/, install
+them manually and test bindings using samples/hello.pl.
+
+
 For debugging you may use:
 ./configure CXXFLAGS="-g -O0 -fno-inline -W -Wall" \
       --enable-static --disable-shared --disable-xyconvert

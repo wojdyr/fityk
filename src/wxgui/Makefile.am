@@ -9,7 +9,6 @@ RC_FLAGS=`echo $(RC_FLAGS_ALL) | sed -e 's/-mthreads//g' `
 fityk_res = winres.o
 $(fityk_res): winres.rc img/fityk.ico
 	$(RC) -o $@ $(RC_FLAGS) $<
-HELP_DEF=
 xyconvert_res = xyconvertres.o
 $(xyconvert_res): xyconvert.rc img/xyconvert.ico
 	$(RC) -o $@ $(RC_FLAGS) $<
