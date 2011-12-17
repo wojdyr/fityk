@@ -73,7 +73,7 @@
   (like in the Xview program)
 
 * more sophisticated algorithms for peak detection
-    - compare methods from origin pkfind, peakfit and other programs
+    - compare methods from origin pkfind, peakfit, fitzpeak and other programs
     - research papers: http://dx.doi.org/10.1016/j.chroma.2004.11.073
                        http://dx.doi.org/10.1002/cem.1005
                        http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631518/

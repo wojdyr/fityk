@@ -19,7 +19,7 @@ extern "C" {
 #include <lua.h>
 #include <lualib.h>
 #include <lauxlib.h>
-#include "swigluarun.h"   // the SWIG external runtime
+#include "swig/luarun.h"   // the SWIG external runtime
 extern int luaopen_fityk(lua_State*L); // the SWIG wrappered library
 }
 

@@ -24,9 +24,6 @@ AC_ARG_ENABLE(python, AS_HELP_STRING([--enable-python],
 #AC_ARG_ENABLE(perl, AS_HELP_STRING([--enable-perl],
 #                              [build Perl bindings to libfityk]))
 
-AC_ARG_WITH(doc, AS_HELP_STRING([--without-doc],
-                       [do not build and install documentation]))
-
 # this option is handled in m4/readline.m4
 AC_ARG_WITH(readline, AS_HELP_STRING([--without-readline],
                        [do not use the GNU readline library for cfityk]))
@@ -141,7 +138,6 @@ fi
 
 AM_CONDITIONAL([XYCONVERT], [test x$enable_xyconvert != xno])
 AM_CONDITIONAL([POWDIFPAT], [test x$enable_powdifpat = xyes])
-AM_CONDITIONAL([DOC_DIR], [test "x$with_doc" != xno])
 AM_CONDITIONAL([GUI_DIR], [test "x$enable_GUI" != xno])
 AM_CONDITIONAL([CLI_DIR], [test "x$enable_CLI" != xno])
 AM_CONDITIONAL([PYTHON_ENABLED], [test "x$enable_python" = xyes])
@@ -178,6 +174,5 @@ AC_DEFINE_UNQUOTED(CONFIGURE_ARGS, "$ac_configure_args", [ac_configure_args])
 AC_OUTPUT([Makefile
            fityk.iss
 	   src/Makefile
-	   src/wxgui/Makefile
-	   doc/Makefile])
+	   src/wxgui/Makefile])
 

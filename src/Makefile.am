@@ -7,13 +7,8 @@ if GUI_DIR
 SUBDIRS += wxgui
 endif
 
-EXTRA_DIST = $(srcdir)/swig/fityk_perl.cpp $(srcdir)/swig/Fityk.pm
-
-BUILT_SOURCES = $(srcdir)/swig/luarun.h \
-                $(srcdir)/swig/fityk_python.cpp \
-		$(srcdir)/swig/fityk_lua.cpp \
-		$(srcdir)/swig/fityk_perl.cpp \
-		$(srcdir)/swig/Fityk.pm
+EXTRA_DIST = swig/fityk_perl.cpp swig/Fityk.pm swig/fityk.i
+BUILT_SOURCES = swig/fityk_lua.cpp swig/luarun.h
 
 lib_LTLIBRARIES = libfityk.la
 
@@ -63,14 +58,13 @@ $(srcdir)/swig/luarun.h:
 
 $(srcdir)/swig/fityk_python.cpp: swig/fityk.i fityk.h
 	$(SWIG) -c++ -python -I$(srcdir) -o $@ $<
-$(srcdir)/fityk.py: $(srcdir)/fityk_python.cpp
+$(srcdir)/swig/fityk.py: $(srcdir)/swig/fityk_python.cpp
 
 $(srcdir)/swig/fityk_lua.cpp: swig/fityk.i fityk.h
 	$(SWIG) -c++ -lua -I$(srcdir) -o $@ $<
 
 $(srcdir)/swig/fityk_perl.cpp: swig/fityk.i fityk.h
 	$(SWIG) -c++ -perl -I$(srcdir) -o $@ $<
-
 $(srcdir)/swig/Fityk.pm: $(srcdir)/swig/fityk_perl.cpp
 
 perl: swig/fityk_perl.o
