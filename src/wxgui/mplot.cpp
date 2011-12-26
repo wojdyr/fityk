@@ -803,7 +803,10 @@ void MainPlot::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/MainPlot"));
     int data_colors_count = cf->Read(wxT("data_colors_count"), 16);
-    data_colors_count = min(max(data_colors_count, 2), 64);
+    if (data_colors_count < 2)
+        data_colors_count = 2;
+    else if (data_colors_count > kMaxDataColors)
+        data_colors_count = kMaxDataColors;
     data_colors_.resize(data_colors_count);
     cf->SetPath(wxT("/MainPlot/Colors"));
     set_bg_color(cfg_read_color(cf, wxT("bg"), wxColour(48, 48, 48)));
@@ -1005,6 +1008,15 @@ void MainPlot::switch_to_mode(MouseModeEnum m)
         refresh();
     else
         overlay.draw_overlay();
+}
+
+void MainPlot::set_data_color(int n, const wxColour& col)
+{
+    if (n >= kMaxDataColors)
+        return;
+    if (n >= (int) data_colors_.size())
+        data_colors_.resize(n+1, data_colors_[0]);
+    data_colors_[n] = col;
 }
 
 // update mouse hint on status bar
@@ -1605,7 +1617,8 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
 
     gsizer->Add(new wxStaticText(this, -1, wxT("colors for datasets")), cr);
     wxBoxSizer *data_col_sizer = new wxBoxSizer(wxHORIZONTAL);
-    data_colors_sc_ = new SpinCtrl(this, -1, mp_->data_colors_.size(), 2, 64);
+    data_colors_sc_ = new SpinCtrl(this, -1, mp_->data_colors_.size(),
+                                   2, MainPlot::kMaxDataColors, /*width=*/60);
     data_col_sizer->Add(data_colors_sc_, cl);
     data_color_combo_ = new MultiColorCombo(this, &mp_->get_bg_color(),
                                             mp_->data_colors_);

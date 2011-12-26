@@ -45,6 +45,7 @@ class MainPlot : public FPlot
     friend class MainPlotConfDlg;
 public:
     enum Kind { kLinear, kPeak };
+    static const int kMaxDataColors = 256;
 
     MainPlot(wxWindow *parent);
     ~MainPlot();
@@ -76,11 +77,10 @@ public:
     void set_mode(MouseModeEnum m) { mode_ = m; }
     MouseModeEnum get_mouse_mode() const { return mode_; }
     const wxColour& get_data_color(int n) const
-        { return data_colors_[n % data_colors_.size()]; }
+        { return data_colors_[n < (int) data_colors_.size() ? n : 0]; }
     const wxColour& get_func_color(int n) const
         { return peakCol[n % max_peak_cols]; }
-    void set_data_color(int n, const wxColour& col)
-        { data_colors_[n % data_colors_.size()] = col; }
+    void set_data_color(int n, const wxColour& col);
     void set_data_point_size(int /*n*/, int r) { point_radius = r; }
     void set_data_with_line(int /*n*/, bool b) { line_between_points = b; }
     void set_data_with_sigma(int /*n*/, bool b) { draw_sigma = b; }
