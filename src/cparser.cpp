@@ -22,7 +22,7 @@ using namespace std;
 using fityk::SyntaxError;
 
 const char *command_list[] = {
-    "debug", "define", "delete", "exec", "fit", "guess", "info", "plot",
+    "debug", "define", "delete", "exec", "fit", "guess", "info", "lua", "plot",
     "quit", "reset", "set", "sleep", "title", "undefine", "use",
     NULL
 };
@@ -59,6 +59,7 @@ const char* commandtype2str(CommandType c)
         case kCmdFit:     return "Fit";
         case kCmdGuess:   return "Guess";
         case kCmdInfo:    return "Info";
+        case kCmdLua:     return "Lua";
         case kCmdPlot:    return "Plot";
         case kCmdPrint:   return "Print";
         case kCmdQuit:    return "Quit";
@@ -863,6 +864,10 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
         else if (is_command(token, "i","nfo")) {
             cmd.type = kCmdInfo;
             parse_info_args(lex, cmd.args);
+        }
+        else if (is_command(token, "l","ua")) {
+            cmd.type = kCmdLua;
+            cmd.args.push_back(lex.get_rest_of_line());
         }
         else if (is_command(token, "pl","ot")) {
             cmd.type = kCmdPlot;

@@ -10,6 +10,8 @@ class Ftk;
 class Parser;
 class Runner;
 
+void exec_lua_script(Ftk *F, const std::string& str, bool as_filename);
+
 /// commands, messages and plot refreshing
 /// it has callbacks that can be set by user interface
 class UserInterface

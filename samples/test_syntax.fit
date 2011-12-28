@@ -250,6 +250,9 @@ delete file 'tmp_foo7.xy', file 'tmp_foo8.xy', file 'tmp_foo9.xy'
 delete file tmp_dump.fit
 delete file tmp_log.fit
 
+lua print("current date and time:\t\t" .. os.date())
+lua F:out((F:get_info("F[0]")))
+
 # settings
 set function_cutoff = 0
 set fitting_method = levenberg_marquardt

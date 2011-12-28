@@ -153,6 +153,7 @@ The kCmd* names in the comments correspond to constants in the code.
     : "f:it" `fit`                       | (*kCmdFit*)
     : "g:uess" `guess`                   | (*kCmdGuess*)
     : "i:nfo" `info_arg` % "," [`redir`]   | (*kCmdInfo*)
+    : "l:ua" RestOfLine                | (*kCmdLua*)
     : "pl:ot" [`range`] [`range`] Dataset* | (*kCmdPlot*)
     : "p:rint" `print_args` [`redir`]      | (*kCmdPrint*)
     : "quit"                           | (*kCmdQuit*)

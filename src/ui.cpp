@@ -264,8 +264,7 @@ private:
 };
 
 
-static
-void exec_lua_script(Ftk *F_, const string& filename)
+void exec_lua_script(Ftk *F, const string& str, bool as_filename)
 {
     lua_State *L = lua_open();
     luaL_openlibs(L);
@@ -273,21 +272,27 @@ void exec_lua_script(Ftk *F_, const string& filename)
     swig_type_info *type_info = SWIG_TypeQuery(L, "fityk::Fityk *");
     assert(type_info != NULL);
     int owned = 1;
-    fityk::Fityk *f = new fityk::Fityk(F_);
+    fityk::Fityk *f = new fityk::Fityk(F);
 
     SWIG_NewPointerObj(L, f, type_info, owned);
     lua_setglobal(L, "F");
 
-    // pass filename in arg[0], like in the Lua stand-alone interpreter
-    lua_createtable(L, 1, 0);
-    lua_pushstring(L, filename.c_str());
-    lua_rawseti(L, -2, 0);
-    lua_setglobal(L, "arg");
+    int status;
+    if (as_filename) {
+        // pass filename in arg[0], like in the Lua stand-alone interpreter
+        lua_createtable(L, 1, 0);
+        lua_pushstring(L, str.c_str());
+        lua_rawseti(L, -2, 0);
+        lua_setglobal(L, "arg");
 
-    int status = luaL_dofile(L, filename.c_str());
+        status = luaL_dofile(L, str.c_str());
+    }
+    else
+        status = luaL_dostring(L, str.c_str());
+
     if (status != 0) {
         const char *msg = lua_tostring(L, -1);
-        F_->warn("Lua Error:\n" + S(msg ? msg : "(non-string error)"));
+        F->warn("Lua Error:\n" + S(msg ? msg : "(non-string error)"));
     }
     lua_close(L);
 }
@@ -297,7 +302,7 @@ void UserInterface::exec_script(const string& filename)
     user_interrupt = false;
 
     if (endswith(filename, ".lua")) {
-        exec_lua_script(F_, filename);
+        exec_lua_script(F_, filename, true);
         return;
     }
 

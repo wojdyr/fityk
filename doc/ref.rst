@@ -25,30 +25,26 @@ Since a Fityk script with all the data inside can be a large file,
 the files may be stored compressed and it is possible to directly read
 gzip-compressed fityk script (``.fit.gz``).
 
-.. highlight:: lua
-
 Embedded Lua interpreter can execute any program in Lua 5.1.
-Let us create a file named ``today.lua`` with one line in it::
+One-liners can be run with command ``lua``::
 
-    print(os.date("Today is %A."))
-
-.. highlight:: fityk
-
-We can execute this script in ``cfityk``::
-
-    =-> exec today.lua
+    =-> lua print(_VERSION)
+    Lua 5.1
+    =-> lua print(os.date("Today is %A."))
     Today is Thursday.
-    =->
+    =-> lua for f in string.gmatch(F:get_info("functions"), "[%w_]+") do print(F:get_info("%"..f)) end
+    %_1 = Constant($_1)
+    %_2 = Cycle($_2, $_3, $_4)
 
-.. highlight:: lua
+Scripts with multiple lines must be put into a file.
 
-The Lua ``print`` function writes a string to the standard output,
-so we will not see the output in the GUI.
+The ``print`` function in Lua (used above) writes a string to the standard
+output, so we will not see the output in the GUI.
 But the Lua interpreter in Fityk has defined global object ``F`` which
-enables interaction with the program. We can modify our one-line script
-to display text in the output window::
+enables interaction with the program. For example, we can display text
+in the output window::
 
-    F:out(os.date("Today is %A."))
+    =-> lua F:out(os.date("Today is %A."))
 
 ``F`` is an instance of `class Fityk`_ in Lua wrapper.
 For now, the only documentation is in the `fityk.h`_ header.
@@ -58,7 +54,7 @@ For now, the only documentation is in the `fityk.h`_ header.
 
 Here is an example of Lua-Fityk interactions::
 
-    -- write data from files file01.dat, file02.dat, ... file13.dat
+    -- load data from files file01.dat, file02.dat, ... file13.dat
     for i=1,13 do
         filename = string.format("file%02d.dat", i)
         F:execute("@+ < '" .. filename .. ":0:1::'")
@@ -72,7 +68,7 @@ Here is an example of Lua-Fityk interactions::
     for i=0,n-1 do
         max_y = F:calculate_expr("max(y)", i)
         if max_y > total_max_y then
-        total_max_y = max_y
+            total_max_y = max_y
         end
     end
     F:out("The largest y: " .. total_max_y)
@@ -86,19 +82,45 @@ stopped, unless you catch the error::
         F:out("Error: " .. err)
     end
 
-The Lua interpreter was added in ver. 1.0.3. If you have any questions
-about it, feel free to ask.
+Here is another example::
+
+    -- file foo.lua
+    prev_x = nil
+    for n = 0, F:get_dataset_count()-1 do
+        local path = F:get_info("filename", n)
+        local filename = string.match(path, "[^/\\]+$") or ""
+        -- local x = F:calculate_expr("argmax(y)", n)
+        local x = F:calculate_expr("F[0].center", n)
+        s = string.format("%s: max at x=%.4f", filename, x)
+        if prev_x ~= nil then
+            s = s .. string.format("  (%+.4f)", x-prev_x)
+        end
+        prev_x = x
+        F:out(s)
+    end
+
+.. highlight:: fityk
+
+and its output::
+
+    =-> exec foo.lua
+    frame-000.dat: max at x=-0.0197
+    frame-001.dat: max at x=-0.0209  (-0.0012)
+    frame-002.dat: max at x=-0.0216  (-0.0007)
+    frame-003.dat: max at x=-0.0224  (-0.0008)
+
 You may also see the `hello.lua`_ sample distributed with
 the program.
 
 .. _hello.lua: https://github.com/wojdyr/fityk/blob/master/samples/hello.lua
 
+The Lua interpreter was added in ver. 1.0.3. If you have any questions
+about it, feel free to ask.
+
 If you do not like Lua, Fityk has also Python and Perl bindings,
 and bindings to a few other languages (including Java and Ruby)
 can be easily generated. Scripts in these languages can use *libfityk*
 (fityk engine), but cannot interact with the running GUI program.
-
-.. highlight:: fityk
 
 It is also possible to automate Fityk by preparing a stand-alone program
 that writes a valid fityk script to the standard output. To read and execute

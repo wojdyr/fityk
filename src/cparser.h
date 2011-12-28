@@ -24,6 +24,7 @@ enum CommandType
     kCmdFit,
     kCmdGuess,
     kCmdInfo,
+    kCmdLua,
     kCmdPlot,
     kCmdPrint,
     kCmdQuit,

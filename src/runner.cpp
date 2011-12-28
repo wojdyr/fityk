@@ -17,6 +17,7 @@
 #include "model.h"
 #include "guess.h"
 #include "transform.h"
+#include "ui.h"
 
 using namespace std;
 
@@ -687,6 +688,10 @@ void Runner::execute_command(Command& c, int ds)
         case kCmdInfo:
             command_redirectable(F_, ds, kCmdInfo, c.args);
             break;
+        case kCmdLua:
+            assert(0);
+            // kCmdLua is handled elsewhere
+            break;
         case kCmdPlot:
             command_plot(c.args, ds);
             break;
@@ -803,7 +808,7 @@ void Runner::execute_statement(Statement& st)
                         !st.with_args.empty())
                     recalculate_command(*c, *i, st);
 
-                if (c->type == kCmdExec) {
+                if (c->type == kCmdExec || c->type == kCmdLua) {
                     // this command contains nested commands that use the same
                     // Parser/Runner.
                     assert(c->args.size() == 1);
@@ -816,7 +821,13 @@ void Runner::execute_statement(Statement& st)
                     st.datasets.swap(backup.datasets);
                     st.with_args.swap(backup.with_args);
                     st.commands.swap(backup.commands);
-                    command_exec(tt, str);
+                    int old_default_dm = F_->default_dm();
+                    F_->set_default_dm(*i);
+                    if (c->type == kCmdExec)
+                        command_exec(tt, str);
+                    else // if (c->type == kCmdLua)
+                        exec_lua_script(F_, str, false);
+                    F_->set_default_dm(old_default_dm);
                     st.datasets.swap(backup.datasets);
                     st.with_args.swap(backup.with_args);
                     st.commands.swap(backup.commands);
