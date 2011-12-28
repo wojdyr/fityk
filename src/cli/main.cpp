@@ -9,7 +9,6 @@
 #include <iostream>
 #include <stdio.h>
 #include <stdlib.h>
-#include <fstream>
 #include <ctype.h>
 #include <time.h>
 #include <string.h>
@@ -456,7 +455,7 @@ RlHistoryManager::~RlHistoryManager()
 
 
 
-bool main_loop()
+void main_loop()
 {
     //initialize readline
     rl_readline_name = "fit";
@@ -471,16 +470,13 @@ bool main_loop()
         read_and_execute_input();
 
     cout << endl;
-
-
-    return true;
 }
 
 
 #else //if NO_READLINE
 
 // the simplest version of user interface -- when readline is not available
-bool main_loop()
+void main_loop()
 {
     string s;
     for (;;) {
@@ -490,7 +486,6 @@ bool main_loop()
         ftk->get_ui()->exec_and_log(s);
     }
     cout << endl;
-    return true;
 }
 
 #endif //NO_READLINE

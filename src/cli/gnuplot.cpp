@@ -12,7 +12,6 @@
 #include <errno.h>
 
 #include "gnuplot.h"
-#include "../common.h"
 #include "../data.h"
 #include "../model.h"
 #include "../logic.h"
