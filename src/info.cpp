@@ -775,6 +775,7 @@ void parse_and_eval_info(Ftk *F, const string& s, int dataset,
 {
     Lexer lex(s.c_str());
     Parser parser(F);
+    parser.statement().datasets.push_back(dataset);
     vector<Token> args;
     parser.parse_info_args(lex, args);
     if (lex.peek_token().type != kTokenNop)
