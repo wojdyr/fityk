@@ -318,6 +318,20 @@ char **my_completion (const char *text, int start, int end)
         --cmd_start;
     while (isspace(rl_line_buffer[cmd_start]))
         ++cmd_start;
+    // skip "@m @n:"
+    if (rl_line_buffer[cmd_start] == '@') {
+        int t = cmd_start + 1;
+        while (t < start && rl_line_buffer[t] != '.') {
+            if (rl_line_buffer[t] == ':') {
+                cmd_start = t+1;
+                while (isspace(rl_line_buffer[cmd_start]))
+                    ++cmd_start;
+                break;
+            }
+            ++t;
+        }
+    }
+
     //command
     if (cmd_start == start)
         return rl_completion_matches(text, command_generator);
@@ -446,6 +460,8 @@ bool main_loop()
 {
     //initialize readline
     rl_readline_name = "fit";
+    // add colon to word breaks
+    rl_basic_word_break_characters = " \t\n\"\\'`@$><=;|&{(:";
     rl_attempted_completion_function = my_completion;
 
     RlHistoryManager hm;//it takes care about reading/saving readline history
