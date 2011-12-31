@@ -4,7 +4,7 @@ AC_INIT([fityk],[1.1.2])
 LIBRARY_VERSION_FLAG="-version-info 3:0:0"
 
 AC_CONFIG_SRCDIR([src/voigt.h])
-AC_CONFIG_AUX_DIR(config)
+AC_CONFIG_AUX_DIR(build-aux)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config.h])
 AM_INIT_AUTOMAKE([1.11 foreign subdir-objects silent-rules -Wall])
