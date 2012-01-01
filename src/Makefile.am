@@ -30,10 +30,10 @@ libfityk_la_SOURCES = logic.cpp view.cpp lexer.cpp eparser.cpp cparser.cpp \
 		 vm.h transform.h \
 		 settings.h ui.h GAfit.h LMfit.h guess.h NMfit.h \
 		 model.h fit.h voigt.h numfuncs.h \
-		 swig/fityk_lua.cpp swig/luarun.h
+		 swig/fityk_lua.cpp swig/luarun.h \
+		 MPfit.cpp MPfit.h cmpfit/mpfit.c cmpfit/mpfit.h
 
 include_HEADERS = fityk.h
-
 
 # ---  directory cli/ ---
 cli_cfityk_SOURCES = cli/gnuplot.cpp cli/main.cpp cli/gnuplot.h

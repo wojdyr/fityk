@@ -1,4 +1,6 @@
-User-visible changes in version 1.1.2  (2011-1 -  ):
+User-visible changes in version 1.1.2  (2012-01-  ):
+* added fitting method "mpfit" -- wrapper around MINPACK-1 based MPFIT library
+  (http://www.physics.wisc.edu/~craigm/idl/cmpfit.html)
 
 User-visible changes in version 1.1.1  (2011-09-28):
 * option exit_on_warning=0/1 was replaced with on_error=stop/exit; new option

@@ -110,11 +110,8 @@ after the end of subscription.
 
    <div class="smallfont">
 
-Students and home users may donate 20% of the normal price to
-``wojdyr@gmail.com`` using
-`PayPal <https://www.paypal.com/cgi-bin/webscr?cmd=_donations&business=E98FRTPDBQ3L6&lc=US&currency_code=USD&item_name=Fityk>`_,
-`MoneyBookers <https://www.moneybookers.com/app/payment.pl?pay_to_email=wojdyr@gmail.com&language=EN&detail1_text=The+amount+can+be+changed+at+the+end+of+the+URL&detail1_description=Fityk&currency=USD&amount=53>`_
-or `Flattr <https://flattr.com/donation/give/to/wojdyr>`_.
+There is a discount for home users and students,
+email wojdyr@gmail.com for details.
 
 .. raw:: html
 

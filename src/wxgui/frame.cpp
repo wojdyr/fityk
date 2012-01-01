@@ -696,9 +696,11 @@ void FFrame::set_menubar()
     wxMenu* fit_method_menu = new wxMenu;
     fit_method_menu->AppendRadioItem (ID_F_M+0, wxT("&Levenberg-Marquardt"),
                                                 wxT("gradient based method"));
-    fit_method_menu->AppendRadioItem (ID_F_M+1, wxT("Nelder-Mead &Simplex"),
+    fit_method_menu->AppendRadioItem (ID_F_M+1, wxT("&MPFIT (another Lev-Mar)"),
+                                    wxT("alternative Lev-Mar implementation"));
+    fit_method_menu->AppendRadioItem (ID_F_M+2, wxT("Nelder-Mead &Simplex"),
                                   wxT("slow but simple and reliable method"));
-    fit_method_menu->AppendRadioItem (ID_F_M+2, wxT("&Genetic Algorithm"),
+    fit_method_menu->AppendRadioItem (ID_F_M+3, wxT("&Genetic Algorithm"),
                                                 wxT("almost AI"));
     fit_menu->Append (ID_F_METHOD, wxT("&Method"), fit_method_menu, wxT(""));
     fit_menu->AppendSeparator();

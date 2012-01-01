@@ -63,3 +63,8 @@ and send me either the modified version or a patch.
 The following people have contributed to this manual (in chronological order):
 Marcin Wojdyr (maintainer), Stan Gierlotka, Jaap Folmer, Michael Richardson.
 
+One of the fitting methods uses MPFIT_ library (MINPACK-1 Least Squares
+Fitting Library in C), which includes software developed by
+the University of Chicago, as Operator of Argonne National Laboratory.
+
+.. _MPFIT: http://www.physics.wisc.edu/~craigm/idl/cmpfit.html

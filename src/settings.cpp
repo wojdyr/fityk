@@ -48,8 +48,14 @@ static const char* on_error_enum[] =
 static const char* default_sigma_enum[] =
 { "sqrt", "one", NULL };
 
-static const char* fitting_method_enum[] =
-{ "levenberg_marquardt", "nelder_mead_simplex", "genetic_algorithms", NULL };
+// this list should be kept sync with to FitMethodsContainer ctor.
+static const char* fitting_method_enum[] = {
+    "levenberg_marquardt", // LMfit.cpp
+    "mpfit",               // MPfit.cpp
+    "nelder_mead_simplex", // NMfit.cpp
+    "genetic_algorithms",  // GAfit.cpp
+    NULL
+};
 
 static const char* nm_distribution_enum[] =
 { "bound", "uniform", "gauss", "lorentz", NULL };

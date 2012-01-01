@@ -39,6 +39,9 @@ public:
                               double level_percent);
     //const std::vector<DataAndModel*>& get_datsums() const { return dmdm_; }
     static realt compute_wssr_for_data (const DataAndModel* dm, bool weigthed);
+    static int compute_deviates_for_data(const DataAndModel* dm,
+                                         double *deviates);
+    // called from GUI
     realt do_compute_wssr(const std::vector<realt> &A,
                          const std::vector<DataAndModel*>& dms,
                          bool weigthed);
@@ -69,9 +72,13 @@ protected:
     void compute_derivatives(const std::vector<realt> &A,
                           const std::vector<DataAndModel*>& dms,
                           std::vector<realt>& alpha, std::vector<realt>& beta);
+    void compute_derivatives_mp(const std::vector<realt> &A,
+                                const std::vector<DataAndModel*>& dms,
+                                double **derivs, double *deviates);
     realt compute_wssr(const std::vector<realt> &A,
                     const std::vector<DataAndModel*>& dms, bool weigthed=true)
         { ++evaluations_; return do_compute_wssr(A, dms, weigthed); }
+    int compute_deviates(const std::vector<realt> &A, double *deviates);
     bool post_fit(const std::vector<realt>& aa, realt chi2);
     realt draw_a_from_distribution(int nr, char distribution = 'u',
                                    realt mult = 1.);
@@ -83,6 +90,8 @@ private:
     void compute_derivatives_for(const DataAndModel *dm,
                                  std::vector<realt>& alpha,
                                  std::vector<realt>& beta);
+    int compute_derivatives_mp_for(const DataAndModel* dm, int offset,
+                                   double **derivs, double *deviates);
     void update_parameters(const std::vector<DataAndModel*>& dms);
 };
 

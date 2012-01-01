@@ -53,6 +53,7 @@ public :
     realt get_y(int n) const { return p_[active_[n]].y; }
     realt get_sigma (int n) const { return p_[active_[n]].sigma; }
     int get_n() const { return active_.size(); }
+    std::vector<realt> get_xx() const;
     bool is_empty() const { return p_.empty(); }
     bool has_any_info() const { return !is_empty() || !get_title().empty(); }
     double get_x_step() const { return x_step_; } /// 0.0 if not fixed
@@ -96,6 +97,14 @@ private:
     void post_load();
     DISALLOW_COPY_AND_ASSIGN(Data);
 };
+
+inline std::vector<realt> Data::get_xx() const
+{
+    std::vector<realt> xx(get_n());
+    for (size_t j = 0; j < xx.size(); ++j)
+        xx[j] = get_x(j);
+    return xx;
+}
 
 #endif
 

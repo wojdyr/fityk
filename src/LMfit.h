@@ -1,15 +1,15 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__LMFIT__H__
-#define FITYK__LMFIT__H__
-#include "common.h"
+/// Simple implementation of the Levenberg-Marquardt method,
+/// uses Jordan elimination with partial pivoting.
+
+#ifndef FITYK_LMFIT_H_
+#define FITYK_LMFIT_H_
 #include <vector>
-#include <map>
-#include <string>
+#include "common.h"
 #include "fit.h"
 
-///           Levenberg-Marquardt method
 class LMfit : public Fit
 {
 public:
@@ -28,4 +28,3 @@ private:
 };
 
 #endif
-

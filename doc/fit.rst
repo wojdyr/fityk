@@ -91,8 +91,8 @@ The fitting method can be set using the set command::
 
   set fitting_method = method
 
-where method is one of: ``levenberg_marquardt``, ``nelder_mead_simplex``,
-``genetic_algorithms``.
+where method is one of: ``levenberg_marquardt``, ``mpfit``,
+``nelder_mead_simplex``, ``genetic_algorithms``.
 
 All non-linear fitting methods are iterative, and there are three common
 stopping criteria:
@@ -220,7 +220,7 @@ Levenberg-Marquardt
 
 This is a standard nonlinear least-squares routine, and involves
 computing the first derivatives of functions.  For a description
-of the L-M method see *Numerical Recipes*, chapter 15.5
+of the algorithm see *Numerical Recipes*, chapter 15.5
 or Siegmund Brandt, *Data Analysis*, chapter 10.15.
 Essentially, it combines an inverse-Hessian method with a steepest
 descent method by introducing a |lambda| factor. When |lambda| is equal
@@ -248,6 +248,15 @@ criteria.
   WSSR is no longer changing, the fitting is also stopped.
 
 .. |lambda| replace:: *λ*
+
+Since version 1.1.2 it is possible to use another implementations of
+the Levenberg-Marquardt method, from MPFIT_ library.
+To switch between the two implementation use command::
+
+   set fitting_method = mpfit               # switch to MPFIT
+   set fitting_method = levenberg_marquardt # switch back to default one
+
+.. _MPFIT: http://www.physics.wisc.edu/~craigm/idl/cmpfit.html
 
 .. _nelder:
 

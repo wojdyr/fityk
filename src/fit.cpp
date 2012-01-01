@@ -15,6 +15,7 @@
 #include "settings.h"
 #include "var.h"
 #include "LMfit.h"
+#include "MPfit.h"
 #include "GAfit.h"
 #include "NMfit.h"
 
@@ -138,6 +139,30 @@ string Fit::get_cov_info(const vector<DataAndModel*>& dms)
     return s;
 }
 
+int Fit::compute_deviates(const vector<realt> &A, double *deviates)
+{
+    ++evaluations_;
+    F_->use_external_parameters(A); //that's the only side-effect
+    int ntot = 0;
+    v_foreach (DataAndModel*, i, dmdm_)
+        ntot += compute_deviates_for_data(*i, deviates + ntot);
+    return ntot;
+}
+
+//static
+int Fit::compute_deviates_for_data(const DataAndModel* dm, double *deviates)
+{
+    const Data* data = dm->data();
+    int n = data->get_n();
+    vector<realt> xx = data->get_xx();
+    vector<realt> yy(n, 0.);
+    dm->model()->compute_model(xx, yy);
+    for (int j = 0; j < n; ++j)
+        deviates[j] = (data->get_y(j) - yy[j]) / data->get_sigma(j);
+    return n;
+}
+
+
 realt Fit::do_compute_wssr(const vector<realt> &A,
                            const vector<DataAndModel*>& dms,
                            bool weigthed)
@@ -155,9 +180,7 @@ realt Fit::compute_wssr_for_data(const DataAndModel* dm, bool weigthed)
 {
     const Data* data = dm->data();
     int n = data->get_n();
-    vector<realt> xx(n);
-    for (int j = 0; j < n; j++)
-        xx[j] = data->get_x(j);
+    vector<realt> xx = data->get_xx();
     vector<realt> yy(n, 0.);
     dm->model()->compute_model(xx, yy);
     // use here always long double, because it does not effect (much)
@@ -192,9 +215,7 @@ realt Fit::compute_r_squared_for_data(const DataAndModel* dm,
 {
     const Data* data = dm->data();
     int n = data->get_n();
-    vector<realt> xx(n);
-    for (int j = 0; j < n; j++)
-        xx[j] = data->get_x(j);
+    vector<realt> xx = data->get_xx();
     vector<realt> yy(n, 0.);
     dm->model()->compute_model(xx, yy);
     realt ysum = 0;
@@ -248,9 +269,7 @@ void Fit::compute_derivatives_for(const DataAndModel* dm,
 {
     const Data* data = dm->data();
     int n = data->get_n();
-    vector<realt> xx(n);
-    for (int j = 0; j < n; ++j)
-        xx[j] = data->get_x(j);
+    vector<realt> xx = data->get_xx();
     vector<realt> yy(n, 0.);
     const int dyn = na_+1;
     vector<realt> dy_da(n*dyn, 0.);
@@ -270,6 +289,38 @@ void Fit::compute_derivatives_for(const DataAndModel* dm,
     }
 }
 
+// similar to compute_derivatives(), but adjusted for MPFIT interface
+void Fit::compute_derivatives_mp(const vector<realt> &A,
+                                 const vector<DataAndModel*>& dms,
+                                 double **derivs, double *deviates)
+{
+    ++evaluations_;
+    F_->use_external_parameters(A);
+    int ntot = 0;
+    v_foreach (DataAndModel*, i, dms) {
+        ntot += compute_derivatives_mp_for(*i, ntot, derivs, deviates);
+    }
+}
+
+int Fit::compute_derivatives_mp_for(const DataAndModel* dm, int offset,
+                                    double **derivs, double *deviates)
+{
+    const Data* data = dm->data();
+    int n = data->get_n();
+    vector<realt> xx = data->get_xx();
+    vector<realt> yy(n, 0.);
+    const int dyn = na_+1;
+    vector<realt> dy_da(n*dyn, 0.);
+    dm->model()->compute_model_with_derivs(xx, yy, dy_da);
+    for (int i = 0; i != n; ++i)
+        deviates[offset+i] = (data->get_y(i) - yy[i]) / data->get_sigma(i);
+    for (int j = 0; j != na_; ++j)
+        if (derivs[j] != NULL)
+            for (int i = 0; i != n; ++i)
+                derivs[j][offset+i] = -dy_da[i*dyn+j] / data->get_sigma(i);
+    return n;
+}
+
 string Fit::print_matrix(const vector<realt>& vec, int m, int n,
                          const char *mname)
     //m rows, n columns
@@ -277,8 +328,7 @@ string Fit::print_matrix(const vector<realt>& vec, int m, int n,
     if (F_->get_verbosity() <= 0)  //optimization (?)
         return "";
     assert (size(vec) == m * n);
-    if (m < 1 || n < 1)
-        throw ExecuteError("In `print_matrix': It is not a matrix.");
+    soft_assert(!vec.empty());
     string h = S(mname) + "={ ";
     if (m == 1) { // vector
         for (int i = 0; i < n; i++)
@@ -551,7 +601,9 @@ FitMethodsContainer::FitMethodsContainer(Ftk *F_)
     : ParameterHistoryMgr(F_), dirty_error_cache_(true)
 
 {
+    // these methods correspond to fitting_method_enum[] in settings.cpp
     methods_.push_back(new LMfit(F_));
+    methods_.push_back(new MPfit(F_));
     methods_.push_back(new NMfit(F_));
     methods_.push_back(new GAfit(F_));
 }

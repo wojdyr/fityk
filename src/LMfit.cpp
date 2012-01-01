@@ -19,7 +19,8 @@ LMfit::LMfit(Ftk* F)
 
 LMfit::~LMfit() {}
 
-// WSSR is also called chi2
+// note: WSSR is also called chi2
+
 void LMfit::init()
 {
     alpha.resize(na_*na_);

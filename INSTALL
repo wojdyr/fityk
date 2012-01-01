@@ -17,7 +17,9 @@ $ ./configure (optionally followed by options, see: Configuration Options)
 $ make
 # make install
 
-Uninstallation of the program installed from source is also easy:
+Uninstallation
+==============
+
 either do "make uninstall" or manually find and remove all files, e.g.: 
 find /usr/local/ -name \*fityk\* -exec rm -r \{} \;
 
@@ -51,6 +53,10 @@ To install the latest version from Git
 ======================================
 
 Install automake, autoconf, libtool.
+
+Download http://www.physics.wisc.edu/~craigm/idl/down/cmpfit-1.2.tar.gz
+unpack it and copy cmpfit-1.2/mpfit.* to fityk/src/cmpfit/
+
 Before the ./configure step, run:
 $ autoreconf -iv
 
