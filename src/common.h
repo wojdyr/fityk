@@ -35,6 +35,16 @@ inline double trunc(double a) { return a >= 0 ? floor(a) : ceil(a); }
 #pragma warning( disable : 4996 )
 #endif
 
+#ifdef NDEBUG
+#define soft_assert(expr) (void) 0
+#else
+#define soft_assert(expr) \
+  if (!(expr)) \
+      fprintf(stderr, "WARNING: failed assertion `%s' in %s:%d\n", \
+                      #expr, __FILE__, __LINE__)
+#endif
+
+
 //------------------  D A T A   S T R U C T U R E S  ------------------------
 
 struct RealRange
