@@ -33,7 +33,7 @@ Name: {group}\Fityk; Filename: {app}\fityk.exe; WorkingDir: {app}; IconFilename:
 Name: {group}\Fityk CLI; Filename: {app}\cfityk.exe; WorkingDir: {app};
 Name: {group}\Fityk Manual; Filename: {app}\html\fityk-manual.html; WorkingDir: {app}; Flags: useapppaths
 Name: "{group}\Fityk Web Site"; Filename: {app}\fityk.url
-Name: {group}\Uninstall Fityk; Filename: {uninstallexe}
+;Name: {group}\Uninstall Fityk; Filename: {uninstallexe}
 Name: {userdesktop}\Fityk; Filename: {app}\fityk.exe; WorkingDir: {app}; Tasks: desktopicon
 Name: "{userappdata}\Microsoft\Internet Explorer\Quick Launch\Fityk"; Filename: {app}\fityk.exe; WorkingDir: {app}; Tasks: quicklaunchicon
 
