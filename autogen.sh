@@ -1,12 +1,18 @@
 #!/bin/sh
 
 set -x
-(cd doc && make)
+
+# choose one:
+(cd doc && make)                  # build docs
+#mkdir -p doc/html/placeholder    # do not build docs
+
 # download and unpack cmpfit-1.2.tar.gz
 # from http://www.physics.wisc.edu/~craigm/idl/cmpfit.html
-echo "copy content of cmpfit-1.2 (or later) to src/cmpfit/"
-#rm -rf src/cmpfit/
-#cp -r cmpfit-1.2/ src/cmpfit/
+curl -O http://www.physics.wisc.edu/~craigm/idl/down/cmpfit-1.2.tar.gz
+tar xzf cmpfit-1.2.tar.gz
+mkdir -p src/cmpfit/
+cp -af cmpfit-1.2/mpfit.* src/cmpfit/
+
 autoreconf --install --verbose  \
 && ./configure "$@"
 
