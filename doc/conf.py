@@ -9,15 +9,19 @@ sys.path.append(os.path.abspath('.'))
 
 extensions = ["sphinx.ext.pngmath", "sphinx.ext.extlinks", "fityk_ext"]
 
-exclude_trees = ['html', 'latex', '.svn']
-exclude_patterns = ['index.rst', 'screens.rst']
+exclude_patterns = ['html', 'latex']
+if not os.getenv('BUILD_WEBSITE'):
+    exclude_patterns += ['index.rst', 'screens.rst']
+if os.getenv('READTHEDOCS'):
+    # RTD works better with index.html
+    html_additional_pages = { 'index': '_build/html/fityk-manual.html' }
 templates_path = ['.']
 source_suffix = '.rst'
 source_encoding = 'utf-8'
 master_doc = 'fityk-manual'
 project = 'Fityk'
-copyright = '2001-2011, Fityk Developers'
-version = '1.1.1'
+copyright = '2001-2012, Fityk Developers'
+version = '1.1.2'
 release = version
 default_role = None
 
