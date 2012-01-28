@@ -643,9 +643,17 @@ Examples::
 
 .. admonition:: In the GUI
 
-   the buttons ``=W`` and ``=S`` on the sidebar make, respectively,
-   the HWHM and shape of all functions the same. Pressing the buttons
-   again will make all the parameters independent.
+   buttons |same-hwhm-icon| and |same-shape-icon| on the sidebar make,
+   respectively, the HWHM and shape of all functions the same.
+   Pressing the buttons again will make all the parameters independent.
+
+.. |same-hwhm-icon| image:: img/eq_fwhm_icon.png
+   :alt: =W
+   :class: icon
+
+.. |same-shape-icon| image:: img/eq_shape_icon.png
+   :alt: =S
+   :class: icon
 
 .. _guess:
 
