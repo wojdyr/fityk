@@ -65,13 +65,15 @@ div.related ul li {
 
 div.related ul li.right {
     float: right;
-    margin-right: 5px;
+    margin-right: 15px;
 }
 
 div.related ul li a {
     margin: 0;
     padding: 0 5px 0 5px;
     line-height: 1.75em;
+    font-weight: bold;
+    font-size: 110%;
 }
 
 div.related ul li a:hover {
@@ -137,7 +139,8 @@ p {
 }
 
 a {
-    color: #CA7900;
+    /*color: #CA7900;*/
+    color: #667777;
     text-decoration: none;
 }
 
@@ -411,8 +414,8 @@ img.icon { vertical-align: text-bottom; }
 
 div.admonition-in-the-gui
 {
-    border: 1px solid #888888;
-    background-color: #bbbbbb;
+    border: 1px solid #999999;
+    background-color: #CCCCCC;
     font-family: "myriad-pro-1","myriad-pro-2",HelveticaNeue,Helvetica,Arial,
                  sans-serif;
 }
@@ -422,9 +425,10 @@ div.admonition-in-the-gui div.highlight
 
 div.admonition-in-the-gui p.admonition-title {
     color: #f8f8f8;
-    border-bottom: 1px solid #888888;
+    padding-left: 36px;
+    border-bottom: 1px solid #999999;
     font-weight: bold;
-    background-color: #999999;
+    background: #AAAAAA url('mouse16.png') no-repeat 10px;
 }
 
 .guilabel, .menuselection {

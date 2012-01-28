@@ -55,10 +55,16 @@ version 2 or (at your option) any later version.
 To download the latest version of the program or to contact the author
 visit http://fityk.nieto.pl/.
 
-This manual is written using ReStructuredText.
+This manual is written in ReStructuredText.
 All corrections and improvements are welcome.
 Use the ``Show Source`` link to get the source of the page, edit it
 and send me either the modified version or a patch.
+
+Alternatively, go to
+`GitHub <https://github.com/wojdyr/fityk/tree/master/doc>`_,
+open corresponding rst file,
+press *Fork and edit this file* button, do edits in your web browser
+and click *Propose file change*.
 
 The following people have contributed to this manual (in chronological order):
 Marcin Wojdyr (maintainer), Stan Gierlotka, Jaap Folmer, Michael Richardson.
