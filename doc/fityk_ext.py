@@ -42,3 +42,21 @@ def setup(app):
     app.add_lexer('fityk', FitykLexer());
     app.connect('doctree-read', doctree_read)
 
+
+
+# this is hack is needed to use our layout.html on ReadTheDocs
+from sphinx.jinja2glue import BuiltinTemplateLoader
+class MyTemplateLoader(BuiltinTemplateLoader):
+    def get_source(self, environment, template):
+        print "(MyTemplateLoader.get_source) searching for",  template
+        # If template name in Jinja's "extends" is prepended with "!"
+        # Sphinx skips project's template paths.
+        # In BuiltinTemplateLoader self.templatepathlen is used to remove
+        # project's template paths and leave only Sphinx's paths.
+        # This hack should leave the last path, so "!layout.html" will find
+        # the template from Fityk. To avoid recursion, Fityk template
+        # is not using "!".
+        self.templatepathlen -= 1
+        return BuiltinTemplateLoader.get_source(self, environment, template)
+        self.templatepathlen += 1
+

@@ -12,9 +12,13 @@ extensions = ["sphinx.ext.pngmath", "sphinx.ext.extlinks", "fityk_ext"]
 exclude_patterns = ['html', 'latex']
 if not os.getenv('BUILD_WEBSITE'):
     exclude_patterns += ['index.rst', 'screens.rst']
+
 if os.getenv('READTHEDOCS'):
     # RTD works better with index.html
     html_additional_pages = { 'index': '_build/html/fityk-manual.html' }
+    # RTD has own layout.html. This hack is needed to use all layout.html files.
+    template_bridge = "fityk_ext.MyTemplateLoader"
+
 templates_path = ['.']
 source_suffix = '.rst'
 source_encoding = 'utf-8'

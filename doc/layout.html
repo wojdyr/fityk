@@ -1,4 +1,7 @@
-{% extends "!layout.html" %}
+{% extends "sphinxdoc/layout.html" %}
+{# "!" (which is handled by sphinx BuiltinTemplateLoader is not used here,
+   to enable nesting in ReadTheDocs build.
+#}
 
 {% set reldelim1 = ' ' %}
 {% set reldelim2 = ' &nbsp; ' %}
