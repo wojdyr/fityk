@@ -185,6 +185,7 @@ realt Fit::compute_wssr_for_data(const DataAndModel* dm, bool weigthed)
     dm->model()->compute_model(xx, yy);
     // use here always long double, because it does not effect (much)
     // the efficiency and it notably increases accuracy of results
+    // If better accuracy is needed, Kahan summation algorithm could be used.
     long double wssr = 0;
     for (int j = 0; j < n; j++) {
         realt dy = data->get_y(j) - yy[j];
@@ -319,6 +320,40 @@ int Fit::compute_derivatives_mp_for(const DataAndModel* dm, int offset,
             for (int i = 0; i != n; ++i)
                 derivs[j][offset+i] = -dy_da[i*dyn+j] / data->get_sigma(i);
     return n;
+}
+
+// similar to compute_derivatives(), but adjusted for NLopt interface
+realt Fit::compute_derivatives_nl(const vector<realt> &A,
+                                  const vector<DataAndModel*>& dms,
+                                  double *grad)
+{
+    ++evaluations_;
+    F_->use_external_parameters(A);
+    realt wssr = 0.;
+    v_foreach (DataAndModel*, i, dms)
+        wssr += compute_derivatives_nl_for(*i, grad);
+    return wssr;
+}
+
+realt Fit::compute_derivatives_nl_for(const DataAndModel* dm, double *grad)
+{
+    realt wssr = 0;
+    const Data* data = dm->data();
+    int n = data->get_n();
+    vector<realt> xx = data->get_xx();
+    vector<realt> yy(n, 0.);
+    const int dyn = na_+1;
+    vector<realt> dy_da(n*dyn, 0.);
+    dm->model()->compute_model_with_derivs(xx, yy, dy_da);
+    for (int i = 0; i != n; i++) {
+        realt sig = data->get_sigma(i);
+        realt dy_sig = (data->get_y(i) - yy[i]) / sig;
+        wssr += dy_sig;
+        for (int j = 0; j != na_; ++j)
+            //if (par_usage_[j])
+                grad[j] += dy_sig * dy_da[i*dyn+j] / sig;
+    }
+    return wssr;
 }
 
 string Fit::print_matrix(const vector<realt>& vec, int m, int n,

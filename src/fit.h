@@ -75,6 +75,9 @@ protected:
     void compute_derivatives_mp(const std::vector<realt> &A,
                                 const std::vector<DataAndModel*>& dms,
                                 double **derivs, double *deviates);
+    realt compute_derivatives_nl(const std::vector<realt> &A,
+                                 const std::vector<DataAndModel*>& dms,
+                                 double *grad);
     realt compute_wssr(const std::vector<realt> &A,
                     const std::vector<DataAndModel*>& dms, bool weigthed=true)
         { ++evaluations_; return do_compute_wssr(A, dms, weigthed); }
@@ -92,6 +95,7 @@ private:
                                  std::vector<realt>& beta);
     int compute_derivatives_mp_for(const DataAndModel* dm, int offset,
                                    double **derivs, double *deviates);
+    realt compute_derivatives_nl_for(const DataAndModel* dm, double *grad);
     void update_parameters(const std::vector<DataAndModel*>& dms);
 };
 

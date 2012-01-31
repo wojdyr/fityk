@@ -33,6 +33,10 @@ libfityk_la_SOURCES = logic.cpp view.cpp lexer.cpp eparser.cpp cparser.cpp \
 		 swig/fityk_lua.cpp swig/luarun.h \
 		 MPfit.cpp MPfit.h cmpfit/mpfit.c cmpfit/mpfit.h
 
+if NLOPT_ENABLED
+libfityk_la_SOURCES += NLfit.cpp NLfit.h
+endif
+
 include_HEADERS = fityk.h
 
 # ---  directory cli/ ---

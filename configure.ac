@@ -23,6 +23,8 @@ AC_ARG_ENABLE(python, AS_HELP_STRING([--enable-python],
                               [build Python bindings to libfityk]))
 #AC_ARG_ENABLE(perl, AS_HELP_STRING([--enable-perl],
 #                              [build Perl bindings to libfityk]))
+AC_ARG_ENABLE(nlopt, AS_HELP_STRING([--enable-nlopt],
+                              [use NLopt library]))
 
 # this option is handled in m4/readline.m4
 AC_ARG_WITH(readline, AS_HELP_STRING([--without-readline],
@@ -136,14 +138,18 @@ if test "x$enable_python" = "xyes"; then
     AX_PYTHON_DEVEL
 fi
 
+if test "x$enable_nlopt" = "xyes"; then
+    AC_CHECK_HEADER(nlopt.h, [dummy=yes], [AC_MSG_ERROR(
+                     [nlopt.h header not found.])])
+fi
+
 AM_CONDITIONAL([XYCONVERT], [test x$enable_xyconvert != xno])
 AM_CONDITIONAL([POWDIFPAT], [test x$enable_powdifpat = xyes])
 AM_CONDITIONAL([GUI_DIR], [test "x$enable_GUI" != xno])
 AM_CONDITIONAL([CLI_DIR], [test "x$enable_CLI" != xno])
 AM_CONDITIONAL([PYTHON_ENABLED], [test "x$enable_python" = xyes])
-# Lua is always required by libfityk, --enable-lua adds separate lua bindings
-AM_CONDITIONAL([LUA_ENABLED], [test "x$enable_lua" = xyes])
 #AM_CONDITIONAL([PERL_ENABLED], [test "x$enable_perl" = xyes])
+AM_CONDITIONAL([NLOPT_ENABLED], [test "x$enable_nlopt" = xyes])
 
 AC_CHECK_HEADERS([lua.h lualib.h], [], [AC_MSG_ERROR(
   [Lua headers not found. If they are installed,
