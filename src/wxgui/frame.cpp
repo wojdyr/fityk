@@ -694,14 +694,10 @@ void FFrame::set_menubar()
 
     wxMenu* fit_menu = new wxMenu;
     wxMenu* fit_method_menu = new wxMenu;
-    fit_method_menu->AppendRadioItem (ID_F_M+0, wxT("&Levenberg-Marquardt"),
-                                                wxT("gradient based method"));
-    fit_method_menu->AppendRadioItem (ID_F_M+1, wxT("&MPFIT (another Lev-Mar)"),
-                                    wxT("alternative Lev-Mar implementation"));
-    fit_method_menu->AppendRadioItem (ID_F_M+2, wxT("Nelder-Mead &Simplex"),
-                                  wxT("slow but simple and reliable method"));
-    fit_method_menu->AppendRadioItem (ID_F_M+3, wxT("&Genetic Algorithm"),
-                                                wxT("almost AI"));
+    for (int i = 0; FitMethodsContainer::full_method_names[i][0] != NULL; ++i)
+        fit_method_menu->AppendRadioItem(ID_F_M+i,
+                    wxString("&")+FitMethodsContainer::full_method_names[i][0],
+                    FitMethodsContainer::full_method_names[i][1]);
     fit_menu->Append (ID_F_METHOD, wxT("&Method"), fit_method_menu, wxT(""));
     fit_menu->AppendSeparator();
     append_mi(fit_menu, ID_F_RUN, GET_BMP(run16), wxT("&Run...\tCtrl-R"),
@@ -1289,7 +1285,10 @@ void FFrame::OnFOneOfMethods (wxCommandEvent& event)
 
 void FFrame::OnFRun (wxCommandEvent&)
 {
-    FitRunDlg(this, -1, true).ShowModal();
+    FitRunDlg dlg(this, -1, true);
+    dlg.ShowModal();
+    string cmd = dlg.get_cmd();
+    ftk->exec(cmd);
 }
 
 void FFrame::OnFInfo (wxCommandEvent&)

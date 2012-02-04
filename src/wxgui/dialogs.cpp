@@ -26,7 +26,6 @@ using namespace std;
 //=====================    fit->run  dialog    ==================
 
 BEGIN_EVENT_TABLE(FitRunDlg, wxDialog)
-    EVT_BUTTON (wxID_OK, FitRunDlg::OnOK)
     EVT_SPINCTRL (-1, FitRunDlg::OnSpinEvent)
     EVT_CHOICE (-1, FitRunDlg::OnChangeDsOrMethod)
     EVT_RADIOBOX (-1, FitRunDlg::OnChangeDsOrMethod)
@@ -57,13 +56,13 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
     method_sizer->Add(new wxStaticText(this, -1, wxT("method:")),
                       0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     wxArrayString m_choices;
-    m_choices.Add(wxT("Levenberg-Marquardt"));
-    m_choices.Add(wxT("Nelder-Mead simplex"));
-    m_choices.Add(wxT("Genetic Algorithm"));
+    for (int i = 0; FitMethodsContainer::full_method_names[i][0] != NULL; ++i)
+        m_choices.Add(FitMethodsContainer::full_method_names[i][0]);
     method_c = new wxChoice(this, -1, wxDefaultPosition, wxDefaultSize,
                             m_choices);
     int method_nr = ftk->settings_mgr()->get_enum_index("fitting_method");
     method_c->SetSelection(method_nr);
+
     method_sizer->Add(method_c, 0, wxALL, 5);
     top_sizer->Add(method_sizer, 0);
 
@@ -126,7 +125,7 @@ void FitRunDlg::update_unlimited()
     nomaxiter_st->Show(maxiter_sc->GetValue() == 0);
 }
 
-void FitRunDlg::OnOK(wxCommandEvent&)
+string FitRunDlg::get_cmd() const
 {
     string cmd;
     int sel = method_c->GetSelection();
@@ -160,10 +159,7 @@ void FitRunDlg::OnOK(wxCommandEvent&)
         else
             cmd += " @*";
     }
-
-    Show(false);
-    ftk->exec(cmd);
-    EndModal(wxID_OK);
+    return cmd;
 }
 
 

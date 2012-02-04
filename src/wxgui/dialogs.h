@@ -13,9 +13,7 @@ class FitRunDlg : public wxDialog
 {
 public:
     FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize);
-    void OnOK(wxCommandEvent& event);
-    void OnSpinEvent(wxSpinEvent &) { update_unlimited(); }
-    void OnChangeDsOrMethod(wxCommandEvent&) { update_allow_continue(); }
+    std::string get_cmd() const;
 private:
     wxRadioBox* data_rb;
     wxChoice* method_c;
@@ -24,6 +22,8 @@ private:
     wxStaticText *nomaxeval_st, *nomaxiter_st;
     std::vector<int> sel; // indices of selected datasets
 
+    void OnSpinEvent(wxSpinEvent &) { update_unlimited(); }
+    void OnChangeDsOrMethod(wxCommandEvent&) { update_allow_continue(); }
     void update_unlimited();
     void update_allow_continue();
     DECLARE_EVENT_TABLE()

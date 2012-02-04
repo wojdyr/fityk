@@ -647,6 +647,16 @@ FitMethodsContainer::FitMethodsContainer(Ftk *F_)
 #endif
 }
 
+const char* FitMethodsContainer::full_method_names[][2] =
+{
+    { "Levenberg-Marquardt",     "gradient based method" },
+    { "MPFIT (another Lev-Mar)", "alternative Lev-Mar implementation" },
+    { "Nelder-Mead Simplex",     "slow but simple and reliable method" },
+    { "Genetic Algorithm",       "not really maintained" },
+    { "NLopt",                   "" },
+    { NULL, NULL }
+};
+
 FitMethodsContainer::~FitMethodsContainer()
 {
     purge_all_elements(methods_);

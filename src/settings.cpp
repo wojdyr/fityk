@@ -54,6 +54,7 @@ static const char* fitting_method_enum[] = {
     "mpfit",               // MPfit.cpp
     "nelder_mead_simplex", // NMfit.cpp
     "genetic_algorithms",  // GAfit.cpp
+    "nlopt",               // NLfit.cpp
     NULL
 };
 

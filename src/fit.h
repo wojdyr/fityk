@@ -126,6 +126,7 @@ private:
 class FitMethodsContainer : public ParameterHistoryMgr
 {
 public:
+    static const char* full_method_names[][2];
     FitMethodsContainer(Ftk *F_);
     ~FitMethodsContainer();
     Fit* get_method(int n) const
