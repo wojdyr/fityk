@@ -18,6 +18,7 @@
 #include "MPfit.h"
 #include "GAfit.h"
 #include "NMfit.h"
+#include "NLfit.h"
 
 using namespace std;
 
@@ -641,6 +642,9 @@ FitMethodsContainer::FitMethodsContainer(Ftk *F_)
     methods_.push_back(new MPfit(F_));
     methods_.push_back(new NMfit(F_));
     methods_.push_back(new GAfit(F_));
+#if HAVE_LIBNLOPT
+    methods_.push_back(new NLfit(F_));
+#endif
 }
 
 FitMethodsContainer::~FitMethodsContainer()

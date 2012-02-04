@@ -8,6 +8,10 @@
 #ifndef FITYK_NLFIT_H_
 #define FITYK_NLFIT_H_
 
+#include <config.h>
+
+#if HAVE_LIBNLOPT
+
 #include <nlopt.h>
 #include "fit.h"
 
@@ -25,6 +29,8 @@ private:
     nlopt_opt opt_;
     int start_iter_;
 };
+
+#endif //HAVE_LIBNLOPT
 
 #endif
 

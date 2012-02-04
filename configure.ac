@@ -139,8 +139,9 @@ if test "x$enable_python" = "xyes"; then
 fi
 
 if test "x$enable_nlopt" = "xyes"; then
-    AC_CHECK_HEADER(nlopt.h, [dummy=yes], [AC_MSG_ERROR(
-                     [nlopt.h header not found.])])
+    AC_CHECK_LIB(nlopt, nlopt_version, ,
+                 AC_MSG_ERROR([nlopt library not found.]))
+    AC_CHECK_HEADER(nlopt.h, , AC_MSG_ERROR([nlopt.h header not found.]))
 fi
 
 AM_CONDITIONAL([XYCONVERT], [test x$enable_xyconvert != xno])
