@@ -145,7 +145,7 @@ Fit* Ftk::get_fit() const
     v_foreach(Fit*, i, get_fit_container()->methods())
         if ((*i)->name == method_name)
             return *i;
-    assert(0);
+    throw ExecuteError("fitting method `" + method_name + "' not available.");
     return NULL;
 }
 
