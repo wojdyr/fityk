@@ -234,8 +234,8 @@ DataTableDlg::DataTableDlg(wxWindow* parent, wxWindowID id,
     grid = new wxGrid(this, -1, wxDefaultPosition, wxSize(-1, 400));
     grid_table = new GridTable(data_nr, data);
     grid->SetTable(grid_table, true, wxGrid::wxGridSelectRows);
-    grid->SetEditable(true);
-    grid->SetColumnWidth(0, 40);
+    grid->EnableEditing(true);
+    grid->SetColSize(0, 40);
     grid->SetRowLabelSize(60);
     // the default render uses %f format, we prefer %g
     grid->RegisterDataType(wxGRID_VALUE_FLOAT, new wxGridCellStringRenderer,
