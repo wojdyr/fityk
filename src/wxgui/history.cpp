@@ -103,7 +103,7 @@ void SumHistoryDlg::initialize_lc()
         lc->SetColumnWidth(i, wxLIST_AUTOSIZE);
 }
 
-void SumHistoryDlg::compute_wssr()
+void SumHistoryDlg::compute_all_wssr()
 {
     if (wssr_done)
         return;

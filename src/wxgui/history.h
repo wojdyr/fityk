@@ -21,14 +21,14 @@ private:
     wxButton *compute_wssr_button;
     bool wssr_done; // flag to avoid calculation of wssr again
 
-    void OnComputeWssrButton(wxCommandEvent&) { compute_wssr(); }
+    void OnComputeWssrButton(wxCommandEvent&) { compute_all_wssr(); }
     void OnClearHistory(wxCommandEvent&) { clear_history(); }
     void OnSelectedItem(wxListEvent& event);
     void OnFocusedItem(wxListEvent& event);
     void OnViewSpinCtrlUpdate(wxSpinEvent& event);
-    void compute_wssr();
+    void compute_all_wssr();
     void clear_history();
-    void OnActivate(wxActivateEvent&) { compute_wssr(); };
+    void OnActivate(wxActivateEvent&) { compute_all_wssr(); };
 
     void initialize_lc();
     DECLARE_EVENT_TABLE()
