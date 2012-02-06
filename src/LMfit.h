@@ -13,8 +13,7 @@
 class LMfit : public Fit
 {
 public:
-    LMfit(Ftk* F);
-    ~LMfit();
+    LMfit(Ftk* F, const char* name) : Fit(F, name) {}
     virtual void init(); // called before do_iteration()/autoiter()
     void autoiter();
 private:

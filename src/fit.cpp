@@ -331,6 +331,7 @@ realt Fit::compute_derivatives_nl(const vector<realt> &A,
     ++evaluations_;
     F_->use_external_parameters(A);
     realt wssr = 0.;
+    fill(grad, grad+na_, 0.0);
     v_foreach (DataAndModel*, i, dms)
         wssr += compute_derivatives_nl_for(*i, grad);
     return wssr;
@@ -349,10 +350,10 @@ realt Fit::compute_derivatives_nl_for(const DataAndModel* dm, double *grad)
     for (int i = 0; i != n; i++) {
         realt sig = data->get_sigma(i);
         realt dy_sig = (data->get_y(i) - yy[i]) / sig;
-        wssr += dy_sig;
+        wssr += dy_sig * dy_sig;
         for (int j = 0; j != na_; ++j)
             //if (par_usage_[j])
-                grad[j] += dy_sig * dy_da[i*dyn+j] / sig;
+                grad[j] += -2 * dy_sig * dy_da[i*dyn+j] / sig;
     }
     return wssr;
 }
@@ -631,21 +632,59 @@ void Fit::reverse_matrix (vector<realt>&A, int n)
     A = A_result;
 }
 
+
+void Fit::output_tried_parameters(const vector<realt>& a)
+{
+    const SettingsMgr *sm = F_->settings_mgr();
+    string s = "Trying ( ";
+    s.reserve(s.size() + a.size() * 12); // rough guess
+    v_foreach (realt, j, a)
+        s += sm->format_double(*j) + (j+1 == a.end() ? " )" : ", ");
+    F_->vmsg(s);
+}
+
 //-------------------------------------------------------------------
+
+// this list should be kept sync with to FitMethodsContainer ctor.
+const char* fit_method_enum[] = {
+    "levenberg_marquardt", // LMfit.cpp
+    "mpfit",               // MPfit.cpp
+    "nelder_mead_simplex", // NMfit.cpp
+    "genetic_algorithms",  // GAfit.cpp
+#if HAVE_LIBNLOPT
+    "nlopt_mma",           // NLfit.cpp
+    "nlopt_slsqp",         // NLfit.cpp
+    "nlopt_lbfgs",         // NLfit.cpp
+    "nlopt_var2",          // NLfit.cpp
+    "nlopt_cobyla",        // NLfit.cpp
+    "nlopt_bobyqa",        // NLfit.cpp
+    "nlopt_nm",            // NLfit.cpp
+    "nlopt_sbplx",         // NLfit.cpp
+#endif
+    NULL
+};
 
 FitMethodsContainer::FitMethodsContainer(Ftk *F_)
     : ParameterHistoryMgr(F_), dirty_error_cache_(true)
 
 {
-    // these methods correspond to fitting_method_enum[] in settings.cpp
-    methods_.push_back(new LMfit(F_));
-    methods_.push_back(new MPfit(F_));
-    methods_.push_back(new NMfit(F_));
-    methods_.push_back(new GAfit(F_));
+    // these methods correspond to fit_method_enum[]
+    methods_.push_back(new LMfit(F_, fit_method_enum[0]));
+    methods_.push_back(new MPfit(F_, fit_method_enum[1]));
+    methods_.push_back(new NMfit(F_, fit_method_enum[2]));
+    methods_.push_back(new GAfit(F_, fit_method_enum[3]));
 #if HAVE_LIBNLOPT
-    methods_.push_back(new NLfit(F_));
+    methods_.push_back(new NLfit(F_, fit_method_enum[4], NLOPT_LD_MMA));
+    methods_.push_back(new NLfit(F_, fit_method_enum[5], NLOPT_LD_SLSQP));
+    methods_.push_back(new NLfit(F_, fit_method_enum[6], NLOPT_LD_LBFGS));
+    methods_.push_back(new NLfit(F_, fit_method_enum[7], NLOPT_LD_VAR2));
+    methods_.push_back(new NLfit(F_, fit_method_enum[8], NLOPT_LN_COBYLA));
+    methods_.push_back(new NLfit(F_, fit_method_enum[9], NLOPT_LN_BOBYQA));
+    methods_.push_back(new NLfit(F_, fit_method_enum[10], NLOPT_LN_NELDERMEAD));
+    methods_.push_back(new NLfit(F_, fit_method_enum[11], NLOPT_LN_SBPLX));
 #endif
 }
+
 
 const char* FitMethodsContainer::full_method_names[][2] =
 {
@@ -653,7 +692,16 @@ const char* FitMethodsContainer::full_method_names[][2] =
     { "MPFIT (another Lev-Mar)", "alternative Lev-Mar implementation" },
     { "Nelder-Mead Simplex",     "slow but simple and reliable method" },
     { "Genetic Algorithm",       "not really maintained" },
-    { "NLopt",                   "" },
+#if HAVE_LIBNLOPT
+    { "MMA (from NLopt)",        "Method of Moving Asymptotes" },
+    { "SLSQP (from NLopt)",      "sequential quadratic programming" },
+    { "BFGS (from NLopt)",       "L-BFGS" },
+    { "VAR2 (from NLopt)",       "shifted limited-memory variable-metric" },
+    { "COBYLA (from NLopt)",     "Constrained Optimization BY Linear Approx." },
+    { "BOBYQA (from NLopt)",     "Bound Optimization BY Quadratic Approx." },
+    { "Nelder-Mead (from NLopt)","Nelder-Mead Simplex" },
+    { "Sbplx (from NLopt)",      "(based on Subplex)" },
+#endif
     { NULL, NULL }
 };
 

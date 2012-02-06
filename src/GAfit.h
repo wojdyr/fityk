@@ -21,7 +21,7 @@ struct Individual
 class GAfit : public Fit
 {
 public:
-    GAfit(Ftk* F);
+    GAfit(Ftk* F, const char* name);
     ~GAfit();
     virtual void init(); // called before autoiter()
     void autoiter();

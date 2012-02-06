@@ -86,6 +86,7 @@ protected:
     realt draw_a_from_distribution(int nr, char distribution = 'u',
                                    realt mult = 1.);
     void iteration_plot(const std::vector<realt> &A, realt wssr);
+    void output_tried_parameters(const std::vector<realt>& a);
 private:
     time_t last_refresh_time_;
     clock_t start_time_;
@@ -142,6 +143,8 @@ private:
 
     DISALLOW_COPY_AND_ASSIGN(FitMethodsContainer);
 };
+
+extern const char* fit_method_enum[]; // used in settings.cpp
 
 #endif
 

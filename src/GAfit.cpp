@@ -17,8 +17,8 @@
 
 using namespace std;
 
-GAfit::GAfit(Ftk* F)
-   : Fit(F, "genetic_algorithms"),
+GAfit::GAfit(Ftk* F, const char* name)
+   : Fit(F, name),
      popsize (100), elitism(0),
      mutation_type('u'), p_mutation(0.1), mutate_all_genes(false),
      mutation_strength(0.1), crossover_type('u'), p_crossover(0.3),

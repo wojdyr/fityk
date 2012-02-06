@@ -8,8 +8,7 @@
 using namespace std;
 
 
-MPfit::MPfit(Ftk* F)
-    : Fit(F, "mpfit")
+void MPfit::init()
 {
     // 0 value means default
     mp_conf_.ftol = 0.;
@@ -24,14 +23,6 @@ MPfit::MPfit(Ftk* F)
     mp_conf_.douserscale = 0;
     mp_conf_.nofinitecheck = 0;
     mp_conf_.iterproc = NULL;
-}
-
-MPfit::~MPfit()
-{
-}
-
-void MPfit::init()
-{
 }
 
 int calculate_for_mpfit(int m, int npar, double *par, double *deviates,
@@ -61,6 +52,8 @@ int MPfit::calculate(int /*m*/, int npar, double *par, double *deviates,
         return -1; // error code reserved for user function
 
     vector<realt> A(par, par+npar);
+    if (F_->get_verbosity() >= 1)
+        output_tried_parameters(A);
     //printf("wssr=%g, p0=%g, p1=%g\n", compute_wssr(A, dmdm_), par[0], par[1]);
     if (!derivs)
         compute_deviates(A, deviates);

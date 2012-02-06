@@ -13,13 +13,6 @@
 
 using namespace std;
 
-NMfit::NMfit(Ftk* F)
-    : Fit(F, "nelder_mead_simplex")
-{
-}
-
-NMfit::~NMfit() {}
-
 void NMfit::init()
 {
     bool move_all = F_->get_settings()->nm_move_all;

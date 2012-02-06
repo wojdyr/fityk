@@ -12,13 +12,6 @@
 
 using namespace std;
 
-LMfit::LMfit(Ftk* F)
-    : Fit(F, "levenberg_marquardt")
-{
-}
-
-LMfit::~LMfit() {}
-
 // note: WSSR is also called chi2
 
 void LMfit::init()
@@ -114,13 +107,8 @@ bool LMfit::do_iteration()
     for (int i = 0; i < na_; i++)
         beta_[i] = a[i] + beta_[i];   // and now there is new a[] in beta_[]
 
-    if (F_->get_verbosity() >= 1) {
-        const SettingsMgr *sm = F_->settings_mgr();
-        string s = "Trying A={ ";
-        v_foreach (realt, j, beta_)
-            s += sm->format_double(*j) + (j+1 == beta_.end() ? " }" : ", ");
-        F_->vmsg(s);
-    }
+    if (F_->get_verbosity() >= 1)
+        output_tried_parameters(beta_);
 
     // compute chi2_
     chi2_ = compute_wssr(beta_, dmdm_);

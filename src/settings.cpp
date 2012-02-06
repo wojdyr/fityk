@@ -48,16 +48,6 @@ static const char* on_error_enum[] =
 static const char* default_sigma_enum[] =
 { "sqrt", "one", NULL };
 
-// this list should be kept sync with to FitMethodsContainer ctor.
-static const char* fitting_method_enum[] = {
-    "levenberg_marquardt", // LMfit.cpp
-    "mpfit",               // MPfit.cpp
-    "nelder_mead_simplex", // NMfit.cpp
-    "genetic_algorithms",  // GAfit.cpp
-    "nlopt",               // NLfit.cpp
-    NULL
-};
-
 static const char* nm_distribution_enum[] =
 { "bound", "uniform", "gauss", "lorentz", NULL };
 
@@ -81,7 +71,7 @@ static const Option options[] = {
     OPT(width_correction, kDouble, 1., NULL),
     OPT(guess_uses_weights, kBool, true, NULL),
 
-    OPT(fitting_method, kEnum, fitting_method_enum[0], fitting_method_enum),
+    OPT(fitting_method, kEnum, fit_method_enum[0], fit_method_enum),
     OPT(max_wssr_evaluations, kInt, 1000, NULL),
     OPT(max_fitting_time, kDouble, 0., NULL),
     OPT(refresh_period, kInt, 4, NULL),

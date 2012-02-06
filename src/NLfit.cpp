@@ -1,4 +1,4 @@
-// This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// This file is part of fityk program. Copyright Marcin Wojdyr.
 // Licence: GNU General Public License ver. 2+
 
 #include "NLfit.h"
@@ -11,8 +11,8 @@ using namespace std;
 // int major, minor, bugfix;
 // nlopt_version(&major, &minor, &bugfix);
 
-NLfit::NLfit(Ftk* F)
-    : Fit(F, "NLopt"), opt_(NULL)
+NLfit::NLfit(Ftk* F, const char* name, nlopt_algorithm algorithm)
+    : Fit(F, name), algorithm_(algorithm), opt_(NULL)
 {
 }
 
@@ -37,18 +37,25 @@ void NLfit::init()
 double NLfit::calculate(int n, const double* par, double* grad)
 {
     assert(n == na_);
-    if (common_termination_criteria(iter_nr_-start_iter_)) {
-        nlopt_force_stop(opt_);
-        return 0;
-    }
-
     vector<realt> A(par, par+na_);
-    if (!grad)
-        return compute_wssr(A, dmdm_);
-    else {
-        ++iter_nr_;
-        return compute_derivatives_nl(A, dmdm_, grad);
+    if (F_->get_verbosity() >= 1)
+        output_tried_parameters(A);
+    bool stop = common_termination_criteria(iter_nr_-start_iter_);
+    if (stop)
+        nlopt_force_stop(opt_);
+
+    double wssr;
+    if (!grad || stop)
+        wssr = compute_wssr(A, dmdm_);
+    else
+        wssr = compute_derivatives_nl(A, dmdm_, grad);
+    ++iter_nr_;
+    if (F_->get_verbosity() >= 1) {
+        realt rel_diff = (wssr - wssr_before_) / wssr_before_;
+        F_->vmsg("... #" + S(iter_nr_) + ":  WSSR=" + S(wssr) +
+                 format1<double, 32>("  (%+g%%)", rel_diff * 100));
     }
+    return wssr;
 }
 
 static
@@ -72,17 +79,13 @@ const char* nlresult_to_string(nlopt_result r)
 
 void NLfit::autoiter()
 {
-    nlopt_algorithm algorithm = NLOPT_LD_MMA;
-
-    if (opt_ != NULL ||
-            na_ != (int) nlopt_get_dimension(opt_) ||
-            algorithm != nlopt_get_algorithm(opt_)) {
+    if (opt_ != NULL && na_ != (int) nlopt_get_dimension(opt_)) {
         nlopt_destroy(opt_);
         opt_ = NULL;
     }
 
     if (opt_ == NULL) {
-        opt_ = nlopt_create(algorithm, na_);
+        opt_ = nlopt_create(algorithm_, na_);
         nlopt_set_min_objective(opt_, calculate_for_nlopt, this);
     }
 
@@ -95,8 +98,10 @@ void NLfit::autoiter()
 
     double opt_f;
     double *a = new double[na_];
+    for (int i = 0; i < na_; ++i)
+        a[i] = a_orig_[i];
     nlopt_result r = nlopt_optimize(opt_, a, &opt_f);
-    F_->msg("NLopt result: " + S(nlresult_to_string(r)));
+    F_->msg("NLopt says: " + S(nlresult_to_string(r)));
     post_fit(vector<realt>(a, a+na_), opt_f);
     delete [] a;
 }

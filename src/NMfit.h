@@ -24,8 +24,7 @@ struct Vertex
 class NMfit : public Fit
 {
 public:
-    NMfit(Ftk* F);
-    ~NMfit();
+    NMfit(Ftk* F, const char* name) : Fit(F, name) {}
     virtual void init(); // called before autoiter()
     void autoiter();
 private:

@@ -17,8 +17,7 @@ struct mp_config_struct;
 class MPfit : public Fit
 {
 public:
-    MPfit(Ftk* F);
-    ~MPfit();
+    MPfit(Ftk* F, const char* name) : Fit(F, name) {}
     virtual void init(); // called before do_iteration()/autoiter()
     void autoiter();
 
