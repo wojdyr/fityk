@@ -1,11 +1,11 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-///  Script Editor and Debugger (ScriptDebugDlg)
+///  Script Editor and Debugger (EditorDlg)
 
 #include <wx/wx.h>
 
-#include "sdebug.h"
+#include "editor.h"
 #include "frame.h" //ftk
 #include "../logic.h"
 
@@ -34,18 +34,18 @@ enum {
 };
 
 
-BEGIN_EVENT_TABLE(ScriptDebugDlg, wxDialog)
-    EVT_TOOL(ID_SE_OPEN, ScriptDebugDlg::OnOpenFile)
-    EVT_TOOL(ID_SE_EXECSEL, ScriptDebugDlg::OnExecSelected)
-    EVT_TOOL(ID_SE_STEP, ScriptDebugDlg::OnStep)
-    EVT_TOOL(ID_SE_SAVE, ScriptDebugDlg::OnSave)
-    EVT_TOOL(ID_SE_SAVE_AS, ScriptDebugDlg::OnSaveAs)
-    EVT_TOOL(ID_SE_CLOSE, ScriptDebugDlg::OnClose)
-    EVT_TEXT(ID_SE_TXT, ScriptDebugDlg::OnTextChange)
-    EVT_CLOSE(ScriptDebugDlg::OnCloseDlg)
+BEGIN_EVENT_TABLE(EditorDlg, wxDialog)
+    EVT_TOOL(ID_SE_OPEN, EditorDlg::OnOpenFile)
+    EVT_TOOL(ID_SE_EXECSEL, EditorDlg::OnExecSelected)
+    EVT_TOOL(ID_SE_STEP, EditorDlg::OnStep)
+    EVT_TOOL(ID_SE_SAVE, EditorDlg::OnSave)
+    EVT_TOOL(ID_SE_SAVE_AS, EditorDlg::OnSaveAs)
+    EVT_TOOL(ID_SE_CLOSE, EditorDlg::OnClose)
+    EVT_TEXT(ID_SE_TXT, EditorDlg::OnTextChange)
+    EVT_CLOSE(EditorDlg::OnCloseDlg)
 END_EVENT_TABLE()
 
-ScriptDebugDlg::ScriptDebugDlg(wxWindow* parent)
+EditorDlg::EditorDlg(wxWindow* parent)
     : wxDialog(parent, -1, wxT(""),
                wxDefaultPosition, wxSize(600, 500),
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
@@ -106,7 +106,7 @@ ScriptDebugDlg::ScriptDebugDlg(wxWindow* parent)
     set_title();
 }
 
-void ScriptDebugDlg::open_file(wxWindow *parent)
+void EditorDlg::open_file(wxWindow *parent)
 {
     wxFileDialog dialog(parent, wxT("open script file"), dir, wxT(""),
                         wxT("fityk scripts (*.fit)|*.fit|all files|*"),
@@ -117,7 +117,7 @@ void ScriptDebugDlg::open_file(wxWindow *parent)
 }
 
 // can be used to "open" a new file (not existing)
-void ScriptDebugDlg::do_open_file(const wxString& path)
+void EditorDlg::do_open_file(const wxString& path)
 {
     if (wxFileExists(path))
         txt->LoadFile(path);
@@ -130,7 +130,7 @@ void ScriptDebugDlg::do_open_file(const wxString& path)
     set_title();
 }
 
-void ScriptDebugDlg::OnSave(wxCommandEvent& event)
+void EditorDlg::OnSave(wxCommandEvent& event)
 {
     if (!path_.empty())
         save_file(path_);
@@ -138,7 +138,7 @@ void ScriptDebugDlg::OnSave(wxCommandEvent& event)
         OnSaveAs(event);
 }
 
-void ScriptDebugDlg::OnSaveAs(wxCommandEvent&)
+void EditorDlg::OnSaveAs(wxCommandEvent&)
 {
     wxFileDialog dialog(this, wxT("save script as..."), dir, wxT(""),
                         wxT("fityk scripts (*.fit)|*.fit|all files|*"),
@@ -148,7 +148,7 @@ void ScriptDebugDlg::OnSaveAs(wxCommandEvent&)
     dir = dialog.GetDirectory();
 }
 
-void ScriptDebugDlg::save_file(const wxString& save_path)
+void EditorDlg::save_file(const wxString& save_path)
 {
     bool r = txt->SaveFile(save_path);
     if (r) {
@@ -159,7 +159,7 @@ void ScriptDebugDlg::save_file(const wxString& save_path)
     }
 }
 
-void ScriptDebugDlg::exec_line(int n)
+void EditorDlg::exec_line(int n)
 {
     wxString line;
     line = txt->GetLineText(n);
@@ -183,7 +183,7 @@ void ScriptDebugDlg::exec_line(int n)
     */
 }
 
-int ScriptDebugDlg::exec_selected()
+int EditorDlg::exec_selected()
 {
     long from, to;
     txt->GetSelection(&from, &to);
@@ -206,7 +206,7 @@ int ScriptDebugDlg::exec_selected()
     }
 }
 
-void ScriptDebugDlg::OnStep(wxCommandEvent&)
+void EditorDlg::OnStep(wxCommandEvent&)
 {
     long last = exec_selected();
     if (last == -1)
@@ -215,7 +215,7 @@ void ScriptDebugDlg::OnStep(wxCommandEvent&)
     txt->SetInsertionPoint(txt->XYToPosition(0, last));
 }
 
-void ScriptDebugDlg::OnTextChange(wxCommandEvent&)
+void EditorDlg::OnTextChange(wxCommandEvent&)
 {
     if (GetTitle().EndsWith(wxT(" *")) != txt->IsModified())
         set_title();
@@ -225,7 +225,7 @@ void ScriptDebugDlg::OnTextChange(wxCommandEvent&)
 #endif
 }
 
-void ScriptDebugDlg::set_title()
+void EditorDlg::set_title()
 {
     wxString p = path_.empty() ? wxString(wxT("unnamed")) : path_;
     if (txt->IsModified())

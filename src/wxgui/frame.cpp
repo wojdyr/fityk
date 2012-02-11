@@ -48,7 +48,7 @@
 #include "datatable.h"
 #include "dataedit.h"
 #include "defmgr.h"
-#include "sdebug.h"
+#include "editor.h"
 #include "setdlg.h"
 #include "statbar.h"
 #include "fitinfo.h"
@@ -1435,7 +1435,7 @@ void FFrame::OnReInclude (wxCommandEvent&)
 
 void FFrame::show_editor(wxString const& path)
 {
-    ScriptDebugDlg* dlg = new ScriptDebugDlg(this);
+    EditorDlg* dlg = new EditorDlg(this);
     if (!path.empty())
         dlg->do_open_file(path);
     dlg->Show(true);

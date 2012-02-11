@@ -1,13 +1,13 @@
-// This file is part of fityk program. Copyright (C) Marcin Wojdyr
+// This file is part of fityk program. Copyright Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__WX_SDEBUG__H__
-#define FITYK__WX_SDEBUG__H__
+#ifndef FITYK_WX_EDITOR_H_
+#define FITYK_WX_EDITOR_H_
 
-class ScriptDebugDlg : public wxDialog
+class EditorDlg : public wxDialog
 {
 public:
-    ScriptDebugDlg(wxWindow* parent);
+    EditorDlg(wxWindow* parent);
     void OnOpenFile(wxCommandEvent&) { open_file(this); }
     void OnSave(wxCommandEvent&);
     void OnSaveAs(wxCommandEvent&);
