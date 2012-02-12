@@ -110,7 +110,7 @@ void DatasetTransformer::run_dt(const VMData& vm, int out)
                 stackPtr += 1;
                 if (stackPtr - stack >= 6)
                     throw ExecuteError("stack overflow");
-                i++;
+                ++i;
                 stackPtr->is_num = true;
                 stackPtr->num = vm.numbers()[*i];
                 break;
@@ -120,7 +120,7 @@ void DatasetTransformer::run_dt(const VMData& vm, int out)
                 if (stackPtr - stack >= 6)
                     throw ExecuteError("stack overflow");
                 stackPtr->is_num = false;
-                i++;
+                ++i;
                 stackPtr->points = F_->get_data(*i)->points();
                 stackPtr->title = F_->get_data(*i)->get_title();
                 if (stackPtr->title.empty())

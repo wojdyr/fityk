@@ -96,7 +96,7 @@ public:
     typedef void t_wait(float seconds);
     void set_wait(t_wait *func) { wait_ = func; }
     /// Wait and disable UI for ... seconds.
-    void wait(float seconds) { if (wait_) (*wait_)(seconds); }
+    void wait(float seconds) const { if (wait_) (*wait_)(seconds); }
 
     /// share parser -- it can be safely reused
     Parser* parser() const { return parser_; }

@@ -692,7 +692,7 @@ realt ExprCalculator::calculate_custom(const vector<realt>& custom_val) const
     v_foreach (int, i, vm_.code()) {
         if (*i == OP_SYMBOL) {
             STACK_OFFSET_CHANGE(+1);
-            i++;
+            ++i;
             if (is_index(*i, custom_val))
                 *stackPtr = custom_val[*i];
             else

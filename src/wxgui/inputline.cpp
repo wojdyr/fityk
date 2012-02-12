@@ -72,6 +72,7 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
                 if (!s.empty())
                     m_history.Add(s);
             }
+            fclose(f);
         }
     }
     // add empty line that will be displayed initially

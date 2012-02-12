@@ -117,7 +117,7 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
         vector<Point>::const_iterator f = (*i)->get_point_at(hor.from);
         vector<Point>::const_iterator l = (*i)->get_point_at(hor.to);
         //first we are searching for minimal and max. y in active points
-        for (vector<Point>::const_iterator j = f; j < l; j++) {
+        for (vector<Point>::const_iterator j = f; j < l; ++j) {
             if (j->is_active && is_finite(j->y)) {
                 min_max_set = true;
                 if (j->y > y_max)
@@ -133,7 +133,7 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
         v_foreach (Data const*, i, datas) {
             vector<Point>::const_iterator f = (*i)->get_point_at(hor.from);
             vector<Point>::const_iterator l = (*i)->get_point_at(hor.to);
-            for (vector<Point>::const_iterator j = f; j < l; j++) {
+            for (vector<Point>::const_iterator j = f; j < l; ++j) {
                 if (!is_finite(j->y))
                     continue;
                 min_max_set = true;

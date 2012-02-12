@@ -118,7 +118,7 @@ public:
     void updated_plot() { dirty_plot_ = false; }
 
     /// returns true if the plot should be replotted
-    bool is_plot_outdated() { return dirty_plot_; }
+    bool is_plot_outdated() const { return dirty_plot_; }
 
 private:
     int default_dm_;

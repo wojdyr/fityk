@@ -23,16 +23,16 @@ void NMfit::init()
     Vertex v(a_orig_);
     vertices = vector<Vertex> (na_ + 1, v);
     // 2. na_ of na_+1 vertices has one coordinate changed; computing WSSR
-    for (int i = 0; i < na_; i++) {
+    for (int i = 0; i < na_; ++i) {
         vertices[i + 1].a[i] = draw_a_from_distribution(i, distrib, factor);
         if (move_all) {
             realt d2 = (vertices[i + 1].a[i] - vertices[0].a[i]) / 2;
             for (vector<Vertex>::iterator j = vertices.begin();
-                                                    j != vertices.end(); j++)
+                                                    j != vertices.end(); ++j)
                 j->a[i] -= d2;
         }
     }
-    for (vector<Vertex>::iterator i = vertices.begin(); i!=vertices.end(); i++)
+    for (vector<Vertex>::iterator i = vertices.begin(); i!=vertices.end(); ++i)
         compute_v (*i);
     // 3.
     find_best_worst();
@@ -52,7 +52,7 @@ void NMfit::find_best_worst()
         worst = vertices.begin();
         s_worst = best = vertices.begin() + 1;
     }
-    for (vector<Vertex>::iterator i = vertices.begin(); i!=vertices.end() ;i++){
+    for (vector<Vertex>::iterator i = vertices.begin(); i!=vertices.end(); ++i){
         if (i->wssr < best->wssr)
             best = i;
         if (i->wssr > worst->wssr) {
@@ -88,10 +88,10 @@ void NMfit::change_simplex()
         realt t = try_new_worst(0.5);
         if (t >= old) { // than multiple contraction
             for (vector<Vertex>::iterator i = vertices.begin();
-                                                    i != vertices.end() ;i++) {
+                                                    i != vertices.end() ;++i) {
                 if (i == best)
                     continue;
-                for (int j = 0; j < na_; j++)
+                for (int j = 0; j < na_; ++j)
                     i->a[j] = (i->a[j] + best->a[j]) / 2;
                 compute_v (*i);
                 volume_factor *= 0.5;
@@ -109,11 +109,11 @@ realt NMfit::try_new_worst(realt f)
     Vertex t(na_);
     realt f1 = (1 - f) / na_;
     realt f2 = f1 - f;
-    for (int i = 0; i < na_; i++)
+    for (int i = 0; i < na_; ++i)
         t.a[i] = coord_sum[i] * f1 - worst->a[i] * f2;
     compute_v (t);
     if (t.wssr < worst->wssr) {
-        for (int i = 0; i < na_; i++)
+        for (int i = 0; i < na_; ++i)
             coord_sum[i] += t.a[i] - worst->a[i];
         *worst = t;
         volume_factor *= f;
@@ -125,9 +125,9 @@ void NMfit::compute_coord_sum()
 {
     coord_sum.resize(na_);
     fill (coord_sum.begin(), coord_sum.end(), 0.);
-    for (int i = 0; i < na_; i++)
+    for (int i = 0; i < na_; ++i)
         for (vector<Vertex>::iterator j = vertices.begin();
-                                                j != vertices.end(); j++)
+                                                j != vertices.end(); ++j)
             coord_sum[i] += j->a[i];
 }
 
@@ -145,7 +145,7 @@ bool NMfit::termination_criteria(int iter, realt convergence)
 
 /*DEBUG - BEGIN*
     string s = "WSSR:";
-    for (vector<Vertex>::iterator i = vertices.begin(); i!=vertices.end(); i++)
+    for (vector<Vertex>::iterator i = vertices.begin(); i!=vertices.end(); ++i)
         s += " " + S(i->wssr);
     F_->msg (s);
 *DEBUG - END*/

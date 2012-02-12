@@ -303,7 +303,7 @@ double FPlot::get_max_abs_y (double (*compute_y)(vector<Point>::const_iterator,
                          Model const* model)
 {
     double max_abs_y = 0;
-    for (vector<Point>::const_iterator i = first; i < last; i++) {
+    for (vector<Point>::const_iterator i = first; i < last; ++i) {
         if (i->is_active) {
             double y = fabs(((*compute_y)(i, model)));
             if (y > max_abs_y) max_abs_y = y;
@@ -488,7 +488,7 @@ int FPlot::get_special_point_at_pointer(wxMouseEvent& event)
     int nearest = -1;
     int min_dist = 10;
     for (vector<wxPoint>::const_iterator i = special_points.begin();
-                                             i != special_points.end(); i++) {
+                                             i != special_points.end(); ++i) {
         int d = abs(event.GetX() - i->x) + abs(event.GetY() - i->y);
         if (d < min_dist) {
             min_dist = d;
