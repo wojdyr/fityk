@@ -94,7 +94,6 @@ img/goto.xpm \
 img/lock.xpm \
 img/lock_open.xpm \
 img/manual.xpm \
-img/open.xpm \
 img/open_data_custom.xpm \
 img/open_data.xpm \
 img/rename.xpm \

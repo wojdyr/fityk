@@ -107,8 +107,11 @@ public:
     void OnSaveHistory   (wxCommandEvent& event);
     void OnInclude      (wxCommandEvent& event);
     void OnReInclude    (wxCommandEvent& event);
-    void OnShowEditor   (wxCommandEvent&) { show_editor(wxT("")); }
-    void show_editor (wxString const& path);
+    void OnNewFitykScript(wxCommandEvent&);
+    void OnNewLuaScript(wxCommandEvent&);
+    void OnNewHistoryScript(wxCommandEvent&);
+    void OnScriptEdit   (wxCommandEvent&);
+    void show_editor (const wxString& path, const wxString& content);
     void OnReset       (wxCommandEvent&);
 #ifdef __WXMAC__
     void OnNewWindow   (wxCommandEvent&);
@@ -204,6 +207,9 @@ public:
     // overridden from wxFrameBase, to show help in our status bar replacement
     void DoGiveHelp(const wxString& help, bool show);
     bool antialias() const { return antialias_; }
+    // script_dir_ is accessed by EditorDlg
+    const wxString& script_dir() const { return script_dir_; }
+    void set_script_dir(const wxString& s) { script_dir_ = s; }
 
 private:
     ProportionalSplitter *v_splitter_;

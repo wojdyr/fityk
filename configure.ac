@@ -106,7 +106,7 @@ AC_COMPILE_IFELSE(
 
 # Checks for version specific libraries and headers.
 AS_IF([test "x$enable_GUI" != "xno"], [
-    AM_PATH_WXCONFIG([2.9.2], [wxWin=1], [wxWin=0], [adv,core,base])
+    AM_PATH_WXCONFIG([2.9.2], [wxWin=1], [wxWin=0], [adv,core,base,stc])
     if test "$wxWin" != 1; then
     	AC_MSG_ERROR([
 	      wxWindows must be installed on your system

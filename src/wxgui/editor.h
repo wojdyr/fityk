@@ -4,33 +4,32 @@
 #ifndef FITYK_WX_EDITOR_H_
 #define FITYK_WX_EDITOR_H_
 
+class Editor;
+
 class EditorDlg : public wxDialog
 {
 public:
     EditorDlg(wxWindow* parent);
-    void OnOpenFile(wxCommandEvent&) { open_file(this); }
+    void open_file(const wxString& path);
+    void new_file_with_content(const wxString& content);
+
+private:
+    wxToolBarBase *tb_;
+    Editor *ed_;
+    wxString path_;
+
+    int exec_selected();
+    void exec_line(int n);
+    void save_file(const wxString& save_path);
+    void update_title();
+
     void OnSave(wxCommandEvent&);
     void OnSaveAs(wxCommandEvent&);
     void OnExecSelected(wxCommandEvent&) { exec_selected(); }
     void OnStep(wxCommandEvent&);
-    void OnClose(wxCommandEvent&) { Close(); }
-    void OnCloseDlg(wxCloseEvent&) { Destroy(); }
+    void OnButtonClose(wxCommandEvent&) { Close(); }
+    void OnCloseDlg(wxCloseEvent&);
     void OnTextChange(wxCommandEvent&);
-    void open_file(wxWindow *parent);
-    void do_open_file(const wxString& path);
-    int exec_selected();
-    wxString get_list_item(int i);
-    void exec_line(int n);
-    void save_file(const wxString& save_path);
-    const wxString& get_path() const { return path_; }
-protected:
-    wxToolBarBase *tb;
-    wxTextCtrl *txt;
-    wxString dir;
-    wxString path_;
-    std::string script_dir;
-
-    void set_title();
     DECLARE_EVENT_TABLE()
 };
 

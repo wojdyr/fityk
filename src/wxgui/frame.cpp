@@ -178,6 +178,9 @@ enum {
     ID_SAVE_IMAGE              ,
     ID_SESSION_INCLUDE         ,
     ID_SESSION_REINCLUDE       ,
+    ID_SESSION_NEW_F           ,
+    ID_SESSION_NEW_L           ,
+    ID_SESSION_NEW_H           ,
     ID_SCRIPT_EDIT             ,
     ID_SESSION_DUMP            ,
     ID_SESSION_SET             ,
@@ -185,7 +188,7 @@ enum {
     ID_G_MODE                  ,
     ID_G_M_ZOOM                ,
     ID_G_M_RANGE               ,
-    ID_G_M_BG                    ,
+    ID_G_M_BG                  ,
     ID_G_M_ADD                 ,
     ID_G_BG_STRIP              ,
     ID_G_BG_UNDO               ,
@@ -272,7 +275,10 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
 #endif
     EVT_MENU (ID_SESSION_INCLUDE, FFrame::OnInclude)
     EVT_MENU (ID_SESSION_REINCLUDE, FFrame::OnReInclude)
-    EVT_MENU (ID_SCRIPT_EDIT,   FFrame::OnShowEditor)
+    EVT_MENU (ID_SESSION_NEW_F, FFrame::OnNewFitykScript)
+    EVT_MENU (ID_SESSION_NEW_L, FFrame::OnNewLuaScript)
+    EVT_MENU (ID_SESSION_NEW_H, FFrame::OnNewHistoryScript)
+    EVT_MENU (ID_SCRIPT_EDIT,   FFrame::OnScriptEdit)
     EVT_MENU (wxID_PRINT,       FFrame::OnPrint)
     EVT_MENU (ID_PRINT_PSFILE,  FFrame::OnPrintPSFile)
     EVT_MENU (ID_COPY_TO_CLIPB, FFrame::OnCopyToClipboard)
@@ -583,10 +589,15 @@ void FFrame::set_menubar()
     session_menu->Append (ID_SESSION_REINCLUDE, wxT("R&e-Execute script"),
              wxT("Reset & execute commands from the file included last time"));
     session_menu->Enable (ID_SESSION_REINCLUDE, false);
-    append_mi(session_menu, ID_SCRIPT_EDIT, GET_BMP(editor16),
-              wxT("E&dit Script"), wxT("Show script editor"));
     append_mi(session_menu, ID_SESSION_RESET, GET_BMP(reload16), wxT("&Reset"),
                                       wxT("Reset current session"));
+    wxMenu *session_new_script_menu = new wxMenu;
+    session_new_script_menu->Append(ID_SESSION_NEW_F, "&Blank Fityk Script");
+    session_new_script_menu->Append(ID_SESSION_NEW_L, "&Blank Lua Script");
+    session_new_script_menu->Append(ID_SESSION_NEW_H, "&From Command History");
+    session_menu->Append(-1, "&New Script", session_new_script_menu);
+    append_mi(session_menu, ID_SCRIPT_EDIT, GET_BMP(editor16),
+              wxT("E&dit Script"), wxT("Show script editor"));
 #ifdef __WXMAC__
     session_menu->Append (ID_SESSION_NEWWIN, "New Window",
                           "Open new window (new process)");
@@ -1433,11 +1444,42 @@ void FFrame::OnReInclude (wxCommandEvent&)
     ftk->exec("reset; exec '" + last_include_path_ + "'");
 }
 
-void FFrame::show_editor(wxString const& path)
+void FFrame::OnNewFitykScript(wxCommandEvent&)
+{
+    show_editor("", fityk_version_line + wxString("\n"));
+}
+
+void FFrame::OnNewLuaScript(wxCommandEvent&)
+{
+    show_editor("", "-- Lua script for Fityk.\n");
+}
+
+void FFrame::OnNewHistoryScript(wxCommandEvent&)
+{
+    //TODO
+    //show_editor("", );
+}
+
+void FFrame::OnScriptEdit(wxCommandEvent&)
+{
+    wxFileDialog fdlg(this, "open script file", script_dir_, "",
+                      "fityk scripts (*.fit)|*.fit;*.FIT"
+                      "|Lua scripts (*.lua)|*.lua;*.LUA"
+                      "|all files|*",
+                      wxFD_OPEN /*| wxFD_FILE_MUST_EXIST*/);
+    if (fdlg.ShowModal() == wxID_OK)
+        show_editor(fdlg.GetPath(), "");
+    script_dir_ = fdlg.GetDirectory();
+}
+
+
+void FFrame::show_editor(const wxString& path, const wxString& content)
 {
     EditorDlg* dlg = new EditorDlg(this);
     if (!path.empty())
-        dlg->do_open_file(path);
+        dlg->open_file(path);
+    else
+        dlg->new_file_with_content(content);
     dlg->Show(true);
 }
 
@@ -1463,7 +1505,7 @@ void FFrame::OnSettings (wxCommandEvent&)
 void FFrame::OnEditInit (wxCommandEvent&)
 {
     wxString startup_file = get_conf_file(startup_commands_filename);
-    show_editor(startup_file);
+    show_editor(startup_file, "");
 }
 
 void FFrame::change_mouse_mode(MouseModeEnum mode)
@@ -1473,9 +1515,10 @@ void FFrame::change_mouse_mode(MouseModeEnum mode)
     int tool_ids[] = { ID_T_ZOOM, ID_T_BG, ID_T_ADD, ID_T_RANGE };
     int idx = mode;
     GetMenuBar()->Check(menu_ids[idx], true);
-    if (toolbar_)
+    if (toolbar_) {
         toolbar_->ToggleTool(tool_ids[idx], true);
-    toolbar_->EnableTool(ID_T_STRIP, (mode == mmd_bg));
+        toolbar_->EnableTool(ID_T_STRIP, (mode == mmd_bg));
+    }
     get_main_plot()->switch_to_mode(mode);
 }
 
