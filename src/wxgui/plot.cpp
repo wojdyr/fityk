@@ -61,6 +61,9 @@ void Overlay::draw_overlay()
         // function is drawn by calling draw_lines()
         return;
 
+    if (!panel_->get_bitmap().IsOk())
+        return;
+
     wxClientDC dc(panel_) ;
     panel_->blit(dc);
 
@@ -128,6 +131,8 @@ void Overlay::draw_overlay()
 
 void Overlay::draw_lines(int n, wxPoint points[])
 {
+    if (!panel_->get_bitmap().IsOk())
+        return;
     wxClientDC dc(panel_) ;
     panel_->blit(dc);
     if (n <= 0)
