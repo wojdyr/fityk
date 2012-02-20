@@ -5,6 +5,7 @@
 #define FITYK_WX_EDITOR_H_
 
 class Editor;
+class wxStyledTextEvent;
 
 class EditorDlg : public wxDialog
 {
@@ -20,16 +21,18 @@ private:
 
     int exec_selected();
     void exec_line(int n);
-    void save_file(const wxString& save_path);
+    void do_save_file(const wxString& save_path);
     void update_title();
+    void on_save();
+    void on_save_as();
 
-    void OnSave(wxCommandEvent&);
-    void OnSaveAs(wxCommandEvent&);
-    void OnExecSelected(wxCommandEvent&) { exec_selected(); }
+    void OnSave(wxCommandEvent&) { on_save(); }
+    void OnSaveAs(wxCommandEvent&) { on_save_as(); }
+    void OnExec(wxCommandEvent&);
     void OnStep(wxCommandEvent&);
     void OnButtonClose(wxCommandEvent&) { Close(); }
-    void OnCloseDlg(wxCloseEvent&);
-    void OnTextChange(wxCommandEvent&);
+    void OnCloseDlg(wxCloseEvent& event);
+    void OnTextChange(wxStyledTextEvent&);
     DECLARE_EVENT_TABLE()
 };
 

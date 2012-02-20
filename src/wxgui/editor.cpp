@@ -15,37 +15,33 @@
 #include "img/save_as.xpm"
 #include "img/close.xpm"
 
+#include <wx/stc/stc.h>
 #if __WXMAC__
 #include <wx/generic/buttonbar.h>
 #define wxToolBar wxButtonToolBar
-#endif
-#if wxUSE_STC
-#include <wx/stc/stc.h>
 #endif
 
 using namespace std;
 
 
 enum {
-    ID_SE_EXECSEL        = 28300,
+    ID_SE_EXEC           = 28300,
     ID_SE_STEP                  ,
     ID_SE_SAVE                  ,
     ID_SE_SAVE_AS               ,
     ID_SE_CLOSE                 ,
-    ID_SE_TXT
+    ID_SE_EDITOR
 };
 
 
 BEGIN_EVENT_TABLE(EditorDlg, wxDialog)
-    EVT_TOOL(ID_SE_EXECSEL, EditorDlg::OnExecSelected)
+    EVT_TOOL(ID_SE_EXEC, EditorDlg::OnExec)
     EVT_TOOL(ID_SE_STEP, EditorDlg::OnStep)
     EVT_TOOL(ID_SE_SAVE, EditorDlg::OnSave)
     EVT_TOOL(ID_SE_SAVE_AS, EditorDlg::OnSaveAs)
     EVT_TOOL(ID_SE_CLOSE, EditorDlg::OnButtonClose)
 #if wxUSE_STC
-    EVT_TEXT(ID_SE_TXT, EditorDlg::OnTextChange)
-#else
-    EVT_STC_CHANGE(ID_SE_TXT, EditorDlg::OnTextChange)
+    EVT_STC_CHANGE(ID_SE_EDITOR, EditorDlg::OnTextChange)
 #endif
     EVT_CLOSE(EditorDlg::OnCloseDlg)
 END_EVENT_TABLE()
@@ -88,6 +84,7 @@ public:
     Editor(wxWindow* parent, wxWindowID id)
         : wxTextCtrl(parent, id, "", wxDefaultPosition, wxDefaultSize,
                      wxTE_MULTILINE|wxTE_RICH) {}
+    void set_filetype(bool) {}
 };
 #endif
 
@@ -101,10 +98,10 @@ EditorDlg::EditorDlg(wxWindow* parent)
     tb_ = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize,
                        wxTB_TEXT | wxTB_HORIZONTAL | wxNO_BORDER);
     tb_->SetToolBitmapSize(wxSize(24, 24));
-    tb_->AddTool(ID_SE_EXECSEL, wxT("Execute"),
+    tb_->AddTool(ID_SE_EXEC, wxT("Execute"),
                  wxBitmap(exec_selected_xpm), wxNullBitmap,
-                 wxITEM_NORMAL, wxT("Execute line/selection"),
-                 wxT("Execute selected lines"));
+                 wxITEM_NORMAL, wxT("Execute all/selection"),
+                 wxT("Execute all or selected lines"));
     tb_->AddTool(ID_SE_STEP, wxT("Step"),
                  wxBitmap(exec_down_xpm), wxNullBitmap,
                  wxITEM_NORMAL,
@@ -140,7 +137,7 @@ EditorDlg::EditorDlg(wxWindow* parent)
 #endif
     tb_->Realize();
     top_sizer->Add(tb_, 0, wxEXPAND);
-    ed_ = new Editor(this, ID_SE_TXT);
+    ed_ = new Editor(this, ID_SE_EDITOR);
     top_sizer->Add(ed_, 1, wxALL|wxEXPAND, 0);
     SetSizerAndFit(top_sizer);
     SetSize(600, 500);
@@ -155,6 +152,10 @@ void EditorDlg::open_file(const wxString& path)
     path_ = path;
     bool lua = path.Lower().EndsWith("lua");
     ed_->set_filetype(lua);
+#if wxUSE_STC
+    // i don't know why, but in wxGTK 2.9.3 initially all text is selected
+    ed_->ClearSelections();
+#endif
     ed_->DiscardEdits();
     update_title();
 }
@@ -176,15 +177,15 @@ void EditorDlg::new_file_with_content(const wxString& content)
     update_title();
 }
 
-void EditorDlg::OnSave(wxCommandEvent& event)
+void EditorDlg::on_save()
 {
     if (!path_.empty())
-        save_file(path_);
+        do_save_file(path_);
     else
-        OnSaveAs(event);
+        on_save_as();
 }
 
-void EditorDlg::OnSaveAs(wxCommandEvent&)
+void EditorDlg::on_save_as()
 {
     wxFileDialog dialog(this, "save script as...", frame->script_dir(), "",
                         "fityk scripts (*.fit)|*.fit;*.FIT"
@@ -192,12 +193,12 @@ void EditorDlg::OnSaveAs(wxCommandEvent&)
                         "|all files|*",
                         wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (dialog.ShowModal() == wxID_OK) {
-        save_file(dialog.GetPath());
+        do_save_file(dialog.GetPath());
         frame->set_script_dir(dialog.GetDirectory());
     }
 }
 
-void EditorDlg::save_file(const wxString& save_path)
+void EditorDlg::do_save_file(const wxString& save_path)
 {
     bool r = ed_->SaveFile(save_path);
     if (r) {
@@ -215,7 +216,7 @@ void EditorDlg::exec_line(int n)
     // empty line gives "\n"+next line
     if (!line.empty() && line[0] == '\n') // wx bug
         line = wxT("");
-#if __WXMAC__
+#if __WXMAC__ || wxUSE_STC
     if (line.EndsWith(wxT("\n")))
         line.resize(line.size() - 1);
 #endif
@@ -240,13 +241,9 @@ int EditorDlg::exec_selected()
     long from, to;
     ed_->GetSelection(&from, &to);
     if (from == to) { //no selection
-        long x, y;
-        ed_->PositionToXY(ed_->GetInsertionPoint(), &x, &y);
-        if (y >= 0)
-            exec_line(y);
-        return y;
+        return -1;
     }
-    else { //selection, exec all lines (not only selection)
+    else { //selection, exec whole lines
         long x, y1, y2;
         ed_->PositionToXY(from, &x, &y1);
         ed_->PositionToXY(to, &x, &y2);
@@ -258,16 +255,29 @@ int EditorDlg::exec_selected()
     }
 }
 
-void EditorDlg::OnStep(wxCommandEvent&)
+void EditorDlg::OnExec(wxCommandEvent&)
 {
     long last = exec_selected();
     if (last == -1)
-        return;
-    ++last;
-    ed_->SetInsertionPoint(ed_->XYToPosition(0, last));
+        for (int i = 0; i <= ed_->GetNumberOfLines(); ++i)
+            exec_line(i);
 }
 
-void EditorDlg::OnTextChange(wxCommandEvent&)
+void EditorDlg::OnStep(wxCommandEvent&)
+{
+    long last = exec_selected();
+    if (last == -1) {
+        long x, y;
+        ed_->PositionToXY(ed_->GetInsertionPoint(), &x, &y);
+        if (y < 0)
+            return;
+        exec_line(y);
+        last = y;
+    }
+    ed_->SetInsertionPoint(ed_->XYToPosition(0, last+1));
+}
+
+void EditorDlg::OnTextChange(wxStyledTextEvent&)
 {
     if (GetTitle().EndsWith(wxT(" *")) != ed_->IsModified())
         update_title();
@@ -286,9 +296,17 @@ void EditorDlg::update_title()
     tb_->EnableTool(ID_SE_SAVE, !path_.empty() && ed_->IsModified());
 }
 
-void EditorDlg::OnCloseDlg(wxCloseEvent&)
+void EditorDlg::OnCloseDlg(wxCloseEvent& event)
 {
     if (ed_->IsModified()) {
+        int r = wxMessageBox("Save before closing?", "Save?",
+                             wxYES_NO | wxCANCEL | wxICON_QUESTION);
+        if (r == wxCANCEL) {
+            event.Veto();
+            return;
+        }
+        if (r == wxYES)
+            on_save();
     }
     Destroy();
 }
