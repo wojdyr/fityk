@@ -62,7 +62,7 @@ AboutDlg::AboutDlg(wxWindow* parent)
     txt->AppendText(wxT(" and xylib ") + pchar2wx(xylib_get_version())
                     + wxT("\n"));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxNORMAL_FONT));
-    txt->AppendText(wxT("\nCopyright (C) 2001 - 2011 Marcin Wojdyr\n\n"));
+    txt->AppendText(wxT("\nCopyright (C) 2001 - 2012 Marcin Wojdyr\n\n"));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxSMALL_FONT));
     txt->AppendText(
    wxT("This program is free software; you can redistribute it and/or modify ")
