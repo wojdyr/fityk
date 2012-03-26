@@ -5,6 +5,7 @@
 
 #include <cassert>
 #include <cctype>
+#include <cstring>
 #include "fityk.h"
 #include "common.h"
 #include "ui.h"
@@ -147,9 +148,14 @@ realt Fityk::calculate_expr(string const& s, int dataset)  throw(SyntaxError,
     return 0.;
 }
 
-int Fityk::get_dataset_count()
+int Fityk::get_dataset_count() const
 {
     return ftk_->get_dm_count();
+}
+
+int Fityk::get_parameter_count() const
+{
+    return ftk_->parameters().size();
 }
 
 realt Fityk::get_model_value(realt x, int dataset)  throw(ExecuteError)
@@ -192,7 +198,7 @@ int Fityk::get_variable_nr(string const& name)  throw(ExecuteError)
         return ftk_->find_variable(vname)->get_nr();
     }
     CATCH_EXECUTE_ERROR
-    return 0;
+    return -1;
 }
 
 void Fityk::load_data(int dataset,
@@ -308,5 +314,123 @@ vector<vector<realt> > Fityk::get_covariance_matrix(int dataset)
     return vector<vector<realt> >();
 }
 
+realt* Fityk::get_covariance_matrix_as_array(int dataset)
+{
+    try {
+        vector<DataAndModel*> dss = get_datasets_(ftk_, dataset);
+        vector<realt> c = ftk_->get_fit()->get_covariance_matrix(dss);
+        realt* array = (realt*) malloc(c.size() * sizeof(realt));
+        for (size_t i = 0; i != c.size(); ++i)
+            array[i] = c[i];
+        return array;
+    }
+    CATCH_EXECUTE_ERROR
+    return NULL;
+}
+
+
 } //namespace fityk
 
+
+// C API, not recommended for use in C++ and other languages
+using fityk::Fityk;
+
+extern "C" {
+
+Fityk* fityk_create()
+{
+    Fityk *f = new Fityk;
+    f->set_throws(false);
+    return f;
+}
+
+void fityk_delete(Fityk *f)
+{
+    delete f;
+}
+
+bool fityk_execute(Fityk *f, const char* command)
+{
+    try {
+        f->execute(command);
+    }
+    catch(ExitRequestedException) {
+        return false;
+    }
+    return true;
+}
+
+void fityk_load_data(Fityk *f, int dataset,
+                     realt *x, realt *y, realt *sigma, int num,
+                     const char* title)
+{
+    f->load_data(dataset, vector<realt>(x, x+num), vector<realt>(y, y+num),
+                 vector<realt>(sigma, sigma+num), title);
+}
+
+const char* fityk_last_error(const Fityk *f)
+{
+    if (f->last_error().empty())
+        return NULL;
+    return f->last_error().c_str();
+}
+
+void fityk_clear_last_error(Fityk *f)
+{
+    f->clear_last_error();
+}
+
+char* fityk_get_info(Fityk *f, const char *s, int dataset)
+{
+    const string info = f->get_info(s, dataset);
+    char* ret = (char*) malloc(info.size() + 1);
+    strcpy(ret, info.c_str());
+    return ret;
+}
+
+realt fityk_calculate_expr(Fityk *f, const char* s, int dataset)
+{
+    return f->calculate_expr(s, dataset);
+}
+
+int fityk_get_dataset_count(const Fityk *f)
+{
+    return f->get_dataset_count();
+}
+
+int fityk_get_parameter_count(const Fityk* f)
+{
+    return f->get_parameter_count();
+}
+
+const Point* fityk_get_data_point(Fityk *f, int dataset, int index)
+{
+    const vector<Point>& data = f->get_data(dataset);
+    if (index >= 0 && (size_t) index < data.size())
+        return &data[index];
+    else
+        return NULL;
+}
+
+realt fityk_get_model_value(Fityk *f, realt x, int dataset)
+{
+    return f->get_model_value(x, dataset);
+}
+
+int fityk_get_variable_nr(Fityk *f, const char* name)
+{
+    return f->get_variable_nr(name);
+}
+
+realt fityk_get_wssr(Fityk *f, int dataset) { return f->get_wssr(dataset); }
+realt fityk_get_ssr(Fityk *f, int dataset) { return f->get_ssr(dataset); }
+realt fityk_get_rsquared(Fityk *f, int dataset)
+                                        { return f->get_rsquared(dataset); }
+int fityk_get_dof(Fityk *f, int dataset) { return f->get_dof(dataset); }
+
+realt* fityk_get_covariance_matrix(Fityk *f, int dataset)
+{
+    return f->get_covariance_matrix_as_array(dataset);
+}
+
+} // extern "C"

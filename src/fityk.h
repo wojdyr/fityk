@@ -1,17 +1,25 @@
-// This file is part of fityk program. Copyright (C) Marcin Wojdyr
-// Licence: GNU General Public License ver. 2+
+/* This file is part of fityk program. Copyright (C) Marcin Wojdyr
+ * Licence: GNU General Public License ver. 2+
+ */
 
-#ifndef FITYK__API__H__
-#define FITYK__API__H__
+#ifndef FITYK_FITYK_H_
+#define FITYK_FITYK_H_
 
-#ifndef __cplusplus
-#error "This library does not have C API."
+/* set precision used for storing data and fitting functions */
+#define USE_LONG_DOUBLE 0
+#if USE_LONG_DOUBLE
+  typedef long double realt;
+# define REALT_LENGTH_MOD "L"
+#else
+  typedef double realt;
+# define REALT_LENGTH_MOD ""
 #endif
 
-// C++ exception specifications are used by SWIG bindings
+#ifdef __cplusplus
+
 #ifdef _MSC_VER
-// ignore warning "C++ exception specification ignored..."
-#pragma warning( disable : 4290 )
+// C++ exception specifications are used by SWIG bindings
+#pragma warning( disable : 4290 ) // C++ exception specification ignored...
 #endif
 
 #include <string>
@@ -19,16 +27,6 @@
 #include <cstdio>
 #include <stdexcept>
 class Ftk;
-
-/// set precision used for storing data and fitting functions
-#define USE_LONG_DOUBLE 0
-#if USE_LONG_DOUBLE
-typedef long double realt;
-#define REALT_LENGTH_MOD "L"
-#else
-typedef double realt;
-#define REALT_LENGTH_MOD ""
-#endif
 
 
 /// Public C++ API of libfityk: class Fityk and helpers.
@@ -56,24 +54,25 @@ struct ExitRequestedException : std::exception
 {
 };
 
+/// used to get statistics for all datasets together, e.g. in Fityk::get_wssr()
+const int all_datasets=-1;
+
 /// data point
 struct Point
 {
     realt x, y, sigma;
     bool is_active;
-
     Point();
     Point(realt x_, realt y_);
     Point(realt x_, realt y_, realt sigma_);
     std::string str() const;
 };
+
 inline bool operator< (Point const& p, Point const& q) { return p.x < q.x; }
 
 /// type of function passed to Fityk::set_show_message()
+/// (C++ specific, ignore this if you fityk API from other languages)
 typedef void t_show_message(std::string const& s);
-
-/// used to get statistics for all datasets together, e.g. in Fityk::get_wssr()
-const int all_datasets=-1;
 
 
 /// the public API to libfityk
@@ -132,7 +131,7 @@ public:
     /// redirect output to ...(e.g. stdout/stderr); cancels set_show_message()
     void redir_messages(std::FILE *stream);
 
-    /// print string in the program's output (useful for embedded Lua)
+    /// print string in the output of GUI/CLI (useful for embedded Lua)
     void out(std::string const& s) const;
 
     // @}
@@ -150,7 +149,10 @@ public:
                                             throw(SyntaxError, ExecuteError);
 
     /// returns number of datasets n, always n >= 1
-    int get_dataset_count();
+    int get_dataset_count() const;
+
+    /// returns number of simple-variables (parameters that can be fitted)
+    int get_parameter_count() const;
 
     /// get data points
     std::vector<Point> const& get_data(int dataset=0)  throw(ExecuteError);
@@ -192,6 +194,10 @@ public:
     get_covariance_matrix(int dataset=all_datasets)  throw(ExecuteError);
     // @}
 
+    // implementation details (for internal use)
+    //Ftk *get_ftk() { return ftk_; } // access to underlying data
+    realt* get_covariance_matrix_as_array(int dataset);
+
 private:
     Ftk *ftk_;
     bool throws_, owns_;
@@ -200,5 +206,52 @@ private:
 
 } // namespace
 
-#endif
+#else /* !__cplusplus */
+/* C API.
+ * Functions below correspond to member functions of class Fityk.
+ * To check for errors use fityk_last_error().
+ * bool and Point here should be ABI-compatible with C++ bool and fityk::Point.
+ */
+
+#define bool _Bool
+
+typedef struct Fityk_ Fityk;
+
+typedef struct
+{
+    realt x, y, sigma;
+    bool is_active;
+} Point;
+
+
+Fityk* fityk_create();
+void fityk_delete(Fityk *f);
+/* returns false on ExitRequestedException */
+bool fityk_execute(Fityk *f, const char* command);
+void fityk_load_data(Fityk *f, int dataset,
+                     realt *x, realt *y, realt *sigma, int num,
+                     const char* title);
+/* returns NULL if no error happened since fityk_clear_last_error() */
+const char* fityk_last_error(const Fityk *f);
+void fityk_clear_last_error(Fityk *f);
+/* caller is responsible to free() returned string */
+char* fityk_get_info(Fityk *f, const char *s, int dataset);
+realt fityk_calculate_expr(Fityk *f, const char* s, int dataset);
+int fityk_get_dataset_count(const Fityk *f);
+int fityk_get_parameter_count(const Fityk* f);
+/* get data point, returns NULL if index is out of range */
+const Point* fityk_get_data_point(Fityk *f, int dataset, int index);
+realt fityk_get_model_value(Fityk *f, realt x, int dataset);
+int fityk_get_variable_nr(Fityk *f, const char* name);
+realt fityk_get_wssr(Fityk *f, int dataset);
+realt fityk_get_ssr(Fityk *f, int dataset);
+realt fityk_get_rsquared(Fityk *f, int dataset);
+int fityk_get_dof(Fityk *f, int dataset);
+/* returns matrix in array, which caller is responsible to free(); */
+/* length of the array is parameter_count^2                        */
+realt* fityk_get_covariance_matrix(Fityk *f, int dataset);
+
+#endif /* __cplusplus */
+
+#endif /* FITYK_FITYK_H_ */
 
