@@ -30,10 +30,13 @@ dist_samples_DATA = samples/nacl01.fit samples/nacl01.dat \
 		    samples/hello.py samples/hello.lua samples/hello.pl \
 		    README
 
-check_PROGRAMS = samples/hello
+check_PROGRAMS = samples/hello samples/helloc
 samples_hello_SOURCES = samples/hello.cc
 samples_hello_CPPFLAGS = -I$(srcdir)/src
 samples_hello_LDADD = src/libfityk.la
+samples_helloc_SOURCES = samples/hello.c
+samples_helloc_CPPFLAGS = -I$(srcdir)/src
+samples_helloc_LDADD = src/libfityk.la
 
 
 # --- doc/ ---
@@ -41,9 +44,11 @@ samples_hello_LDADD = src/libfityk.la
 dist_man_MANS = doc/fityk.1
 
 install-data-hook:
+	@$(NORMAL_INSTALL)
 	$(MKDIR_P) "$(DESTDIR)$(pkgdatadir)/html"
 	cp -fR $(srcdir)/doc/html/* "$(DESTDIR)$(pkgdatadir)/html" && \
 	    chmod -R u+w "$(DESTDIR)$(pkgdatadir)/html"
 
 uninstall-local:
+	@$(NORMAL_UNINSTALL)
 	cd "$(DESTDIR)$(pkgdatadir)" && rm -rf html
