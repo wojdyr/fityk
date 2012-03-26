@@ -10,7 +10,7 @@ using namespace fityk;
 int main()
 {
     Fityk *f = new Fityk;
-    cout << f->get_info("version", true) << endl;
+    cout << f->get_info("version") << endl;
     cout << "ln(2) = " << f->calculate_expr("ln(2)") << endl;
     const double mu = 12.345;
     for (int i = 0; i != 500; ++i) {
