@@ -1,7 +1,7 @@
-// This file is part of fityk program. 
+// This file is part of fityk program.
 // Licence: GNU General Public License version 2
 
-// tests for bindings are in samples/ directory
+// tests for bindings are in the samples/ directory
 
 #if defined(SWIGPERL)
 // Perl has convention of capitalized module names

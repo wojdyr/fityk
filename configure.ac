@@ -1,7 +1,7 @@
 # Process this file with autoconf to produce a configure script.
 
 AC_INIT([fityk],[1.1.2])
-LIBRARY_VERSION_FLAG="-version-info 3:0:0"
+LIBRARY_VERSION_FLAG="-version-info 3:1:0"
 
 AC_CONFIG_SRCDIR([src/voigt.h])
 AC_CONFIG_AUX_DIR(build-aux)
@@ -9,7 +9,9 @@ AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config.h])
 AM_INIT_AUTOMAKE([1.11 foreign subdir-objects silent-rules -Wall])
 
+AC_PROG_CC
 AC_PROG_CXX
+AM_PROG_CC_C_O
 LT_INIT([disable-static])
 
 

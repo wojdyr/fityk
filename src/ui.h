@@ -5,6 +5,7 @@
 #define FITYK__UI__H__
 
 #include "common.h"
+#include "ui_api.h"
 
 class Ftk;
 class Parser;
@@ -14,32 +15,17 @@ void exec_lua_script(Ftk *F, const std::string& str, bool as_filename);
 
 /// commands, messages and plot refreshing
 /// it has callbacks that can be set by user interface
-class UserInterface
+class UserInterface : public UiApi
 {
 public:
-    enum RepaintMode {
-        kRepaint, // repaint can be delayed
-        kRepaintImmediately // repaint immediately
-    };
-
-    // 4 styles are supported by output_message()
-    enum Style
-    {
-        kNormal,
-        kWarning,
-        kQuoted,
-        kInput
-    };
-
     static const int max_cmd = 4096;
-    enum Status { kStatusOk, kStatusExecuteError, kStatusSyntaxError };
 
     struct Cmd
     {
         std::string cmd;
-        Status status;
+        UiApi::Status status;
 
-        Cmd(const std::string& c, Status s) : cmd(c), status(s) {}
+        Cmd(const std::string& c, UiApi::Status s) : cmd(c), status(s) {}
         std::string str() const;
     };
 
@@ -59,42 +45,29 @@ public:
     void exec_stream(FILE *fp);
     void exec_string_as_script(const char* s);
 
-    UserInterface::Status exec_and_log(const std::string& c);
+    UiApi::Status exec_and_log(const std::string& c);
 
     // Calls Parser::parse_statement() and Runner::execute_statement().
     void raw_execute_line(const std::string& str);
 
     // Calls raw_execute_line(), catches exceptions and returns status code.
-    UserInterface::Status execute_line(const std::string& str);
+    UiApi::Status execute_line(const std::string& str);
 
     /// return true if the syntax is correct
     bool check_syntax(const std::string& str);
 
 
-    void process_cmd_line_filename(const std::string& par);
+    void process_cmd_line_arg(const std::string& arg);
 
-    // callbacks
-    typedef void t_do_draw_plot(RepaintMode mode);
-    void set_do_draw_plot(t_do_draw_plot *func) { do_draw_plot_ = func; }
+    // functions that call callbacks
 
-    typedef void t_show_message(Style style, const std::string& s);
-    void set_show_message(t_show_message *func) { show_message_ = func; }
 
-    typedef UserInterface::Status t_exec_command(const std::string &s);
-    void set_exec_command(t_exec_command *func) { exec_command_ = func; }
-
-    typedef void t_refresh();
-    void set_refresh(t_refresh *func) { refresh_ = func; }
     /// refresh the screen if needed, for use during time-consuming tasks
     void refresh() { if (refresh_) (*refresh_)(); }
 
-    typedef void t_compute_ui(bool);
-    void set_compute_ui(t_compute_ui *func) { compute_ui_ = func; }
     void enable_compute_ui(bool enable)
             { if (compute_ui_) (*compute_ui_)(enable); }
 
-    typedef void t_wait(float seconds);
-    void set_wait(t_wait *func) { wait_ = func; }
     /// Wait and disable UI for ... seconds.
     void wait(float seconds) const { if (wait_) (*wait_)(seconds); }
 
@@ -106,12 +79,6 @@ public:
 
 private:
     Ftk* F_;
-    t_show_message *show_message_;
-    t_do_draw_plot *do_draw_plot_;
-    t_exec_command *exec_command_;
-    t_refresh *refresh_;
-    t_compute_ui *compute_ui_;
-    t_wait *wait_;
     int cmd_count_; //!=cmds_.size() if max_cmd was exceeded
     std::vector<Cmd> cmds_;
     Parser *parser_;
@@ -123,7 +90,7 @@ private:
 
     /// Execute command(s) from string
     /// It can finish the program (eg. if s=="quit").
-    UserInterface::Status exec_command(const std::string& s);
+    UiApi::Status exec_command(const std::string& s);
 
     DISALLOW_COPY_AND_ASSIGN(UserInterface);
 };

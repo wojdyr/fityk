@@ -106,9 +106,9 @@ private:
 string UserInterface::Cmd::str() const
 {
     switch (status) {
-        case kStatusOk:           return cmd;
-        case kStatusExecuteError: return cmd + " #>Runtime Error";
-        case kStatusSyntaxError:  return cmd + " #>Syntax Error";
+        case UiApi::kStatusOk:           return cmd;
+        case UiApi::kStatusExecuteError: return cmd + " #>Runtime Error";
+        case UiApi::kStatusSyntaxError:  return cmd + " #>Syntax Error";
     }
     return ""; // avoid compiler warnings
 }
@@ -122,11 +122,11 @@ string UserInterface::get_history_summary() const
         s += "\nin last " + S(cmds_.size()) + " commands:";
     int n_ok = 0, n_execute_error = 0, n_syntax_error = 0;
     for (vector<Cmd>::const_iterator i = cmds_.begin(); i != cmds_.end(); ++i)
-        if (i->status == kStatusOk)
+        if (i->status == UiApi::kStatusOk)
             ++n_ok;
-        else if (i->status == kStatusExecuteError)
+        else if (i->status == UiApi::kStatusExecuteError)
             ++n_execute_error;
-        else if (i->status == kStatusSyntaxError)
+        else if (i->status == UiApi::kStatusSyntaxError)
             ++n_syntax_error;
     s += "\n  " + S(n_ok) + " executed successfully"
         + "\n  " + S(n_execute_error) + " finished with execute error"
@@ -137,8 +137,7 @@ string UserInterface::get_history_summary() const
 
 
 UserInterface::UserInterface(Ftk* F)
-        : F_(F), show_message_(NULL), do_draw_plot_(NULL),
-          exec_command_(NULL), refresh_(NULL), compute_ui_(NULL), wait_(NULL),
+        : F_(F),
           cmd_count_(0)
 {
     parser_ = new Parser(F);
@@ -151,10 +150,10 @@ UserInterface::~UserInterface()
     delete runner_;
 }
 
-UserInterface::Status UserInterface::exec_and_log(const string& c)
+UiApi::Status UserInterface::exec_and_log(const string& c)
 {
     if (strip_string(c).empty())
-        return UserInterface::kStatusOk;
+        return UiApi::kStatusOk;
 
     // we want to log the input before the output
     if (!F_->get_settings()->logfile.empty()) {
@@ -165,7 +164,7 @@ UserInterface::Status UserInterface::exec_and_log(const string& c)
         }
     }
 
-    UserInterface::Status r = this->exec_command(c);
+    UiApi::Status r = this->exec_command(c);
     cmds_.push_back(Cmd(c, r));
     ++cmd_count_;
     return r;
@@ -178,25 +177,25 @@ void UserInterface::raw_execute_line(const string& str)
         runner_->execute_statement(parser_->statement());
 }
 
-UserInterface::Status UserInterface::execute_line(const string& str)
+UiApi::Status UserInterface::execute_line(const string& str)
 {
-    UserInterface::Status status = UserInterface::kStatusOk;
+    UiApi::Status status = UiApi::kStatusOk;
     try {
         raw_execute_line(str);
     }
     catch (fityk::SyntaxError &e) {
         F_->warn(string("Syntax error: ") + e.what());
-        status = UserInterface::kStatusSyntaxError;
+        status = UiApi::kStatusSyntaxError;
     }
     // ExecuteError and xylib::FormatError and xylib::RunTimeError
     // are derived from std::runtime_error
     catch (runtime_error &e) {
         F_->warn(string("Error: ") + e.what());
-        status = UserInterface::kStatusExecuteError;
+        status = UiApi::kStatusExecuteError;
     }
 
     if (F_->is_plot_outdated() && F_->get_settings()->autoplot)
-        draw_plot(UserInterface::kRepaint);
+        draw_plot(UiApi::kRepaint);
 
     return status;
 }
@@ -391,7 +390,7 @@ void UserInterface::draw_plot(RepaintMode mode)
 }
 
 
-UserInterface::Status UserInterface::exec_command(const string& s)
+UiApi::Status UserInterface::exec_command(const string& s)
 {
     return exec_command_ ? (*exec_command_)(s) : execute_line(s);
 }
@@ -417,15 +416,14 @@ bool is_fityk_script(string filename)
     return !strncmp(magic, buffer, magic_len);
 }
 
-void UserInterface::process_cmd_line_filename(const string& par)
+void UserInterface::process_cmd_line_arg(const string& arg)
 {
-    if (startswith(par, "=->"))
-        exec_and_log(string(par, 3));
-    else if (is_fityk_script(par) || endswith(par, ".lua"))
-        exec_script(par);
+    if (startswith(arg, "=->"))
+        exec_and_log(string(arg, 3));
+    else if (is_fityk_script(arg) || endswith(arg, ".lua"))
+        exec_script(arg);
     else {
-        exec_and_log("@+ <'" + par + "'");
+        exec_and_log("@+ <'" + arg + "'");
     }
 }
-
 

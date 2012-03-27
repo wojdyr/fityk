@@ -77,18 +77,19 @@ string get_config_dir()
         return dir;
     char t[200];
     char *home_dir = getenv("HOME");
-    if (!home_dir) {
+    if (home_dir == NULL) {
 #ifdef _WIN32
-        _getcwd(t, 200);
+        home_dir = _getcwd(t, 200);
 #else
-        getcwd(t, 200);
+        home_dir = getcwd(t, 200);
 #endif
-        home_dir = t;
     }
-    // '/' is assumed as path separator
-    dir = S(home_dir) + "/" + config_dirname + "/";
-    if (access(dir.c_str(), X_OK) != 0)
-        dir = "";
+    if (home_dir != NULL) {
+        // '/' is assumed as path separator
+        dir = S(home_dir) + "/" + config_dirname + "/";
+        if (access(dir.c_str(), X_OK) != 0)
+            dir = "";
+    }
     first_run = false;
     return dir;
 }
@@ -108,9 +109,7 @@ string get_config_dir()
 #   include <readline/readline.h>
 #   include <readline/history.h>
 
-#   ifdef Function
-#       undef Function // anti-Function workaround #2, part 2
-#   endif
+#   undef Function // anti-Function workaround #2, part 2
 
 // libedit (MacOs X, etc.) is not supported
 
@@ -589,7 +588,7 @@ int main (int argc, char **argv)
         //the rest of parameters/arguments are scripts and/or data files
         for (int i = 1; i < argc; ++i) {
             if (argv[i])
-                ftk->get_ui()->process_cmd_line_filename(argv[i]);
+                ftk->get_ui()->process_cmd_line_arg(argv[i]);
         }
 
         // there are two versions of main_loop(), depending on NO_READLINE

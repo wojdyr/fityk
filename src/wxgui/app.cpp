@@ -339,7 +339,7 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     }
     for (vector<string>::const_iterator i = p.begin(); i != p.end(); ++i) {
         try {
-            ftk->get_ui()->process_cmd_line_filename(*i);
+            ftk->get_ui()->process_cmd_line_arg(*i);
         }
         catch (runtime_error const& e) {
             fprintf(stderr, "Error: %s\n", e.what());
