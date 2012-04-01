@@ -116,16 +116,13 @@ string info_compiler()
 #if defined(__GNUC__)
         "GCC"
 #elif defined(_MSC_VER)
-        "MS VC++"
+        "MSVC++"
 #else
         "UNKNOWN"
 #endif
 
-        "\nCompiler version: "
 #ifdef __VERSION__
-        __VERSION__
-#else
-        "UNKNOWN"
+        " " __VERSION__
 #endif
 
         "\nCompilation date: " __DATE__
