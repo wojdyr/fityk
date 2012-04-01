@@ -114,9 +114,6 @@ string get_config_dir()
 // libedit (MacOs X, etc.) is not supported
 
 
-string set_eq_str;
-
-
 void read_and_execute_input()
 {
     char *line = readline (prompt);
@@ -129,170 +126,20 @@ void read_and_execute_input()
     ftk->get_ui()->exec_and_log(s);
 }
 
-
-char *command_generator (const char *text, int state)
+// assumes that array ends with NULL.
+void add_c_string_array(const char **array, const char* text,
+                        vector<string> &entries)
 {
-    static const char** p = NULL;
-    if (!state)
-        p = command_list;
-    while (*p != NULL) {
-        const char *name = *p;
-        ++p;
-        if (strncmp (name, text, strlen(text)) == 0)
-            return strdup(name);
-    }
-    return NULL;
+    for (const char** p = array; *p != NULL; ++p)
+        if (strncmp(*p, text, strlen(text)) == 0)
+            entries.push_back(*p);
 }
 
-char *type_generator(const char *text, int state)
+void type_completions(const char *text, vector<string> &entries)
 {
-    static unsigned int list_index = 0;
-    static vector<string> e;
-    if (!state) {
-        e.clear();
-        v_foreach (Tplate::Ptr, i, ftk->get_tpm()->tpvec())
-            if (!strncmp((*i)->name.c_str(), text, strlen(text)))
-                e.push_back((*i)->name);
-        list_index = 0;
-    }
-    else
-        list_index++;
-    if (list_index < e.size())
-        return strdup(e[list_index].c_str());
-    else
-        return NULL;
-}
-
-char *type_or_guess_generator(const char *text, int state)
-{
-    static bool give_guess = false;
-    const char *guess = "guess";
-    if (!state)
-        give_guess = true;
-    char *r = type_generator(text, state);
-    if (!r && give_guess) {
-        give_guess = false;
-        if (strncmp (guess, text, strlen(text)) == 0)
-            return strdup(guess);
-    }
-    return r;
-}
-
-char *info_generator(const char *text, int state)
-{
-    static unsigned int list_index = 0;
-    static vector<string> e;
-    if (!state) {
-        e.clear();
-        v_foreach (Tplate::Ptr, i, ftk->get_tpm()->tpvec())
-            if (!strncmp((*i)->name.c_str(), text, strlen(text)))
-                e.push_back((*i)->name);
-        for (const char** a = info_args; *a != NULL; ++a)
-            if (strncmp (*a, text, strlen(text)) == 0)
-                e.push_back(*a);
-        list_index = 0;
-    }
-    else
-        list_index++;
-    if (list_index < e.size())
-        return strdup(e[list_index].c_str());
-    else
-        return NULL;
-}
-
-char *debug_generator (const char *text, int state)
-{
-    static const char** p = NULL;
-    if (!state)
-        p = debug_args;
-    while (*p != NULL) {
-        const char *name = *p;
-        ++p;
-        if (strncmp (name, text, strlen(text)) == 0)
-            return strdup(name);
-    }
-    return NULL;
-}
-
-
-char *function_generator(const char *text, int state)
-{
-    static unsigned int list_index = 0;
-    static vector<string> e;
-    if (!state) {
-        e.clear();
-        v_foreach (Function*, i, ftk->functions())
-            if (!strncmp((*i)->name.c_str(), text+1, strlen(text+1)))
-                e.push_back("%" + (*i)->name);
-        list_index = 0;
-    }
-    else
-        list_index++;
-    if (list_index < e.size())
-        return strdup(e[list_index].c_str());
-    else
-        return NULL;
-}
-
-char *variable_generator(const char *text, int state)
-{
-    static unsigned int list_index = 0;
-    static vector<string> e;
-    if (!state) {
-        e.clear();
-        v_foreach (Variable*, i, ftk->variables())
-            if (!strncmp ((*i)->name.c_str(), text, strlen(text)))
-                e.push_back((*i)->name);
-        list_index = 0;
-    }
-    else
-        list_index++;
-    if (list_index < e.size())
-        return strdup(e[list_index].c_str());
-    else
-        return NULL;
-}
-
-char *set_generator(const char *text, int state)
-{
-    static unsigned int list_index = 0;
-    static vector<string> e;
-    if (!state) {
-        e = ftk->settings_mgr()->get_key_list(text);
-        list_index = 0;
-    }
-    else
-        list_index++;
-    if (list_index < e.size())
-        return strdup(e[list_index].c_str());
-    else
-        return NULL;
-}
-
-char *set_eq_generator(const char *text, int state)
-{
-    static unsigned int list_index = 0;
-    static vector<string> e;
-    if (!state) {
-        try {
-            e.clear();
-            const char** a=ftk->settings_mgr()->get_allowed_values(set_eq_str);
-            while (a != NULL && *a != NULL) {
-                if (startswith(*a, text))
-                    e.push_back(*a);
-                ++a;
-            }
-        } catch (ExecuteError&) {
-            return NULL;
-        }
-        list_index = 0;
-    }
-    else
-        list_index++;
-    if (list_index < e.size())
-        return strdup(e[list_index].c_str());
-    else
-        return NULL;
+    v_foreach (Tplate::Ptr, i, ftk->get_tpm()->tpvec())
+        if (strncmp((*i)->name.c_str(), text, strlen(text)) == 0)
+            entries.push_back((*i)->name);
 }
 
 bool starts_with_command(const char *cmd, int n,
@@ -307,22 +154,24 @@ bool starts_with_command(const char *cmd, int n,
     return false;
 }
 
-char **my_completion (const char *text, int start, int end)
+// returns false if filename completion is to be used instead
+bool complete_fityk_line(const char* line_buffer, int start, int end,
+                         const char *text,
+                         vector<string> &entries)
 {
-    rl_attempted_completion_over = 1;
     //find start of the command, and skip blanks
     int cmd_start = start;
-    while (cmd_start > 0 && rl_line_buffer[cmd_start-1] != ';')
+    while (cmd_start > 0 && line_buffer[cmd_start-1] != ';')
         --cmd_start;
-    while (isspace(rl_line_buffer[cmd_start]))
+    while (isspace(line_buffer[cmd_start]))
         ++cmd_start;
     // skip "@m @n:"
-    if (rl_line_buffer[cmd_start] == '@') {
+    if (line_buffer[cmd_start] == '@') {
         int t = cmd_start + 1;
-        while (t < start && rl_line_buffer[t] != '.') {
-            if (rl_line_buffer[t] == ':') {
+        while (t < start && line_buffer[t] != '.') {
+            if (line_buffer[t] == ':') {
                 cmd_start = t+1;
-                while (isspace(rl_line_buffer[cmd_start]))
+                while (isspace(line_buffer[cmd_start]))
                     ++cmd_start;
                 break;
             }
@@ -331,26 +180,28 @@ char **my_completion (const char *text, int start, int end)
     }
 
     //command
-    if (cmd_start == start)
-        return rl_completion_matches(text, command_generator);
-    char *ptr = rl_line_buffer+cmd_start;
+    if (cmd_start == start) {
+        add_c_string_array(command_list, text, entries);
+        return true;
+    }
+    const char *ptr = line_buffer+cmd_start;
 
-    char* prev_nonblank = rl_line_buffer + start - 1;
-    while (prev_nonblank > rl_line_buffer && isspace(*prev_nonblank))
+    const char* prev_nonblank = line_buffer + start - 1;
+    while (prev_nonblank > line_buffer && isspace(*prev_nonblank))
         --prev_nonblank;
+
     if (*prev_nonblank == '>' || *prev_nonblank == '<') { //filename completion
-        rl_attempted_completion_over = 0;
-        return NULL;
+        return false; // use filename completion
     }
 
     //check if it is after set command or after with
-    if (starts_with_command(ptr, start - cmd_start, "s","et")
+    else if (starts_with_command(ptr, start - cmd_start, "s","et")
         || starts_with_command(ptr, start - cmd_start, "w","ith")) {
         while (*ptr && !isspace(*ptr))
             ++ptr;
         ++ptr;
-        char *has_eq = NULL;
-        for (char *i = ptr; i <= rl_line_buffer+end; ++i) {
+        const char *has_eq = NULL;
+        for (const char *i = ptr; i <= line_buffer+end; ++i) {
             if (*i == '=')
                 has_eq = i;
             else if (*i == ',') {
@@ -359,60 +210,101 @@ char **my_completion (const char *text, int start, int end)
             }
         }
         if (!has_eq)
-            return rl_completion_matches(text, set_generator);
+            entries = ftk->settings_mgr()->get_key_list(text);
         else {
-            set_eq_str = strip_string(string(ptr, has_eq));
-            if (ftk->settings_mgr()->get_allowed_values(set_eq_str) != NULL)
-                return rl_completion_matches (text, set_eq_generator);
-            else
-                return NULL;
+            string key = strip_string(string(ptr, has_eq));
+            try {
+                const char** allowed_values =
+                        ftk->settings_mgr()->get_allowed_values(key);
+                if (allowed_values != NULL)
+                            add_c_string_array(allowed_values, text, entries);
+            }
+            catch (ExecuteError&) {} // unknown option
         }
     }
     // FunctionType completion
-    if (starts_with_command(ptr, start - cmd_start, "g","uess")) {
-        return rl_completion_matches(text, type_generator);
+    else if (starts_with_command(ptr, start - cmd_start, "g","uess")) {
+        type_completions(text, entries);
     }
     // FunctionType or "guess" completion
-    if (cmd_start <= start-3 && rl_line_buffer[cmd_start] == '%'
-               && strchr(rl_line_buffer+cmd_start, '=')
-               && !strchr(rl_line_buffer+cmd_start, '(')) {
-        return rl_completion_matches(text, type_or_guess_generator);
+    else if (cmd_start <= start-3 && line_buffer[cmd_start] == '%'
+               && strchr(line_buffer+cmd_start, '=')
+               && !strchr(line_buffer+cmd_start, '(')) {
+        type_completions(text, entries);
+        if (strncmp("guess", text, strlen(text)) == 0)
+            entries.push_back("guess");
     }
 
     // %function completion
-    if (text[0] == '%')
-        return rl_completion_matches(text, function_generator);
+    else if (text[0] == '%') {
+        v_foreach (Function*, i, ftk->functions())
+            if (!strncmp((*i)->name.c_str(), text+1, strlen(text+1)))
+                entries.push_back("%" + (*i)->name);
+    }
     // $variable completion
-    if (start > 0 && rl_line_buffer[start-1] == '$')
-        return rl_completion_matches(text, variable_generator);
+    else if (start > 0 && line_buffer[start-1] == '$') {
+        v_foreach (Variable*, i, ftk->variables())
+            if (!strncmp ((*i)->name.c_str(), text, strlen(text)))
+                entries.push_back((*i)->name);
+    }
 
     // info completion
-    if (starts_with_command(ptr, start - cmd_start, "i","nfo")) {
+    else if (starts_with_command(ptr, start - cmd_start, "i","nfo")) {
         // info set
         int arg_start = cmd_start;
-        while (!isspace(rl_line_buffer[arg_start]))
+        while (!isspace(line_buffer[arg_start]))
             ++arg_start;
-        while (isspace(rl_line_buffer[arg_start]))
+        while (isspace(line_buffer[arg_start]))
             ++arg_start;
-        char* arg_ptr = rl_line_buffer + arg_start;
+        const char* arg_ptr = line_buffer + arg_start;
         if (starts_with_command(arg_ptr, start - arg_start, "set",""))
-            return rl_completion_matches(text, set_generator);
-
-        return rl_completion_matches(text, info_generator);
+            entries = ftk->settings_mgr()->get_key_list(text);
+        else {
+            type_completions(text, entries);
+            add_c_string_array(info_args, text, entries);
+        }
     }
 
     // debug completion
-    if (starts_with_command(ptr, start - cmd_start, "debug","")) {
-        return rl_completion_matches(text, debug_generator);
+    else if (starts_with_command(ptr, start - cmd_start, "debug","")) {
+        add_c_string_array(debug_args, text, entries);
     }
 
     // filename completion after exec
-    if (starts_with_command(ptr, start - cmd_start, "e","xecute")) {
-        rl_attempted_completion_over = 0;
-        return NULL;
+    else if (starts_with_command(ptr, start - cmd_start, "e","xecute")) {
+        return false; // use filename completion
     }
 
-    return NULL;
+    return true; // true = done
+}
+
+int f_start = -1;
+int f_end = -1;
+
+char *completion_generator(const char *text, int state)
+{
+    static size_t list_index = 0;
+    static vector<string> entries;
+    if (!state) {
+        entries.clear();
+        bool over = complete_fityk_line(rl_line_buffer, f_start, f_end, text,
+                                        entries);
+        rl_attempted_completion_over = (int) over;
+        list_index = 0;
+    }
+    else
+        list_index++;
+    if (list_index < entries.size())
+        return strdup(entries[list_index].c_str());
+    else
+        return NULL;
+}
+
+char **my_completion (const char *text, int start, int end)
+{
+    f_start = start;
+    f_end = end;
+    return rl_completion_matches(text, completion_generator);
 }
 
 
