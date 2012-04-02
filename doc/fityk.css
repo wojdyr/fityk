@@ -236,6 +236,10 @@ tt {
     color: #222;
 }
 
+pre a tt {
+    font-size: 1em;
+}
+
 tt.descname, tt.descclassname, tt.xref {
     border: 0;
 }
