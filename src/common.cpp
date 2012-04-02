@@ -10,8 +10,6 @@
 
 using namespace std;
 
-volatile bool user_interrupt = false;
-
 const char* fityk_version_line = "# Fityk script. Fityk version: " VERSION;
 
 vector<int> range_vector(int l, int u)

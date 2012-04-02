@@ -153,6 +153,11 @@ int Fityk::get_dataset_count() const
     return ftk_->get_dm_count();
 }
 
+int Fityk::get_default_dataset() const
+{
+    return ftk_->default_dm();
+}
+
 int Fityk::get_parameter_count() const
 {
     return ftk_->parameters().size();
@@ -199,6 +204,17 @@ int Fityk::get_variable_nr(string const& name)  throw(ExecuteError)
     }
     CATCH_EXECUTE_ERROR
     return -1;
+}
+
+double Fityk::get_view_boundary(char side)
+{
+    switch (side) {
+        case 'L': return ftk_->view.left();
+        case 'R': return ftk_->view.right();
+        case 'T': return ftk_->view.top();
+        case 'B': return ftk_->view.bottom();
+        default: return 0.;
+    }
 }
 
 void Fityk::load_data(int dataset,
@@ -328,6 +344,10 @@ realt* Fityk::get_covariance_matrix_as_array(int dataset)
     return NULL;
 }
 
+UiApi* Fityk::get_ui_api()
+{
+    return ftk_->get_ui();
+}
 
 } //namespace fityk
 

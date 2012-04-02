@@ -455,7 +455,7 @@ void Fit::fit(int max_iter, const vector<DataAndModel*>& dms)
     F_->get_fit_container()->push_param_history(a_orig_);
     iter_nr_ = 0;
     evaluations_ = 0;
-    user_interrupt = false;
+    fityk::user_interrupt = false;
     init(); //method specific init
     max_iterations_ = max_iter;
 
@@ -480,7 +480,7 @@ void Fit::continue_fit(int max_iter)
             throw ExecuteError(name + " method should be initialized first.");
     update_parameters(dmdm_);
     a_orig_ = F_->parameters();  //should it be also updated?
-    user_interrupt = false;
+    fityk::user_interrupt = false;
     evaluations_ = 0;
     max_iterations_ = max_iter;
     autoiter();
@@ -515,7 +515,7 @@ void Fit::update_parameters(const vector<DataAndModel*>& dms)
 bool Fit::common_termination_criteria(int iter)
 {
     bool stop = false;
-    if (user_interrupt) {
+    if (fityk::user_interrupt) {
         F_->msg ("Fitting stopped manually.");
         stop = true;
     }

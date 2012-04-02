@@ -1,4 +1,15 @@
 
+* API: set_show_message(): it should be possible to reset output handler
+
+* finish NLopt interface
+
+* finish script editor
+
+* Windows build: use readline lib if possible, investigate signing .exe,
+  use xylib.dll -DXYLIB_DLL?
+
+----- 1.1.2
+
 * FFT data transformation using FFTW library,
   fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re(@3)
 

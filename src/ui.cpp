@@ -25,9 +25,6 @@ extern int luaopen_fityk(lua_State*L); // the SWIG wrappered library
 
 using namespace std;
 
-const char* config_dirname = ".fityk";
-const char* startup_commands_filename = "init";
-
 
 // utils for reading FILE
 
@@ -298,7 +295,7 @@ void exec_lua_script(Ftk *F, const string& str, bool as_filename)
 
 void UserInterface::exec_script(const string& filename)
 {
-    user_interrupt = false;
+    fityk::user_interrupt = false;
 
     if (endswith(filename, ".lua")) {
         exec_lua_script(F_, filename, true);
@@ -330,7 +327,7 @@ void UserInterface::exec_script(const string& filename)
         bool r = execute_line(s);
         if (r != kStatusOk && F_->get_settings()->on_error[0] != 'n'/*nothing*/)
             break;
-        if (user_interrupt) {
+        if (fityk::user_interrupt) {
             F_->msg ("Script stopped by signal INT.");
             break;
         }

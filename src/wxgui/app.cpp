@@ -143,7 +143,7 @@ UserInterface::Status gui_exec_command(const string& s)
 void interrupt_handler (int /*signum*/)
 {
     //set flag for breaking long computations
-    user_interrupt = true;
+    fityk::user_interrupt = true;
 }
 
 void write_white_config(wxConfigBase *w)
@@ -262,7 +262,7 @@ bool FApp::OnInit(void)
 
     if (!cmdLineParser.Found(wxT("I"))) {
         // run initial commands
-        wxString startup_file = get_conf_file(startup_commands_filename);
+        wxString startup_file = get_conf_file(fityk::startup_commands_filename);
         if (wxFileExists(startup_file)) {
             ftk->get_ui()->exec_script(wx2s(startup_file));
         }

@@ -1504,7 +1504,7 @@ void FFrame::OnSettings (wxCommandEvent&)
 
 void FFrame::OnEditInit (wxCommandEvent&)
 {
-    wxString startup_file = get_conf_file(startup_commands_filename);
+    wxString startup_file = get_conf_file(fityk::startup_commands_filename);
     show_editor(startup_file, "");
 }
 

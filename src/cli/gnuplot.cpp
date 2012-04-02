@@ -3,25 +3,30 @@
 
 // CLI-only file
 
+#include "gnuplot.h"
+
 #include <stdlib.h>
-#include <stdio.h>
 #include <unistd.h>
-#include <string>
 #include <sys/types.h>
 #include <signal.h>
 #include <errno.h>
+#include <math.h>
+#include <string>
+#include <algorithm>
 
-#include "gnuplot.h"
-#include "../data.h"
-#include "../model.h"
-#include "../logic.h"
-#include "../ui.h"
+#include "../fityk.h"
+#include <config.h> // HAVE_FINITE
 
 #define GNUPLOT_PATH "gnuplot"
 
 using namespace std;
+using fityk::Point;
 
-extern Ftk* ftk; // defined in cli/main.cpp
+extern fityk::Fityk* ftk; // defined in cli/main.cpp
+
+#ifndef HAVE_FINITE
+static int finite(double x) { return a == a; }
+#endif
 
 GnuPlot::GnuPlot()
     : failed_(false), gnuplot_pipe_(NULL)
@@ -56,7 +61,8 @@ void GnuPlot::fork_and_make_pipe()
         //putenv("PAGER=");
         execlp(GNUPLOT_PATH, GNUPLOT_PATH, /*"-",*/ NULL);
         // if we are here, sth went wrong
-        ftk->msg("** Calling `" GNUPLOT_PATH "' failed. Plotting disabled. **");
+        fprintf(stderr,
+                "** Calling `" GNUPLOT_PATH "' failed. Plotting disabled. **");
         exit(0); // terminate only the child process 
     }
     else {
@@ -84,13 +90,15 @@ bool GnuPlot::test_gnuplot_pipe()
 int GnuPlot::plot()
 {
     // plot only the active dataset and model
-    int dm_number = ftk->default_dm();
-    const DataAndModel* dm = ftk->get_dm(dm_number);
-    const Data* data = dm->data();
-    const Model* model = dm->model();
-    int i_f = data->get_lower_bound_ac(ftk->view.left());
-    int i_l = data->get_upper_bound_ac(ftk->view.right());
-    bool no_points = (i_l - i_f <= 0);
+    int dm_number = ftk->get_default_dataset();
+    const vector<Point>& points = ftk->get_data(dm_number);
+    double left_x = ftk->get_view_boundary('L');
+    double right_x = ftk->get_view_boundary('R');
+    vector<Point>::const_iterator begin
+        = lower_bound(points.begin(), points.end(), Point(left_x,0));
+    vector<Point>::const_iterator end
+        = upper_bound(points.begin(), points.end(), Point(right_x,0));
+    bool no_points = (begin == end);
 
     // if the pipe is open and there are no points, we send empty dataset
     // to reset the plot
@@ -104,35 +112,31 @@ int GnuPlot::plot()
         return -1;
 
     // send "plot ..." through the pipe to gnuplot
-    string plot_string = "plot "+ ftk->view.str()
+    string plot_string = "plot " + ftk->get_info("view")
         + " \'-\' title \"data\", '-' title \"sum\" with line\n";
     fprintf(gnuplot_pipe_, "%s", plot_string.c_str());
     if (fflush(gnuplot_pipe_) != 0)
-        ftk->warn("Flushing pipe program-to-gnuplot failed.");
+        fprintf(stderr, "Flushing pipe program-to-gnuplot failed.\n");
 
     // data
     if (no_points)
         fprintf(gnuplot_pipe_, "0.0  0.0\n");
     else
-        for (int i = i_f; i < i_l; i++) {
-            double x = data->get_x(i);
-            double y = data->get_y(i);
-            if (is_finite(x) && is_finite(y)) {
-                fprintf(gnuplot_pipe_, "%f  %f\n", x, y);
-            }
-        }
+        for (vector<Point>::const_iterator i = begin; i != end; ++i)
+            if (i->is_active && finite(i->x) && finite(i->y))
+                fprintf(gnuplot_pipe_, "%f  %f\n", double(i->x), double(i->y));
     fprintf(gnuplot_pipe_, "e\n");//gnuplot needs 'e' at the end of data
 
     // model
     if (no_points)
         fprintf(gnuplot_pipe_, "0.0  0.0\n");
     else
-        for (int i = i_f; i < i_l; i++) {
-            double x = data->get_x(i);
-            double y = model->value(x);
-            if (is_finite(x) && is_finite(y))
-                fprintf(gnuplot_pipe_, "%f  %f\n", x, y);
-        }
+        for (vector<Point>::const_iterator i = begin; i != end; ++i)
+            if (i->is_active && finite(i->x)) {
+                double y = ftk->get_model_value(i->x, dm_number);
+                if (finite(y))
+                    fprintf(gnuplot_pipe_, "%f  %f\n", double(i->x), y);
+            }
     fprintf(gnuplot_pipe_, "e\n");
 
     fflush(gnuplot_pipe_);

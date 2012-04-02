@@ -10,6 +10,7 @@
 class Ftk;
 class Parser;
 class Runner;
+using fityk::UiApi;
 
 void exec_lua_script(Ftk *F, const std::string& str, bool as_filename);
 
@@ -94,9 +95,5 @@ private:
 
     DISALLOW_COPY_AND_ASSIGN(UserInterface);
 };
-
-
-extern const char* startup_commands_filename;
-extern const char* config_dirname;
 
 #endif

@@ -36,6 +36,8 @@ class Ftk;
 namespace fityk
 {
 
+class UiApi;
+
 /// exception thrown at run-time (when executing parsed command)
 struct ExecuteError : public std::runtime_error
 {
@@ -151,6 +153,9 @@ public:
     /// returns number of datasets n, always n >= 1
     int get_dataset_count() const;
 
+    /// returns dataset set by "use @n" command
+    int get_default_dataset() const;
+
     /// returns number of simple-variables (parameters that can be fitted)
     int get_parameter_count() const;
 
@@ -169,6 +174,10 @@ public:
     /// (the same index as in get_covariance_matrix(),
     /// -1 for a compound-variable)
     int get_variable_nr(std::string const& name)  throw(ExecuteError);
+
+    /// get coordinates of rectangle set by the plot command
+    /// side is one of L(eft), R(right), T(op), B(ottom)
+    double get_view_boundary(char side);
 
     // @}
 
@@ -194,8 +203,12 @@ public:
     get_covariance_matrix(int dataset=all_datasets)  throw(ExecuteError);
     // @}
 
+    /// UiApi contains functions used by CLI and may be used to implement
+    /// another user interface.
+    UiApi* get_ui_api();
+
     // implementation details (for internal use)
-    //Ftk *get_ftk() { return ftk_; } // access to underlying data
+    Ftk *get_ftk() { return ftk_; } // access to underlying data
     realt* get_covariance_matrix_as_array(int dataset);
 
 private:

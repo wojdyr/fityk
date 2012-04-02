@@ -309,9 +309,6 @@ inline std::string get_directory(std::string const& filename)
 
 extern const char* fityk_version_line; /// it is used to put version to script
 
-/// flag that is set to interrupt fitting (it is checked after each iteration)
-extern volatile bool user_interrupt;
-
 extern const std::string help_filename;
 
 

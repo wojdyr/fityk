@@ -4,6 +4,13 @@
 #ifndef FITYK_UI_API_H_
 #define FITYK_UI_API_H_
 
+#include <string>
+#include <vector>
+
+namespace fityk {
+
+class Fityk;
+
 // this is API needed mostly to implement own user interface to libfityk.
 class UiApi
 {
@@ -39,7 +46,6 @@ public:
     // interprets command-line argument as data or script file or as command
     virtual void process_cmd_line_arg(const std::string& arg) = 0;
 
-
     // callbacks
 
     typedef void t_do_draw_plot(RepaintMode mode);
@@ -68,6 +74,20 @@ protected:
     t_compute_ui *compute_ui_;
     t_wait *wait_;
 };
+
+/// Adds completions of the word `text' in context of line_buffer
+/// to `entries'.  Intended to work with readline tab-completion.
+/// Returns false if filename completion is to be used instead.
+bool complete_fityk_line(Fityk *F, const char* line_buffer, int start, int end,
+                         const char *text, std::vector<std::string> &entries);
+
+extern const char* startup_commands_filename; // "init"
+extern const char* config_dirname; // ".fityk"
+/// flag that is set to interrupt fitting (it is checked after each iteration)
+extern volatile bool user_interrupt;
+
+
+} // namespace fityk
 
 #endif // FITYK_UI_API_H_
 

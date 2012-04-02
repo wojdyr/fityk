@@ -3,8 +3,8 @@
 
 #ifndef FITYK__GNUPLOT__H__
 #define FITYK__GNUPLOT__H__
+
 #include <stdio.h>
-#include <vector>
 
 class GnuPlot
 {
