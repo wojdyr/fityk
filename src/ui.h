@@ -60,17 +60,11 @@ public:
 
     void process_cmd_line_arg(const std::string& arg);
 
-    // functions that call callbacks
+    void hint_ui(int hint)
+          { if (hint_ui_callback_) (*hint_ui_callback_)(hint); }
 
-
-    /// refresh the screen if needed, for use during time-consuming tasks
-    void refresh() { if (refresh_) (*refresh_)(); }
-
-    void enable_compute_ui(bool enable)
-            { if (compute_ui_) (*compute_ui_)(enable); }
-
-    /// Wait and disable UI for ... seconds.
-    void wait(float seconds) const { if (wait_) (*wait_)(seconds); }
+    /// wait doing nothing for given number of seconds (can be fractional).
+    void wait(float seconds) const;
 
     /// share parser -- it can be safely reused
     Parser* parser() const { return parser_; }
@@ -87,7 +81,7 @@ private:
 
     /// show message to user
     void show_message(Style style, const std::string& s) const
-        { if (show_message_) (*show_message_)(style, s); }
+        { if (show_message_callback_) (*show_message_callback_)(style, s); }
 
     /// Execute command(s) from string
     /// It can finish the program (eg. if s=="quit").

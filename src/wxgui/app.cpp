@@ -82,37 +82,27 @@ void gui_show_message(UserInterface::Style style, const string& s)
     frame->output_text(style, s + "\n");
 }
 
-void gui_do_draw_plot(UserInterface::RepaintMode mode)
+void gui_draw_plot(UserInterface::RepaintMode mode)
 {
     bool now = (mode == UserInterface::kRepaintImmediately);
     frame->plot_pane()->refresh_plots(now, kAllPlots);
 }
 
-void gui_wait(float seconds)
-{
-    wxMilliSleep(iround(seconds*1e3));
-}
-
-// return value: true if we can continue, false if Cancel was pressed
-void gui_refresh()
-{
-    wxYield();
-}
-
-// enable/disable non-responsive mode with menu and all windows disabled
-// and `wait' cursor. To be used during time-consuming computations.
-void gui_compute_ui(bool enable)
+// Switch between normal (=1) and disabled w/ "busy" cursor (0) GUI mode.
+// or force wxYield (-1).
+// Typically. To be used during time-consuming computations.
+// Also used to invoke wxYield();
+void gui_hint(int mode)
 {
     static wxWindowDisabler *wd = NULL;
-    if (enable == (wd != NULL))
-        return;
-    if (enable) {
+    if (mode == 0)
         wd = new wxWindowDisabler();
-    }
-    else {
+    else if (mode == 1) {
         delete wd;
         wd = NULL;
     }
+    else if (mode == -1)
+        wxYield();
 }
 
 
@@ -191,12 +181,10 @@ bool FApp::OnInit(void)
     ftk = new Ftk;
 
     // set callbacks
-    ftk->get_ui()->set_show_message(gui_show_message);
-    ftk->get_ui()->set_do_draw_plot(gui_do_draw_plot);
-    ftk->get_ui()->set_wait(gui_wait);
-    ftk->get_ui()->set_refresh(gui_refresh);
-    ftk->get_ui()->set_compute_ui(gui_compute_ui);
-    ftk->get_ui()->set_exec_command(gui_exec_command);
+    ftk->get_ui()->connect_show_message(gui_show_message);
+    ftk->get_ui()->connect_draw_plot(gui_draw_plot);
+    ftk->get_ui()->connect_hint_ui(gui_hint);
+    ftk->get_ui()->connect_exec_command(gui_exec_command);
 
     wxImage::AddHandler(new wxPNGHandler);
 

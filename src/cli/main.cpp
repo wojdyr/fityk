@@ -9,12 +9,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 //#include <ctype.h>
-#include <time.h>
 #include <string.h>
 #include <math.h>
 #include <assert.h>
 #ifdef _WIN32
-# include <windows.h>
 # include <direct.h> // _getcwd()
 #else
 # include <unistd.h>
@@ -34,31 +32,10 @@ Fityk* ftk = 0;
 
 //------ implementation of CLI specific methods for UiApi callbacks ------
 
-void cli_show_message (UiApi::Style style, const string& s)
-{
-    if (style == UiApi::kWarning)
-        printf("\a");
-    printf("%s\n", s.c_str());
-    fflush(stdout);
-}
-
-void cli_do_draw_plot (UiApi::RepaintMode /*mode*/)
+void cli_draw_plot (UiApi::RepaintMode /*mode*/)
 {
     static GnuPlot my_gnuplot;
     my_gnuplot.plot();
-}
-
-void cli_wait(float seconds)
-{
-#ifdef _WIN32
-    Sleep(int(seconds*1e3));
-#else //!_WIN32
-    seconds = fabs(seconds);
-    timespec ts;
-    ts.tv_sec = static_cast<int>(seconds);
-    ts.tv_nsec = static_cast<int>((seconds - ts.tv_sec) * 1e9);
-    nanosleep(&ts, 0);
-#endif //_WIN32
 }
 
 //-----------------------------------------------------------------
@@ -303,11 +280,8 @@ int main (int argc, char **argv)
     }
 
     ftk = new Fityk;
-
     // set callbacks
-    ftk->get_ui_api()->set_show_message(cli_show_message);
-    ftk->get_ui_api()->set_do_draw_plot(cli_do_draw_plot);
-    ftk->get_ui_api()->set_wait(cli_wait);
+    ftk->get_ui_api()->connect_draw_plot(cli_draw_plot);
 
     if (exec_init_file) {
         // file with initial commands is executed first (if exists)

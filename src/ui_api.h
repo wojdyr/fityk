@@ -33,8 +33,7 @@ public:
     /// command status
     enum Status { kStatusOk, kStatusExecuteError, kStatusSyntaxError };
 
-    UiApi() : show_message_(NULL), do_draw_plot_(NULL), exec_command_(NULL),
-              refresh_(NULL), compute_ui_(NULL), wait_(NULL) {}
+    UiApi();
     virtual ~UiApi() {}
 
     /// in addition to executing command, log it if logging option is set
@@ -46,33 +45,34 @@ public:
     // interprets command-line argument as data or script file or as command
     virtual void process_cmd_line_arg(const std::string& arg) = 0;
 
-    // callbacks
+    // Callbacks. connect_*() returns old callback.
 
-    typedef void t_do_draw_plot(RepaintMode mode);
-    void set_do_draw_plot(t_do_draw_plot *func) { do_draw_plot_ = func; }
+    // Callback for plotting.
+    typedef void t_draw_plot_callback(RepaintMode mode);
+    t_draw_plot_callback* connect_draw_plot(t_draw_plot_callback *func);
 
-    typedef void t_show_message(Style style, const std::string& s);
-    void set_show_message(t_show_message *func) { show_message_ = func; }
+    // Callback for text output. Initially, a callback suitable for CLI
+    // is connected (messages go to stdout).
+    typedef void t_show_message_callback(Style style, const std::string& s);
+    t_show_message_callback*
+        connect_show_message(t_show_message_callback *func);
 
-    typedef Status t_exec_command(const std::string &s);
-    void set_exec_command(t_exec_command *func) { exec_command_ = func; }
+    // If set, this callback is used instead of execute_line(s) function.
+    typedef Status t_exec_command_callback(const std::string &s);
+    t_exec_command_callback*
+        connect_exec_command(t_exec_command_callback *func);
 
-    typedef void t_refresh();
-    void set_refresh(t_refresh *func) { refresh_ = func; }
-
-    typedef void t_compute_ui(bool);
-    void set_compute_ui(t_compute_ui *func) { compute_ui_ = func; }
-
-    typedef void t_wait(float seconds);
-    void set_wait(t_wait *func) { wait_ = func; }
+    // This callback is called with arg=0 before time-consuming computation,
+    // after the computation with arg=1,
+    // and periodically during computations with arg=-1.
+    typedef void t_hint_ui_callback(int);
+    t_hint_ui_callback* connect_hint_ui(t_hint_ui_callback *func);
 
 protected:
-    t_show_message *show_message_;
-    t_do_draw_plot *do_draw_plot_;
-    t_exec_command *exec_command_;
-    t_refresh *refresh_;
-    t_compute_ui *compute_ui_;
-    t_wait *wait_;
+    t_show_message_callback *show_message_callback_;
+    t_draw_plot_callback *draw_plot_callback_;
+    t_exec_command_callback *exec_command_callback_;
+    t_hint_ui_callback *hint_ui_callback_;
 };
 
 /// Adds completions of the word `text' in context of line_buffer

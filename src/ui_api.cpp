@@ -3,6 +3,7 @@
 
 #include "ui_api.h"
 #include <cstring>
+#include <cstdio>
 #include "cparser.h"
 #include "mgr.h"
 #include "logic.h"
@@ -41,11 +42,61 @@ bool starts_with_command(const char *cmd, int n,
     return false;
 }
 
+
 namespace fityk {
 
 const char* config_dirname = ".fityk";
 const char* startup_commands_filename = "init";
 volatile bool user_interrupt = false;
+
+void simple_show_message(UiApi::Style style, const string& s)
+{
+    if (style == UiApi::kWarning)
+        printf("\a");
+    printf("%s\n", s.c_str());
+    fflush(stdout);
+}
+
+UiApi::UiApi()
+    : show_message_callback_(simple_show_message),
+      draw_plot_callback_(NULL),
+      exec_command_callback_(NULL),
+      hint_ui_callback_(NULL)
+{
+}
+
+UiApi::t_draw_plot_callback*
+UiApi::connect_draw_plot(UiApi::t_draw_plot_callback *func)
+{
+    UiApi::t_draw_plot_callback *old = draw_plot_callback_;
+    draw_plot_callback_ = func;
+    return old;
+}
+
+UiApi::t_show_message_callback*
+UiApi::connect_show_message(UiApi::t_show_message_callback *func)
+{
+    UiApi::t_show_message_callback *old = show_message_callback_;
+    show_message_callback_ = func;
+    return old;
+}
+
+UiApi::t_exec_command_callback*
+UiApi::connect_exec_command(UiApi::t_exec_command_callback *func)
+{
+    UiApi::t_exec_command_callback *old = exec_command_callback_;
+    exec_command_callback_ = func;
+    return old;
+}
+
+UiApi::t_hint_ui_callback*
+UiApi::connect_hint_ui(UiApi::t_hint_ui_callback *func)
+{
+    UiApi::t_hint_ui_callback *old = hint_ui_callback_;
+    hint_ui_callback_ = func;
+    return old;
+}
+
 
 bool complete_fityk_line(Fityk *F, const char* line_buffer, int start, int end,
                          const char *text, vector<string> &entries)

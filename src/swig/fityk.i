@@ -24,8 +24,9 @@ namespace std {
     %template(RealVector) vector<realt>;
 }
 
-// it can be wrapped only using typemaps
-%ignore set_show_message;
+// implementation, not api
+%ignore get_ftk;
+%ignore get_covariance_matrix_as_array;
 
 %extend fityk::Point { std::string __str__() { return $self->str(); } }
 %extend fityk::SyntaxError { const char* __str__() { return $self->what(); } }
@@ -33,30 +34,6 @@ namespace std {
 
 #if defined(SWIGPYTHON)
     %include "file.i"
-
-    %typemap(check) PyObject *pyfunc {
-        if (!PyCallable_Check($1))
-            SWIG_exception(SWIG_TypeError,"Expected function.");
-    }
-    %{
-    PyObject *_py_show_message_func = NULL;
-    static void PythonShowMessageCallBack(std::string const& s)
-    {
-        PyObject *arglist = Py_BuildValue("(s)", s.c_str());
-        PyEval_CallObject(_py_show_message_func, arglist);
-        Py_DECREF(arglist);
-    }
-    %}
-    %extend fityk::Fityk {
-        void py_set_show_message(PyObject *pyfunc) {
-            if (_py_show_message_func != NULL)
-                Py_DECREF(_py_show_message_func);
-            _py_show_message_func = pyfunc;
-            self->set_show_message(PythonShowMessageCallBack);
-            Py_INCREF(pyfunc);
-        }
-    }
-
 
 #elif defined(SWIGLUA)
     namespace std
@@ -92,9 +69,6 @@ namespace std {
         }
     }
 
-    // set_show_message can be probably wrapped using swig1.3/lua/lua_fnptr.i
-
-
 #elif defined(SWIGPERL)
     %typemap(in) FILE * {
         if (!SvTRUE($input))
@@ -121,5 +95,56 @@ namespace std {
 #endif
 
 %apply FILE* { std::FILE* };
+
+#if defined(SWIGPYTHON)
+    %typemap(check) PyObject *pyfunc {
+        if (!PyCallable_Check($1))
+            SWIG_exception(SWIG_TypeError,"Expected function.");
+    }
+
+    %{
+    #include "ui_api.h"
+
+    PyObject *_py_show_message_func = NULL;
+    static void PythonShowMessageCallBack(fityk::UiApi::Style style,
+                                          std::string const& s)
+    {
+        PyObject *arglist = Py_BuildValue("(is)", style, s.c_str());
+        PyEval_CallObject(_py_show_message_func, arglist);
+        Py_DECREF(arglist);
+    }
+
+    PyObject *_py_draw_plot_func = NULL;
+    static void PythonDrawPlotCallBack(fityk::UiApi::RepaintMode mode)
+    {
+        PyObject *arglist = Py_BuildValue("(i)", mode);
+        PyEval_CallObject(_py_draw_plot_func, arglist);
+        Py_DECREF(arglist);
+    }
+    %}
+
+    %extend fityk::UiApi {
+        void connect_show_message_py(PyObject *pyfunc) {
+            if (_py_show_message_func != NULL)
+                Py_DECREF(_py_show_message_func);
+            _py_show_message_func = pyfunc;
+            self->connect_show_message(PythonShowMessageCallBack);
+            Py_INCREF(pyfunc);
+        }
+
+        void connect_draw_plot_py(PyObject *pyfunc) {
+            if (_py_draw_plot_func != NULL)
+                Py_DECREF(_py_draw_plot_func);
+            _py_draw_plot_func = pyfunc;
+            self->connect_draw_plot(PythonDrawPlotCallBack);
+            Py_INCREF(pyfunc);
+        }
+    }
+
+    %include "ui_api.h"
+#else
+    %ignore get_ui_api;
+#endif
+
 %include "fityk.h"
 

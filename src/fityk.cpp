@@ -32,26 +32,18 @@ using namespace std;
             throw; \
     }
 
+// not thread-safe, but let's keep it simple
+static FILE* message_sink_ = NULL;
+
+namespace fityk {
+void write_message_to_file(UserInterface::Style style, string const& s)
+{
+    if (message_sink_ && style != UserInterface::kInput)
+        fprintf(message_sink_, "%s\n", s.c_str());
+}
+} // namespace fityk
+
 namespace {
-
-fityk::t_show_message *simple_message_handler = 0;
-
-FILE* message_sink = 0;
-
-// a bridge between fityk::set_show_message()
-// and UserInterface::set_show_message()
-void message_handler(UserInterface::Style style, string const& s)
-{
-    if (simple_message_handler && style != UserInterface::kInput)
-        (*simple_message_handler)(s);
-}
-
-void message_redir(UserInterface::Style style, string const& s)
-{
-    if (message_sink && style != UserInterface::kInput)
-        fprintf(message_sink, "%s\n", s.c_str());
-}
-
 
 realt get_wssr_or_ssr(Ftk const* ftk, int dataset, bool weigthed)
 {
@@ -92,23 +84,33 @@ Point::Point(realt x_, realt y_, realt sigma_) : x(x_), y(y_), sigma(sigma_),
 string Point::str() const { return "(" + S(x) + "; " + S(y) + "; " +
                                  S(sigma) + (is_active ? ")*" : ") "); }
 
+struct FitykInternalData
+{
+public:
+    bool owns;
+    UiApi::t_show_message_callback* old_message_callback;
+};
+
 
 Fityk::Fityk()
-    : throws_(true), owns_(true)
+    : throws_(true), p_(new FitykInternalData)
 {
     ftk_ = new Ftk;
+    p_->owns = true;
 }
 
 Fityk::Fityk(Ftk* F)
-    : throws_(true), owns_(false)
+    : throws_(true), p_(new FitykInternalData)
 {
     ftk_ = F;
+    p_->owns = false;
 }
 
 Fityk::~Fityk()
 {
-    if (owns_)
+    if (p_->owns)
         delete ftk_;
+    delete p_;
 }
 
 void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
@@ -249,16 +251,17 @@ vector<Point> const& Fityk::get_data(int dataset)  throw(ExecuteError)
 }
 
 
-void Fityk::set_show_message(t_show_message *func)
-{
-    simple_message_handler = func;
-    ftk_->get_ui()->set_show_message(message_handler);
-}
-
 void Fityk::redir_messages(FILE *stream)
 {
-    message_sink = stream;
-    ftk_->get_ui()->set_show_message(message_redir);
+    if (stream) {
+        UiApi::t_show_message_callback* old
+          = ftk_->get_ui()->connect_show_message(fityk::write_message_to_file);
+        if (old != fityk::write_message_to_file)
+            p_->old_message_callback = old;
+    }
+    else
+        ftk_->get_ui()->connect_show_message(p_->old_message_callback);
+    message_sink_ = stream;
 }
 
 void Fityk::out(string const& s) const

@@ -37,6 +37,7 @@ namespace fityk
 {
 
 class UiApi;
+struct FitykInternalData;
 
 /// exception thrown at run-time (when executing parsed command)
 struct ExecuteError : public std::runtime_error
@@ -71,10 +72,6 @@ struct Point
 };
 
 inline bool operator< (Point const& p, Point const& q) { return p.x < q.x; }
-
-/// type of function passed to Fityk::set_show_message()
-/// (C++ specific, ignore this if you fityk API from other languages)
-typedef void t_show_message(std::string const& s);
 
 
 /// the public API to libfityk
@@ -127,10 +124,10 @@ public:
     /// @name handling text output
     // @{
 
-    /// general approach: set show message callback; cancels redir_messages()
-    void set_show_message(t_show_message *func);
-
-    /// redirect output to ...(e.g. stdout/stderr); cancels set_show_message()
+    /// redirect output to file or stdout/stderr; called with NULL reverts
+    /// previous call(s).
+    /// Don't use with more than one Fityk instance at the same time.
+    /// Internally uses UiApi::set_show_message().
     void redir_messages(std::FILE *stream);
 
     /// print string in the output of GUI/CLI (useful for embedded Lua)
@@ -213,8 +210,9 @@ public:
 
 private:
     Ftk *ftk_;
-    bool throws_, owns_;
+    bool throws_;
     std::string last_error_;
+    FitykInternalData *p_;
 };
 
 } // namespace

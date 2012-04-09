@@ -1,14 +1,19 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
+#include "ui.h"
 #include <string>
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <zlib.h>
 #include <boost/scoped_ptr.hpp>
+#ifdef _WIN32
+# include <windows.h>
+#else
+# include <time.h>
+#endif
 
-#include "ui.h"
 #include "settings.h"
 #include "logic.h"
 #include "data.h"
@@ -381,15 +386,16 @@ void UserInterface::exec_string_as_script(const char* s)
 
 void UserInterface::draw_plot(RepaintMode mode)
 {
-    if (do_draw_plot_)
-        (*do_draw_plot_)(mode);
+    if (draw_plot_callback_)
+        (*draw_plot_callback_)(mode);
     F_->updated_plot();
 }
 
 
 UiApi::Status UserInterface::exec_command(const string& s)
 {
-    return exec_command_ ? (*exec_command_)(s) : execute_line(s);
+    return exec_command_callback_ ? (*exec_command_callback_)(s)
+                                  : execute_line(s);
 }
 
 bool is_fityk_script(string filename)
@@ -422,5 +428,18 @@ void UserInterface::process_cmd_line_arg(const string& arg)
     else {
         exec_and_log("@+ <'" + arg + "'");
     }
+}
+
+void UserInterface::wait(float seconds) const
+{
+#ifdef _WIN32
+    Sleep(iround(seconds*1e3));
+#else //!_WIN32
+    seconds = fabs(seconds);
+    timespec ts;
+    ts.tv_sec = static_cast<int>(seconds);
+    ts.tv_nsec = static_cast<int>((seconds - ts.tv_sec) * 1e9);
+    nanosleep(&ts, NULL);
+#endif //_WIN32
 }
 

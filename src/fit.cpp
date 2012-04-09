@@ -437,8 +437,8 @@ realt Fit::draw_a_from_distribution (int nr, char distribution, realt mult)
 class ComputeUI
 {
 public:
-    ComputeUI(UserInterface *ui) : ui_(ui) { ui->enable_compute_ui(true); }
-    ~ComputeUI() { ui_->enable_compute_ui(false); }
+    ComputeUI(UserInterface *ui) : ui_(ui) { ui->hint_ui(0); }
+    ~ComputeUI() { ui_->hint_ui(1); }
 private:
     UserInterface *ui_;
 };
@@ -555,7 +555,7 @@ void Fit::iteration_plot(const vector<realt> &A, realt wssr)
             + "  WSSR=" + F_->settings_mgr()->format_double(wssr)
             + " (" + S(percent_change)+ "%)"
             + "  CPU time: " + format1<double,16>("%.2f", elapsed) + "s.");
-    F_->get_ui()->refresh();
+    F_->get_ui()->hint_ui(-1);
     last_refresh_time_ = time(0);
 }
 
