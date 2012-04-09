@@ -26,7 +26,7 @@ dist_samples_DATA = samples/nacl01.fit samples/nacl01.dat \
 		    samples/enso.fit samples/enso.dat \
 		    samples/read-shockley.fit \
 		    samples/test_syntax.fit \
-		    samples/hello.cc \
+		    samples/hello.c samples/hello.cc \
 		    samples/hello.py samples/hello.lua samples/hello.pl \
 		    README
 
