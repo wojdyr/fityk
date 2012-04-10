@@ -490,7 +490,7 @@ void SideBar::OnVarButtonEdit (wxCommandEvent&)
     int n = get_focused_var();
     if (n < 0 || n >= size(ftk->variables()))
         return;
-    Variable const* var = ftk->get_variable(n);
+    const Variable* var = ftk->get_variable(n);
     string t = "$" + var->name + " = "+ var->get_formula(ftk->parameters());
     frame->edit_in_input(t);
 }
@@ -625,19 +625,19 @@ void SideBar::update_var_list()
     vector<Variable*> const& variables = ftk->variables();
     vector<int> var_vrefs(variables.size(), 0), var_frefs(variables.size(), 0);
     v_foreach (Variable*, i, variables) {
-        for (int j = 0; j != (*i)->get_vars_count(); ++j)
-            var_vrefs[(*i)->get_var_idx(j)]++;
+        for (int j = 0; j != (*i)->used_vars().get_count(); ++j)
+            var_vrefs[(*i)->used_vars().get_idx(j)]++;
     }
     v_foreach (Function*, i, ftk->functions()) {
-        for (int j = 0; j != (*i)->get_vars_count(); ++j)
-            var_frefs[(*i)->get_var_idx(j)]++;
+        for (int j = 0; j != (*i)->used_vars().get_count(); ++j)
+            var_frefs[(*i)->used_vars().get_idx(j)]++;
     }
 
     for (int i = 0; i < size(variables); ++i) {
-        Variable const* v = variables[i];
+        const Variable* v = variables[i];
         var_data.push_back(v->name);           //name
         string refs = S(var_frefs[i]) + "+" + S(var_vrefs[i]) + " / "
-                      + S(v->get_vars_count());
+                      + S(v->used_vars().get_count());
         var_data.push_back(refs); //refs
         var_data.push_back(S(v->get_value())); //value
         var_data.push_back(v->get_formula(ftk->parameters()));  //formula
@@ -928,7 +928,7 @@ void SideBar::update_var_inf()
     int n = get_focused_var();
     if (n < 0)
         return;
-    Variable const* var = ftk->get_variable(n);
+    const Variable* var = ftk->get_variable(n);
     string t = "$" + var->name + " = " + var->get_formula(ftk->parameters());
     inf->AppendText(s2wx(t));
     vector<string> in = ftk->get_variable_references(var->name);
@@ -1109,7 +1109,8 @@ void SideBar::update_param_panel()
         param_panel->delete_row_range(new_count, old_count);
 
     for (int i = 0; i < new_count; ++i) {
-        Variable const* var = ftk->get_variable(pp_func->get_var_idx(i));
+        const Variable* var =
+            ftk->get_variable(pp_func->used_vars().get_idx(i));
         wxString label = s2wx(pp_func->get_param(i));
         if (var->is_simple() || var->is_constant()) {
             bool locked = var->is_constant();

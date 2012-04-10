@@ -12,58 +12,47 @@
 using namespace std;
 
 /// checks if *this depends (directly or indirectly) on variable with index idx
-bool VariableUser::is_dependent_on(int idx,
-                                   vector<Variable*> const &variables) const
+bool IndexedVars::depends_on(int idx, vector<Variable*> const &variables) const
 {
-    v_foreach (int, i, var_idx)
-        if (*i == idx || variables[*i]->is_dependent_on(idx, variables))
+    v_foreach (int, i, indices_)
+        if (*i == idx || variables[*i]->used_vars().depends_on(idx, variables))
             return true;
     return false;
 }
 
-void VariableUser::set_var_idx(vector<Variable*> const &variables)
+void IndexedVars::update_indices(vector<Variable*> const &variables)
 {
-    const int n = varnames.size();
-    var_idx.resize(n);
+    const int n = names_.size();
+    indices_.resize(n);
     for (int v = 0; v < n; ++v) {
         bool found = false;
         for (int i = 0; i < size(variables); ++i) {
-            if (varnames[v] == variables[i]->name) {
-                var_idx[v] = i;
+            if (names_[v] == variables[i]->name) {
+                indices_[v] = i;
                 found = true;
                 break;
             }
         }
         if (!found)
-            throw ExecuteError("Undefined variable: $" + varnames[v]);
+            throw ExecuteError("Undefined variable: $" + names_[v]);
     }
 }
 
-int VariableUser::get_max_var_idx()
+int IndexedVars::get_max_idx() const
 {
-    if (var_idx.empty())
+    if (indices_.empty())
         return -1;
     else
-       return *max_element(var_idx.begin(), var_idx.end());
-}
-
-std::string VariableUser::get_debug_idx_info() const
-{
-    string r = prefix + name + ": ";
-    assert(varnames.size() == var_idx.size());
-    for (size_t i = 0; i != varnames.size(); ++i)
-        r += varnames[i] + "/" + S(var_idx[i]) + " ";
-    return r;
+       return *max_element(indices_.begin(), indices_.end());
 }
 
 ////////////////////////////////////////////////////////////////////////////
 
 // ctor for simple variables and mirror variables
-Variable::Variable(string const &name, int nr)
-    : VariableUser(name, "$"),
-      nr_(nr), original_(NULL)
+Variable::Variable(string const &name_, int nr)
+    : name(name_), nr_(nr), original_(NULL)
 {
-    assert(!name.empty());
+    assert(!name_.empty());
     if (nr_ != -2) {
         ParMult pm;
         pm.p = nr_;
@@ -73,12 +62,12 @@ Variable::Variable(string const &name, int nr)
 }
 
 // ctor for compound variables
-Variable::Variable(string const &name, vector<string> const &vars,
+Variable::Variable(string const &name_, vector<string> const &vars,
                    vector<OpTree*> const &op_trees)
-    : VariableUser(name, "$", vars),
-      nr_(-1), derivatives_(vars.size()), op_trees_(op_trees), original_(NULL)
+    : name(name_), nr_(-1), used_vars_(vars),
+      derivatives_(vars.size()), op_trees_(op_trees), original_(NULL)
 {
-    assert(!name.empty());
+    assert(!name_.empty());
 }
 
 Variable::~Variable()
@@ -88,18 +77,18 @@ Variable::~Variable()
 
 void Variable::set_var_idx(vector<Variable*> const& variables)
 {
-    VariableUser::set_var_idx(variables);
+    used_vars_.update_indices(variables);
     if (nr_ == -1) {
-        /// (re-)create bytecode, required after ::set_var_idx()
-        assert(var_idx.size() + 1 == op_trees_.size());
+        /// (re-)create bytecode, required after update_indices()
+        assert(used_vars_.indices().size() + 1 == op_trees_.size());
         vm_.clear_data();
         int n = op_trees_.size() - 1;
         for (int i = 0; i < n; ++i) {
-            add_bytecode_from_tree(op_trees_[i], var_idx, vm_);
+            add_bytecode_from_tree(op_trees_[i], used_vars_.indices(), vm_);
             vm_.append_code(OP_PUT_DERIV);
             vm_.append_code(i);
         }
-        add_bytecode_from_tree(op_trees_.back(), var_idx, vm_);
+        add_bytecode_from_tree(op_trees_.back(), used_vars_.indices(), vm_);
         //printf("Variable::set_var_idx: %s\n", vm2str(vm_).c_str());
     }
 }
@@ -108,7 +97,7 @@ string Variable::get_formula(vector<realt> const &parameters) const
 {
     assert(nr_ >= -1);
     vector<string> vn;
-    v_foreach (string, i, varnames)
+    v_foreach (string, i, used_vars_.names())
         vn.push_back("$" + *i);
     const char* num_format = "%.12g";
     OpTreeFormat fmt = { num_format, &vn };
@@ -128,7 +117,7 @@ void Variable::recalculate(vector<Variable*> const &variables,
         value_ = run_code_for_variable(vm_, variables, derivatives_);
         recursive_derivatives_.clear();
         for (int i = 0; i < size(derivatives_); ++i) {
-            Variable *v = variables[var_idx[i]];
+            Variable *v = variables[used_vars_.get_idx(i)];
             v_foreach (ParMult, j, v->recursive_derivatives()) {
                 recursive_derivatives_.push_back(*j);
                 recursive_derivatives_.back().mult *= derivatives_[i];

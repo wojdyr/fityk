@@ -13,10 +13,11 @@ vector<realt> Function::calc_val_xx(1);
 vector<realt> Function::calc_val_yy(1);
 
 Function::Function(const Settings* settings,
-                   const string &name,
+                   const string &name_,
                    const Tplate::Ptr tp,
                    const vector<string> &vars)
-    : VariableUser(name, "%", vars),
+    : name(name_),
+      used_vars_(vars),
       settings_(settings),
       tp_(tp),
       av_(vars.size())
@@ -71,8 +72,8 @@ void Function::do_precomputations(const vector<Variable*> &variables)
 {
     //precondition: recalculate() for all variables
     multi_.clear();
-    for (int i = 0; i < size(var_idx); ++i) {
-        const Variable *v = variables[var_idx[i]];
+    for (int i = 0; i < used_vars_.get_count(); ++i) {
+        const Variable *v = variables[used_vars_.get_idx(i)];
         av_[i] = v->get_value();
         v_foreach (Variable::ParMult, j, v->recursive_derivatives())
             multi_.push_back(Multi(i, *j));
@@ -150,8 +151,8 @@ bool Function::get_iwidth(realt* a) const
 string Function::get_basic_assignment() const
 {
     string r = "%" + name + " = " + tp_->name + "(";
-    v_foreach (string, i, varnames)
-        r += (i == varnames.begin() ? "$" : ", $") + *i;
+    v_foreach (string, i, used_vars_.names())
+        r += (i == used_vars_.names().begin() ? "$" : ", $") + *i;
     r += ")";
     return r;
 }
@@ -161,8 +162,8 @@ string Function::get_current_assignment(const vector<Variable*> &variables,
                                         const vector<realt> &parameters) const
 {
     vector<string> vs;
-    for (int i = 0; i < size(var_idx); ++i) {
-        const Variable* v = variables[var_idx[i]];
+    for (int i = 0; i < used_vars_.get_count(); ++i) {
+        const Variable* v = variables[used_vars_.get_idx(i)];
         string t = get_param(i) + "="
             + (v->is_simple() ? v->get_formula(parameters) : "$" + v->name);
         vs.push_back(t);

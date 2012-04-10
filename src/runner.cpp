@@ -455,7 +455,8 @@ void Runner::command_name_var(const vector<Token>& args)
     VMData* vd = get_vm_from_token(args[1]);
     RealRange domain = args2range(args[2], args[3]);
     int pos = F_->make_variable(name, vd);
-    F_->get_variable(pos)->domain = domain;
+    //F_->get_variable(pos)->domain = domain;
+    F_->set_domain(pos, domain);
     F_->use_parameters();
     F_->outdated_plot(); // TODO: only for replacing old variable
 }

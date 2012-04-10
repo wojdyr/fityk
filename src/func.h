@@ -13,10 +13,9 @@
 class Settings;
 class VariableManager;
 
-class Function : public VariableUser
+class Function
 {
 public:
-
     struct Multi
     {
         int p; int n; realt mult;
@@ -24,7 +23,9 @@ public:
             : p(pm.p), n(n_), mult(pm.mult) {}
     };
 
-    Function(const Settings* settings, const std::string &name,
+    const std::string name;
+
+    Function(const Settings* settings, const std::string &name_,
              const Tplate::Ptr tp, const std::vector<std::string> &vars);
     virtual ~Function() {}
     virtual void init();
@@ -96,7 +97,13 @@ public:
     realt find_extremum(realt x1, realt x2, int max_iter=1000) const;
 
     virtual std::string get_bytecode() const { return "No bytecode"; }
+    virtual void update_var_indices(const std::vector<Variable*>& variables)
+            { used_vars_.update_indices(variables); }
+    void set_param_name(int n, const std::string &new_p)
+            { used_vars_.set_name(n, new_p); }
+    const IndexedVars& used_vars() const { return used_vars_; }
 protected:
+    IndexedVars used_vars_;
     const Settings* settings_;
     Tplate::Ptr tp_;
     /// current values of arguments,

@@ -142,7 +142,7 @@ string get_variable_info(const Ftk* F, const Variable* v)
     if (!d.from_inf() || !d.to_inf())
         s += "  [" + (d.from_inf() ? S("") : S(d.from)) + " : "
              + (d.to_inf() ? S("") : S(d.to)) + "]";
-    if (v->is_auto_delete())
+    if (VariableManager::is_auto(v->name))
         s += "  [auto]";
     return s;
 }
@@ -197,8 +197,8 @@ string info_func_props(const Ftk* F, const string& name)
 {
     const Function* f = F->find_function(name);
     string s = f->tp()->as_formula();
-    for (int i = 0; i < f->get_vars_count(); ++i) {
-        Variable const* v = F->get_variable(f->get_var_idx(i));
+    for (int i = 0; i < f->used_vars().get_count(); ++i) {
+        Variable const* v = F->get_variable(f->used_vars().get_idx(i));
         s += "\n" + f->get_param(i) + " = " + get_variable_info(F, v);
     }
     realt a;
@@ -688,7 +688,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
     // show values of derivatives for all variables
     else if (word == "rd") {
         for (int i = 0; i < size(F->variables()); ++i) {
-            Variable const* var = F->get_variable(i);
+            const Variable* var = F->get_variable(i);
             r += "$" + var->name + ": ";
             v_foreach (Variable::ParMult, i, var->recursive_derivatives())
                 r += "p" + S(i->p) + "=$"
@@ -698,12 +698,24 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
         }
     }
 
-    // show varnames and var_idx from VariableUser
+    // show used_vars from VariableUser
     else if (word == "idx") {
-        for (size_t i = 0; i != F->functions().size(); ++i)
-            r += S(i) + ": " + F->get_function(i)->get_debug_idx_info() + "\n";
-        for (size_t i = 0; i != F->variables().size(); ++i)
-            r += S(i) + ": " + F->get_variable(i)->get_debug_idx_info() + "\n";
+        for (size_t i = 0; i != F->functions().size(); ++i) {
+            const Function *f = F->get_function(i);
+            r += S(i) + ": %" + f->name + ": ";
+            const IndexedVars& uv = f->used_vars();
+            for (int i = 0; i != uv.get_count(); ++i)
+                r += uv.get_name(i) + "/" + S(uv.get_idx(i)) + " ";
+            r += "\n";
+        }
+        for (size_t i = 0; i != F->variables().size(); ++i) {
+            const Variable *v = F->get_variable(i);
+            r += S(i) + ": $" + v->name + ": ";
+            const IndexedVars& uv = v->used_vars();
+            for (int i = 0; i != uv.get_count(); ++i)
+                r += uv.get_name(i) + "/" + S(uv.get_idx(i)) + " ";
+            r += "\n";
+        }
     }
 
     // compares numeric and symbolic derivatives
@@ -736,16 +748,16 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
     else if (key.type == kTokenVarname) {
         const Variable* v = F->find_variable(Lexer::get_string(key));
         vector<string> vn;
-        v_foreach (string, i, v->get_varnames())
+        v_foreach (string, i, v->used_vars().names())
             vn.push_back("$" + *i);
-        for (int i = 0; i < v->get_vars_count(); ++i) {
+        for (int i = 0; i < v->used_vars().get_count(); ++i) {
             const char* num_format = F->get_settings()->numeric_format.c_str();
             OpTreeFormat fmt = { num_format, &vn };
             string formula = v->get_op_trees()[i]->str(fmt);
             double value = v->get_derivative(i);
             if (i != 0)
                 r += "\n";
-            r += "d($" + v->name + ")/d($" + v->get_var_name(i) + "): "
+            r += "d($" + v->name + ")/d($" + v->used_vars().get_name(i) + "): "
               + formula + " == " + F->settings_mgr()->format_double(value);
         }
     }

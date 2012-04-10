@@ -35,7 +35,7 @@ public:
     bool get_fwhm(realt* a) const;
     bool get_area(realt* a) const;
     bool get_nonzero_range(double level, realt& left, realt& right) const;
-    void set_var_idx(const std::vector<Variable*>& variables);
+    void update_var_indices(const std::vector<Variable*>& variables);
 
 protected:
     std::vector<Variable*> intern_variables_;
@@ -68,7 +68,7 @@ public:
                                         int first, int last) const;
     std::string get_current_formula(const std::string& x,
                                     const char *num_fmt) const;
-    void set_var_idx(std::vector<Variable*> const& variables);
+    void update_var_indices(std::vector<Variable*> const& variables);
     std::string get_bytecode() const;
 
 
@@ -114,7 +114,7 @@ public:
     virtual bool get_fwhm(realt*) const { return false; }
     virtual bool get_area(realt*) const { return false; }
     bool get_nonzero_range(double level, realt& left, realt& right) const;
-    void set_var_idx(const std::vector<Variable*>& variables);
+    void update_var_indices(const std::vector<Variable*>& variables);
 
 private:
     std::vector<Variable*> intern_variables_;

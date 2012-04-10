@@ -33,7 +33,7 @@ Function* init_component(const string& func_name, const Tplate::Component& c,
     }
     Function *func = (*c.p->create)(settings, func_name, c.p, varnames);
     func->init();
-    func->set_var_idx(variables);
+    func->update_var_indices(variables);
     return func;
 }
 
@@ -58,7 +58,7 @@ void CompoundFunction::init()
 
     // add mirror-variables
     for (int j = 0; j != nv(); ++j) {
-        Variable* var = new Variable(varnames[j], -2);
+        Variable* var = new Variable(used_vars_.get_name(j), -2);
         intern_variables_.push_back(var);
     }
 
@@ -70,11 +70,11 @@ void CompoundFunction::init()
     }
 }
 
-void CompoundFunction::set_var_idx(vector<Variable*> const& variables)
+void CompoundFunction::update_var_indices(vector<Variable*> const& variables)
 {
-    VariableUser::set_var_idx(variables);
+    Function::update_var_indices(variables);
     for (int i = 0; i < nv(); ++i) {
-        const Variable* orig = variables[get_var_idx(i)];
+        const Variable* orig = variables[used_vars_.get_idx(i)];
         intern_variables_[i]->set_original(orig);
     }
 }
@@ -201,14 +201,14 @@ CustomFunction::~CustomFunction()
 {
 }
 
-void CustomFunction::set_var_idx(const vector<Variable*>& variables)
+void CustomFunction::update_var_indices(const vector<Variable*>& variables)
 {
-    VariableUser::set_var_idx(variables);
+    Function::update_var_indices(variables);
 
-    assert(var_idx.size() + 2 == tp_->op_trees.size());
+    assert(used_vars().get_count() + 2 == (int) tp_->op_trees.size());
     // we put function's parameter index rather than variable index after
     //  OP_SYMBOL, it is handled in this way in more_precomputations()
-    vector<int> symbol_map = range_vector(0, var_idx.size());
+    vector<int> symbol_map = range_vector(0, used_vars().get_count());
     vm_.clear_data();
     int n = tp_->op_trees.size() - 1;
     for (int i = 0; i < n; ++i) {
@@ -305,7 +305,7 @@ void SplitFunction::init()
 
     // add mirror-variables
     for (int j = 0; j != nv(); ++j) {
-        Variable* var = new Variable(varnames[j], -2);
+        Variable* var = new Variable(used_vars_.get_name(j), -2);
         intern_variables_.push_back(var);
     }
 
@@ -322,11 +322,11 @@ void SplitFunction::init()
     intern_variables_.push_back(v);
 }
 
-void SplitFunction::set_var_idx(vector<Variable*> const& variables)
+void SplitFunction::update_var_indices(vector<Variable*> const& variables)
 {
-    VariableUser::set_var_idx(variables);
+    Function::update_var_indices(variables);
     for (int i = 0; i < nv(); ++i) {
-        const Variable* orig = variables[get_var_idx(i)];
+        const Variable* orig = variables[used_vars_.get_idx(i)];
         intern_variables_[i]->set_original(orig);
     }
 }

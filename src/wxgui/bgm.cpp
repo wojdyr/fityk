@@ -143,11 +143,13 @@ void BgManager::define_bg_func()
         if (f->tp()->name == ftype && f->nv() == 2 * (int) bg_.size()) {
             bool the_same = true;
             for (size_t i = 0; i != bg_.size(); ++i) {
-                const Variable *vx = ftk->find_variable(f->get_var_name(2*i));
-                const Variable *vy = ftk->find_variable(f->get_var_name(2*i+1));
-                if (!vx->is_auto_delete() || !vx->is_constant() ||
+                const Variable *vx =
+                    ftk->find_variable(f->used_vars().get_name(2*i));
+                const Variable *vy =
+                    ftk->find_variable(f->used_vars().get_name(2*i+1));
+                if (!VariableManager::is_auto(vx->name) || !vx->is_constant() ||
                         S(vx->get_value()) != S(bg_[i].x) ||
-                    !vy->is_auto_delete() || !vy->is_constant() ||
+                    !VariableManager::is_auto(vy->name) || !vy->is_constant() ||
                         S(vy->get_value()) != S(bg_[i].y)) {
                     the_same = false;
                     break;

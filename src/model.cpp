@@ -32,10 +32,10 @@ bool Model::is_dependent_on_var(int idx) const
 {
     const vector<Variable*>& vv = mgr.variables();
     v_foreach (int, i, ff_.idx)
-        if (mgr.get_function(*i)->is_dependent_on(idx, vv))
+        if (mgr.get_function(*i)->used_vars().depends_on(idx, vv))
             return true;
     v_foreach (int, i, zz_.idx)
-        if (mgr.get_function(*i)->is_dependent_on(idx, vv))
+        if (mgr.get_function(*i)->used_vars().depends_on(idx, vv))
             return true;
     return false;
 }
@@ -179,10 +179,11 @@ string Model::get_peak_parameters(const vector<realt>& errors) const
         else
             s += "\tx";
         s += "\t";
-        for (int j = 0; j < p->get_vars_count(); ++j) {
+        for (int j = 0; j < p->used_vars().get_count(); ++j) {
             s += " " + sm->format_double(p->av()[j]);
             if (!errors.empty()) {
-                const Variable* var = mgr.get_variable(p->get_var_idx(j));
+                const Variable* var =
+                    mgr.get_variable(p->used_vars().get_idx(j));
                 if (var->is_simple()) {
                     realt err = errors[var->get_nr()];
                     s += " +/- " + sm->format_double(err);

@@ -453,7 +453,7 @@ void ExpressionParser::put_func_sth(Lexer& lex, const string& name,
         }
         else { // property of %function (= $variable)
             const Function *f = F_->find_function(name);
-            string v = f->get_var_name(f->get_param_nr(word));
+            string v = f->used_vars().get_name(f->get_param_nr(word));
             put_variable_sth(lex, v, ast_mode);
         }
     }

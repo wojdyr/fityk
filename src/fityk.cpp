@@ -198,7 +198,7 @@ int Fityk::get_variable_nr(string const& name)  throw(ExecuteError)
             string::size_type pos = name.find('.');
             Function const* f = ftk_->find_function(string(1, pos-1));
             string pname = name.substr(pos+1);
-            vname = f->get_var_name(f->get_param_nr(pname));
+            vname = f->used_vars().get_name(f->get_param_nr(pname));
         }
         else
             vname = name;

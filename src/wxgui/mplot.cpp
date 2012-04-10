@@ -263,7 +263,7 @@ string FunctionMouseDrag::Drag::get_cmd() const
 void FunctionMouseDrag::Drag::set(const Function* p, int idx,
                                   drag_type how_, double multiplier_)
 {
-    const Variable* var = ftk->get_variable(p->get_var_idx(idx));
+    const Variable* var = ftk->get_variable(p->used_vars().get_idx(idx));
     if (!var->is_simple()) {
         how = no_drag;
         return;
@@ -271,7 +271,7 @@ void FunctionMouseDrag::Drag::set(const Function* p, int idx,
     how = how_;
     parameter_idx = idx;
     parameter_name = p->get_param(idx);
-    variable_name = p->get_var_name(idx);
+    variable_name = p->used_vars().get_name(idx);
     value = ini_value = p->av()[idx];
     multiplier = multiplier_;
     ini_x = 0.;
@@ -1362,8 +1362,9 @@ void freeze_functions_in_range(double x1, double x2, bool freeze)
             continue;
         if (!(x1 < ctr && ctr < x2))
             continue;
-        for (int j = 0; j != (*i)->get_vars_count(); ++j) {
-            const Variable* var = ftk->get_variable((*i)->get_var_idx(j));
+        for (int j = 0; j != (*i)->used_vars().get_count(); ++j) {
+            const Variable* var =
+                ftk->get_variable((*i)->used_vars().get_idx(j));
             if (freeze && var->is_simple()) {
                 cmd += "$" + var->name + "=" + eS(var->get_value()) + "; ";
             }
@@ -1539,7 +1540,7 @@ void calculate_values(const vector<realt>& xx, vector<realt>& yy,
         variables[i]->recalculate(dummy_vars, vector<realt>());
     }
 
-    f->set_var_idx(variables);
+    f->update_var_indices(variables);
     f->do_precomputations(variables);
     f->calculate_value(xx, yy);
     purge_all_elements(variables);

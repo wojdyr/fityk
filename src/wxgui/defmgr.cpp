@@ -145,7 +145,7 @@ void DefinitionMgrDlg::update_desc(const Tplate& tp)
             }
     v_foreach (Function*, i, ftk->functions())
         if ((*i)->tp()->name == tp.name) {
-            desc += wxT(" ") + s2wx((*i)->prefix + (*i)->name);
+            desc += " %" + s2wx((*i)->name);
             used = true;
         }
     if (!used)

@@ -1651,7 +1651,7 @@ void PowderBook::fill_forms()
         if (w == -1)
             w = index_of_element(f->tp()->fargs, "hwhm1");
         if (w != -1) {
-            Variable* hwhm = ftk->get_variable(f->get_var_idx(w));
+            const Variable* hwhm = ftk->get_variable(f->used_vars().get_idx(w));
             if (!hwhm->is_simple() || hwhm->name == "pd_w")
                 width_rb->SetSelection(1);
         }
@@ -1659,7 +1659,8 @@ void PowderBook::fill_forms()
         if (sh == -1)
             sh = index_of_element(f->tp()->fargs, "shape1");
         if (sh != -1) {
-            Variable* shape = ftk->get_variable(f->get_var_idx(sh));
+            const Variable* shape =
+                ftk->get_variable(f->used_vars().get_idx(sh));
             if (!shape->is_simple() || shape->name == "pd_a") {
                 string formula = shape->get_formula(ftk->parameters());
                 bool has_div = contains_element(formula, '/');

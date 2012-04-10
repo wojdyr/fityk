@@ -49,7 +49,7 @@ void VariableManager::sort_variables()
         (*i)->set_var_idx(variables_);
     int pos = 0;
     while (pos < size(variables_)) {
-        int M = variables_[pos]->get_max_var_idx();
+        int M = variables_[pos]->used_vars().get_max_idx();
         if (M > pos) {
             swap(variables_[pos], variables_[M]);
             for (vector<Variable*>::iterator i = variables_.begin();
@@ -164,7 +164,7 @@ bool VariableManager::is_variable_referred(int i, string *first_referrer)
 {
     // A variable can be referred only by variables with larger index.
     for (int j = i+1; j < size(variables_); ++j) {
-        if (variables_[j]->is_directly_dependent_on(i)) {
+        if (variables_[j]->used_vars().has_idx(i)) {
             if (first_referrer)
                 *first_referrer = "$" + variables_[j]->name;
             return true;
@@ -172,7 +172,7 @@ bool VariableManager::is_variable_referred(int i, string *first_referrer)
     }
     for (vector<Function*>::iterator j = functions_.begin();
             j != functions_.end(); ++j) {
-        if ((*j)->is_directly_dependent_on(i)) {
+        if ((*j)->used_vars().has_idx(i)) {
             if (first_referrer)
                 *first_referrer = "%" + (*j)->name;
             return true;
@@ -187,11 +187,11 @@ VariableManager::get_variable_references(const string &name) const
     int idx = find_variable_nr(name);
     vector<string> refs;
     v_foreach (Variable*, i, variables_)
-        if ((*i)->is_directly_dependent_on(idx))
+        if ((*i)->used_vars().has_idx(idx))
             refs.push_back("$" + (*i)->name);
     v_foreach (Function*, i, functions_)
-        for (int j = 0; j < (*i)->get_vars_count(); ++j)
-            if ((*i)->get_var_idx(j) == idx)
+        for (int j = 0; j < (*i)->used_vars().get_count(); ++j)
+            if ((*i)->used_vars().get_idx(j) == idx)
                 refs.push_back("%" + (*i)->name + "." + (*i)->get_param(j));
     return refs;
 }
@@ -204,7 +204,7 @@ void VariableManager::reindex_all()
         (*i)->set_var_idx(variables_);
     for (vector<Function*>::iterator i = functions_.begin();
             i != functions_.end(); ++i) {
-        (*i)->set_var_idx(variables_);
+        (*i)->update_var_indices(variables_);
     }
 }
 
@@ -212,11 +212,9 @@ void VariableManager::remove_unreferred()
 {
     // remove auto-delete marked variables, which are not referred by others
     for (int i = variables_.size()-1; i >= 0; --i)
-        if (variables_[i]->is_auto_delete()) {
-            if (!is_variable_referred(i)) {
-                delete variables_[i];
-                variables_.erase(variables_.begin() + i);
-            }
+        if (is_auto(variables_[i]->name) && !is_variable_referred(i)) {
+            delete variables_[i];
+            variables_.erase(variables_.begin() + i);
         }
 
     // re-index all functions and variables (in any case)
@@ -254,12 +252,12 @@ int VariableManager::add_variable(Variable* new_var)
         variables_.push_back(var.release());
     }
     else {
-        if (var->is_dependent_on(pos, variables_)) { //check for loops
+        if (var->used_vars().depends_on(pos, variables_)) { //check for loops
             throw ExecuteError("loop in dependencies of $" + var->name);
         }
         delete variables_[pos];
         variables_[pos] = var.release();
-        if (variables_[pos]->get_max_var_idx() > pos)
+        if (variables_[pos]->used_vars().get_max_idx() > pos)
             sort_variables();
         remove_unreferred();
     }
@@ -279,8 +277,8 @@ string VariableManager::assign_variable_copy(const Variable* orig,
     }
     else {
         vector<string> vars;
-        for (int i = 0; i != orig->get_vars_count(); ++i) {
-            int v_idx = orig->get_var_idx(i);
+        for (int i = 0; i != orig->used_vars().get_count(); ++i) {
+            int v_idx = orig->used_vars().get_idx(i);
             assert(varmap.count(v_idx));
             vars.push_back(varmap.find(v_idx)->second);
         }
@@ -381,7 +379,7 @@ void VariableManager::auto_remove_functions()
 {
     int func_size = functions_.size();
     for (int i = func_size - 1; i >= 0; --i)
-        if (functions_[i]->is_auto_delete() && !is_function_referred(i)) {
+        if (is_auto(functions_[i]->name) && !is_function_referred(i)) {
             delete functions_[i];
             functions_.erase(functions_.begin() + i);
         }
@@ -462,6 +460,11 @@ void VariableManager::put_new_parameters(const vector<realt> &aa)
     use_parameters();
 }
 
+void VariableManager::set_domain(int n, const RealRange& domain)
+{
+    variables_[n]->domain = domain;
+}
+
 int VariableManager::assign_func(const string &name, Tplate::Ptr tp,
                                  vector<VMData*> &args)
 {
@@ -483,14 +486,14 @@ int VariableManager::assign_func_copy(const string &name, const string &orig)
     const Function* of = find_function(orig);
     map<int,string> var_copies;
     for (int i = 0; i < size(variables_); ++i) {
-        if (of->is_dependent_on(i, variables_)) {
+        if (of->used_vars().depends_on(i, variables_)) {
             const Variable* var_orig = variables_[i];
             var_copies[i] = assign_variable_copy(var_orig, var_copies);
         }
     }
     vector<string> varnames;
-    for (int i = 0; i != of->get_vars_count(); ++i) {
-        int v_idx = of->get_var_idx(i);
+    for (int i = 0; i != of->used_vars().get_count(); ++i) {
+        int v_idx = of->used_vars().get_idx(i);
         assert(var_copies.count(v_idx));
         varnames.push_back(var_copies[v_idx]);
     }
@@ -503,7 +506,7 @@ int VariableManager::assign_func_copy(const string &name, const string &orig)
 
 int VariableManager::add_func(Function* func)
 {
-    func->set_var_idx(variables_);
+    func->update_var_indices(variables_);
     // if there is already function with the same name -- replace
     int nr = find_function_nr(func->name);
     if (nr != -1) {
@@ -552,8 +555,8 @@ void VariableManager::substitute_func_param(const string &name,
     string new_param;
     int v_idx = vd->single_symbol() ? vd->code()[1]
                                     : make_variable(next_var_name(), vd);
-    k->substitute_param(k->get_param_nr(param), variables_[v_idx]->name);
-    k->set_var_idx(variables_);
+    k->set_param_name(k->get_param_nr(param), variables_[v_idx]->name);
+    k->update_var_indices(variables_);
     remove_unreferred();
 }
 

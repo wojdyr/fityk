@@ -19,6 +19,9 @@ struct Token;
 class VariableManager
 {
 public:
+    static bool is_auto(const std::string& name)
+        { return !name.empty() && name[0] == '_'; }
+
     VariableManager(const Ftk* F);
     ~VariableManager();
     void register_model(Model *m) { models_.push_back(m); }
@@ -55,7 +58,8 @@ public:
     const std::vector<realt>& parameters() const { return parameters_; }
     const std::vector<Variable*>& variables() const { return variables_; }
     const Variable* get_variable(int n) const { return variables_[n]; }
-    Variable* get_variable(int n) { return variables_[n]; }
+    //Variable* get_variable(int n) { return variables_[n]; }
+    void set_domain(int n, const RealRange& domain);
 
     /// returns index of the new function in functions_
     int assign_func(const std::string &name, Tplate::Ptr tp,

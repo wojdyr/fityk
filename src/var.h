@@ -12,39 +12,38 @@ class Variable;
 class Function;
 class Sum;
 
-class VariableUser
+class IndexedVars
 {
 public:
-    const std::string name;
-    const std::string prefix;
+    IndexedVars() {}
+    IndexedVars(const std::vector<std::string> &vars) : names_(vars) {}
 
-    VariableUser(const std::string &name_, std::string const &prefix_,
-              const std::vector<std::string> &vars = std::vector<std::string>())
-        : name(name_), prefix(prefix_), varnames(vars) {}
-    virtual ~VariableUser() {}
-    bool is_auto_delete() const { return name.size() > 0 && name[0] == '_'; }
+    const std::vector<std::string>& names() const { return names_; }
+    const std::vector<int>& indices() const { return indices_; }
 
-    bool is_dependent_on(int idx, const std::vector<Variable*> &variables)const;
-    bool is_directly_dependent_on(int idx) const
-                                  { return contains_element(var_idx, idx); }
+    int get_count() const { return names_.size(); }
+    const std::string& get_name(int n) const
+                     { assert(is_index(n, names_)); return names_[n]; }
 
-    virtual void set_var_idx(const std::vector<Variable*>& variables);
-    int get_var_idx(int n) const
-             { assert(n >= 0 && n < size(var_idx)); return var_idx[n]; }
-    int get_max_var_idx();
-    int get_vars_count() const { return varnames.size(); }
-    const std::vector<std::string>& get_varnames() const { return varnames; }
-    std::string get_var_name(int n) const
-             { assert(n >= 0 && n < size(varnames)); return varnames[n]; }
-    void substitute_param(int n, const std::string &new_p)
-             { assert(n >= 0 && n < size(varnames)); varnames[n] = new_p; }
+    int get_idx(int n) const
+                     { assert(is_index(n, indices_)); return indices_[n]; }
+    int get_max_idx() const;
+    bool has_idx(int idx) const { return contains_element(indices_, idx); }
+    bool depends_on(int idx, const std::vector<Variable*> &variables) const;
     std::string get_debug_idx_info() const;
 
-protected:
-    std::vector<std::string> varnames; // variable names
-    /// var_idx is set after initialization (in derived class)
-    /// and modified after variable removal or change
-    std::vector<int> var_idx;
+    void set_name(int n, const std::string &new_p)
+                         { assert(is_index(n, names_)); names_[n] = new_p; }
+    void update_indices(const std::vector<Variable*>& variables);
+
+private:
+    // variable names
+    std::vector<std::string> names_;
+    // corresponding indices; set after initialization (in outer class)
+    // and modified after variable removal or change
+    std::vector<int> indices_;
+
+    DISALLOW_COPY_AND_ASSIGN(IndexedVars);
 };
 
 /// the variable is either simple-variable and nr_ is the index in vector
@@ -60,15 +59,16 @@ protected:
 ///    (VMData, again) that will be used to calculate value and derivatives.
 /// -  recalculate() calculates (using run_code_for_variable()) value
 ///    and derivatives for current parameter value
-class Variable : public VariableUser
+class Variable
 {
 public:
+    const std::string name;
     RealRange domain;
 
     struct ParMult { int p; realt mult; };
-    Variable(const std::string &name_, int nr_);
-    Variable(const std::string &name_, const std::vector<std::string> &vars_,
-             const std::vector<OpTree*> &op_trees_);
+    Variable(const std::string &name_, int nr);
+    Variable(const std::string &name_, const std::vector<std::string> &vars,
+             const std::vector<OpTree*> &op_trees);
     ~Variable();
     void recalculate(const std::vector<Variable*> &variables,
                      const std::vector<realt> &parameters);
@@ -87,10 +87,12 @@ public:
     std::vector<OpTree*> const& get_op_trees() const { return op_trees_; }
     void set_original(const Variable* orig) { assert(nr_==-2); original_=orig; }
     realt get_derivative(int n) const { return derivatives_[n]; }
+    const IndexedVars& used_vars() const { return used_vars_; }
 
 private:
     int nr_; /// see description of this class in .h
     realt value_;
+    IndexedVars used_vars_;
     std::vector<realt> derivatives_;
     std::vector<ParMult> recursive_derivatives_;
     std::vector<OpTree*> op_trees_;
