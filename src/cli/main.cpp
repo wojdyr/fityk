@@ -93,13 +93,19 @@ string get_config_dir()
 
 void read_and_execute_input()
 {
-    char *line = readline (prompt);
+    char *line = readline(prompt);
     if (!line)
         throw ExitRequestedException();
     if (line && *line)
         add_history (line);
     string s = line;
-    free ((void*) line);
+    free(line);
+    while (!s.empty() && *(s.end()-1) == '\\') {
+        s.resize(s.size()-1);
+        char *cont = readline("... ");
+        s += cont;
+        free(cont);
+    }
     ftk->get_ui_api()->exec_and_log(s);
 }
 
@@ -200,6 +206,15 @@ void main_loop()
         fflush(stdout);
         if (!getline(cin, s))
             break;
+        while (!s.empty() && *(s.end()-1) == '\\') {
+            s.resize(s.size()-1);
+            printf("... ");
+            fflush(stdout);
+            string cont;
+            if (!getline(cin, cont))
+                break;
+            s += cont;
+        }
         ftk->get_ui_api()->exec_and_log(s);
     }
     printf("\n");
