@@ -321,13 +321,18 @@ void UserInterface::exec_script(const string& filename)
 
     int line_index = 0;
     char *line;
+    string s;
     while ((line = opener->read_line()) != NULL) {
         ++line_index;
-        string s = line;
-        if (s.empty())
+        if (line[0] == '\0')
             continue;
         if (F_->get_verbosity() >= 0)
-            show_message (kQuoted, S(line_index) + "> " + s);
+            show_message (kQuoted, S(line_index) + "> " + line);
+        s += line;
+        if (*(s.end() - 1) == '\\') {
+            s.resize(s.size()-1);
+            continue;
+        }
         replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
         bool r = execute_line(s);
         if (r != kStatusOk && F_->get_settings()->on_error[0] != 'n'/*nothing*/)
@@ -336,7 +341,10 @@ void UserInterface::exec_script(const string& filename)
             F_->msg ("Script stopped by signal INT.");
             break;
         }
+        s.clear();
     }
+    if (!s.empty())
+        throw fityk::SyntaxError("unfinished line");
 }
 
 
@@ -344,14 +352,22 @@ void UserInterface::exec_stream(FILE *fp)
 {
     LineReader reader;
     char *line;
+    string s;
     while ((line = reader.next(fp)) != NULL) {
-        string s = line;
         if (F_->get_verbosity() >= 0)
-            show_message (kQuoted, "> " + s);
+            show_message(kQuoted, string("> ") + line);
+        s += line;
+        if (*(s.end() - 1) == '\\') {
+            s.resize(s.size()-1);
+            continue;
+        }
         bool r = execute_line(s);
         if (r != kStatusOk)
             break;
+        s.clear();
     }
+    if (!s.empty())
+        throw fityk::SyntaxError("unfinished line");
 }
 
 void UserInterface::exec_string_as_script(const char* s)
