@@ -25,7 +25,7 @@ extern "C" {
 #include <lualib.h>
 #include <lauxlib.h>
 #include "swig/luarun.h"   // the SWIG external runtime
-extern int luaopen_fityk(lua_State*L); // the SWIG wrappered library
+extern int luaopen_fityk(lua_State *L); // the SWIG wrappered library
 }
 
 using namespace std;
@@ -140,7 +140,7 @@ string UserInterface::get_history_summary() const
 
 UserInterface::UserInterface(Ftk* F)
         : F_(F),
-          cmd_count_(0)
+          cmd_count_(0), L_(NULL)
 {
     parser_ = new Parser(F);
     runner_ = new Runner(F);
@@ -265,37 +265,79 @@ private:
 };
 
 
-void exec_lua_script(Ftk *F, const string& str, bool as_filename)
+void UserInterface::exec_lua_script(const string& str)
 {
-    lua_State *L = lua_open();
-    luaL_openlibs(L);
-    luaopen_fityk(L);
-    swig_type_info *type_info = SWIG_TypeQuery(L, "fityk::Fityk *");
+    // pass filename in arg[0], like in the Lua stand-alone interpreter
+    lua_State *L = get_lua();
+    lua_createtable(L, 1, 0);
+    lua_pushstring(L, str.c_str());
+    lua_rawseti(L, -2, 0);
+    lua_setglobal(L, "arg");
+
+    int status = luaL_dofile(L, str.c_str());
+    if (status != 0)
+        handle_lua_error();
+}
+
+bool UserInterface::is_lua_line_incomplete(const char* str)
+{
+    lua_State *L = get_lua();
+    int status = luaL_loadstring(L, str);
+    if (status == LUA_ERRSYNTAX) {
+        size_t lmsg;
+        const char *msg = lua_tolstring(L, -1, &lmsg);
+#if LUA_VERSION_NUM <= 501
+        if (lmsg >= 7 && strcmp(msg + lmsg - 7, "'<eof>'") == 0)
+#else
+        if (lmsg >= 5 && strcmp(msg + lmsg - 5, "<eof>") == 0)
+#endif
+        {
+            lua_pop(L, 1);
+            return true;
+        }
+    }
+    lua_pop(L, 1);
+    return false;
+}
+
+void UserInterface::exec_lua_string(const string& str)
+{
+    lua_State *L = get_lua();
+    int status = luaL_dostring(L, str.c_str());
+    if (status != 0)
+        handle_lua_error();
+}
+
+void UserInterface::handle_lua_error()
+{
+    const char *msg = lua_tostring(L_, -1);
+    F_->warn("Lua Error:\n" + S(msg ? msg : "(non-string error)"));
+    lua_pop(L_, 1);
+}
+
+lua_State* UserInterface::get_lua()
+{
+    if (L_ != NULL)
+        return L_;
+
+    L_ = lua_open();
+    luaL_openlibs(L_);
+    luaopen_fityk(L_);
+    swig_type_info *type_info = SWIG_TypeQuery(L_, "fityk::Fityk *");
     assert(type_info != NULL);
     int owned = 1;
-    fityk::Fityk *f = new fityk::Fityk(F);
+    fityk::Fityk *f = new fityk::Fityk(F_);
+    SWIG_NewPointerObj(L_, f, type_info, owned);
+    lua_setglobal(L_, "F");
+    return L_;
+}
 
-    SWIG_NewPointerObj(L, f, type_info, owned);
-    lua_setglobal(L, "F");
-
-    int status;
-    if (as_filename) {
-        // pass filename in arg[0], like in the Lua stand-alone interpreter
-        lua_createtable(L, 1, 0);
-        lua_pushstring(L, str.c_str());
-        lua_rawseti(L, -2, 0);
-        lua_setglobal(L, "arg");
-
-        status = luaL_dofile(L, str.c_str());
+void UserInterface::close_lua()
+{
+    if (L_ != NULL) {
+        lua_close(L_);
+        L_ = NULL;
     }
-    else
-        status = luaL_dostring(L, str.c_str());
-
-    if (status != 0) {
-        const char *msg = lua_tostring(L, -1);
-        F->warn("Lua Error:\n" + S(msg ? msg : "(non-string error)"));
-    }
-    lua_close(L);
 }
 
 void UserInterface::exec_script(const string& filename)
@@ -303,7 +345,7 @@ void UserInterface::exec_script(const string& filename)
     fityk::user_interrupt = false;
 
     if (endswith(filename, ".lua")) {
-        exec_lua_script(F_, filename, true);
+        exec_lua_script(filename);
         return;
     }
 

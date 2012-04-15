@@ -70,6 +70,7 @@ void Ftk::initialize()
 // cleaning common for dtor and reset()
 void Ftk::destroy()
 {
+    ui_->close_lua();
     purge_all_elements(dms_);
     VariableManager::do_reset();
     delete fit_container_;

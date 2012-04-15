@@ -827,7 +827,7 @@ void Runner::execute_statement(Statement& st)
                     if (c->type == kCmdExec)
                         command_exec(tt, str);
                     else // if (c->type == kCmdLua)
-                        exec_lua_script(F_, str, false);
+                        F_->get_ui()->exec_lua_string(str);
                     F_->set_default_dm(old_default_dm);
                     st.datasets.swap(backup.datasets);
                     st.with_args.swap(backup.with_args);
