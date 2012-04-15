@@ -85,6 +85,9 @@ public:
         : wxTextCtrl(parent, id, "", wxDefaultPosition, wxDefaultSize,
                      wxTE_MULTILINE|wxTE_RICH) {}
     void set_filetype(bool) {}
+    int GetCurrentLine() const
+            { long x, y; PositionToXY(GetInsertionPoint(), &x, &y); return y; }
+    void GotoLine(int line) { SetInsertionPoint(ed_->XYToPosition(0, line)); }
 };
 #endif
 
@@ -92,7 +95,8 @@ public:
 EditorDlg::EditorDlg(wxWindow* parent)
     : wxDialog(parent, -1, wxT(""),
                wxDefaultPosition, wxSize(600, 500),
-               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
+               wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER),
+      lua_file_(false)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     tb_ = new wxToolBar(this, -1, wxDefaultPosition, wxDefaultSize,
@@ -100,20 +104,19 @@ EditorDlg::EditorDlg(wxWindow* parent)
     tb_->SetToolBitmapSize(wxSize(24, 24));
     tb_->AddTool(ID_SE_EXEC, wxT("Execute"),
                  wxBitmap(exec_selected_xpm), wxNullBitmap,
-                 wxITEM_NORMAL, wxT("Execute all/selection"),
+                 wxITEM_NORMAL,
                  wxT("Execute all or selected lines"));
     tb_->AddTool(ID_SE_STEP, wxT("Step"),
                  wxBitmap(exec_down_xpm), wxNullBitmap,
                  wxITEM_NORMAL,
-                 wxT("Execute line(s) and go to the next line"),
-                 wxT("Execute selected lines"));
+                 wxT("Execute line and go to the next line"));
     tb_->AddSeparator();
     tb_->AddTool(ID_SE_SAVE, wxT("Save"), wxBitmap(save_xpm), wxNullBitmap,
-                 wxITEM_NORMAL, wxT("Save"),
+                 wxITEM_NORMAL,
                  wxT("Save to file"));
     tb_->AddTool(ID_SE_SAVE_AS, wxT("Save as"),
                  wxBitmap(save_as_xpm), wxNullBitmap,
-                 wxITEM_NORMAL, wxT("Save as..."),
+                 wxITEM_NORMAL,
                  wxT("Save a copy to file"));
 #if 0
     tb_->AddSeparator();
@@ -150,8 +153,8 @@ void EditorDlg::open_file(const wxString& path)
     else
         ed_->Clear();
     path_ = path;
-    bool lua = path.Lower().EndsWith("lua");
-    ed_->set_filetype(lua);
+    lua_file_ = path.Lower().EndsWith("lua");
+    ed_->set_filetype(lua_file_);
 #if wxUSE_STC
     // i don't know why, but in wxGTK 2.9.3 initially all text is selected
     ed_->ClearSelections();
@@ -164,8 +167,8 @@ void EditorDlg::new_file_with_content(const wxString& content)
 {
     ed_->ChangeValue(content);
     path_.clear();
-    bool lua = content.StartsWith("--");
-    ed_->set_filetype(lua);
+    lua_file_ = content.StartsWith("--");
+    ed_->set_filetype(lua_file_);
 #if wxUSE_STC
     // i don't know why, but in wxGTK 2.9.3 initially all text is selected
     ed_->ClearSelections();
@@ -188,10 +191,12 @@ void EditorDlg::on_save()
 void EditorDlg::on_save_as()
 {
     wxFileDialog dialog(this, "save script as...", frame->script_dir(), "",
-                        "fityk scripts (*.fit)|*.fit;*.FIT"
+                        "Fityk scripts (*.fit)|*.fit;*.FIT"
                         "|Lua scripts (*.lua)|*.lua;*.LUA"
                         "|all files|*",
                         wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+    if (lua_file_)
+        dialog.SetFilterIndex(1);
     if (dialog.ShowModal() == wxID_OK) {
         do_save_file(dialog.GetPath());
         frame->set_script_dir(dialog.GetDirectory());
@@ -208,24 +213,34 @@ void EditorDlg::do_save_file(const wxString& save_path)
     }
 }
 
-void EditorDlg::exec_line(int n)
+string EditorDlg::get_editor_line(int n)
 {
-    wxString line;
-    line = ed_->GetLineText(n);
-    // there was a bug in wxTextCtrl::GetLineText(),
-    // empty line gives "\n"+next line
-    if (!line.empty() && line[0] == '\n') // wx bug
-        line = wxT("");
-#if __WXMAC__ || wxUSE_STC
-    if (line.EndsWith(wxT("\n")))
+    string line = wx2s(ed_->GetLineText(n));
+    if (!line.empty() && *(line.end()-1) == '\n') {
         line.resize(line.size() - 1);
-#endif
-    string s = wx2s(line);
+        if (!line.empty() && *(line.end()-1) == '\r')
+            line.resize(line.size() - 1);
+    }
+    return line;
+}
+
+int EditorDlg::exec_fityk_line(int n)
+{
+    if (n < 0)
+        return 1;
+    string s = get_editor_line(n);
+    int counter = 1;
+    while (!s.empty() && *(s.end()-1) == '\\') {
+        s.resize(s.size() - 1);
+        s += get_editor_line(n+counter);
+        ++counter;
+    }
 
     if (s.find("_EXECUTED_SCRIPT_DIR_/") != string::npos) {
         string dir = get_directory(wx2s(path_));
         replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
     }
+
     ftk->exec(s);
     /*
     UserInterface::Status r = ftk->exec(s);
@@ -234,47 +249,55 @@ void EditorDlg::exec_line(int n)
     else { // error
     }
     */
+    return counter;
 }
 
-int EditorDlg::exec_selected()
+int EditorDlg::exec_lua_line(int n)
 {
-    long from, to;
-    ed_->GetSelection(&from, &to);
-    if (from == to) { //no selection
-        return -1;
+    if (n < 0)
+        return 1;
+    string s = get_editor_line(n);
+    int counter = 1;
+    if (s.empty())
+        return counter;
+    while (ftk->get_ui()->is_lua_line_incomplete(s.c_str())) {
+        s += "\n    " + get_editor_line(n+counter);
+        ++counter;
     }
-    else { //selection, exec whole lines
-        long x, y1, y2;
-        ed_->PositionToXY(from, &x, &y1);
-        ed_->PositionToXY(to, &x, &y2);
-        for (int i = y1; i <= y2; ++i) {
-            if (i >= 0)
-                exec_line(i);
-        }
-        return y2;
+
+    ftk->exec("lua " + s);
+    /*
+    UserInterface::Status r = ftk->exec(s);
+    if (r == UserInterface::kStatusOk) {
     }
+    else { // error
+    }
+    */
+    return counter;
 }
 
 void EditorDlg::OnExec(wxCommandEvent&)
 {
-    long last = exec_selected();
-    if (last == -1)
-        for (int i = 0; i <= ed_->GetNumberOfLines(); ++i)
-            exec_line(i);
+    long p1, p2;
+    ed_->GetSelection(&p1, &p2);
+    long y1=0, y2=0;
+    if (p1 != p2) { //selection, exec whole lines
+        long x;
+        ed_->PositionToXY(p1, &x, &y1);
+        ed_->PositionToXY(p2, &x, &y2);
+    }
+    else
+        y2 = ed_->GetNumberOfLines();
+
+    for (int i = y1; i <= y2; )
+        i += lua_file_ ? exec_lua_line(i) : exec_fityk_line(i);
 }
 
 void EditorDlg::OnStep(wxCommandEvent&)
 {
-    long last = exec_selected();
-    if (last == -1) {
-        long x, y;
-        ed_->PositionToXY(ed_->GetInsertionPoint(), &x, &y);
-        if (y < 0)
-            return;
-        exec_line(y);
-        last = y;
-    }
-    ed_->SetInsertionPoint(ed_->XYToPosition(0, last+1));
+    int y  = ed_->GetCurrentLine();
+    int n = lua_file_ ? exec_lua_line(y) : exec_fityk_line(y);
+    ed_->GotoLine(y+n);
 }
 
 void EditorDlg::OnTextChange(wxStyledTextEvent&)

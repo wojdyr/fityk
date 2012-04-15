@@ -1,14 +1,15 @@
 
-* API: set_show_message(): it should be possible to reset output handler
-
-* finish NLopt interface
-
-* finish script editor
+* API: query user, get_fitted_parameters(), get_variables(), get_functions(),
+       get_components(int n, char='F')
 
 * Windows build: use readline lib if possible, investigate signing .exe,
   use xylib.dll -DXYLIB_DLL?
 
+* remove Ftk::exec(), define exec() in GUI
+
 ----- 1.1.2
+
+* NLopt interface
 
 * FFT data transformation using FFTW library,
   fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re(@3)

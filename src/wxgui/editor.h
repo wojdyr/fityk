@@ -18,13 +18,15 @@ private:
     wxToolBarBase *tb_;
     Editor *ed_;
     wxString path_;
+    bool lua_file_;
 
-    int exec_selected();
-    void exec_line(int n);
     void do_save_file(const wxString& save_path);
     void update_title();
     void on_save();
     void on_save_as();
+    std::string get_editor_line(int n);
+    int exec_fityk_line(int n);
+    int exec_lua_line(int n);
 
     void OnSave(wxCommandEvent&) { on_save(); }
     void OnSaveAs(wxCommandEvent&) { on_save_as(); }
