@@ -1422,15 +1422,17 @@ void FFrame::OnNewWindow (wxCommandEvent&)
 }
 #endif
 
+static const char* fityk_lua_wildcards =
+   "all supported scripts|*.fit;*.FIT;*.fit.gz;*.lua;*.LUA|"
+   "Fityk script (*.fit, *.fit.gz)|*.fit;*.FIT;*.fit.gz|"
+   "Lua script (*.lua)|*.lua;*.LUA|"
+   "all files|*";
+
 void FFrame::OnInclude (wxCommandEvent&)
 {
-    wxFileDialog fdlg (this, wxT("Execute commands from file"),
-                       script_dir_, wxT(""),
-                       "all supported scripts|*.fit;*.FIT;*.fit.gz;*.lua;*.LUA|"
-                       "Fityk script (*.fit, *.fit.gz)|*.fit;*.FIT;*.fit.gz|"
-                       "Lua script (*.lua)|*.lua;*.LUA|"
-                       "all files|*",
-                       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    wxFileDialog fdlg(this, "Execute commands from file",
+                      script_dir_, "", fityk_lua_wildcards,
+                      wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
         ftk->exec("exec '" + wx2s(fdlg.GetPath()) + "'");
         last_include_path_ = wx2s(fdlg.GetPath());
@@ -1462,10 +1464,8 @@ void FFrame::OnNewHistoryScript(wxCommandEvent&)
 
 void FFrame::OnScriptEdit(wxCommandEvent&)
 {
-    wxFileDialog fdlg(this, "open script file", script_dir_, "",
-                      "fityk scripts (*.fit)|*.fit;*.FIT"
-                      "|Lua scripts (*.lua)|*.lua;*.LUA"
-                      "|all files|*",
+    wxFileDialog fdlg(this, "Open script file",
+                      script_dir_, "", fityk_lua_wildcards,
                       wxFD_OPEN /*| wxFD_FILE_MUST_EXIST*/);
     if (fdlg.ShowModal() == wxID_OK)
         show_editor(fdlg.GetPath(), "");
