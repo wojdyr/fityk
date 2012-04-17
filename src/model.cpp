@@ -16,7 +16,7 @@
 using namespace std;
 
 Model::Model(Ftk *F)
-    : F_(F), mgr(*F)
+    : F_(F), mgr(F->mgr)
 {
     mgr.register_model(this);
 }

@@ -42,7 +42,7 @@ int Fit::get_dof(const vector<DataAndModel*>& dms)
 string Fit::get_goodness_info(const vector<DataAndModel*>& dms)
 {
     const SettingsMgr *sm = F_->settings_mgr();
-    const vector<realt>& pp = F_->parameters();
+    const vector<realt>& pp = F_->mgr.parameters();
     int dof = get_dof(dms);
     //update_parameters(dms);
     realt wssr = do_compute_wssr(pp, dms, true);
@@ -55,7 +55,7 @@ string Fit::get_goodness_info(const vector<DataAndModel*>& dms)
 
 vector<realt> Fit::get_covariance_matrix(const vector<DataAndModel*>& dms)
 {
-    const vector<realt> &pp = F_->parameters();
+    const vector<realt> &pp = F_->mgr.parameters();
     update_parameters(dms);
 
     vector<realt> alpha(na_*na_), beta(na_);
@@ -95,7 +95,7 @@ vector<realt> Fit::get_covariance_matrix(const vector<DataAndModel*>& dms)
 
 vector<realt> Fit::get_standard_errors(const vector<DataAndModel*>& dms)
 {
-    const vector<realt> &pp = F_->parameters();
+    const vector<realt> &pp = F_->mgr.parameters();
     realt wssr = do_compute_wssr(pp, dms, true);
     int dof = get_dof(dms);
     vector<realt> alpha = get_covariance_matrix(dms);
@@ -127,10 +127,10 @@ string Fit::get_cov_info(const vector<DataAndModel*>& dms)
     s += "\nCovariance matrix\n    ";
     for (int i = 0; i < na_; ++i)
         if (par_usage_[i])
-            s += "\t$" + F_->find_variable_handling_param(i)->name;
+            s += "\t$" + F_->mgr.find_variable_handling_param(i)->name;
     for (int i = 0; i < na_; ++i) {
         if (par_usage_[i]) {
-            s += "\n$" + F_->find_variable_handling_param(i)->name;
+            s += "\n$" + F_->mgr.find_variable_handling_param(i)->name;
             for (int j = 0; j < na_; ++j) {
                 if (par_usage_[j])
                     s += "\t" + sm->format_double(alpha[na_*i + j]);
@@ -143,7 +143,7 @@ string Fit::get_cov_info(const vector<DataAndModel*>& dms)
 int Fit::compute_deviates(const vector<realt> &A, double *deviates)
 {
     ++evaluations_;
-    F_->use_external_parameters(A); //that's the only side-effect
+    F_->mgr.use_external_parameters(A); //that's the only side-effect
     int ntot = 0;
     v_foreach (DataAndModel*, i, dmdm_)
         ntot += compute_deviates_for_data(*i, deviates + ntot);
@@ -169,7 +169,7 @@ realt Fit::do_compute_wssr(const vector<realt> &A,
                            bool weigthed)
 {
     realt wssr = 0;
-    F_->use_external_parameters(A); //that's the only side-effect
+    F_->mgr.use_external_parameters(A); //that's the only side-effect
     v_foreach (DataAndModel*, i, dms) {
         wssr += compute_wssr_for_data(*i, weigthed);
     }
@@ -202,7 +202,7 @@ realt Fit::compute_r_squared(const vector<realt> &A,
                              const vector<DataAndModel*>& dms)
 {
     realt sum_err = 0, sum_tot = 0, se = 0, st = 0;
-    F_->use_external_parameters(A);
+    F_->mgr.use_external_parameters(A);
     v_foreach (DataAndModel*, i, dms) {
         compute_r_squared_for_data(*i, &se, &st);
         sum_err += se;
@@ -254,7 +254,7 @@ void Fit::compute_derivatives(const vector<realt> &A,
     fill(alpha.begin(), alpha.end(), 0.0);
     fill(beta.begin(), beta.end(), 0.0);
 
-    F_->use_external_parameters(A);
+    F_->mgr.use_external_parameters(A);
     v_foreach (DataAndModel*, i, dms) {
         compute_derivatives_for(*i, alpha, beta);
     }
@@ -297,7 +297,7 @@ void Fit::compute_derivatives_mp(const vector<realt> &A,
                                  double **derivs, double *deviates)
 {
     ++evaluations_;
-    F_->use_external_parameters(A);
+    F_->mgr.use_external_parameters(A);
     int ntot = 0;
     v_foreach (DataAndModel*, i, dms) {
         ntot += compute_derivatives_mp_for(*i, ntot, derivs, deviates);
@@ -329,7 +329,7 @@ realt Fit::compute_derivatives_nl(const vector<realt> &A,
                                   double *grad)
 {
     ++evaluations_;
-    F_->use_external_parameters(A);
+    F_->mgr.use_external_parameters(A);
     realt wssr = 0.;
     fill(grad, grad+na_, 0.0);
     v_foreach (DataAndModel*, i, dms)
@@ -395,7 +395,7 @@ bool Fit::post_fit(const vector<realt>& aa, realt chi2)
     const SettingsMgr *sm = F_->settings_mgr();
     if (better) {
         F_->get_fit_container()->push_param_history(aa);
-        F_->put_new_parameters(aa);
+        F_->mgr.put_new_parameters(aa);
         double percent_change = (chi2 - wssr_before_) / wssr_before_ * 100.;
         F_->msg("WSSR: " + sm->format_double(chi2) +
                 " (" + S(percent_change) + "%)");
@@ -404,7 +404,7 @@ bool Fit::post_fit(const vector<realt>& aa, realt chi2)
         F_->msg("Better fit NOT found (WSSR = " + sm->format_double(chi2)
                 + ", was " + sm->format_double(wssr_before_) + ")."
                 "\nParameters NOT changed");
-        F_->use_external_parameters(a_orig_);
+        F_->mgr.use_external_parameters(a_orig_);
         if (F_->get_settings()->fit_replot)
             F_->ui()->draw_plot(UserInterface::kRepaintImmediately);
     }
@@ -431,7 +431,7 @@ realt Fit::draw_a_from_distribution (int nr, char distribution, realt mult)
             dv = rand_1_1();
             break;
     }
-    return F_->variation_of_a(nr, dv * mult);
+    return F_->mgr.variation_of_a(nr, dv * mult);
 }
 
 class ComputeUI
@@ -451,7 +451,7 @@ void Fit::fit(int max_iter, const vector<DataAndModel*>& dms)
     ComputeUI compute_ui(F_->ui());
     update_parameters(dms);
     dmdm_ = dms;
-    a_orig_ = F_->parameters();
+    a_orig_ = F_->mgr.parameters();
     F_->get_fit_container()->push_param_history(a_orig_);
     iter_nr_ = 0;
     evaluations_ = 0;
@@ -476,10 +476,10 @@ void Fit::continue_fit(int max_iter)
     start_time_ = clock();
     last_refresh_time_ = time(0);
     v_foreach (DataAndModel*, i, dmdm_)
-        if (!F_->contains_dm(*i) || na_ != size(F_->parameters()))
+        if (!F_->contains_dm(*i) || na_ != size(F_->mgr.parameters()))
             throw ExecuteError(name + " method should be initialized first.");
     update_parameters(dmdm_);
-    a_orig_ = F_->parameters();  //should it be also updated?
+    a_orig_ = F_->mgr.parameters();  //should it be also updated?
     fityk::user_interrupt = false;
     evaluations_ = 0;
     max_iterations_ = max_iter;
@@ -488,16 +488,16 @@ void Fit::continue_fit(int max_iter)
 
 void Fit::update_parameters(const vector<DataAndModel*>& dms)
 {
-    if (F_->parameters().empty())
+    if (F_->mgr.parameters().empty())
         throw ExecuteError("there are no fittable parameters.");
     if (dms.empty())
         throw ExecuteError("No datasets to fit.");
 
-    na_ = F_->parameters().size();
+    na_ = F_->mgr.parameters().size();
 
     par_usage_ = vector<bool>(na_, false);
     for (int idx = 0; idx < na_; ++idx) {
-        int var_idx = F_->find_nr_var_handling_param(idx);
+        int var_idx = F_->mgr.find_nr_var_handling_param(idx);
         v_foreach (DataAndModel*, i, dms) {
             if ((*i)->model()->is_dependent_on_var(var_idx)) {
                 par_usage_[idx] = true;
@@ -540,7 +540,7 @@ void Fit::iteration_plot(const vector<realt> &A, realt wssr)
     if (p < 0 || (p > 0 && time(0) - last_refresh_time_ < p))
         return;
     if (F_->get_settings()->fit_replot) {
-        F_->use_external_parameters(A);
+        F_->mgr.use_external_parameters(A);
         F_->ui()->draw_plot(UserInterface::kRepaintImmediately);
     }
     double elapsed = (clock() - start_time_) / (double) CLOCKS_PER_SEC;
@@ -714,7 +714,7 @@ realt FitMethodsContainer::get_standard_error(const Variable* var) const
     if (!var->is_simple())
         return -1.; // value signaling unknown standard error
     if (dirty_error_cache_
-            || errors_cache_.size() != F_->parameters().size()) {
+            || errors_cache_.size() != F_->mgr.parameters().size()) {
         errors_cache_ = F_->get_fit()->get_standard_errors(F_->get_dms());
     }
     return errors_cache_[var->get_nr()];
@@ -728,9 +728,8 @@ realt FitMethodsContainer::get_standard_error(const Variable* var) const
 ///     pointed by param_hist_ptr_
 void ParameterHistoryMgr::load_param_history(int item_nr, bool relative)
 {
-    if (item_nr == -1 && relative && !param_history_.empty() //undo
-         && param_history_[param_hist_ptr_].size() == F_->parameters().size()
-         && param_history_[param_hist_ptr_] != F_->parameters())
+    if (item_nr == -1 && relative && !param_history_.empty() && //undo
+            param_history_[param_hist_ptr_] != F_->mgr.parameters())
         item_nr = 0; // load parameters from param_hist_ptr_
     if (relative)
         item_nr += param_hist_ptr_;
@@ -739,14 +738,14 @@ void ParameterHistoryMgr::load_param_history(int item_nr, bool relative)
     if (item_nr < 0 || item_nr >= size(param_history_))
         throw ExecuteError("There is no parameter history item #"
                             + S(item_nr) + ".");
-    F_->put_new_parameters(param_history_[item_nr]);
+    F_->mgr.put_new_parameters(param_history_[item_nr]);
     param_hist_ptr_ = item_nr;
 }
 
 bool ParameterHistoryMgr::can_undo() const
 {
     return !param_history_.empty()
-        && (param_hist_ptr_ > 0 || param_history_[0] != F_->parameters());
+        && (param_hist_ptr_ > 0 || param_history_[0] != F_->mgr.parameters());
 }
 
 bool ParameterHistoryMgr::push_param_history(const vector<realt>& aa)

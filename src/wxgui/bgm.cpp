@@ -65,12 +65,12 @@ void BgManager::bg_from_func()
         return;
     }
     string name = get_bg_name();
-    int nr = ftk->find_function_nr(name);
+    int nr = ftk->mgr.find_function_nr(name);
     if (nr == -1) {
         bg_.clear();
         return;
     }
-    const Function *f = ftk->get_function(nr);
+    const Function *f = ftk->mgr.get_function(nr);
     if (f->tp()->name != "Spline" && f->tp()->name != "Polyline") {
         bg_.clear();
         return;
@@ -85,7 +85,7 @@ void BgManager::bg_from_func()
 
 void BgManager::add_background_point(double x, double y)
 {
-    if (bg_.empty() && ftk->find_function_nr(get_bg_name()) >= 0) {
+    if (bg_.empty() && ftk->mgr.find_function_nr(get_bg_name()) >= 0) {
         int r = wxMessageBox(wxT("Function %") + s2wx(get_bg_name())
                              + wxT(" already exists\n")
                              wxT("and your actions may overwrite it.\n")
@@ -123,7 +123,7 @@ void BgManager::clear_background()
 {
     bg_.clear();
     string name = get_bg_name();
-    int nr = ftk->find_function_nr(name);
+    int nr = ftk->mgr.find_function_nr(name);
     if (nr != -1)
         exec("delete %" + name);
 }
@@ -137,16 +137,16 @@ void BgManager::define_bg_func()
     string ftype = (spline_ ? "Spline" : "Polyline");
 
     // if the function already exists and if it's exactly the same, return
-    int nr = ftk->find_function_nr(name);
+    int nr = ftk->mgr.find_function_nr(name);
     if (nr != -1) {
-        const Function *f = ftk->get_function(nr);
+        const Function *f = ftk->mgr.get_function(nr);
         if (f->tp()->name == ftype && f->nv() == 2 * (int) bg_.size()) {
             bool the_same = true;
             for (size_t i = 0; i != bg_.size(); ++i) {
                 const Variable *vx =
-                    ftk->find_variable(f->used_vars().get_name(2*i));
+                    ftk->mgr.find_variable(f->used_vars().get_name(2*i));
                 const Variable *vy =
-                    ftk->find_variable(f->used_vars().get_name(2*i+1));
+                    ftk->mgr.find_variable(f->used_vars().get_name(2*i+1));
                 if (!VariableManager::is_auto(vx->name) || !vx->is_constant() ||
                         S(vx->get_value()) != S(bg_[i].x) ||
                     !VariableManager::is_auto(vy->name) || !vy->is_constant() ||
@@ -182,7 +182,7 @@ void BgManager::strip_background()
 void BgManager::add_background()
 {
     string name = get_bg_name();
-    int nr = ftk->find_function_nr(name);
+    int nr = ftk->mgr.find_function_nr(name);
     if (nr == -1)
         return;
     set_stripped(false);
@@ -230,7 +230,7 @@ void BgManager::set_as_convex_hull()
 bool BgManager::has_fn() const
 {
     string name = get_bg_name();
-    return ftk->find_function_nr(name) != -1;
+    return ftk->mgr.find_function_nr(name) != -1;
 }
 
 void BgManager::write_recent_baselines()

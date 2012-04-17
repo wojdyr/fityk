@@ -1181,7 +1181,7 @@ void PowderBook::set_peak_name(const string& name)
 static
 bool has_old_variables()
 {
-    v_foreach (Variable*, i, ftk->variables())
+    v_foreach (Variable*, i, ftk->mgr.variables())
         if (startswith((*i)->name, "pd"))
             return true;
     return false;
@@ -1581,10 +1581,10 @@ wxString PowderBook::prepare_commands()
 static
 void var2lockctrl(const string& varname, LockableRealCtrl* ctrl, double mult=1.)
 {
-    int k = ftk->find_variable_nr(varname);
+    int k = ftk->mgr.find_variable_nr(varname);
     if (k == -1)
         return;
-    const Variable* v = ftk->get_variable(k);
+    const Variable* v = ftk->mgr.get_variable(k);
     ctrl->set_value(v->get_value() * mult);
     ctrl->set_lock(v->is_constant());
 }
@@ -1608,7 +1608,7 @@ void PowderBook::fill_forms()
     // sample page
     for (size_t i = 0; ; ++i) {
         string pre = "pd" + S(i) + "_";
-        int k = ftk->find_variable_nr(pre + "a");
+        int k = ftk->mgr.find_variable_nr(pre + "a");
         if (k == -1)
             break;
         assert(i == sample_nb->GetPageCount() - 1);
@@ -1634,7 +1634,7 @@ void PowderBook::fill_forms()
         vm_foreach (PlanesWithSameD, j, cr.bp) {
             wxString fname = wxString::Format(wxT("pd%da_"), (int) i)
                              + hkl2wxstr(j->planes[0]);
-            int nr = ftk->find_function_nr(wx2s(fname));
+            int nr = ftk->mgr.find_function_nr(wx2s(fname));
             j->enabled = (nr != -1);
             p->hkl_list->Check(n, j->enabled);
             ++n;
@@ -1645,13 +1645,14 @@ void PowderBook::fill_forms()
 
     // peak page
     if (first_func != -1) {
-        const Function *f = ftk->get_function(first_func);
+        const Function *f = ftk->mgr.get_function(first_func);
         set_peak_name(f->tp()->name);
         int w = index_of_element(f->tp()->fargs, "hwhm");
         if (w == -1)
             w = index_of_element(f->tp()->fargs, "hwhm1");
         if (w != -1) {
-            const Variable* hwhm = ftk->get_variable(f->used_vars().get_idx(w));
+            int idx = f->used_vars().get_idx(w);
+            const Variable* hwhm = ftk->mgr.get_variable(idx);
             if (!hwhm->is_simple() || hwhm->name == "pd_w")
                 width_rb->SetSelection(1);
         }
@@ -1659,10 +1660,10 @@ void PowderBook::fill_forms()
         if (sh == -1)
             sh = index_of_element(f->tp()->fargs, "shape1");
         if (sh != -1) {
-            const Variable* shape =
-                ftk->get_variable(f->used_vars().get_idx(sh));
+            int idx = f->used_vars().get_idx(sh);
+            const Variable* shape = ftk->mgr.get_variable(idx);
             if (!shape->is_simple() || shape->name == "pd_a") {
-                string formula = shape->get_formula(ftk->parameters());
+                string formula = shape->get_formula(ftk->mgr.parameters());
                 bool has_div = contains_element(formula, '/');
                 shape_rb->SetSelection(has_div ? 2 : 1);
             }

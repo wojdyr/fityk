@@ -1266,7 +1266,7 @@ void FFrame::OnFMethodUpdate (wxUpdateUIEvent& event)
 
 void FFrame::OnMenuFitRunUpdate(wxUpdateUIEvent& event)
 {
-    event.Enable(!ftk->parameters().empty());
+    event.Enable(!ftk->mgr.parameters().empty());
 }
 
 void FFrame::OnMenuFitUndoUpdate(wxUpdateUIEvent& event)
@@ -2099,7 +2099,7 @@ void FFrame::update_toolbar()
         return;
     BgManager* bgm = get_main_plot()->bgm();
     toolbar_->ToggleTool(ID_T_STRIP, bgm->has_fn() && bgm->stripped());
-    toolbar_->EnableTool(ID_T_RUN, !ftk->parameters().empty());
+    toolbar_->EnableTool(ID_T_RUN, !ftk->mgr.parameters().empty());
     toolbar_->EnableTool(ID_T_UNDO, ftk->get_fit_container()->can_undo());
     toolbar_->EnableTool(ID_T_PZ, zoom_hist_.pos() > 0);
 }
@@ -2128,8 +2128,8 @@ string FFrame::get_datasets()
 string FFrame::get_guess_string(const std::string& name)
 {
     string s;
-    int nh = ftk->find_variable_nr("_hwhm");
-    int ns = ftk->find_variable_nr("_shape");
+    int nh = ftk->mgr.find_variable_nr("_hwhm");
+    int ns = ftk->mgr.find_variable_nr("_shape");
 
     s = "(";
     if (nh != -1)

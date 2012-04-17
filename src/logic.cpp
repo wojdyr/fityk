@@ -36,7 +36,7 @@ bool DataAndModel::has_any_info() const
 
 
 Ftk::Ftk()
-    : VariableManager(this),
+    : mgr(this),
       view(this),
       default_relative_domain_width(0.1)
 {
@@ -72,7 +72,7 @@ void Ftk::destroy()
 {
     ui_->close_lua();
     purge_all_elements(dms_);
-    VariableManager::do_reset();
+    mgr.do_reset();
     delete fit_container_;
     delete settings_mgr_;
     delete tplate_mgr_;

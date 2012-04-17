@@ -180,13 +180,13 @@ bool complete_fityk_line(Fityk *F, const char* line_buffer, int start, int end,
 
     // %function completion
     else if (text[0] == '%') {
-        v_foreach (Function*, i, ftk->functions())
+        v_foreach (Function*, i, ftk->mgr.functions())
             if (!strncmp((*i)->name.c_str(), text+1, strlen(text+1)))
                 entries.push_back("%" + (*i)->name);
     }
     // $variable completion
     else if (start > 0 && line_buffer[start-1] == '$') {
-        v_foreach (Variable*, i, ftk->variables())
+        v_foreach (Variable*, i, ftk->mgr.variables())
             if (!strncmp ((*i)->name.c_str(), text, strlen(text)))
                 entries.push_back((*i)->name);
     }

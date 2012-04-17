@@ -391,7 +391,7 @@ void ExpressionParser::put_variable_sth(Lexer& lex, const string& name,
 {
     if (F_ == NULL)
         lex.throw_syntax_error("$variables can not be used here");
-    const Variable *v = F_->find_variable(name);
+    const Variable *v = F_->mgr.find_variable(name);
     if (lex.peek_token().type == kTokenDot) {
         lex.get_token(); // discard '.'
         lex.get_expected_token("error"); // discard "error"
@@ -403,7 +403,7 @@ void ExpressionParser::put_variable_sth(Lexer& lex, const string& name,
     }
     else {
         if (ast_mode) {
-            int n = F_->find_variable_nr(name);
+            int n = F_->mgr.find_variable_nr(name);
             vm_.append_code(OP_SYMBOL);
             vm_.append_code(n);
             expected_ = kOperator;
@@ -419,7 +419,7 @@ void ExpressionParser::put_func_sth(Lexer& lex, const string& name,
     if (F_ == NULL)
         lex.throw_syntax_error("%functions can not be used here");
     if (lex.peek_token().type == kTokenOpen) {
-        int n = F_->find_function_nr(name);
+        int n = F_->mgr.find_function_nr(name);
         if (n == -1)
             throw ExecuteError("undefined function: %" + name);
         // we will put n into code when handling ')'
@@ -431,12 +431,12 @@ void ExpressionParser::put_func_sth(Lexer& lex, const string& name,
         Token arg = lex.get_expected_token(kTokenLname, kTokenCname);
         string word = arg.as_string();
         if (arg.type == kTokenCname) {
-            const Function *f = F_->find_function(name);
+            const Function *f = F_->mgr.find_function(name);
             double val = f->get_param_value(word);
             put_number(val);
         }
         else if (lex.peek_token().type == kTokenOpen) { // method of %function
-            int n = F_->find_function_nr(name);
+            int n = F_->mgr.find_function_nr(name);
             if (n == -1)
                 throw ExecuteError("undefined function: %" + name);
             // we will put ds into code when handling ')'
@@ -452,7 +452,7 @@ void ExpressionParser::put_func_sth(Lexer& lex, const string& name,
                 lex.throw_syntax_error("unknown method of F/Z");
         }
         else { // property of %function (= $variable)
-            const Function *f = F_->find_function(name);
+            const Function *f = F_->mgr.find_function(name);
             string v = f->used_vars().get_name(f->get_param_nr(word));
             put_variable_sth(lex, v, ast_mode);
         }

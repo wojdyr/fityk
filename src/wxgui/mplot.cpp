@@ -263,7 +263,7 @@ string FunctionMouseDrag::Drag::get_cmd() const
 void FunctionMouseDrag::Drag::set(const Function* p, int idx,
                                   drag_type how_, double multiplier_)
 {
-    const Variable* var = ftk->get_variable(p->used_vars().get_idx(idx));
+    const Variable* var = ftk->mgr.get_variable(p->used_vars().get_idx(idx));
     if (!var->is_simple()) {
         how = no_drag;
         return;
@@ -597,7 +597,7 @@ void MainPlot::draw_peaks(wxDC& dc, const Model* model, bool set_pen)
     }
     for (int k = 0; k < size(idx); k++) {
         fill(yy.begin(), yy.end(), 0.);
-        const Function* f = ftk->get_function(idx[k]);
+        const Function* f = ftk->mgr.get_function(idx[k]);
         int from=0, to=n-1;
         realt left, right;
         if (f->get_nonzero_range(level, left, right)) {
@@ -699,7 +699,7 @@ void MainPlot::prepare_peaktops(const Model* model, int Ymax)
     special_points.resize(n);
     int no_ctr_idx = 0;
     for (int k = 0; k < n; k++) {
-        const Function *f = ftk->get_function(idx[k]);
+        const Function *f = ftk->mgr.get_function(idx[k]);
         double x;
         realt ctr;
         int X, Y;
@@ -728,7 +728,7 @@ void MainPlot::prepare_peak_labels(const Model* model)
     const vector<int>& idx = model->get_ff().idx;
     plabels_.resize(idx.size());
     for (int k = 0; k < size(idx); k++) {
-        const Function *f = ftk->get_function(idx[k]);
+        const Function *f = ftk->mgr.get_function(idx[k]);
         string label = plabel_format_;
         string::size_type pos = 0;
         while ((pos = label.find("<", pos)) != string::npos) {
@@ -932,27 +932,27 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
     peak_menu.Append(ID_peak_popup_guess, wxT("&Guess parameters"));
     realt dummy;
     peak_menu.Enable(ID_peak_popup_guess,
-                     ftk->get_function(over_peak_)->get_center(&dummy));
+                     ftk->mgr.get_function(over_peak_)->get_center(&dummy));
     PopupMenu (&peak_menu, event.GetX(), event.GetY());
 }
 
 void MainPlot::PeakInfo()
 {
     if (over_peak_ >= 0)
-        exec("info prop %" + ftk->get_function(over_peak_)->name);
+        exec("info prop %" + ftk->mgr.get_function(over_peak_)->name);
 }
 
 void MainPlot::OnPeakDelete(wxCommandEvent&)
 {
     if (over_peak_ >= 0)
-        exec("delete %" + ftk->get_function(over_peak_)->name);
+        exec("delete %" + ftk->mgr.get_function(over_peak_)->name);
 }
 
 void MainPlot::OnPeakGuess(wxCommandEvent&)
 {
     if (over_peak_ < 0)
         return;
-    const Function* p = ftk->get_function(over_peak_);
+    const Function* p = ftk->mgr.get_function(over_peak_);
     realt ctr;
     if (p->get_center(&ctr)) {
         double plusmin = 0;
@@ -1097,7 +1097,8 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
              && over_peak_ >= 0) {
         fmd_->move(event.ShiftDown(), X, Y, xs.valr(X), ys.valr(Y));
         frame->set_status_text(fmd_->get_status());
-        draw_overlay_func(ftk->get_function(over_peak_), fmd_->get_values());
+        draw_overlay_func(ftk->mgr.get_function(over_peak_),
+                          fmd_->get_values());
     }
 
     overlay.change_pos(X, Y);
@@ -1113,7 +1114,7 @@ static string get_peak_description(int n)
 {
     if (n < 0)
         return "";
-    const Function* f = ftk->get_function(n);
+    const Function* f = ftk->mgr.get_function(n);
     string s = "%" + f->name + " " + f->tp()->name + " ";
     for (int i = 0; i < f->nv(); ++i)
         s += " " + f->get_param(i) + "=" + S(f->av()[i]);
@@ -1238,12 +1239,11 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         frame->get_sidebar()->activate_function(over_peak_);
         SetCursor(wxCURSOR_SIZENWSE);
         connect_esc_to_cancel(true);
-        const Function* p = ftk->get_function(over_peak_);
+        const Function* p = ftk->mgr.get_function(over_peak_);
         fmd_->start(p, downX, downY, x, y);
         overlay.start_mode(Overlay::kFunction, downX, downY);
         draw_overlay_limits(p);
-        frame->set_status_text("Moving %" + ftk->get_function(over_peak_)->name
-                                + "...");
+        frame->set_status_text("Moving %" + p->name + "...");
     }
     else if (mouse_op_ == kAddBgPoint) {
         bgm_->add_background_point(x, y);
@@ -1356,7 +1356,7 @@ static
 void freeze_functions_in_range(double x1, double x2, bool freeze)
 {
     string cmd;
-    v_foreach (Function*, i, ftk->functions()) {
+    v_foreach (Function*, i, ftk->mgr.functions()) {
         realt ctr;
         if (!(*i)->get_center(&ctr))
             continue;
@@ -1364,7 +1364,7 @@ void freeze_functions_in_range(double x1, double x2, bool freeze)
             continue;
         for (int j = 0; j != (*i)->used_vars().get_count(); ++j) {
             const Variable* var =
-                ftk->get_variable((*i)->used_vars().get_idx(j));
+                ftk->mgr.get_variable((*i)->used_vars().get_idx(j));
             if (freeze && var->is_simple()) {
                 cmd += "$" + var->name + "=" + eS(var->get_value()) + "; ";
             }
@@ -1497,7 +1497,7 @@ void MainPlot::add_peak_from_draft(int X, int Y)
         double area = 2 * height * hwhm;
         args = "height=~" + eS(height) + ", center=~" + eS(center)
                  + ", area=~" + eS(area);
-        if (ftk->find_variable_nr("_hwhm") == -1)
+        if (ftk->mgr.find_variable_nr("_hwhm") == -1)
             args += ", hwhm=~" + eS(hwhm);
     }
     string tail = "F += " + frame->get_guess_string(frame->get_peak_type());

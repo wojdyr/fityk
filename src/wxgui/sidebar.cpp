@@ -340,7 +340,7 @@ void SideBar::OnDataButtonCopyF (wxCommandEvent&)
     if (!ftk->get_model(n)->get_zz().names.empty()
             || !ftk->get_model(n+1)->get_zz().names.empty())
         cmd += "; @" + S(n+1) + ".Z=copy(@" + S(n) + ".Z)";
-    if (ftk->find_function_nr("bg" + S(n)) != -1)
+    if (ftk->mgr.find_function_nr("bg" + S(n)) != -1)
         cmd += "; %bg" + S(n+1) + "=copy(%bg" + S(n) + ")";
     update_data_buttons();
     exec(cmd);
@@ -446,8 +446,8 @@ void SideBar::OnFuncButtonEdit (wxCommandEvent&)
 {
     if (!pp_func)
         return;
-    string t = pp_func->get_current_assignment(ftk->variables(),
-                                               ftk->parameters());
+    string t = pp_func->get_current_assignment(ftk->mgr.variables(),
+                                               ftk->mgr.parameters());
     frame->edit_in_input(t);
 }
 
@@ -481,10 +481,10 @@ void SideBar::OnVarButtonNew (wxCommandEvent&)
 void SideBar::OnVarButtonEdit (wxCommandEvent&)
 {
     int n = get_focused_var();
-    if (n < 0 || n >= size(ftk->variables()))
+    if (n < 0 || n >= size(ftk->mgr.variables()))
         return;
-    const Variable* var = ftk->get_variable(n);
-    string t = "$" + var->name + " = "+ var->get_formula(ftk->parameters());
+    const Variable* var = ftk->mgr.get_variable(n);
+    string t = "$" + var->name + " = "+ var->get_formula(ftk->mgr.parameters());
     frame->edit_in_input(t);
 }
 
@@ -551,18 +551,18 @@ void SideBar::update_func_list(bool nondata_changed)
     Model const* filter_model = NULL;
     if (filter_ch->GetSelection() > 0)
         filter_model = ftk->get_model(filter_ch->GetSelection()-1);
-    int func_size = ftk->functions().size();
+    int func_size = ftk->mgr.functions().size();
     if (active_function == -1)
         active_function = func_size - 1;
     else {
         if (active_function >= func_size ||
-                ftk->get_function(active_function) != pp_func)
-            active_function = ftk->find_function_nr(active_function_name);
+                ftk->mgr.get_function(active_function) != pp_func)
+            active_function = ftk->mgr.find_function_nr(active_function_name);
         if (active_function == -1 || func_size == old_func_size+1)
             active_function = func_size - 1;
     }
     if (active_function != -1)
-        active_function_name = ftk->get_function(active_function)->name;
+        active_function_name = ftk->mgr.get_function(active_function)->name;
     else
         active_function_name = "";
 
@@ -573,7 +573,7 @@ void SideBar::update_func_list(bool nondata_changed)
             continue;
         if (i == active_function)
             pos = new_func_col_id.size();
-        Function const* f = ftk->get_function(i);
+        Function const* f = ftk->mgr.get_function(i);
         func_data.push_back(f->name);
         func_data.push_back(f->tp()->name);
         realt a;
@@ -615,13 +615,13 @@ void SideBar::update_var_list()
 {
     vector<string> var_data;
     //  count references first
-    vector<Variable*> const& variables = ftk->variables();
+    vector<Variable*> const& variables = ftk->mgr.variables();
     vector<int> var_vrefs(variables.size(), 0), var_frefs(variables.size(), 0);
     v_foreach (Variable*, i, variables) {
         for (int j = 0; j != (*i)->used_vars().get_count(); ++j)
             var_vrefs[(*i)->used_vars().get_idx(j)]++;
     }
-    v_foreach (Function*, i, ftk->functions()) {
+    v_foreach (Function*, i, ftk->mgr.functions()) {
         for (int j = 0; j != (*i)->used_vars().get_count(); ++j)
             var_frefs[(*i)->used_vars().get_idx(j)]++;
     }
@@ -633,7 +633,7 @@ void SideBar::update_var_list()
                       + S(v->used_vars().get_count());
         var_data.push_back(refs); //refs
         var_data.push_back(S(v->get_value())); //value
-        var_data.push_back(v->get_formula(ftk->parameters()));  //formula
+        var_data.push_back(v->get_formula(ftk->mgr.parameters()));  //formula
     }
     v->list->populate(var_data);
 }
@@ -657,7 +657,7 @@ int SideBar::get_focused_data() const
 
 int SideBar::get_focused_var() const
 {
-    if (ftk->variables().empty())
+    if (ftk->mgr.variables().empty())
         return -1;
     else {
         int n = v->list->GetFocusedItem();
@@ -760,7 +760,7 @@ void SideBar::activate_function(int n)
 void SideBar::do_activate_function()
 {
     if (active_function != -1)
-        active_function_name = ftk->get_function(active_function)->name;
+        active_function_name = ftk->mgr.get_function(active_function)->name;
     else
         active_function_name = "";
     frame->plot_pane()->refresh_plots(false, kMainPlot);
@@ -828,7 +828,7 @@ void SideBar::update_func_buttons()
     func_page->FindWindow(ID_FP_COL)->Enable(sel_f > 0);
 
     bool has_hwhm = false, has_shape = false;
-    v_foreach (Function*, i, ftk->functions()) {
+    v_foreach (Function*, i, ftk->mgr.functions()) {
         if (contains_element((*i)->tp()->fargs, "hwhm"))
             has_hwhm = true;
         if (contains_element((*i)->tp()->fargs, "shape"))
@@ -886,7 +886,7 @@ void SideBar::update_func_inf()
     inf->Clear();
     if (active_function < 0)
         return;
-    Function const* func = ftk->get_function(active_function);
+    Function const* func = ftk->mgr.get_function(active_function);
     realt a;
     if (func->get_center(&a))
         inf->AppendText(wxT("Center: ")
@@ -921,10 +921,10 @@ void SideBar::update_var_inf()
     int n = get_focused_var();
     if (n < 0)
         return;
-    const Variable* var = ftk->get_variable(n);
-    string t = "$" + var->name + " = " + var->get_formula(ftk->parameters());
+    const Variable* var = ftk->mgr.get_variable(n);
+    string t = "$"+var->name + " = " + var->get_formula(ftk->mgr.parameters());
     inf->AppendText(s2wx(t));
-    vector<string> in = ftk->get_variable_references(var->name);
+    vector<string> in = ftk->mgr.get_variable_references(var->name);
     if (!in.empty())
         inf->AppendText(s2wx("\nIn: " + join_vector(in, ", ")));
     inf->ShowPosition(0);
@@ -953,7 +953,7 @@ vector<string> SideBar::get_selected_func() const
         dd.push_back(wx2s(f->list->GetItemText(i)));
     //if (dd.empty() && f->list->GetItemCount() > 0) {
     //    int n = f->list->GetFocusedItem();
-    //    dd.push_back(ftk->get_function(n == -1 ? 0 : n)->xname);
+    //    dd.push_back(ftk->mgr.get_function(n == -1 ? 0 : n)->xname);
     //}
     return dd;
 }
@@ -963,7 +963,7 @@ vector<string> SideBar::get_selected_vars() const
     vector<string> dd;
     for (int i = v->list->GetFirstSelected(); i != -1;
                                              i = v->list->GetNextSelected(i))
-        dd.push_back(ftk->get_variable(i)->name);
+        dd.push_back(ftk->mgr.get_variable(i)->name);
     return dd;
 }
 
@@ -977,7 +977,7 @@ void SideBar::OnFuncFocusChanged(wxListEvent&)
         active_function = -1;
     else {
         string name = wx2s(f->list->GetItemText(n));
-        active_function = ftk->find_function_nr(name);
+        active_function = ftk->mgr.find_function_nr(name);
     }
     do_activate_function();
 }
@@ -990,7 +990,7 @@ void SideBar::OnVarFocusChanged(wxListEvent&)
 bool SideBar::find_value_of_param(string const& p, double* value)
 {
     if (active_function != -1) {
-        Function const* f = ftk->get_function(active_function);
+        Function const* f = ftk->mgr.get_function(active_function);
         int idx = index_of_element(f->tp()->fargs, p);
         if (idx != -1) {
             *value = f->av()[idx];
@@ -998,7 +998,7 @@ bool SideBar::find_value_of_param(string const& p, double* value)
         }
     }
 
-    v_foreach (Function*, i, ftk->functions()) {
+    v_foreach (Function*, i, ftk->mgr.functions()) {
         int idx = index_of_element((*i)->tp()->fargs, p);
         if (idx != -1) {
             *value = (*i)->av()[idx];
@@ -1022,10 +1022,10 @@ void SideBar::make_same_func_par(string const& p, bool checked)
         val_str = "$" + varname;
     }
     else {
-        int nr = ftk->find_variable_nr(varname);
+        int nr = ftk->mgr.find_variable_nr(varname);
         if (nr == -1)
             return;
-        val_str = ftk->get_variable(nr)->get_formula(ftk->parameters());
+        val_str = ftk->mgr.get_variable(nr)->get_formula(ftk->mgr.parameters());
         // varname (_hwhm or _shape) will be auto-deleted
     }
     string cmd;
@@ -1086,7 +1086,7 @@ void SideBar::update_param_panel()
         return;
     }
 
-    pp_func = ftk->get_function(active_function);
+    pp_func = ftk->mgr.get_function(active_function);
 
     wxString new_label = s2wx("%" + pp_func->name +" : "+ pp_func->tp()->name);
     if (param_panel->get_title() != new_label)
@@ -1103,7 +1103,7 @@ void SideBar::update_param_panel()
 
     for (int i = 0; i < new_count; ++i) {
         const Variable* var =
-            ftk->get_variable(pp_func->used_vars().get_idx(i));
+            ftk->mgr.get_variable(pp_func->used_vars().get_idx(i));
         wxString label = s2wx(pp_func->get_param(i));
         if (var->is_simple() || var->is_constant()) {
             bool locked = var->is_constant();

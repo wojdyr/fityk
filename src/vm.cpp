@@ -268,7 +268,7 @@ void run_const_op(const Ftk* F, const std::vector<realt>& numbers,
 #ifndef STANDALONE_DATATRANS
         case OP_FUNC:
             i++;
-            *stackPtr = F->get_function(*i)->calculate_value(*stackPtr);
+            *stackPtr = F->mgr.get_function(*i)->calculate_value(*stackPtr);
             break;
         case OP_SUM_F:
             i++;
@@ -282,7 +282,7 @@ void run_const_op(const Ftk* F, const std::vector<realt>& numbers,
             i += 2;
             STACK_OFFSET_CHANGE(-2);
             if (*(i-1) == OP_FUNC) {
-                *stackPtr = F->get_function(*i)->numarea(*stackPtr,
+                *stackPtr = F->mgr.get_function(*i)->numarea(*stackPtr,
                                     *(stackPtr+1), iround(*(stackPtr+2)));
             }
             else if (*(i-1) == OP_SUM_F) {
@@ -298,7 +298,7 @@ void run_const_op(const Ftk* F, const std::vector<realt>& numbers,
             i += 2;
             STACK_OFFSET_CHANGE(-2);
             if (*(i-1) == OP_FUNC) {
-                *stackPtr = F->get_function(*i)->find_x_with_value(
+                *stackPtr = F->mgr.get_function(*i)->find_x_with_value(
                                   *stackPtr, *(stackPtr+1), *(stackPtr+2));
             }
             else if (*(i-1) == OP_SUM_F) {
@@ -314,7 +314,7 @@ void run_const_op(const Ftk* F, const std::vector<realt>& numbers,
             i += 2;
             STACK_OFFSET_CHANGE(-1);
             if (*(i-1) == OP_FUNC) {
-                *stackPtr = F->get_function(*i)->find_extremum(*stackPtr,
+                *stackPtr = F->mgr.get_function(*i)->find_extremum(*stackPtr,
                                                             *(stackPtr+1));
             }
             else if (*(i-1) == OP_SUM_F) {

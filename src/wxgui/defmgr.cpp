@@ -143,7 +143,7 @@ void DefinitionMgrDlg::update_desc(const Tplate& tp)
                 used = true;
                 break; // don't report the same tplate twice
             }
-    v_foreach (Function*, i, ftk->functions())
+    v_foreach (Function*, i, ftk->mgr.functions())
         if ((*i)->tp()->name == tp.name) {
             desc += " %" + s2wx((*i)->name);
             used = true;

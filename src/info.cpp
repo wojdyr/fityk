@@ -75,10 +75,10 @@ void models_as_script(const Ftk* F, string& r, bool commented_defines)
     // The script must not trigger VariableManager::remove_unreferred()
     // or VariableManager::auto_remove_functions() until all references
     // are reproduced.
-    v_foreach (Variable*, i, F->variables())
-        r += "\n$" + (*i)->name + " = " + (*i)->get_formula(F->parameters());
+    v_foreach (Variable*, i, F->mgr.variables())
+        r += "\n$" + (*i)->name +" = "+ (*i)->get_formula(F->mgr.parameters());
     r += "\n";
-    v_foreach (Function*, i, F->functions())
+    v_foreach (Function*, i, F->mgr.functions())
         r +="\n" + (*i)->get_basic_assignment();
     r += "\n\n# ------------  models  ------------";
     for (int i = 0; i != F->get_dm_count(); ++i) {
@@ -136,8 +136,8 @@ string info_compiler()
 
 string get_variable_info(const Ftk* F, const Variable* v)
 {
-    string s = "$" + v->name + " = " + v->get_formula(F->parameters()) + " = "
-               + F->settings_mgr()->format_double(v->get_value());
+    string s = "$" + v->name + " = " + v->get_formula(F->mgr.parameters()) +
+                " = " + F->settings_mgr()->format_double(v->get_value());
     const RealRange& d = v->domain;
     if (!d.from_inf() || !d.to_inf())
         s += "  [" + (d.from_inf() ? S("") : S(d.from)) + " : "
@@ -151,11 +151,11 @@ string get_variable_info(const Ftk* F, const Variable* v)
 void info_functions(const Ftk* F, const string& name, string& result)
 {
     if (!contains_element(name, '*')) {
-        const Function *f = F->find_function(name);
+        const Function *f = F->mgr.find_function(name);
         result += f->get_basic_assignment();
     }
     else {
-        v_foreach (Function*, i, F->functions())
+        v_foreach (Function*, i, F->mgr.functions())
             if (match_glob((*i)->name.c_str(), name.c_str()))
                 result += (result.empty() ? "" : "\n")
                           + (*i)->get_basic_assignment();
@@ -165,11 +165,11 @@ void info_functions(const Ftk* F, const string& name, string& result)
 void info_variables(const Ftk* F, const string& name, string& result)
 {
     if (!contains_element(name, '*')) {
-        const Variable* var = F->find_variable(name);
+        const Variable* var = F->mgr.find_variable(name);
         result += get_variable_info(F, var);
     }
     else {
-        v_foreach (Variable*, i, F->variables())
+        v_foreach (Variable*, i, F->mgr.variables())
             if (match_glob((*i)->name.c_str(), name.c_str()))
                 result += (result.empty() ? "" : "\n")
                           + get_variable_info(F, *i);
@@ -195,10 +195,10 @@ void info_func_type(const Ftk* F, const string& functype, string& result)
 
 string info_func_props(const Ftk* F, const string& name)
 {
-    const Function* f = F->find_function(name);
+    const Function* f = F->mgr.find_function(name);
     string s = f->tp()->as_formula();
     for (int i = 0; i < f->used_vars().get_count(); ++i) {
-        Variable const* v = F->get_variable(f->used_vars().get_idx(i));
+        Variable const* v = F->mgr.get_variable(f->used_vars().get_idx(i));
         s += "\n" + f->get_param(i) + " = " + get_variable_info(F, v);
     }
     realt a;
@@ -314,13 +314,13 @@ string format_error_info(const Ftk* F, const vector<realt>& errors)
 {
     string s;
     const SettingsMgr *sm = F->settings_mgr();
-    const vector<realt>& pp = F->parameters();
+    const vector<realt>& pp = F->mgr.parameters();
     assert(pp.size() == errors.size());
     const Fit* fit = F->get_fit();
     for (size_t i = 0; i != errors.size(); ++i) {
         if (fit->is_param_used(i)) {
             realt err = errors[i];
-            s += "\n$" + F->find_variable_handling_param(i)->name
+            s += "\n$" + F->mgr.find_variable_handling_param(i)->name
                 + " = " + sm->format_double(pp[i])
                 + " +- " + (err == 0. ? string("??") : sm->format_double(err));
         }
@@ -341,14 +341,14 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         else if (word == "compiler")
             result += info_compiler();
         else if (word == "variables")
-            for (size_t i = 0; i < F->variables().size(); ++i)
-                result += (i > 0 ? " $" : "$") + F->get_variable(i)->name;
+            for (size_t i = 0; i < F->mgr.variables().size(); ++i)
+                result += (i > 0 ? " $" : "$") + F->mgr.get_variable(i)->name;
         else if (word == "types")
             v_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec())
                 result += (*i)->name + " ";
         else if (word == "functions")
-            for (size_t i = 0; i < F->functions().size(); ++i)
-                result += (i > 0 ? " %" : "%") + F->get_function(i)->name;
+            for (size_t i = 0; i < F->mgr.functions().size(); ++i)
+                result += (i > 0 ? " %" : "%") + F->mgr.get_function(i)->name;
         else if (word == "dataset_count")
             result += S(F->get_dm_count());
         else if (word == "view")
@@ -475,7 +475,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         // one arg: $var
         else if (word == "refs") {
             string name = Lexer::get_string(args[n+1]);
-            vector<string> refs = F->get_variable_references(name);
+            vector<string> refs = F->mgr.get_variable_references(name);
             result += join_vector(refs, ", ");
             ++ret;
         }
@@ -516,7 +516,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             ++ret;
             int idx = iround(args[n+1].value.d);
             const string& name = model->get_func_name(fz, idx);
-            const Function *f = F->find_function(name);
+            const Function *f = F->mgr.find_function(name);
             result += f->get_basic_assignment();
         }
         else {
@@ -687,12 +687,12 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
 
     // show values of derivatives for all variables
     else if (word == "rd") {
-        for (int i = 0; i < size(F->variables()); ++i) {
-            const Variable* var = F->get_variable(i);
+        for (int i = 0; i < size(F->mgr.variables()); ++i) {
+            const Variable* var = F->mgr.get_variable(i);
             r += "$" + var->name + ": ";
             v_foreach (Variable::ParMult, i, var->recursive_derivatives())
                 r += "p" + S(i->p) + "=$"
-                    + F->find_variable_handling_param(i->p)->name
+                    + F->mgr.find_variable_handling_param(i->p)->name
                     + " *" + S(i->mult) + "    ";
             r += "\n";
         }
@@ -700,16 +700,16 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
 
     // show used_vars from VariableUser
     else if (word == "idx") {
-        for (size_t i = 0; i != F->functions().size(); ++i) {
-            const Function *f = F->get_function(i);
+        for (size_t i = 0; i != F->mgr.functions().size(); ++i) {
+            const Function *f = F->mgr.get_function(i);
             r += S(i) + ": %" + f->name + ": ";
             const IndexedVars& uv = f->used_vars();
             for (int i = 0; i != uv.get_count(); ++i)
                 r += uv.get_name(i) + "/" + S(uv.get_idx(i)) + " ";
             r += "\n";
         }
-        for (size_t i = 0; i != F->variables().size(); ++i) {
-            const Variable *v = F->get_variable(i);
+        for (size_t i = 0; i != F->mgr.variables().size(); ++i) {
+            const Variable *v = F->mgr.get_variable(i);
             r += S(i) + ": $" + v->name + ": ";
             const IndexedVars& uv = v->used_vars();
             for (int i = 0; i != uv.get_count(); ++i)
@@ -732,7 +732,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
         r += "F(" + S(x) + ")=" + S(model->value(x));
         for (int i = 0; i < n; ++i) {
             if (is_neq(symb[i], 0) || is_neq(num[i], 0))
-                r += "\ndF / d$" + F->find_variable_handling_param(i)->name
+                r += "\ndF / d$" + F->mgr.find_variable_handling_param(i)->name
                     + " = (symb.) " + S(symb[i]) + " = (num.) " + S(num[i]);
         }
         r += "\ndF / dx = (symb.) " + S(symb[n]) + " = (num.) " + S(num[n]);
@@ -740,13 +740,13 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
 
     // show %function's bytecode
     else if (key.type == kTokenFuncname) {
-        const Function* f = F->find_function(Lexer::get_string(key));
+        const Function* f = F->mgr.find_function(Lexer::get_string(key));
         r += f->get_bytecode();
     }
 
     // show derivatives of $variable
     else if (key.type == kTokenVarname) {
-        const Variable* v = F->find_variable(Lexer::get_string(key));
+        const Variable* v = F->mgr.find_variable(Lexer::get_string(key));
         vector<string> vn;
         v_foreach (string, i, v->used_vars().names())
             vn.push_back("$" + *i);

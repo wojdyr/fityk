@@ -142,7 +142,7 @@ void FitInfoDlg::update_left_tc()
 {
     string s;
     vector<DataAndModel*> dms = frame->get_selected_dms();
-    const vector<realt> &pp = ftk->parameters();
+    const vector<realt> &pp = ftk->mgr.parameters();
     ::Fit *fit = ftk->get_fit();
     int dof = fit->get_dof(dms);
     double wssr = fit->do_compute_wssr(pp, dms, true);
@@ -175,7 +175,7 @@ void FitInfoDlg::update_right_tc()
     ::Fit *fit = ftk->get_fit();
     int choice = right_c->GetSelection();
     vector<DataAndModel*> dms = frame->get_selected_dms();
-    vector<realt> const &pp = ftk->parameters();
+    vector<realt> const &pp = ftk->mgr.parameters();
     int na = pp.size();
     wxString s;
     if (choice <= 5) {
@@ -210,8 +210,8 @@ void FitInfoDlg::update_right_tc()
         }
         for (int i = 0; i < na; ++i) {
             if (fit->is_param_used(i)) {
-                const Variable *var = ftk->find_variable_handling_param(i);
-                vector<string> in = ftk->get_variable_references(var->name);
+                const Variable *var = ftk->mgr.find_variable_handling_param(i);
+                vector<string> in = ftk->mgr.get_variable_references(var->name);
                 wxString name = wxT("$") + s2wx(var->name);
                 if (in.size() == 1 && in[0][0] == '%')
                     name += wxT(" = ") + s2wx(in[0]);
@@ -241,13 +241,13 @@ void FitInfoDlg::update_right_tc()
         }
         for (int i = 0; i < na; ++i)
             if (fit->is_param_used(i)) {
-                wxString t=s2wx("$"+ftk->find_variable_handling_param(i)->name);
-                s += wxString::Format(wxT("%10s"), t.c_str());
+                string name = ftk->mgr.find_variable_handling_param(i)->name;
+                s += wxString::Format("%10s", s2wx("$"+name).c_str());
             }
         for (int i = 0; i < na; ++i) {
             if (fit->is_param_used(i)) {
-                wxString t=s2wx("$"+ftk->find_variable_handling_param(i)->name);
-                s += wxString::Format(wxT("\n%10s"), t.c_str());
+                string name = ftk->mgr.find_variable_handling_param(i)->name;
+                s += wxString::Format("\n%10s", s2wx("$"+name).c_str());
                 for (int j = 0; j < na; ++j) {
                     if (fit->is_param_used(j)) {
                         double val = alpha[na*i + j];

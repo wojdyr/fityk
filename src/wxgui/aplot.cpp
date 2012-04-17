@@ -154,7 +154,7 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
     if (mark_peak_pos_) {
         v_foreach (int, i, model->get_ff().idx) {
             realt x;
-            if (ftk->get_function(*i)->get_center(&x)) {
+            if (ftk->mgr.get_function(*i)->get_center(&x)) {
                 int X = xs.px(x - model->zero_shift(x));
                 dc.DrawLine(X, 0, X, pixel_height);
             }

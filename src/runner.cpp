@@ -80,8 +80,8 @@ void Runner::command_delete(const vector<Token>& args)
         v_foreach (int, j, dd)
             F_->remove_dm(*j);
     }
-    F_->delete_funcs(funcs);
-    F_->delete_variables(vars);
+    F_->mgr.delete_funcs(funcs);
+    F_->mgr.delete_variables(vars);
     v_foreach (string, f, files) {
         // stdio.h remove() should be portable, it is in C89
         int r = remove(f->c_str());
@@ -207,10 +207,10 @@ void Runner::command_guess(const vector<Token>& args, int ds)
     int ignore_idx = -1;
     if (args[0].type == kTokenFuncname) {
         name = Lexer::get_string(args[0]);
-        ignore_idx = F_->find_function_nr(name);
+        ignore_idx = F_->mgr.find_function_nr(name);
     }
     else
-        name = F_->next_func_name();
+        name = F_->mgr.next_func_name();
 
     // function type
     assert (args[1].type == kTokenCname);
@@ -274,14 +274,14 @@ void Runner::command_guess(const vector<Token>& args, int ds)
     }
 
     // add function
-    int idx = F_->assign_func(name, tp, func_args);
+    int idx = F_->mgr.assign_func(name, tp, func_args);
 
     FunctionSum& ff = dm->model()->get_ff();
     if (!contains_element(ff.names, name)) {
         ff.names.push_back(name);
         ff.idx.push_back(idx);
     }
-    F_->use_parameters();
+    F_->mgr.use_parameters();
     F_->outdated_plot();
 }
 
@@ -352,8 +352,8 @@ int Runner::make_func_from_template(const string& name,
         vector<realt> cvals(par_values.size());
         vector<realt> dummy;
         for (size_t i = 0; i != par_values.size(); ++i)
-            cvals[i] = run_code_for_variable(*par_values[i], F_->variables(),
-                                             dummy);
+            cvals[i] = run_code_for_variable(*par_values[i],
+                                             F_->mgr.variables(), dummy);
         // calculate default values
         for (size_t i = 0; i != tp->fargs.size(); ++i) {
             if (func_args[i] != NULL)
@@ -377,7 +377,7 @@ int Runner::make_func_from_template(const string& name,
                 throw ExecuteError("missing parameter " + tp->fargs[i]);
         }
     }
-    F_->assign_func(name, tp, func_args);
+    F_->mgr.assign_func(name, tp, func_args);
     return par_values.size();
 }
 
@@ -405,11 +405,11 @@ void Runner::command_name_func(const vector<Token>& args, int ds)
     string name = Lexer::get_string(args[0]);
     if (args[1].as_string() == "copy") { // copy(%f) or copy(@n.F[idx])
         string orig_name = get_func(F_, ds, args.begin()+2);
-        F_->assign_func_copy(name, orig_name);
+        F_->mgr.assign_func_copy(name, orig_name);
     }
     else                               // Foo(...)
         make_func_from_template(name, args, 1);
-    F_->use_parameters();
+    F_->mgr.use_parameters();
     F_->outdated_plot(); //TODO only if function in @active
 }
 
@@ -420,8 +420,8 @@ void Runner::command_assign_param(const vector<Token>& args, int ds)
     string name = get_func(F_, ds, args.begin());
     string param = (args.end()-2)->as_string();
     const Token& var = *(args.end()-1);
-    F_->substitute_func_param(name, param, get_vm_from_token(var));
-    F_->use_parameters();
+    F_->mgr.substitute_func_param(name, param, get_vm_from_token(var));
+    F_->mgr.use_parameters();
     F_->outdated_plot();
 }
 
@@ -440,10 +440,10 @@ void Runner::command_assign_all(const vector<Token>& args, int ds)
     VMData* vd = get_vm_from_token(args[4]);
     const FunctionSum& fz = F_->get_model(ds)->get_fz(c);
     v_foreach (string, i, fz.names) {
-        if (contains_element(F_->find_function(*i)->tp()->fargs, param))
-            F_->substitute_func_param(*i, param, vd);
+        if (contains_element(F_->mgr.find_function(*i)->tp()->fargs, param))
+            F_->mgr.substitute_func_param(*i, param, vd);
     }
-    F_->use_parameters();
+    F_->mgr.use_parameters();
     F_->outdated_plot();
 }
 
@@ -454,10 +454,10 @@ void Runner::command_name_var(const vector<Token>& args)
     string name = Lexer::get_string(args[0]);
     VMData* vd = get_vm_from_token(args[1]);
     RealRange domain = args2range(args[2], args[3]);
-    int pos = F_->make_variable(name, vd);
-    //F_->get_variable(pos)->domain = domain;
-    F_->set_domain(pos, domain);
-    F_->use_parameters();
+    int pos = F_->mgr.make_variable(name, vd);
+    //F_->mgr.get_variable(pos)->domain = domain;
+    F_->mgr.set_domain(pos, domain);
+    F_->mgr.use_parameters();
     F_->outdated_plot(); // TODO: only for replacing old variable
 }
 
@@ -495,7 +495,7 @@ void add_functions_to(const Ftk* F, vector<string> const &names,
                       FunctionSum& sum)
 {
     v_foreach (string, i, names) {
-        int n = F->find_function_nr(*i);
+        int n = F->mgr.find_function_nr(*i);
         if (n == -1)
             throw ExecuteError("undefined function: %" + *i);
         if (contains_element(sum.names, *i))
@@ -536,14 +536,14 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
             vector<string> v;
             int n_tokens = get_fz_or_func(F_, ds, args.begin()+i+1, v);
             v_foreach (string, j, v) {
-                string name = F_->next_func_name();
-                F_->assign_func_copy(name, *j);
+                string name = F_->mgr.next_func_name();
+                F_->mgr.assign_func_copy(name, *j);
                 new_names.push_back(name);
             }
             i += n_tokens;
         }
         else if (args[i].type == kTokenCname) { // Foo(1,2)
-            string name = F_->next_func_name();
+            string name = F_->mgr.next_func_name();
             int n_args = make_func_from_template(name, args, i);
             new_names.push_back(name);
             i += 2 * n_args;
@@ -556,9 +556,9 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
     add_functions_to(F_, new_names, sum);
 
     if (removed_functions)
-        F_->auto_remove_functions();
-    F_->use_parameters();
-    F_->update_indices_in_models();
+        F_->mgr.auto_remove_functions();
+    F_->mgr.use_parameters();
+    F_->mgr.update_indices_in_models();
     F_->outdated_plot();
 }
 

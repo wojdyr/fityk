@@ -39,9 +39,10 @@ private:
 
 
 /// keeps all functions, variables, parameters, datasets with models and View
-class Ftk : public VariableManager
+class Ftk
 {
 public:
+    VariableManager mgr;
     View view;
     /// used for randomly drawing parameter values, in fitting methods like GA
     double default_relative_domain_width;

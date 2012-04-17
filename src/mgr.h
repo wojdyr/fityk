@@ -85,12 +85,11 @@ public:
     std::vector<std::string>
         get_variable_references(const std::string &name) const;
     void update_indices_in_models();
+    void do_reset();
 
     std::string next_var_name(); ///generate name for "anonymous" variable
     std::string next_func_name(); ///generate name for "anonymous" function
 
-protected:
-    void do_reset();
 
 private:
     const Ftk* F_;

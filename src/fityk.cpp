@@ -162,7 +162,7 @@ int Fityk::get_default_dataset() const
 
 int Fityk::get_parameter_count() const
 {
-    return ftk_->parameters().size();
+    return ftk_->mgr.parameters().size();
 }
 
 realt Fityk::get_model_value(realt x, int dataset)  throw(ExecuteError)
@@ -196,13 +196,13 @@ int Fityk::get_variable_nr(string const& name)  throw(ExecuteError)
             vname = string(name, 1);
         else if (name[0] == '%' && name.find('.') < name.size() - 1) {
             string::size_type pos = name.find('.');
-            Function const* f = ftk_->find_function(string(1, pos-1));
+            Function const* f = ftk_->mgr.find_function(string(1, pos-1));
             string pname = name.substr(pos+1);
             vname = f->used_vars().get_name(f->get_param_nr(pname));
         }
         else
             vname = name;
-        return ftk_->find_variable(vname)->get_nr();
+        return ftk_->mgr.find_variable(vname)->get_nr();
     }
     CATCH_EXECUTE_ERROR
     return -1;
@@ -322,7 +322,7 @@ vector<vector<realt> > Fityk::get_covariance_matrix(int dataset)
         vector<DataAndModel*> dss = get_datasets_(ftk_, dataset);
         vector<realt> c = ftk_->get_fit()->get_covariance_matrix(dss);
         //reshape
-        size_t na = ftk_->parameters().size();
+        size_t na = ftk_->mgr.parameters().size();
         assert(c.size() == na * na);
         vector<vector<realt> > r(na);
         for (size_t i = 0; i != na; ++i)
