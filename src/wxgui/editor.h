@@ -4,7 +4,7 @@
 #ifndef FITYK_WX_EDITOR_H_
 #define FITYK_WX_EDITOR_H_
 
-class Editor;
+class FitykEditor;
 class wxStyledTextEvent;
 
 class EditorDlg : public wxDialog
@@ -16,7 +16,7 @@ public:
 
 private:
     wxToolBarBase *tb_;
-    Editor *ed_;
+    FitykEditor *ed_;
     wxString path_;
     bool lua_file_;
 

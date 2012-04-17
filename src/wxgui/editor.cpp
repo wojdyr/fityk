@@ -47,10 +47,10 @@ BEGIN_EVENT_TABLE(EditorDlg, wxDialog)
 END_EVENT_TABLE()
 
 #if wxUSE_STC
-class Editor : public wxStyledTextCtrl
+class FitykEditor : public wxStyledTextCtrl
 {
 public:
-    Editor(wxWindow* parent, wxWindowID id)
+    FitykEditor(wxWindow* parent, wxWindowID id)
         : wxStyledTextCtrl(parent, id)
     {
         SetMarginType(0, wxSTC_MARGIN_NUMBER);
@@ -78,10 +78,10 @@ public:
     }
 };
 #else
-class Editor : public wxTextCtrl
+class FitykEditor : public wxTextCtrl
 {
 public:
-    Editor(wxWindow* parent, wxWindowID id)
+    FitykEditor(wxWindow* parent, wxWindowID id)
         : wxTextCtrl(parent, id, "", wxDefaultPosition, wxDefaultSize,
                      wxTE_MULTILINE|wxTE_RICH) {}
     void set_filetype(bool) {}
@@ -140,7 +140,7 @@ EditorDlg::EditorDlg(wxWindow* parent)
 #endif
     tb_->Realize();
     top_sizer->Add(tb_, 0, wxEXPAND);
-    ed_ = new Editor(this, ID_SE_EDITOR);
+    ed_ = new FitykEditor(this, ID_SE_EDITOR);
     top_sizer->Add(ed_, 1, wxALL|wxEXPAND, 0);
     SetSizerAndFit(top_sizer);
     SetSize(600, 500);
