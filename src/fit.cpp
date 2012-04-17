@@ -503,8 +503,6 @@ void Fit::update_parameters(const vector<DataAndModel*>& dms)
                 par_usage_[idx] = true;
                 break; //go to next idx
             }
-            //vmsg(F_->find_variable_handling_param(idx)->xname
-            //        + " is not in chi2.");
         }
     }
     if (count(par_usage_.begin(), par_usage_.end(), true) == 0)
@@ -588,8 +586,9 @@ void Fit::Jordan(vector<realt>& A, vector<realt>& b, int n)
             // If it's the same about i-th row, and b[i]==0, let x[i]==0.
             for (int j = i; j < n; j++)
                 if (A[n * i + j] || b[i]) {
-                    F_->vmsg (print_matrix(A, n, n, "A"));
-                    F_->msg (print_matrix(b, 1, n, "b"));
+                    if (F_->get_verbosity() >= 1)
+                        F_->ui()->mesg(print_matrix(A, n, n, "A"));
+                    F_->msg(print_matrix(b, 1, n, "b"));
                     throw ExecuteError("In iteration " + S(iter_nr_)
                                        + ": trying to reverse singular matrix."
                                         " Column " + S(i) + " is zeroed.");
@@ -640,7 +639,7 @@ void Fit::output_tried_parameters(const vector<realt>& a)
     s.reserve(s.size() + a.size() * 12); // rough guess
     v_foreach (realt, j, a)
         s += sm->format_double(*j) + (j+1 == a.end() ? " )" : ", ");
-    F_->vmsg(s);
+    F_->ui()->mesg(s);
 }
 
 //-------------------------------------------------------------------

@@ -3,7 +3,7 @@
 
 #include "common.h"
 #include "data.h"
-//#include "ui.h"
+#include "ui.h"
 #include "numfuncs.h"
 #include "settings.h"
 #include "logic.h"
@@ -260,7 +260,7 @@ void Data::load_file (const string& fn,
                 = block->get_column(idx_y != INT_MAX ?  idx_y : 2);
             int n = block->get_point_count();
             if (n < 5 && bb.size() == 1)
-                F_->warn("Only " + S(n) + " data points found in file.");
+                F_->ui()->warn("Only " + S(n) + " data points found in file.");
 
             if (idx_s == INT_MAX) {
                 for (int i = 0; i < n; ++i) {
@@ -372,7 +372,7 @@ void Data::update_active_p()
 string Data::range_as_string() const
 {
     if (active_.empty()) {
-        F_->warn ("File not loaded or all points inactive.");
+        F_->ui()->warn("File not loaded or all points inactive.");
         return "[]";
     }
     vector<Point>::const_iterator old_p = p_.begin() + active_[0];

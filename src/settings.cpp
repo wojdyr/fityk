@@ -291,6 +291,5 @@ void SettingsMgr::do_srand()
     int seed = m_.pseudo_random_seed == 0 ? (int) time(NULL)
                                           : m_.pseudo_random_seed;
     srand(seed);
-    F_->vmsg("Seed for pseudo-random numbers: " + S(seed));
 }
 

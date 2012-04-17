@@ -186,13 +186,13 @@ UiApi::Status UserInterface::execute_line(const string& str)
         raw_execute_line(str);
     }
     catch (fityk::SyntaxError &e) {
-        F_->warn(string("Syntax error: ") + e.what());
+        warn(string("Syntax error: ") + e.what());
         status = UiApi::kStatusSyntaxError;
     }
     // ExecuteError and xylib::FormatError and xylib::RunTimeError
     // are derived from std::runtime_error
     catch (runtime_error &e) {
-        F_->warn(string("Error: ") + e.what());
+        warn(string("Error: ") + e.what());
         status = UiApi::kStatusExecuteError;
     }
 
@@ -232,7 +232,6 @@ void UserInterface::output_message(Style style, const string& s) const
         throw ExitRequestedException();
     }
 }
-
 
 class FileOpener
 {
@@ -311,7 +310,7 @@ void UserInterface::exec_lua_string(const string& str)
 void UserInterface::handle_lua_error()
 {
     const char *msg = lua_tostring(L_, -1);
-    F_->warn("Lua Error:\n" + S(msg ? msg : "(non-string error)"));
+    warn("Lua Error:\n" + S(msg ? msg : "(non-string error)"));
     lua_pop(L_, 1);
 }
 
@@ -355,7 +354,7 @@ void UserInterface::exec_script(const string& filename)
     else
         opener.reset(new NormalFileOpener);
     if (!opener->open(filename.c_str())) {
-        F_->warn("Can't open file: " + filename);
+        warn("Can't open file: " + filename);
         return;
     }
 
@@ -380,7 +379,7 @@ void UserInterface::exec_script(const string& filename)
         if (r != kStatusOk && F_->get_settings()->on_error[0] != 'n'/*nothing*/)
             break;
         if (fityk::user_interrupt) {
-            F_->msg ("Script stopped by signal INT.");
+            mesg("Script stopped by signal INT.");
             break;
         }
         s.clear();

@@ -52,8 +52,8 @@ double NLfit::calculate(int n, const double* par, double* grad)
     ++iter_nr_;
     if (F_->get_verbosity() >= 1) {
         realt rel_diff = (wssr - wssr_before_) / wssr_before_;
-        F_->vmsg("... #" + S(iter_nr_) + ":  WSSR=" + S(wssr) +
-                 format1<double, 32>("  (%+g%%)", rel_diff * 100));
+        F_->ui()->mesg("... #" + S(iter_nr_) + ":  WSSR=" + S(wssr) +
+                       format1<double, 32>("  (%+g%%)", rel_diff * 100));
     }
     return wssr;
 }

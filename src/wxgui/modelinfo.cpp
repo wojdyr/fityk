@@ -77,7 +77,7 @@ bool ModelInfoDlg::Initialize()
     try {
         update_text();
     } catch (ExecuteError &e) {
-        ftk->warn(string("Error: ") + e.what());
+        ftk->ui()->warn(string("Error: ") + e.what());
         return false;
     }
 

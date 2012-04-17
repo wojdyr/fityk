@@ -628,7 +628,7 @@ void command_redirectable(const Ftk* F, int ds,
             info.resize(max_screen_info_length);
             info += "\n[... " + S(more) + " characters more...]";
         }
-        F->rmsg(info);
+        F->ui()->mesg(info);
     }
     else {
         assert(args.back().type == kTokenFilename ||
@@ -776,7 +776,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
 
     else
         r += "unexpected arg: " + word;
-    F->rmsg(r);
+    F->ui()->mesg(r);
 }
 
 void parse_and_eval_info(Ftk *F, const string& s, int dataset,

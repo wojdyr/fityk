@@ -88,19 +88,11 @@ public:
     const TplateMgr* get_tpm() const { return tplate_mgr_; }
     TplateMgr* get_tpm() { return tplate_mgr_; }
 
-    /// Send warning to UI.
-    void warn(std::string const &s) const;
-
-    /// Send implicitely requested message to UI.
-    void rmsg(std::string const &s) const;
-
-    /// Send message to UI.
-    void msg(std::string const &s) const;
-
-    /// Send verbose message to UI.
-    void vmsg(std::string const &s) const;
-
+    // short names for popular calls
     int get_verbosity() const { return get_settings()->verbosity; }
+    void msg(const std::string &s) const
+                                { if (get_verbosity() >= 0) ui_->mesg(s); }
+
 
     /// import dataset (or multiple datasets, in special cases)
     void import_dataset(int slot, const std::string& filename,

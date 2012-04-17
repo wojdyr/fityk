@@ -94,7 +94,7 @@ void GAfit::autoiter()
     F_->msg ("WSSR before starting GA: " + S(wssr_before_));
     assert (pop && opop);
     if (elitism >= popsize) {
-        F_->warn ("hmm, now elitism >= popsize, setting elitism = 1");
+        F_->ui()->warn("hmm, now elitism >= popsize, setting elitism = 1");
         elitism = 1;
     }
     for (int iter = 0; !termination_criteria_and_print_info(iter); iter++) {
@@ -167,8 +167,8 @@ void GAfit::crossover()
                     guaranteed_avarage_crossover (i, i2);
                     break;
                 default:
-                    F_->warn ("No such crossover-type: " + S(crossover_type)
-                              + ". Setting to 'u'");
+                    F_->ui()->warn("No such crossover-type: " +
+                                   S(crossover_type) + ". Setting to 'u'");
                     crossover_type = 'u';
                     uniform_crossover (i, i2);
                     break;
@@ -250,8 +250,8 @@ void GAfit::pre_selection()
             deterministic_sampling_selection(next);
             break;
         default:
-            F_->warn ("No such selection-type: " + S((char)selection_type)
-                      + ". Setting to 'r'");
+            F_->ui()->warn("No such selection-type: " + S((char)selection_type)
+                              + ". Setting to 'r'");
             selection_type = 'r';
             pre_selection ();
             return;

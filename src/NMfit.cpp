@@ -133,9 +133,11 @@ void NMfit::compute_coord_sum()
 
 bool NMfit::termination_criteria(int iter, realt convergence)
 {
-    F_->vmsg("#" + S(iter_nr_) + " (ev:" + S(evaluations_) + "): best:"
-                + S(best->wssr) + " worst:" + S(worst->wssr) + ", "
-                + S(s_worst->wssr) + " [V * |" + S(volume_factor) + "|]");
+    if (F_->get_verbosity() >= 1)
+        F_->ui()->mesg("#" + S(iter_nr_) + " (ev:" + S(evaluations_) + "):"
+                       " best:" + S(best->wssr) +
+                       " worst:" + S(worst->wssr) + ", " + S(s_worst->wssr) +
+                       " [V * |" + S(volume_factor) + "|]");
     bool stop = false;
     if (volume_factor == 1. && iter != 0) {
         F_->msg ("Simplex got stuck.");

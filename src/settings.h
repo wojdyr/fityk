@@ -100,7 +100,7 @@ public:
 #endif
 
 private:
-    const Ftk* F_; // used for msg() and vmsg()
+    const Ftk* F_; // used for msg()
     Settings m_;
     std::string long_double_format_;
 

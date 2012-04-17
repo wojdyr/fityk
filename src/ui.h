@@ -37,7 +37,13 @@ public:
 
     /// Calls the show_message(), logs the message to file if logging is on,
     /// handles option on_error=exit.
-    void output_message (Style style, const std::string& s) const;
+    void output_message(Style style, const std::string& s) const;
+
+    /// Send warning
+    void warn(std::string const &s) const { output_message(kWarning, s); }
+
+    /// Send implicitely requested message
+    void mesg(std::string const &s) const { output_message(kNormal, s); }
 
     /// Excute commands from file, i.e. run a script (.fit).
     void exec_script(const std::string& filename);

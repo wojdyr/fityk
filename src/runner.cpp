@@ -85,8 +85,8 @@ void Runner::command_delete(const vector<Token>& args)
     v_foreach (string, f, files) {
         // stdio.h remove() should be portable, it is in C89
         int r = remove(f->c_str());
-        if (r != 0)
-            F_->vmsg("Cannot remove file: " + *f);
+        if (r != 0 && F_->get_verbosity() >= 1)
+            F_->ui()->mesg("Cannot remove file: " + *f);
     }
     if (!dd.empty() || !funcs.empty())
         F_->outdated_plot();
@@ -125,7 +125,7 @@ void Runner::command_exec(TokenType tt, const string& str)
         F_->ui()->exec_stream(f);
         pclose(f);
 #else
-        F_->warn ("popen() was disabled during compilation.");
+        F_->ui()->warn("popen() was disabled during compilation.");
 #endif
     }
 

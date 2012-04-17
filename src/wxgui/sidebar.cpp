@@ -453,7 +453,7 @@ void SideBar::OnFuncButtonEdit (wxCommandEvent&)
 
 void SideBar::OnFuncButtonChType (wxCommandEvent&)
 {
-    ftk->warn("Sorry. Changing type of function is not implemented yet.");
+    ftk->ui()->warn("Sorry. Changing type of function is not implemented yet.");
 }
 
 void SideBar::OnFuncButtonCol (wxCommandEvent&)

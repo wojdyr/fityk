@@ -125,7 +125,7 @@ bool FitInfoDlg::Initialize()
         update_left_tc();
         update_right_tc();
     } catch (ExecuteError &e) {
-        ftk->warn(string("Error: ") + e.what());
+        ftk->ui()->warn(string("Error: ") + e.what());
         return false;
     }
 
