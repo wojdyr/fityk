@@ -320,7 +320,7 @@ lua_State* UserInterface::get_lua()
     if (L_ != NULL)
         return L_;
 
-    L_ = lua_open();
+    L_ = luaL_newstate();
     luaL_openlibs(L_);
     luaopen_fityk(L_);
     swig_type_info *type_info = SWIG_TypeQuery(L_, "fityk::Fityk *");

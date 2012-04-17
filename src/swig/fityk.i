@@ -15,6 +15,13 @@
 %{
 #include "stddef.h" // bug workaround, needed for Swig1.3 + GCC4.6
 #include "fityk.h"
+
+/* this is necessary with swig <= 2.0.4 */
+#if LUA_VERSION_NUM == 502
+# define lua_strlen lua_rawlen
+# define luaL_reg luaL_Reg
+#endif
+
 %}
 %include "std_string.i"
 %include "std_vector.i"
