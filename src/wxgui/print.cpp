@@ -3,17 +3,10 @@
 
 ///  printing related utilities
 
-#include <wx/wxprec.h>
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
-#ifndef WX_PRECOMP
-#include <wx/wx.h>
-#endif
 #include <vector>
+#include <wx/wx.h>
 #include <wx/paper.h>
 #include <wx/statline.h>
-
 #include <wx/generic/printps.h>
 #include <wx/generic/prntdlgg.h>
 

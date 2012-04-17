@@ -2,15 +2,9 @@
 // Licence: GNU General Public License ver. 2+
 ///  part of the sidebar (ListPlusText, which contains ListWithColors)
 
-#include <wx/wxprec.h>
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
-#ifndef WX_PRECOMP
 #include <wx/wx.h>
-#endif
-
 #include <wx/imaglist.h>
+
 #include "listptxt.h"
 #include "cmn.h" //SpinCtrl, ProportionalSplitter
 #include "sidebar.h" //SideBar::delete_selected_items()

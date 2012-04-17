@@ -1,14 +1,7 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#include <wx/wxprec.h>
-#ifdef __BORLANDC__
-#pragma hdrstop
-#endif
-#ifndef WX_PRECOMP
 #include <wx/wx.h>
-#endif
-
 #include <wx/splitter.h>
 #include <wx/filedlg.h>
 #include <wx/textdlg.h>
