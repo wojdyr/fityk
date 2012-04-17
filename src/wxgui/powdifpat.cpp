@@ -2002,7 +2002,7 @@ void PowderBook::update_phase_labels(PhasePanel* p, int active)
 #if !STANDALONE_POWDIFPAT
 void PowderBook::OnDelButton(wxCommandEvent&)
 {
-    ftk->exec("delete %pd*, $pd*");
+    exec("delete %pd*, $pd*");
 }
 
 void PowderBook::OnOk(wxCommandEvent&)

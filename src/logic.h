@@ -102,9 +102,6 @@ public:
 
     int get_verbosity() const { return get_settings()->verbosity; }
 
-    /// execute command(s) from string
-    UserInterface::Status exec(const std::string &s);
-
     /// import dataset (or multiple datasets, in special cases)
     void import_dataset(int slot, const std::string& filename,
                         const std::string& format, const std::string& options);

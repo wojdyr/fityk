@@ -5,6 +5,7 @@
 #include <wx/statline.h>
 #include <wx/hyperlink.h>
 #include <fstream>
+#include <algorithm>
 
 #include "dataedit.h"
 
@@ -12,7 +13,7 @@
 #include "app.h" // get_full_path_of_help_file()
 #include "dialogs.h" //export_data_dlg()
 #include "../data.h" // Data, Point
-#include "../logic.h"
+#include "../logic.h" // get_ui()
 
 using namespace std;
 
@@ -492,7 +493,7 @@ void EditTransDlg::OnListItemToggled(wxCommandEvent& event)
 void EditTransDlg::execute_tranform(string const& code)
 {
     string t = conv_code_to_one_line(code);
-    ftk->exec(frame->get_datasets() + t);
+    exec(frame->get_datasets() + t);
 }
 
 bool EditTransDlg::update_apply_button()

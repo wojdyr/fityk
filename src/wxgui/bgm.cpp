@@ -125,7 +125,7 @@ void BgManager::clear_background()
     string name = get_bg_name();
     int nr = ftk->find_function_nr(name);
     if (nr != -1)
-        ftk->exec("delete %" + name);
+        exec("delete %" + name);
 }
 
 void BgManager::define_bg_func()
@@ -163,7 +163,7 @@ void BgManager::define_bg_func()
     string cmd = "%" + name + " = " + ftype + "(";
     v_foreach (PointQ, i, bg_)
         cmd += S(i->x) + "," + S(i->y) + (i+1 == bg_.end() ? ")" : ", ");
-    ftk->exec(cmd);
+    exec(cmd);
 }
 
 void BgManager::strip_background()
@@ -176,7 +176,7 @@ void BgManager::strip_background()
     define_bg_func();
     bg_.clear();
     set_stripped(true);
-    ftk->exec(frame->get_datasets() + "Y = y - %" + get_bg_name() + "(x)");
+    exec(frame->get_datasets() + "Y = y - %" + get_bg_name() + "(x)");
 }
 
 void BgManager::add_background()
@@ -187,7 +187,7 @@ void BgManager::add_background()
         return;
     set_stripped(false);
     bg_from_func();
-    ftk->exec(frame->get_datasets() + "Y = y + %" + name + "(x)");
+    exec(frame->get_datasets() + "Y = y + %" + name + "(x)");
 }
 
 vector<double> BgManager::calculate_bgline(int window_width,

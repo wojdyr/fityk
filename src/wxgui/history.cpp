@@ -126,7 +126,7 @@ void SumHistoryDlg::compute_all_wssr()
 
 void SumHistoryDlg::clear_history()
 {
-    ftk->exec("fit clear_history");
+    exec("fit clear_history");
     // we assume that the history is empty now and disable almost everything
     lc->DeleteAllItems();
 }
@@ -141,7 +141,7 @@ void SumHistoryDlg::OnFocusedItem(wxListEvent& event)
         return;
     int n = event.GetIndex();
     if (n >= 0 && n != ftk->get_fit_container()->get_active_nr())
-        ftk->exec("fit history " + S(n));
+        exec("fit history " + S(n));
 }
 
 void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)

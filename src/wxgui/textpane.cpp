@@ -13,9 +13,6 @@
 #include "textpane.h"
 #include "frame.h"
 #include "inputline.h"
-#include "../common.h"
-#include "../logic.h"
-#include "../ui.h"
 
 using namespace std;
 
@@ -74,7 +71,7 @@ void TextPane::edit_in_input(string const& s)
 void TextPane::ProcessInputLine(wxString const& s)
 {
     frame->set_status_text(wx2s(s));
-    ftk->exec(wx2s(s)); //displaying and executing command
+    exec(wx2s(s)); //displaying and executing command
 }
 
 //===============================================================

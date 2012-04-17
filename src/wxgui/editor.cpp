@@ -6,7 +6,7 @@
 #include <wx/wx.h>
 
 #include "editor.h"
-#include "frame.h" //ftk
+#include "frame.h" //ftk, exec()
 #include "../logic.h"
 
 #include "img/exec_selected.xpm"
@@ -241,9 +241,9 @@ int EditorDlg::exec_fityk_line(int n)
         replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
     }
 
-    ftk->exec(s);
+    exec(s);
     /*
-    UserInterface::Status r = ftk->exec(s);
+    UserInterface::Status r = exec(s);
     if (r == UserInterface::kStatusOk) {
     }
     else { // error
@@ -265,9 +265,9 @@ int EditorDlg::exec_lua_line(int n)
         ++counter;
     }
 
-    ftk->exec("lua " + s);
+    exec("lua " + s);
     /*
-    UserInterface::Status r = ftk->exec(s);
+    UserInterface::Status r = exec(s);
     if (r == UserInterface::kStatusOk) {
     }
     else { // error

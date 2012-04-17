@@ -116,6 +116,11 @@ using namespace std;
 FFrame *frame = NULL;
 Ftk *ftk = NULL;
 
+UserInterface::Status exec(const std::string &s)
+{
+    return ftk->get_ui()->exec_and_log(s);
+}
+
 static const wxString discussions_url(
         wxT("http://groups.google.com/group/fityk-users/topics"));
 static const wxString website_url(
@@ -963,7 +968,7 @@ void FFrame::OnExample(wxCommandEvent& event)
                          wxYES_NO | wxCENTRE | wxICON_QUESTION);
     if (r == wxYES) {
         get_main_plot()->bgm()->clear_background();
-        ftk->exec("reset; exec '" + wx2s(path) + "'");
+        exec("reset; exec '" + wx2s(path) + "'");
     }
 }
 
@@ -1073,7 +1078,7 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
         if (ftk->get_settings()->default_sigma != selected)
             cmd = "with default_sigma=" + selected + " " + cmd;
     }
-    ftk->exec(cmd);
+    exec(cmd);
     if (count > 1)
         SwitchSideBar(true);
 }
@@ -1091,7 +1096,7 @@ void FFrame::OnDataXLoad (wxCommandEvent&)
 void FFrame::OnDataRecent (wxCommandEvent& event)
 {
     string s = wx2s(GetMenuBar()->GetHelpString(event.GetId()));
-    ftk->exec("@+ <'" + s + "'");
+    exec("@+ <'" + s + "'");
     add_recent_data_file(s);
 }
 
@@ -1111,7 +1116,7 @@ void FFrame::OnDataRevert (wxCommandEvent&)
             cmd += "; ";
         cmd += "@" + S(*i) + "< .";
     }
-    ftk->exec(cmd);
+    exec(cmd);
 }
 
 void FFrame::OnDataTable(wxCommandEvent&)
@@ -1165,7 +1170,7 @@ void FFrame::OnDataMerge (wxCommandEvent&)
 {
     MergePointsDlg *dlg = new MergePointsDlg(this);
     if (dlg->ShowModal() == wxID_OK)
-        ftk->exec(dlg->get_command());
+        exec(dlg->get_command());
     dlg->Destroy();
 }
 
@@ -1175,8 +1180,8 @@ void FFrame::OnDataCalcShirley (wxCommandEvent&)
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
         string title = ftk->get_data(*i)->get_title();
         int c = ftk->get_dm_count();
-        ftk->exec("@+ = shirley_bg(@" + S(*i) + ")");
-        ftk->exec("@" + S(c) + ": title = '" + title + "-Shirley'");
+        exec("@+ = shirley_bg(@" + S(*i) + ")");
+        exec("@" + S(c) + ": title = '" + title + "-Shirley'");
     }
 }
 
@@ -1190,7 +1195,7 @@ void FFrame::OnDataRmShirley (wxCommandEvent&)
             cmd += "; ";
         cmd += dstr + " = " + dstr + " - shirley_bg(" + dstr + ")";
     }
-    ftk->exec(cmd);
+    exec(cmd);
 }
 
 void FFrame::OnDataExport (wxCommandEvent&)
@@ -1204,19 +1209,19 @@ void FFrame::OnDefinitionMgr(wxCommandEvent&)
     if (dlg->ShowModal() == wxID_OK) {
         vector<string> commands = dlg->get_commands();
         v_foreach (string, c, commands)
-            ftk->exec(*c);
+            exec(*c);
     }
     dlg->Destroy();
 }
 
 void FFrame::OnSGuess (wxCommandEvent&)
 {
-    ftk->exec(get_datasets() + "guess " + get_guess_string(get_peak_type()));
+    exec(get_datasets() + "guess " + get_guess_string(get_peak_type()));
 }
 
 void FFrame::OnSPFInfo (wxCommandEvent&)
 {
-    ftk->exec(get_datasets() + "info guess");
+    exec(get_datasets() + "info guess");
 }
 
 void FFrame::OnAutoFreeze(wxCommandEvent& event)
@@ -1291,7 +1296,7 @@ void FFrame::OnFOneOfMethods (wxCommandEvent& event)
     int m = event.GetId() - ID_F_M;
     const char** values
                   = ftk->settings_mgr()->get_allowed_values("fitting_method");
-    ftk->exec("set fitting_method=" + S(values[m]));
+    exec("set fitting_method=" + S(values[m]));
 }
 
 void FFrame::OnFRun (wxCommandEvent&)
@@ -1299,7 +1304,7 @@ void FFrame::OnFRun (wxCommandEvent&)
     FitRunDlg dlg(this, -1, true);
     dlg.ShowModal();
     string cmd = dlg.get_cmd();
-    ftk->exec(cmd);
+    exec(cmd);
 }
 
 void FFrame::OnFInfo (wxCommandEvent&)
@@ -1311,12 +1316,12 @@ void FFrame::OnFInfo (wxCommandEvent&)
 
 void FFrame::OnFUndo (wxCommandEvent&)
 {
-    ftk->exec("fit undo");
+    exec("fit undo");
 }
 
 void FFrame::OnFRedo (wxCommandEvent&)
 {
-    ftk->exec("fit redo");
+    exec("fit redo");
 }
 
 void FFrame::OnFHistory (wxCommandEvent&)
@@ -1374,21 +1379,21 @@ void FFrame::OnLogStart (wxCommandEvent&)
             if (checked != ftk->get_settings()->log_full)
                 cmd += ", log_full=" + S(checked ? "1" : "0");
         }
-        ftk->exec(cmd);
+        exec(cmd);
     }
     export_dir_ = fdlg.GetDirectory();
 }
 
 void FFrame::OnLogStop (wxCommandEvent&)
 {
-    ftk->exec("set logfile=''");
+    exec("set logfile=''");
 }
 
 void FFrame::OnLogWithOutput (wxCommandEvent& event)
 {
     bool checked = event.IsChecked();
     GetMenuBar()->Check(ID_LOG_WITH_OUTPUT, checked);
-    ftk->exec("set log_full=" + S((int)checked));
+    exec("set log_full=" + S((int)checked));
 }
 
 void FFrame::OnSaveHistory (wxCommandEvent&)
@@ -1398,7 +1403,7 @@ void FFrame::OnSaveHistory (wxCommandEvent&)
                       wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
-        ftk->exec("info history > '" + wx2s(fdlg.GetPath()) + "'");
+        exec("info history > '" + wx2s(fdlg.GetPath()) + "'");
     }
     export_dir_ = fdlg.GetDirectory();
 }
@@ -1411,7 +1416,7 @@ void FFrame::OnReset (wxCommandEvent&)
                          wxYES_NO | wxCENTRE | wxICON_QUESTION);
     if (r == wxYES) {
         get_main_plot()->bgm()->clear_background();
-        ftk->exec("reset");
+        exec("reset");
     }
 }
 
@@ -1434,7 +1439,7 @@ void FFrame::OnInclude (wxCommandEvent&)
                       script_dir_, "", fityk_lua_wildcards,
                       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
-        ftk->exec("exec '" + wx2s(fdlg.GetPath()) + "'");
+        exec("exec '" + wx2s(fdlg.GetPath()) + "'");
         last_include_path_ = wx2s(fdlg.GetPath());
         GetMenuBar()->Enable(ID_SESSION_REINCLUDE, true);
     }
@@ -1443,7 +1448,7 @@ void FFrame::OnInclude (wxCommandEvent&)
 
 void FFrame::OnReInclude (wxCommandEvent&)
 {
-    ftk->exec("reset; exec '" + last_include_path_ + "'");
+    exec("reset; exec '" + last_include_path_ + "'");
 }
 
 void FFrame::OnNewFitykScript(wxCommandEvent&)
@@ -1490,7 +1495,7 @@ void FFrame::OnDump (wxCommandEvent&)
                       wxT("fityk file (*.fit)|*.fit;*.FIT"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
-        ftk->exec("info state > '" + wx2s(fdlg.GetPath()) + "'");
+        exec("info state > '" + wx2s(fdlg.GetPath()) + "'");
     }
     export_dir_ = fdlg.GetDirectory();
 }
@@ -1817,7 +1822,7 @@ void FFrame::change_zoom(const RealRange& h, const RealRange& v)
     string cmd = "plot " + format_range(h) + " " + format_range(v);
     if (h.from_inf() || h.to_inf() || v.from_inf() || v.to_inf())
         cmd += sidebar_->get_sel_datasets_as_string();
-    ftk->exec(cmd);
+    exec(cmd);
     zoom_hist_.push(ftk->view.str());
     update_menu_previous_zooms();
 }
@@ -2391,10 +2396,10 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             break;
         }
         case ID_T_RUN:
-            ftk->exec(frame->get_datasets() + "fit");
+            exec(frame->get_datasets() + "fit");
             break;
         case ID_T_UNDO:
-            ftk->exec("fit undo");
+            exec("fit undo");
             break;
         case ID_T_AUTO:
             frame->OnSGuess(dummy_cmd_event);

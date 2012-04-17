@@ -40,7 +40,7 @@ void exec_redirected_command(const vector<int>& sel,
                              const string& cmd, const wxString& path)
 {
     if (sel.size() == 1) {
-        ftk->exec("@" + S(sel[0]) + ": " + cmd + " > '" + wx2s(path) + "'");
+        exec("@" + S(sel[0]) + ": " + cmd + " > '" + wx2s(path) + "'");
         return;
     }
     string datasets;
@@ -49,8 +49,8 @@ void exec_redirected_command(const vector<int>& sel,
     else
         datasets = "@" + join_vector(sel, " @");
     if (wxFileExists(path))
-        ftk->exec("delete file '" + wx2s(path) + "'");
-    ftk->exec(datasets + ": " + cmd + " >> '" + wx2s(path) + "'");
+        exec("delete file '" + wx2s(path) + "'");
+    exec(datasets + ": " + cmd + " >> '" + wx2s(path) + "'");
 }
 
 /// show "Export data" dialog

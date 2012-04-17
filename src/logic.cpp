@@ -134,12 +134,6 @@ void Ftk::vmsg(string const &s) const
          get_ui()->output_message(UserInterface::kNormal, s);
 }
 
-/// execute command(s) from string
-UserInterface::Status Ftk::exec(string const &s)
-{
-    return get_ui()->exec_and_log(s);
-}
-
 Fit* Ftk::get_fit() const
 {
     string method_name = get_settings()->fitting_method;

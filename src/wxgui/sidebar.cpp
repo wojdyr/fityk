@@ -22,7 +22,6 @@
 #include "plotpane.h"
 #include "mplot.h"
 #include "../common.h" //vector4, join_vector, S(), ...
-#include "../ui.h"
 #include "../logic.h"
 #include "../data.h"
 #include "../model.h"
@@ -288,12 +287,12 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
 
 void SideBar::OnDataButtonNew (wxCommandEvent&)
 {
-    ftk->exec("@+ = 0");
+    exec("@+ = 0");
 }
 
 void SideBar::OnDataButtonDup (wxCommandEvent&)
 {
-    ftk->exec("@+ = " + join_vector(d->get_selected_data(), " + "));
+    exec("@+ = " + join_vector(d->get_selected_data(), " + "));
 }
 
 void SideBar::OnDataButtonRen (wxCommandEvent&)
@@ -307,7 +306,7 @@ void SideBar::OnDataButtonRen (wxCommandEvent&)
                          wxT("Rename dataset"),
                          old_title);
     if (!s.IsEmpty() && s != old_title)
-        ftk->exec("@" + S(n) + ".title = '" + wx2s(s) + "'");
+        exec("@" + S(n) + ".title = '" + wx2s(s) + "'");
 }
 
 void SideBar::delete_selected_items()
@@ -332,7 +331,7 @@ void SideBar::delete_selected_items()
     }
     else
         assert(0);
-    ftk->exec("delete " + join_vector(elems, ", "));
+    exec("delete " + join_vector(elems, ", "));
 }
 
 void SideBar::OnDataButtonCopyF (wxCommandEvent&)
@@ -350,7 +349,7 @@ void SideBar::OnDataButtonCopyF (wxCommandEvent&)
     if (ftk->find_function_nr("bg" + S(n)) != -1)
         cmd += "; %bg" + S(n+1) + "=copy(%bg" + S(n) + ")";
     update_data_buttons();
-    ftk->exec(cmd);
+    exec(cmd);
 }
 
 void SideBar::OnDataButtonCol (wxCommandEvent&)
@@ -1025,7 +1024,7 @@ void SideBar::make_same_func_par(string const& p, bool checked)
         if (!found)
             return;
 
-        ftk->exec("$" + varname + " = ~" + S(value));
+        exec("$" + varname + " = ~" + S(value));
         val_str = "$" + varname;
     }
     else {
@@ -1042,7 +1041,7 @@ void SideBar::make_same_func_par(string const& p, bool checked)
                 cmd += "; ";
             cmd += "@" + S(i) + ".F[*]." + p + " = " + val_str;
         }
-    ftk->exec(cmd);
+    exec(cmd);
 }
 
 void SideBar::on_parameter_changing(const std::vector<realt>& values)
@@ -1053,16 +1052,16 @@ void SideBar::on_parameter_changing(const std::vector<realt>& values)
 void SideBar::on_parameter_changed(int n)
 {
     string vname = wx2s(param_panel->get_label2(n));
-    ftk->exec(vname + " = ~" + eS(param_panel->get_value(n)));
+    exec(vname + " = ~" + eS(param_panel->get_value(n)));
 }
 
 void SideBar::on_parameter_lock_clicked(int n, int state)
 {
     string vname = wx2s(param_panel->get_label2(n));
     if (state == 0)
-        ftk->exec(vname + " = ~{" + vname + "}");
+        exec(vname + " = ~{" + vname + "}");
     else if (state == 1)
-        ftk->exec(vname + " = {" + vname + "}");
+        exec(vname + " = {" + vname + "}");
     else { // state == 2
         nb->SetSelection(2); // "variables" page
         wxString vname_no_prefix = s2wx(vname.substr(1));

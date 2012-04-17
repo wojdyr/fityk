@@ -26,6 +26,9 @@ struct RealRange;
 class Ftk;
 extern Ftk *ftk;
 
+// execute command(s) from string
+UserInterface::Status exec(const std::string &s);
+
 /// Toolbar bar in Fityk
 class FToolBar : public wxToolBar
 {

@@ -8,7 +8,6 @@
 
 #include "frame.h"
 #include "../data.h"
-#include "../logic.h"
 
 using namespace std;
 
@@ -183,7 +182,7 @@ public:
     void change_value(const char* buffer)
     {
         if (instant_update_)
-            ftk->exec(dataset_str_ + buffer);
+            exec(dataset_str_ + buffer);
         else {
             if (!pending_cmd_.empty())
                 pending_cmd_ += ", ";
@@ -195,7 +194,7 @@ public:
     {
         if (pending_cmd_.empty())
             return;
-        ftk->exec(dataset_str_ + pending_cmd_);
+        exec(dataset_str_ + pending_cmd_);
         pending_cmd_.clear();
         // when Apply is pressed, the data may need to be sorted
         if (!instant_update_)

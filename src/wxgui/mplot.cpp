@@ -939,13 +939,13 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
 void MainPlot::PeakInfo()
 {
     if (over_peak_ >= 0)
-        ftk->exec("info prop %" + ftk->get_function(over_peak_)->name);
+        exec("info prop %" + ftk->get_function(over_peak_)->name);
 }
 
 void MainPlot::OnPeakDelete(wxCommandEvent&)
 {
     if (over_peak_ >= 0)
-        ftk->exec("delete %" + ftk->get_function(over_peak_)->name);
+        exec("delete %" + ftk->get_function(over_peak_)->name);
 }
 
 void MainPlot::OnPeakGuess(wxCommandEvent&)
@@ -962,7 +962,7 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
         if (p->get_iwidth(&iw) && fabs(iw) > plusmin)
             plusmin = fabs(iw);
         plusmin = max(plusmin, 1.);
-        ftk->exec(frame->get_datasets() + "guess %" + p->name + " = "
+        exec(frame->get_datasets() + "guess %" + p->name + " = "
                   + frame->get_guess_string(p->tp()->name)
                   + " [" + eS(ctr-plusmin) + ":" + eS(ctr+plusmin) + "]");
     }
@@ -1374,7 +1374,7 @@ void freeze_functions_in_range(double x1, double x2, bool freeze)
         }
     }
     if (!cmd.empty())
-        ftk->exec(cmd);
+        exec(cmd);
 }
 
 void MainPlot::OnButtonUp (wxMouseEvent &event)
@@ -1431,7 +1431,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         fmd_->stop();
         string cmd = fmd_->get_cmd();
         if (!cmd.empty())
-            ftk->exec(cmd);
+            exec(cmd);
         else {
             overlay.draw_overlay();
             frame->set_status_text("");
@@ -1456,7 +1456,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
             cond += " and "
                     + eS(min(y1,y2)) + " < y and y < " + eS(max(y1,y2));
         }
-        ftk->exec(frame->get_datasets() + c + " (" + cond + ")");
+        exec(frame->get_datasets() + c + " (" + cond + ")");
 
         if (auto_freeze_ && !rect)
             freeze_functions_in_range(x1, x2, !activate);
@@ -1469,7 +1469,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     else if (mouse_op_ == kAddPeakInRange) {
         double x1 = xs.valr(downX);
         double x2 = xs.valr(event.GetX());
-        ftk->exec(frame->get_datasets() + "guess "
+        exec(frame->get_datasets() + "guess "
                   + frame->get_guess_string(frame->get_peak_type())
                   + " [" + eS(min(x1,x2)) + " : " + eS(max(x1,x2)) + "]");
     }
@@ -1514,7 +1514,7 @@ void MainPlot::add_peak_from_draft(int X, int Y)
         vector<int> sel = frame->get_sidebar()->get_selected_data_indices();
         cmd = "@" + join_vector(sel, "." + tail + "; @") + "." + tail;
     }
-    ftk->exec(cmd);
+    exec(cmd);
 }
 
 static

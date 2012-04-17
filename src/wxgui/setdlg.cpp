@@ -12,7 +12,7 @@
 #include "setdlg.h"
 #include "../settings.h"
 #include "../ui.h"  //startup_commands_filename
-#include "../logic.h"
+#include "../logic.h" // settings_mgr()
 #include "frame.h"  //ftk
 
 using namespace std;
@@ -335,7 +335,7 @@ void SettingsDlg::exec_set_command()
     if (assign.size() == 4) // no options
         return;
     assign.resize(assign.size() - 2);
-    ftk->exec(assign);
+    exec(assign);
 }
 
 void SettingsDlg::OnOK(wxCommandEvent&)

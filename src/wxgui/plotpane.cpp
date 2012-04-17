@@ -7,9 +7,7 @@
 #include "plot.h"
 #include "mplot.h"
 #include "aplot.h"
-#include "../logic.h" //ftk->exec
-
-extern Ftk *ftk; // frame.cpp
+#include "frame.h" // exec()
 
 using namespace std;
 
@@ -31,7 +29,7 @@ void ZoomHistory::set_pos(size_t p)
     size_t old_pos = pos_;
     pos_ = std::min(p,  items_.size() - 1);
     if (pos_ != old_pos)
-        ftk->exec("plot " + items_[pos_]);
+        exec("plot " + items_[pos_]);
 }
 
 PlotPane::PlotPane(wxWindow *parent, wxWindowID id)

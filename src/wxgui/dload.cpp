@@ -15,7 +15,7 @@
 #include "xybrowser.h"
 #include "frame.h"  // frame->add_recent_data_file()
 #include "plot.h" // scale_tics_step()
-#include "../logic.h"
+#include "../logic.h" // ftk->get_settings()
 #include "../settings.h"
 #include "../data.h" // get_file_basename()
 #include "../common.h"
@@ -107,13 +107,13 @@ void DLoadDlg::exec_command(bool replace)
     browser_->filectrl->GetPaths(paths);
     for (size_t i = 0; i < paths.GetCount(); ++i) {
         string filename = wx2s(paths[i]);
-        ftk->exec("@" + (replace ? S(data_idx_) : S("+")) +
+        exec("@" + (replace ? S(data_idx_) : S("+")) +
                   " < '" + filename + cols + "'");
         if (browser_->title_tc->IsEnabled()) {
             wxString t = browser_->title_tc->GetValue().Trim();
             if (!t.IsEmpty()) {
                 int slot = (replace ? data_idx_ : ftk->get_dm_count() - 1);
-                ftk->exec("@" + S(slot) + ": title = '" + wx2s(t) + "'");
+                exec("@" + S(slot) + ": title = '" + wx2s(t) + "'");
             }
         }
         frame->add_recent_data_file(filename);
