@@ -80,7 +80,7 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 14
+#serial 16
 
 dnl Helper function to declare extra options
 AC_DEFUN([_AX_LUA_OPTS],
@@ -95,14 +95,12 @@ AC_DEFUN([AX_WITH_LUA],
   fi])dnl
 
 AC_DEFUN([AX_PROG_LUA],
-  [lua_min_version=$1
-  lua_max_version=$2
-  AX_WITH_LUA
+  [AX_WITH_LUA
   if test -z "$LUA"; then
     AC_MSG_FAILURE([Lua not found])
   fi
-  if test -n "$lua_min_version"; then
-    AX_LUA_VERSION($lua_min_version, $lua_max_version)
+  if test -n "$1"; then
+    AX_LUA_VERSION($1, $2)
   fi
   AC_SUBST(LUA)])dnl
 
@@ -120,7 +118,7 @@ AC_DEFUN([_AX_LUA_VERSIONS],
 AC_DEFUN([AX_LUA_VERSION],
   [_AX_LUA_OPTS
   _AX_LUA_VERSIONS($1, $2)
-  AC_MSG_CHECKING([Lua version is in range $1 <= v < $2])
+  AC_MSG_CHECKING([Lua version is in range $lua_min_version <= v < $lua_max_version])
   if test "x$LUA" != x; then
     lua_text_version=$(LUA_INIT= $LUA -e 'print(_VERSION)' 2>&1 | cut -d' ' -f2)
     case $lua_text_version in
@@ -163,7 +161,7 @@ AC_DEFUN([AX_LUA_LIBS],
   AC_CHECK_LIB([m], [exp], [lua_extra_libs="$lua_extra_libs -lm"], [])
   AC_CHECK_LIB([dl], [dlopen], [lua_extra_libs="$lua_extra_libs -ldl"], [])
   AC_CHECK_LIB([lua$with_lua_suffix],
-    [lua_call],
+    [lua_load],
     [LUA_LIB="$LUA_LIB -llua$with_lua_suffix $lua_extra_libs"],
     [],
     [$LUA_LIB $lua_extra_libs])])dnl
@@ -171,7 +169,7 @@ AC_DEFUN([AX_LUA_LIBS],
 AC_DEFUN([AX_LUA_HEADERS_VERSION],
   [_AX_LUA_OPTS
   _AX_LUA_VERSIONS($1, $2)
-  AC_MSG_CHECKING([lua.h version is in range $1 <= v < $2])
+  AC_MSG_CHECKING([lua.h version is in range $lua_min_version <= v < $lua_max_version])
   LUA_OLD_LIBS="$LIBS"
   LIBS="$LIBS $LUA_LIB"
   LUA_OLD_CPPFLAGS="$CPPFLAGS"
