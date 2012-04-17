@@ -32,7 +32,7 @@ configure flags to disable unused features and make the compilation faster.
 --disable-compat26 --disable-compat28 \
 --without-regex --without-expat --without-opengl \
 --without-libjpeg --without-libtiff \
---disable-threads --disable-html --disable-htmlhelp --disable-stc \
+--disable-threads --disable-html --disable-htmlhelp --enable-stc \
 --disable-xlocale --disable-protocols --disable-protocol --disable-fs_inet \
 --disable-sockets --disable-ipc --disable-apple_ieee --disable-backtrace \
 --disable-dialupman --disable-tarstream --disable-sound \
@@ -43,7 +43,7 @@ configure flags to disable unused features and make the compilation faster.
 --disable-gif --disable-pcx --disable-tga --disable-iff --disable-pnm \
 --disable-mdi --disable-richtext --disable-rearrangectrl --disable-fswatcher \
 --disable-ribbon --disable-propgrid --disable-infobar --disable-arcstream \
---disable-dataviewctrl --disable-detect_sm
+--disable-dataviewctrl --disable-detect_sm --disable-treelist
 
 and optionally:
 --disable-shared --enable-optimise --disable-debug_flag --disable-debugreport
