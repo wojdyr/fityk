@@ -111,27 +111,27 @@ void Ftk::remove_dm(int d)
 /// Send warning to UI.
 void Ftk::warn(string const &s) const
 {
-    get_ui()->output_message(UserInterface::kWarning, s);
+    ui()->output_message(UserInterface::kWarning, s);
 }
 
 /// Send implicitely requested message to UI.
 void Ftk::rmsg(string const &s) const
 {
-    get_ui()->output_message(UserInterface::kNormal, s);
+    ui()->output_message(UserInterface::kNormal, s);
 }
 
 /// Send message to UI.
 void Ftk::msg(string const &s) const
 {
     if (get_verbosity() >= 0)
-         get_ui()->output_message(UserInterface::kNormal, s);
+         ui()->output_message(UserInterface::kNormal, s);
 }
 
 /// Send verbose message to UI.
 void Ftk::vmsg(string const &s) const
 {
     if (get_verbosity() >= 1)
-         get_ui()->output_message(UserInterface::kNormal, s);
+         ui()->output_message(UserInterface::kNormal, s);
 }
 
 Fit* Ftk::get_fit() const

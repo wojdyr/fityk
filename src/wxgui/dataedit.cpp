@@ -13,7 +13,7 @@
 #include "app.h" // get_full_path_of_help_file()
 #include "dialogs.h" //export_data_dlg()
 #include "../data.h" // Data, Point
-#include "../logic.h" // get_ui()
+#include "../logic.h" // ui()
 
 using namespace std;
 
@@ -500,7 +500,7 @@ bool EditTransDlg::update_apply_button()
 {
     string code = wx2s(code_tc->GetValue());
     string text = conv_code_to_one_line(code);
-    bool ok = ftk->get_ui()->check_syntax(text);
+    bool ok = ftk->ui()->check_syntax(text);
     apply_btn->Enable(ok);
     return ok;
 }

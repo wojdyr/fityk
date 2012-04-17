@@ -77,8 +77,8 @@ public:
 
     const Settings* get_settings() const { return &settings_mgr_->m(); }
 
-    const UserInterface* get_ui() const { return ui_; }
-    UserInterface* get_ui() { return ui_; }
+    const UserInterface* ui() const { return ui_; }
+    UserInterface* ui() { return ui_; }
 
     const FitMethodsContainer* get_fit_container() const
         { return fit_container_; }

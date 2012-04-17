@@ -112,7 +112,7 @@ UserInterface::Status gui_exec_command(const string& s)
     wxBusyCursor wait;
     UserInterface::Status r;
     try {
-        r = ftk->get_ui()->execute_line(s);
+        r = ftk->ui()->execute_line(s);
     }
     catch(ExitRequestedException) {
         frame->Close(true);
@@ -174,10 +174,10 @@ bool FApp::OnInit(void)
     ftk = new Ftk;
 
     // set callbacks
-    ftk->get_ui()->connect_show_message(gui_show_message);
-    ftk->get_ui()->connect_draw_plot(gui_draw_plot);
-    ftk->get_ui()->connect_hint_ui(gui_hint);
-    ftk->get_ui()->connect_exec_command(gui_exec_command);
+    ftk->ui()->connect_show_message(gui_show_message);
+    ftk->ui()->connect_draw_plot(gui_draw_plot);
+    ftk->ui()->connect_hint_ui(gui_hint);
+    ftk->ui()->connect_exec_command(gui_exec_command);
 
     wxImage::AddHandler(new wxPNGHandler);
 
@@ -245,7 +245,7 @@ bool FApp::OnInit(void)
         // run initial commands
         wxString startup_file = get_conf_file(fityk::startup_commands_filename);
         if (wxFileExists(startup_file)) {
-            ftk->get_ui()->exec_script(wx2s(startup_file));
+            ftk->ui()->exec_script(wx2s(startup_file));
         }
     }
 
@@ -269,7 +269,7 @@ int FApp::OnExit()
 void FApp::MacOpenFile(const wxString &filename)
 {
     try {
-        ftk->get_ui()->process_cmd_line_filename(wx2s(filename));
+        ftk->ui()->process_cmd_line_filename(wx2s(filename));
     }
     catch (runtime_error const& e) {
         wxMessageBox(s2wx(e.what()), "Open File Error", wxOK|wxICON_ERROR);
@@ -310,7 +310,7 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
 {
     wxString cmd;
     if (cmdLineParser.Found(wxT("c"), &cmd))
-        ftk->get_ui()->exec_and_log(wx2s(cmd));
+        ftk->ui()->exec_and_log(wx2s(cmd));
     //the rest of parameters/arguments are scripts and/or data files
     vector<string> p;
     for (unsigned int i = 0; i < cmdLineParser.GetParamCount(); i++)
@@ -320,7 +320,7 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     }
     for (vector<string>::const_iterator i = p.begin(); i != p.end(); ++i) {
         try {
-            ftk->get_ui()->process_cmd_line_arg(*i);
+            ftk->ui()->process_cmd_line_arg(*i);
         }
         catch (runtime_error const& e) {
             fprintf(stderr, "Error: %s\n", e.what());

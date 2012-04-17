@@ -117,7 +117,7 @@ void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
                                             ExitRequestedException)
 {
     try {
-        ftk_->get_ui()->raw_execute_line(s);
+        ftk_->ui()->raw_execute_line(s);
     }
     CATCH_SYNTAX_ERROR
     CATCH_EXECUTE_ERROR
@@ -255,18 +255,18 @@ void Fityk::redir_messages(FILE *stream)
 {
     if (stream) {
         UiApi::t_show_message_callback* old
-          = ftk_->get_ui()->connect_show_message(fityk::write_message_to_file);
+          = ftk_->ui()->connect_show_message(fityk::write_message_to_file);
         if (old != fityk::write_message_to_file)
             p_->old_message_callback = old;
     }
     else
-        ftk_->get_ui()->connect_show_message(p_->old_message_callback);
+        ftk_->ui()->connect_show_message(p_->old_message_callback);
     message_sink_ = stream;
 }
 
 void Fityk::out(string const& s) const
 {
-    ftk_->get_ui()->output_message(UserInterface::kNormal, s);
+    ftk_->ui()->output_message(UserInterface::kNormal, s);
 }
 
 realt Fityk::get_wssr(int dataset)  throw(ExecuteError)
@@ -349,7 +349,7 @@ realt* Fityk::get_covariance_matrix_as_array(int dataset)
 
 UiApi* Fityk::get_ui_api()
 {
-    return ftk_->get_ui();
+    return ftk_->ui();
 }
 
 } //namespace fityk

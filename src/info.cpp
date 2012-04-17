@@ -57,7 +57,7 @@ void models_as_script(const Ftk* F, string& r, bool commented_defines)
 {
     r += "# ------------  (un)defines  ------------";
     TplateMgr default_tpm;
-    default_tpm.add_builtin_types(F->get_ui()->parser());
+    default_tpm.add_builtin_types(F->ui()->parser());
     v_foreach (Tplate::Ptr, i, default_tpm.tpvec()) {
         const Tplate* t = F->get_tpm()->get_tp((*i)->name);
         if (t == NULL || t->as_formula() != (*i)->as_formula())
@@ -220,7 +220,7 @@ string info_func_props(const Ftk* F, const string& name)
 void info_history(const Ftk* F, const Token& t1, const Token& t2,
                   string& result)
 {
-    const vector<UserInterface::Cmd>& cmds = F->get_ui()->cmds();
+    const vector<UserInterface::Cmd>& cmds = F->ui()->cmds();
     int from = 0, to = cmds.size();
     if (t1.type == kTokenExpr) {
         from = iround(t1.value.d);
@@ -400,7 +400,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             result += F->get_model(ds)->get_peak_parameters(errors);
         }
         else if (word == "history_summary")
-            result += F->get_ui()->get_history_summary();
+            result += F->ui()->get_history_summary();
 
         else if (word == "set") {
             if (args[n+1].type == kTokenLname) {

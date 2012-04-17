@@ -111,7 +111,7 @@ Ftk *ftk = NULL;
 
 UserInterface::Status exec(const std::string &s)
 {
-    return ftk->get_ui()->exec_and_log(s);
+    return ftk->ui()->exec_and_log(s);
 }
 
 static const wxString discussions_url(

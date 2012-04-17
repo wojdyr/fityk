@@ -2008,7 +2008,7 @@ void PowderBook::OnDelButton(wxCommandEvent&)
 void PowderBook::OnOk(wxCommandEvent&)
 {
     wxString script = action_txt->GetValue();
-    ftk->get_ui()->exec_string_as_script(script.mb_str());
+    ftk->ui()->exec_string_as_script(script.mb_str());
     save_phase_desc();
     wxDialog* dialog = static_cast<wxDialog*>(GetParent());
     dialog->EndModal(wxID_OK);

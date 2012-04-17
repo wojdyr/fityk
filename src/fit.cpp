@@ -406,7 +406,7 @@ bool Fit::post_fit(const vector<realt>& aa, realt chi2)
                 "\nParameters NOT changed");
         F_->use_external_parameters(a_orig_);
         if (F_->get_settings()->fit_replot)
-            F_->get_ui()->draw_plot(UserInterface::kRepaintImmediately);
+            F_->ui()->draw_plot(UserInterface::kRepaintImmediately);
     }
     return better;
 }
@@ -448,7 +448,7 @@ void Fit::fit(int max_iter, const vector<DataAndModel*>& dms)
 {
     start_time_ = clock();
     last_refresh_time_ = time(0);
-    ComputeUI compute_ui(F_->get_ui());
+    ComputeUI compute_ui(F_->ui());
     update_parameters(dms);
     dmdm_ = dms;
     a_orig_ = F_->parameters();
@@ -543,7 +543,7 @@ void Fit::iteration_plot(const vector<realt> &A, realt wssr)
         return;
     if (F_->get_settings()->fit_replot) {
         F_->use_external_parameters(A);
-        F_->get_ui()->draw_plot(UserInterface::kRepaintImmediately);
+        F_->ui()->draw_plot(UserInterface::kRepaintImmediately);
     }
     double elapsed = (clock() - start_time_) / (double) CLOCKS_PER_SEC;
     double percent_change = (wssr - wssr_before_) / wssr_before_ * 100.;
@@ -555,7 +555,7 @@ void Fit::iteration_plot(const vector<realt> &A, realt wssr)
             + "  WSSR=" + F_->settings_mgr()->format_double(wssr)
             + " (" + S(percent_change)+ "%)"
             + "  CPU time: " + format1<double,16>("%.2f", elapsed) + "s.");
-    F_->get_ui()->hint_ui(-1);
+    F_->ui()->hint_ui(-1);
     last_refresh_time_ = time(0);
 }
 

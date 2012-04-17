@@ -122,7 +122,7 @@ void Runner::command_exec(TokenType tt, const string& str)
         f = popen(str.c_str(), "r");
         if (!f)
             return;
-        F_->get_ui()->exec_stream(f);
+        F_->ui()->exec_stream(f);
         pclose(f);
 #else
         F_->warn ("popen() was disabled during compilation.");
@@ -131,7 +131,7 @@ void Runner::command_exec(TokenType tt, const string& str)
 
     // exec filename
     else {
-        F_->get_ui()->exec_script(str);
+        F_->ui()->exec_script(str);
     }
 }
 
@@ -303,7 +303,7 @@ void Runner::command_plot(const vector<Token>& args, int ds)
     else
         dd.push_back(ds);
     F_->view.change_view(hor, ver, dd);
-    F_->get_ui()->draw_plot(UserInterface::kRepaintImmediately);
+    F_->ui()->draw_plot(UserInterface::kRepaintImmediately);
 }
 
 void Runner::command_dataset_tr(const vector<Token>& args)
@@ -707,7 +707,7 @@ void Runner::execute_command(Command& c, int ds)
             command_set(c.args);
             break;
         case kCmdSleep:
-            F_->get_ui()->wait(c.args[0].value.d);
+            F_->ui()->wait(c.args[0].value.d);
             break;
         case kCmdUndef:
             command_undefine(c.args);
@@ -827,7 +827,7 @@ void Runner::execute_statement(Statement& st)
                     if (c->type == kCmdExec)
                         command_exec(tt, str);
                     else // if (c->type == kCmdLua)
-                        F_->get_ui()->exec_lua_string(str);
+                        F_->ui()->exec_lua_string(str);
                     F_->set_default_dm(old_default_dm);
                     st.datasets.swap(backup.datasets);
                     st.with_args.swap(backup.with_args);

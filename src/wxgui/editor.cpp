@@ -260,7 +260,7 @@ int EditorDlg::exec_lua_line(int n)
     int counter = 1;
     if (s.empty())
         return counter;
-    while (ftk->get_ui()->is_lua_line_incomplete(s.c_str())) {
+    while (ftk->ui()->is_lua_line_incomplete(s.c_str())) {
         s += "\n    " + get_editor_line(n+counter);
         ++counter;
     }
