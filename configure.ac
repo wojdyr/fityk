@@ -160,7 +160,7 @@ AC_CHECK_HEADERS([lua.h lualib.h], [], [AC_MSG_ERROR(
 
 # macro AX_LUA_HEADERS_VERSION does not support cross-compiling
 if test "$cross_compiling" != "yes"; then
-    AX_LUA_HEADERS_VERSION(501)
+    AX_LUA_HEADERS_VERSION(501, 503)
 fi
 AX_LUA_LIBS
 if test x"$LUA_LIB" = x; then
