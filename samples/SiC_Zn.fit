@@ -1,9 +1,9 @@
-# Fityk 0.9.5
+# Fityk 1.1.2
 ## This script shows the Pawley method for powder pattern which can be called
 ## a multi-peak fitting, with equality constraints.
 
 # Load data file from directory of this script (SiC+Zn data)
-@0 < '_EXECUTED_SCRIPT_DIR_/SiC_Zn.dat'
+@0 < '_SCRIPT_DIR_/SiC_Zn.dat'
 
 # the background was obtained by clicking on the plot in the "background mode"
 %bg0 = Spline(20.4823,43.3474,  28.004,24.3128,  31.4412,23.6984,  33.7911,36.0138,  38.6477,30.5403,  49.9335,17.263,  65.1888,17.968,  79.5965,22.1979, 98.9835,23.6079)

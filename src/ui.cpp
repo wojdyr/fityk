@@ -358,8 +358,6 @@ void UserInterface::exec_script(const string& filename)
         return;
     }
 
-    string dir = get_directory(filename);
-
     int line_index = 0;
     char *line;
     string s;
@@ -374,7 +372,11 @@ void UserInterface::exec_script(const string& filename)
             s.resize(s.size()-1);
             continue;
         }
-        replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);
+        if (s.find("_SCRIPT_DIR_/") != string::npos) {
+            string dir = get_directory(filename);
+            replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir); // old magic string
+            replace_all(s, "_SCRIPT_DIR_/", dir); // new magic string
+        }
         bool r = execute_line(s);
         if (r != kStatusOk && F_->get_settings()->on_error[0] != 'n'/*nothing*/)
             break;
