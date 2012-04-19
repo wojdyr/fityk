@@ -104,6 +104,9 @@ namespace std {
 %apply FILE* { std::FILE* };
 
 #if defined(SWIGPYTHON)
+    namespace std {
+        %template(StringVector) vector<string>;
+    }
     %typemap(check) PyObject *pyfunc {
         if (!PyCallable_Check($1))
             SWIG_exception(SWIG_TypeError,"Expected function.");

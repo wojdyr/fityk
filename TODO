@@ -1,11 +1,11 @@
 
+* check if libedit works
+
 * API: query user, get_fitted_parameters(), get_variables(), get_functions(),
        get_components(int n, char='F')
 
 * Windows build: use readline lib if possible, investigate signing .exe,
   use xylib.dll -DXYLIB_DLL?
-
-* remove Ftk::exec(), define exec() in GUI
 
 ----- 1.1.2
 
