@@ -7,7 +7,8 @@ if GUI_DIR
 SUBDIRS += wxgui
 endif
 
-EXTRA_DIST = swig/fityk_perl.cpp swig/Fityk.pm swig/fityk.i
+EXTRA_DIST = swig/fityk_perl.cpp swig/Fityk.pm swig/fityk_ruby.cpp \
+	     swig/fityk.i
 BUILT_SOURCES = swig/fityk_lua.cpp swig/luarun.h
 
 lib_LTLIBRARIES = libfityk.la
@@ -70,10 +71,22 @@ $(srcdir)/swig/fityk_perl.cpp: swig/fityk.i fityk.h
 	$(SWIG) -c++ -perl -I$(srcdir) -o $@ $<
 $(srcdir)/swig/Fityk.pm: $(srcdir)/swig/fityk_perl.cpp
 
+$(srcdir)/swig/fityk_ruby.cpp: swig/fityk.i fityk.h
+	$(SWIG) -c++ -ruby -I$(srcdir) -o $@ $<
+
 perl: swig/fityk_perl.o
-	$(CXX) -shared $< -L./.libs -lfityk -o Fityk.so
+	mkdir -p swig/perl
+	$(CXX) -shared $< -L./.libs -lfityk -o swig/perl/Fityk.so
+
+ruby: swig/fityk_ruby.o
+	mkdir -p swig/ruby
+	$(CXX) -shared $(CXXFLAGS) $(LDFLAGS) $< -L./.libs -lfityk -o swig/ruby/fityk.so
 
 # requires perl-ExtUtils-Embed
 swig/fityk_perl.o: swig/fityk_perl.cpp
 	$(CXX) -fPIC `perl -MExtUtils::Embed -e perl_inc` -I$(srcdir) -o $@ -c $<
 
+swig/fityk_ruby.o: swig/fityk_ruby.cpp
+	$(CXX) $(CPPFLAGS) -I$(srcdir) \
+	    -I`ruby -e "require 'rbconfig'; puts Config::CONFIG['archdir']"` \
+	    $(CXXFLAGS) -fPIC -o $@ -c $<
