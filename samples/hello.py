@@ -23,19 +23,11 @@ class GaussianFitter(Fityk):
         self.execute("info state >'%s'" % filename)
 
 f = Fityk()
-print f.get_info("version", True)
+print f.get_info("version")
 print "ln(2) =", f.calculate_expr("ln(2)")
 del f
 
 g = GaussianFitter("nacl01.dat")
 g.run()
 g.save_session("tmp_save.fit")
-
-# output from commands can be handled by callback function in Python
-def show_msg(s):
-    print "output:", s
-g.py_set_show_message(show_msg)
-
-# or it can be redirected to file
-g.redir_messages(sys.stderr)
 
