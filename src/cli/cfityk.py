@@ -28,6 +28,14 @@ def read_line():
         line = line[:-1] + cont
     return line
 
+def get_filename_completions(text):
+    head, tail = os.path.split(text)
+    dirname = head or os.getcwd()
+    try:
+        return [os.path.join(head, f) for f in os.listdir(dirname)
+                if f.startswith(tail)]
+    except:
+        return []
 
 class Completer:
     def __init__(self, ftk):
@@ -35,12 +43,12 @@ class Completer:
         self.clist = None
     def complete(self, text, state):
         if state == 0:
-            self.clist = fityk.StringVector()
-            over = fityk.complete_fityk_line(self.ftk,
-                            readline.get_line_buffer(),
-                            readline.get_begidx(), readline.get_endidx(),
-                            text, self.clist)
-            #rl_attempted_completion_over = int(over)
+            self.clist = fityk.complete_fityk_line(self.ftk,
+                                 readline.get_line_buffer(),
+                                 readline.get_begidx(), readline.get_endidx(),
+                                 text)
+            if len(self.clist) == 1 and self.clist[0] == "":
+                self.clist = get_filename_completions(text)
         if state < len(self.clist):
             return self.clist[state]
         else:

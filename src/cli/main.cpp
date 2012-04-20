@@ -117,14 +117,18 @@ char *completion_generator(const char *text, int state)
     static size_t list_index = 0;
     static vector<string> entries;
     if (!state) {
-        entries.clear();
-        bool over = complete_fityk_line(ftk, rl_line_buffer, f_start, f_end,
-                                        text, entries);
-        rl_attempted_completion_over = (int) over;
+        entries = complete_fityk_line(ftk, rl_line_buffer, f_start, f_end,
+                                      text);
         list_index = 0;
     }
     else
         list_index++;
+    rl_attempted_completion_over = 1;
+
+    // special value - request for filename completion
+    if (entries.size() == 1 && entries[0].empty())
+        return rl_filename_completion_function(text, state);
+
     if (list_index < entries.size())
         return strdup(entries[list_index].c_str());
     else

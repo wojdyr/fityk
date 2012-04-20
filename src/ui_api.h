@@ -75,11 +75,12 @@ protected:
     t_hint_ui_callback *hint_ui_callback_;
 };
 
-/// Adds completions of the word `text' in context of line_buffer
-/// to `entries'.  Intended to work with readline tab-completion.
-/// Returns false if filename completion is to be used instead.
-bool complete_fityk_line(Fityk *F, const char* line_buffer, int start, int end,
-                         const char *text, std::vector<std::string> &entries);
+/// Helper for readline tab-completion.
+/// Returns completions of the word `text' in the context of line_buffer,
+/// or a single empty string if filename completion is to be used instead.
+std::vector<std::string>
+complete_fityk_line(Fityk *F, const char* line_buffer, int start, int end,
+                    const char *text);
 
 extern const char* startup_commands_filename; // "init"
 extern const char* config_dirname; // ".fityk"

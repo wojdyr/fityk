@@ -97,10 +97,11 @@ UiApi::connect_hint_ui(UiApi::t_hint_ui_callback *func)
     return old;
 }
 
-
-bool complete_fityk_line(Fityk *F, const char* line_buffer, int start, int end,
-                         const char *text, vector<string> &entries)
+vector<string> complete_fityk_line(Fityk *F,
+                                   const char* line_buffer, int start, int end,
+                                   const char *text)
 {
+    vector<string> entries;
     Ftk *ftk = F->get_ftk();
     //find start of the command, and skip blanks
     int cmd_start = start;
@@ -125,7 +126,7 @@ bool complete_fityk_line(Fityk *F, const char* line_buffer, int start, int end,
     //command
     if (cmd_start == start) {
         add_c_string_array(command_list, text, entries);
-        return true;
+        return entries;
     }
     const char *ptr = line_buffer+cmd_start;
 
@@ -133,9 +134,9 @@ bool complete_fityk_line(Fityk *F, const char* line_buffer, int start, int end,
     while (prev_nonblank > line_buffer && isspace(*prev_nonblank))
         --prev_nonblank;
 
-    if (*prev_nonblank == '>' || *prev_nonblank == '<') { //filename completion
-        return false; // use filename completion
-    }
+    if (*prev_nonblank == '>' || *prev_nonblank == '<')
+        // special value that requests rl_filename_completion_function
+        entries.push_back("");
 
     //check if it is after set command or after with
     else if (starts_with_command(ptr, start - cmd_start, "s","et")
@@ -214,11 +215,11 @@ bool complete_fityk_line(Fityk *F, const char* line_buffer, int start, int end,
     }
 
     // filename completion after exec
-    else if (starts_with_command(ptr, start - cmd_start, "e","xecute")) {
-        return false; // use filename completion
-    }
+    else if (starts_with_command(ptr, start - cmd_start, "e","xecute"))
+        // special value that requests rl_filename_completion_function
+        entries.push_back("");
 
-    return true; // true = done
+    return entries; // true = done
 }
 
 } // namespace fityk
