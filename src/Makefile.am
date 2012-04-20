@@ -27,7 +27,7 @@ libfityk_la_SOURCES = logic.cpp view.cpp lexer.cpp eparser.cpp cparser.cpp \
                  logic.h view.h lexer.h eparser.h cparser.h \
 		 runner.h info.h common.h data.h var.h mgr.h \
 		 tplate.h func.h udf.h bfunc.h ast.h \
-		 vm.h transform.h settings.h ui.h ui_api.h \
+		 vm.h transform.h settings.h ui.h \
 		 GAfit.h LMfit.h guess.h NMfit.h \
 		 model.h fit.h voigt.h numfuncs.h \
 		 swig/fityk_lua.cpp swig/luarun.h \
@@ -37,7 +37,7 @@ if NLOPT_ENABLED
 libfityk_la_SOURCES += NLfit.cpp NLfit.h
 endif
 
-include_HEADERS = fityk.h
+pkginclude_HEADERS = fityk.h ui_api.h
 
 # ---  directory cli/ ---
 cli_cfityk_SOURCES = cli/gnuplot.cpp cli/main.cpp cli/gnuplot.h
@@ -59,7 +59,7 @@ swig__fityk_la_LIBADD = libfityk.la
 $(srcdir)/swig/luarun.h:
 	$(SWIG) -c++ -lua -external-runtime $@
 
-$(srcdir)/swig/fityk_python.cpp: swig/fityk.i fityk.h
+$(srcdir)/swig/fityk_python.cpp: swig/fityk.i fityk.h ui_api.h
 	$(SWIG) -c++ -python -I$(srcdir) -o $@ $<
 $(srcdir)/swig/fityk.py: $(srcdir)/swig/fityk_python.cpp
 
