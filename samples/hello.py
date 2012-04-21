@@ -13,11 +13,11 @@ class GaussianFitter(Fityk):
         print "Data info:", self.get_info("data", 0)
 
     def run(self):
-        self.execute("guess %g = Gaussian")
+        self.execute("guess %gauss = Gaussian")
         print "Fitting %s ..." % self.filename
         self.execute("fit")
         print "WSSR=", self.get_wssr()
-        print "Gaussian center: %.5g" % self.calculate_expr("%g.center")
+        print "Gaussian center: %.5g" % self.calculate_expr("%gauss.center")
 
     def save_session(self, filename):
         self.execute("info state >'%s'" % filename)
