@@ -6,6 +6,10 @@
 #if defined(SWIGPERL)
 // Perl has convention of capitalized module names
 %module Fityk
+#elif defined(SWIGJAVA)
+// module name fityk creates filename conflicts with Fityk class
+// on case-insensitive filesystems
+%module FitykModule
 #else
 %module fityk
 #endif
@@ -35,15 +39,7 @@ namespace std {
 %ignore get_ftk;
 %ignore get_covariance_matrix_as_array;
 
-#if defined(SWIGPYTHON)
-    %extend fityk::Point { std::string __str__() { return $self->str(); } }
-    %extend fityk::SyntaxError
-        { const char* __str__() { return $self->what(); } }
-    %extend fityk::ExecuteError
-        { const char* __str__() { return $self->what(); } }
-    %include "file.i"
-
-#elif defined(SWIGLUA)
+#if defined(SWIGLUA) || defined(SWIGJAVA)
     namespace std
     {
         class runtime_error : public exception {
@@ -56,7 +52,17 @@ namespace std {
           explicit invalid_argument (const string& what_arg);
         };
     }
+#endif
 
+#if defined(SWIGPYTHON)
+    %extend fityk::Point { std::string __str__() { return $self->str(); } }
+    %extend fityk::SyntaxError
+        { const char* __str__() { return $self->what(); } }
+    %extend fityk::ExecuteError
+        { const char* __str__() { return $self->what(); } }
+    %include "file.i"
+
+#elif defined(SWIGLUA)
     %typemap(throws) fityk::ExecuteError {
         lua_pushstring(L,$1.what()); SWIG_fail;
     }
@@ -101,13 +107,18 @@ namespace std {
     %extend fityk::ExecuteError { const char* to_s() { return $self->what(); } }
     %include "file.i"
 
+#elif defined(SWIGJAVA)
+    %rename(isLesser) operator<;
+
 #else
 #warning \
     fityk.i supports Python, Perl, Ruby and Lua.\
     If you use another language, please let me know - wojdyr@gmail.com
 #endif
 
-%apply FILE* { std::FILE* };
+#if !defined(SWIGJAVA)
+    %apply FILE* { std::FILE* };
+#endif
 
 /* ui_api.h is wrapped only by Python now, let me know if you'd like to use
  * it from another language.
