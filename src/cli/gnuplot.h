@@ -11,7 +11,7 @@ class GnuPlot
 public:
     GnuPlot();
     ~GnuPlot();
-    int plot();
+    void plot();
 
 private:
     bool failed_;

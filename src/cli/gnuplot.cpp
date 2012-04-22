@@ -87,7 +87,7 @@ bool GnuPlot::test_gnuplot_pipe()
 #endif //_WIN32
 }
 
-int GnuPlot::plot()
+void GnuPlot::plot()
 {
     // plot only the active dataset and model
     int dm_number = ftk->get_default_dataset();
@@ -98,18 +98,13 @@ int GnuPlot::plot()
         = lower_bound(points.begin(), points.end(), Point(left_x,0));
     vector<Point>::const_iterator end
         = upper_bound(points.begin(), points.end(), Point(right_x,0));
-    bool no_points = (begin == end);
+    bool has_points = (begin != end);
 
-    // if the pipe is open and there are no points, we send empty dataset
-    // to reset the plot
-    if (gnuplot_pipe_ == NULL && no_points)
-        return 0;
-
-    // prepare a pipe
-    if (gnuplot_pipe_ == NULL)
+    if (gnuplot_pipe_ == NULL && has_points)
         fork_and_make_pipe();
+
     if (gnuplot_pipe_ == NULL || failed_ || !test_gnuplot_pipe())
-        return -1;
+        return;
 
     // send "plot ..." through the pipe to gnuplot
     string plot_string = "plot " + ftk->get_info("view")
@@ -119,27 +114,29 @@ int GnuPlot::plot()
         fprintf(stderr, "Flushing pipe program-to-gnuplot failed.\n");
 
     // data
-    if (no_points)
-        fprintf(gnuplot_pipe_, "0.0  0.0\n");
-    else
+    if (has_points) {
         for (vector<Point>::const_iterator i = begin; i != end; ++i)
             if (i->is_active && finite(i->x) && finite(i->y))
                 fprintf(gnuplot_pipe_, "%f  %f\n", double(i->x), double(i->y));
+    }
+    else
+        // if there are no points, we send empty dataset to reset the plot
+        fprintf(gnuplot_pipe_, "0.0  0.0\n");
     fprintf(gnuplot_pipe_, "e\n");//gnuplot needs 'e' at the end of data
 
     // model
-    if (no_points)
-        fprintf(gnuplot_pipe_, "0.0  0.0\n");
-    else
+    if (has_points) {
         for (vector<Point>::const_iterator i = begin; i != end; ++i)
             if (i->is_active && finite(i->x)) {
                 double y = ftk->get_model_value(i->x, dm_number);
                 if (finite(y))
                     fprintf(gnuplot_pipe_, "%f  %f\n", double(i->x), y);
             }
+    }
+    else
+        fprintf(gnuplot_pipe_, "0.0  0.0\n");
     fprintf(gnuplot_pipe_, "e\n");
 
     fflush(gnuplot_pipe_);
-    return 0;
 }
 
