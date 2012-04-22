@@ -10,7 +10,7 @@
 
 #include "fityk.h" // struct Point
 using fityk::Point;
-using fityk::operator<;
+//using fityk::operator<;
 
 class Ftk;
 namespace xylib { class DataSet; }

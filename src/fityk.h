@@ -69,9 +69,9 @@ struct Point
     Point(realt x_, realt y_);
     Point(realt x_, realt y_, realt sigma_);
     std::string str() const;
+    bool operator< (Point const& q) const { return x < q.x; }
 };
 
-inline bool operator< (Point const& p, Point const& q) { return p.x < q.x; }
 
 
 /// the public API to libfityk
