@@ -117,10 +117,10 @@ the program.
 The Lua interpreter was added in ver. 1.0.3. If you have any questions
 about it, feel free to ask.
 
-If you do not like Lua, Fityk has also Python and Perl bindings,
-and bindings to a few other languages (including Java and Ruby)
-can be easily generated. Scripts in these languages can use *libfityk*
-(fityk engine), but cannot interact with the running GUI program.
+If you do prefer another programming language, Fityk library has C and C++
+API, and comes with SWIG-based bindings for Python, Ruby, Perl and Java.
+Bindings to other languages supported by SWIG can be easily generated.
+The advantage of Lua is that it can interact with running fityk (GUI) program.
 
 It is also possible to automate Fityk by preparing a stand-alone program
 that writes a valid fityk script to the standard output. To read and execute

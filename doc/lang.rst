@@ -78,6 +78,9 @@ Writing informally, each line has a syntax::
 
   [[@...:] [with ...] command [";" command]...] [#comment]
 
+In scripts and in the CLI backslash (\) at the end of the line means
+that the next line is continuation.
+
 All the commands are described in the next chapters.
 
 .. important::

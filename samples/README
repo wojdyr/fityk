@@ -8,8 +8,4 @@ read-shockley - fitting a single user-defined function
 enso - fitting sines and cosines (data from Southern Oscillation Index)
 test_syntax - testing the command parser, just a set of random commands
 
-hello.cc - testing the fityk library (C++)
-hello.py - testing Python binding to the fityk library
-hello.lua - testing Lua binding to the fityk library
-hello.pl - testing Perl binding to the fityk library
-
+hello.* - minimal examples of using libfityk from various languages
