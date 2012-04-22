@@ -28,6 +28,8 @@ dist_samples_DATA = samples/nacl01.fit samples/nacl01.dat \
 		    samples/test_syntax.fit \
 		    samples/hello.c samples/hello.cc \
 		    samples/hello.py samples/hello.lua samples/hello.pl \
+		    samples/hello.rb samples/hello.java \
+		    samples/cfityk.py \
 		    README
 
 check_PROGRAMS = samples/hello samples/helloc

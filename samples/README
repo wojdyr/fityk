@@ -9,3 +9,4 @@ enso - fitting sines and cosines (data from Southern Oscillation Index)
 test_syntax - testing the command parser, just a set of random commands
 
 hello.* - minimal examples of using libfityk from various languages
+cfityk.py - equivalent of cfityk written in Python
