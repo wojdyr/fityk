@@ -1,22 +1,35 @@
 #!/usr/bin/env python
 """
-Equivalent of cfityk in Python (work in progress).
+Equivalent of cfityk in Python.
 """
 
 import os
 import sys
-import readline
+try:
+    import readline
+except ImportError:
+    readline = None
 import atexit
 import signal
 from optparse import OptionParser
+import subprocess
+import bisect
+import functools
+
 import fityk
 
 _PROMPT = "=-> "
 _PROMPT2 = "... "
 
+_gnuplot = None
+
+# Python 3.2 has math.isfinite()
+def finite(x):
+    return x == x
+
 def interrupt_handler(signum, frame):
     sys.stderr.write("\n(^C interrupts long calculations, use ^D to exit)\n")
-    fityk.cvar.user_interrupt = True;
+    fityk.cvar.user_interrupt = True
 
 def read_line():
     try:
@@ -59,13 +72,14 @@ def main():
     config_dir = os.path.join(os.path.expanduser("~"),
                              fityk.cvar.config_dirname)
 
-    histfile = os.path.join(config_dir, "history")
-    if hasattr(readline, "read_history_file"):
-        try:
-            readline.read_history_file(histfile)
-        except IOError:
-            pass
-        atexit.register(readline.write_history_file, histfile)
+    if readline:
+        histfile = os.path.join(config_dir, "history")
+        if hasattr(readline, "read_history_file"):
+            try:
+                readline.read_history_file(histfile)
+            except IOError:
+                pass
+            atexit.register(readline.write_history_file, histfile)
 
     signal.signal(signal.SIGINT, interrupt_handler)
 
@@ -82,8 +96,9 @@ def main():
     (options, args) = parser.parse_args()
 
     f = fityk.Fityk()
+    ui = f.get_ui_api()
 
-    # f.get_ui_api().connect_draw_plot(.....)
+    ui.connect_draw_plot_py(functools.partial(plot_in_gnuplot, f))
 
     if options.version:
         print("cfityk.py %s" % f.get_info("version").split()[-1])
@@ -94,28 +109,81 @@ def main():
                                  fityk.cvar.startup_commands_filename)
         if os.path.exists(init_file):
             sys.stderr.write(" -- init file: %s --\n" % init_file)
-            f.get_ui_api().exec_script(init_file)
+            ui.exec_script(init_file)
             sys.stderr.write(" -- end of init file --\n")
 
-    readline.parse_and_bind("tab: complete")
-    readline.set_completer_delims(" \t\n\"\\'`@$><=;|&{(:") # default+":"
-    completer = Completer(f)
-    readline.set_completer(completer.complete)
+    if readline:
+        readline.parse_and_bind("tab: complete")
+        readline.set_completer_delims(" \t\n\"\\'`@$><=;|&{(:") # default+":"
+        completer = Completer(f)
+        readline.set_completer(completer.complete)
 
     try:
         for s in options.cmd:
-            f.get_ui_api().exec_and_log(s)
+            ui.exec_and_log(s)
         for arg in args:
-            f.get_ui_api().process_cmd_line_arg(arg)
+            ui.process_cmd_line_arg(arg)
 
         if not options.quit:
             while True:
                 line = read_line()
-                f.get_ui_api().exec_and_log(line)
+                ui.exec_and_log(line)
             print("")
     except fityk.ExitRequestedException:
         sys.stderr.write("\nbye...\n")
 
+
+def plot_in_gnuplot(f, mode):
+    global _gnuplot
+
+    # _gnuplot is False -- failed to open
+    # _gnuplot is None  -- not initialized
+    if _gnuplot is False:
+        return
+
+    # plot only the active dataset and model
+    dm_number = f.get_default_dataset()
+    points = f.get_data(dm_number)
+    left_x = f.get_view_boundary('L')
+    right_x = f.get_view_boundary('R')
+    begin = bisect.bisect_left(points, fityk.Point(left_x,0))
+    end = bisect.bisect_right(points, fityk.Point(right_x,0))
+    has_points = (begin != end)
+
+    if _gnuplot is None and has_points:
+        try:
+            _gnuplot = subprocess.Popen(['gnuplot'], stdin=subprocess.PIPE)
+        except OSError:
+            _gnuplot = False
+            sys.stderr.write("WARNING: Failed to open gnuplot.\n")
+
+    if not _gnuplot:
+        return
+
+    # send "plot ..." through the pipe to gnuplot
+    plot_string = ("plot %s '-' title \"data\", '-' title \"sum\" with line\n"
+                    % f.get_info("view"))
+    _gnuplot.stdin.write(plot_string)
+
+    # data
+    if has_points:
+        for p in points[begin:end]:
+            if p.is_active and finite(p.x) and finite(p.y):
+                _gnuplot.stdin.write("%f  %f\n" % (p.x, p.y))
+    else:
+        _gnuplot.stdin.write("0.0  0.0\n")
+    _gnuplot.stdin.write("e\n") # gnuplot needs 'e' at the end of data
+
+    # model
+    if has_points:
+        for p in points[begin:end]:
+            if p.is_active and finite(p.x):
+                y = f.get_model_value(p.x, dm_number)
+                if finite(y):
+                    _gnuplot.stdin.write("%f  %f\n" % (p.x, y))
+    else:
+        _gnuplot.stdin.write("0.0  0.0\n")
+    _gnuplot.stdin.write("e\n")
 
 if __name__ == '__main__':
     main()
