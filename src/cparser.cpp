@@ -24,7 +24,7 @@ using fityk::SyntaxError;
 const char *command_list[] = {
     "debug", "define", "delete", "exec", "fit", "guess", "info", "lua",
     "plot", "print",
-    "quit", "reset", "set", "sleep", "title", "undefine", "use",
+    "quit", "reset", "set", "sleep", "title", "undefine", "use", "with",
     NULL
 };
 
