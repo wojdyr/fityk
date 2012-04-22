@@ -53,6 +53,17 @@ TextPane::TextPane(wxWindow *parent)
 
     // on Linux platform GUI and CLI history is stored in the same file
     wxString hist_file = get_conf_file("history");
+    // readline and editline (libedit) use different history format,
+    // we like to use the same file file format as CLI, but it's not easy
+    // with libedit. If it's libedit history we use a different file.
+    FILE *f = fopen(hist_file.mb_str(), "r");
+    if (f) {
+        char buf[10];
+        fgets(buf, 10, f);
+        fclose(f);
+        if (strncmp(buf, "_HiStOrY_", 9) == 0) // libedit weirdness
+            hist_file += "_gui";
+    }
     input_field = new InputLine(this, -1, this, hist_file);
     output_win = new OutputWin (this, -1);
     io_sizer->Add(output_win, 1, wxEXPAND);

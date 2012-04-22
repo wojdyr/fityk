@@ -124,7 +124,24 @@ AS_IF([test "x$enable_GUI" != "xno"], [
 
 
 AS_IF([test "x$enable_CLI" != "xno"], [
-    READLINE_STUFF
+    if test "x$with_readline" != "xno" ; then
+        AX_LIB_READLINE
+        # readline < 4.2 doesn't have rl_completion_matches() function
+        # some libreadline-compatibile libraries (like libedit) may also
+        # not have it. We don't support them.
+        AC_CHECK_DECLS([rl_completion_matches], [], [AC_MSG_ERROR([
+        Readline library that has rl_completion_matches() not found.
+        Either install libreadline >= 4.2 or compatible library,
+        or configure fityk with option --without-readline])],
+        [
+         #include <stdio.h>
+         #if defined(HAVE_READLINE_READLINE_H)
+         #include <readline/readline.h>
+         #elif defined(HAVE_READLINE_H)
+         #include <readline.h>
+         #endif
+        ])
+    fi
 
     AC_CHECK_PROG(gnuplot_in_path, gnuplot, yes)
     if test "x$gnuplot_in_path" != "xyes" ; then

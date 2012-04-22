@@ -18,12 +18,26 @@
 # include <unistd.h>
 # include <signal.h>
 #endif
-// readline header will be included later, unless NO_READLINE is defined
 
 #include "../fityk.h"
 #include "../ui_api.h"
 #include "gnuplot.h"
-#include <config.h> // VERSION
+#include <config.h> // VERSION, HAVE_LIBREADLINE, etc
+
+#if HAVE_LIBREADLINE
+# if defined(HAVE_READLINE_READLINE_H)
+#  include <readline/readline.h>
+# elif defined(HAVE_READLINE_H)
+#  include <readline.h>
+# endif
+# if defined(HAVE_READLINE_HISTORY_H)
+#  include <readline/history.h>
+# elif defined(HAVE_HISTORY_H)
+#  include <history.h>
+# elif defined(HAVE_READLINE_HISTORY)
+   extern "C" { extern void add_history(const char*); }
+# endif
+#endif // HAVE_LIBREADLINE
 
 using namespace std;
 using namespace fityk;
@@ -72,24 +86,7 @@ string get_config_dir()
 }
 
 
-
-#ifndef NO_READLINE
-
-    // readline library headers can have old-style typedefs like:
-    // typedef int Function ();
-    // it would clash with class Function in fityk
-    //  anti-Function workaround #1: works with libreadline >= 4.2
-#   define _FUNCTION_DEF
-    //  anti-Function workaround #2 (should work always), part 1
-#   define Function Function_Bn4MtsgO3fQXM4Ag4z
-
-#   include <readline/readline.h>
-#   include <readline/history.h>
-
-#   undef Function // anti-Function workaround #2, part 2
-
-// libedit (MacOs X, etc.) is not supported
-
+#if HAVE_LIBREADLINE
 
 void read_and_execute_input()
 {
@@ -97,7 +94,7 @@ void read_and_execute_input()
     if (!line)
         throw ExitRequestedException();
     if (line && *line)
-        add_history (line);
+        add_history(line);
     string s = line;
     free(line);
     while (!s.empty() && *(s.end()-1) == '\\') {
@@ -143,13 +140,16 @@ char **my_completion (const char *text, int start, int end)
 }
 
 
+#if defined(HAVE_READLINE_HISTORY_H) || defined(HAVE_HISTORY_H)
 /// Reads history (for readline) in ctor and saves it to file in dtor.
 /// Proper use: single instance created at the beginning of the program
 /// and destroyed at the end.
-struct RlHistoryManager
+class RlHistoryManager
 {
+public:
     RlHistoryManager();
     ~RlHistoryManager();
+private:
     string hist_file;
 };
 
@@ -178,20 +178,23 @@ RlHistoryManager::~RlHistoryManager()
         history_truncate_file (hist_file.c_str(), hist_file_size);
     }
 }
-
+#else
+typedef int RlHistoryManager;
+#endif
 
 
 void main_loop()
 {
     //initialize readline
-    rl_readline_name = "fit";
-    // add colon to word breaks
-    rl_basic_word_break_characters = " \t\n\"\\'`@$><=;|&{(:";
+    char name[] = "fit";
+    rl_readline_name = name;
+    char word_break_characters[] = " \t\n\"\\'`@$><=;|&{(:"; // default+":"
+    rl_basic_word_break_characters = word_break_characters;
     rl_attempted_completion_function = my_completion;
 
-    RlHistoryManager hm;//it takes care about reading/saving readline history
+    RlHistoryManager hm; // reads and saves readline history (RAII)
 
-    //the main loop -- reading input and executing commands
+    // the main loop -- reading input and executing commands
     for (;;)
         read_and_execute_input();
 
@@ -199,7 +202,7 @@ void main_loop()
 }
 
 
-#else //if NO_READLINE
+#else //HAVE_LIBREADLINE
 
 // the simplest version of user interface -- when readline is not available
 void main_loop()
@@ -224,7 +227,7 @@ void main_loop()
     printf("\n");
 }
 
-#endif //NO_READLINE
+#endif //HAVE_LIBREADLINE
 
 
 
@@ -322,7 +325,7 @@ int main (int argc, char **argv)
                 ftk->get_ui_api()->process_cmd_line_arg(argv[i]);
         }
 
-        // there are two versions of main_loop(), depending on NO_READLINE
+        // there are two versions of main_loop(), w/ and w/o libreadline
         if (!quit)
             main_loop();
     }

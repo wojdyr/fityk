@@ -1,6 +1,4 @@
 
-* check if libedit works
-
 * change dir structure: cli/ and wxgui/ should go to the top dir, src->fityk
 
 * API: query user, get_fitted_parameters(), get_variables(), get_functions(),
