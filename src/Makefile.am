@@ -7,7 +7,7 @@ if GUI_DIR
 SUBDIRS += wxgui
 endif
 
-EXTRA_DIST = swig/fityk_perl.cpp swig/Fityk.pm swig/fityk_ruby.cpp \
+EXTRA_DIST = swig/fityk_perl.cpp swig/Fityk.pm swig/fityk_ruby.cpp swig/java/ \
 	     swig/fityk.i
 BUILT_SOURCES = swig/fityk_lua.cpp swig/luarun.h
 
