@@ -68,6 +68,11 @@ public:
     void hint_ui(int hint)
           { if (hint_ui_callback_) (*hint_ui_callback_)(hint); }
 
+    std::string get_input_from_user(const std::string& prompt) {
+        return user_input_callback_ ? (*user_input_callback_)(prompt)
+                                    : std::string();
+    }
+
     /// wait doing nothing for given number of seconds (can be fractional).
     void wait(float seconds) const;
 

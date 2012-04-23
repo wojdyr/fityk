@@ -68,11 +68,16 @@ public:
     typedef void t_hint_ui_callback(int);
     t_hint_ui_callback* connect_hint_ui(t_hint_ui_callback *func);
 
+    // Callback for querying user.
+    typedef std::string t_user_input_callback(const std::string& prompt);
+    t_user_input_callback* connect_user_input(t_user_input_callback *func);
+
 protected:
     t_show_message_callback *show_message_callback_;
     t_draw_plot_callback *draw_plot_callback_;
     t_exec_command_callback *exec_command_callback_;
     t_hint_ui_callback *hint_ui_callback_;
+    t_user_input_callback *user_input_callback_;
 };
 
 /// Helper for readline tab-completion.

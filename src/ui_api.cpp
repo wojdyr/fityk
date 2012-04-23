@@ -57,11 +57,21 @@ void simple_show_message(UiApi::Style style, const string& s)
     fflush(stdout);
 }
 
+string simple_user_input(const string& prompt)
+{
+    printf("%s ", prompt.c_str());
+    fflush(stdout);
+    char s[100];
+    fgets(s, 100, stdin);
+    return strip_string(s);
+}
+
 UiApi::UiApi()
     : show_message_callback_(simple_show_message),
       draw_plot_callback_(NULL),
       exec_command_callback_(NULL),
-      hint_ui_callback_(NULL)
+      hint_ui_callback_(NULL),
+      user_input_callback_(simple_user_input)
 {
 }
 
@@ -94,6 +104,14 @@ UiApi::connect_hint_ui(UiApi::t_hint_ui_callback *func)
 {
     UiApi::t_hint_ui_callback *old = hint_ui_callback_;
     hint_ui_callback_ = func;
+    return old;
+}
+
+UiApi::t_user_input_callback*
+UiApi::connect_user_input(UiApi::t_user_input_callback *func)
+{
+    UiApi::t_user_input_callback *old = user_input_callback_;
+    user_input_callback_ = func;
     return old;
 }
 

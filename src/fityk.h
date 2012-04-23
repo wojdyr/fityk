@@ -121,17 +121,21 @@ public:
 
     // @}
 
-    /// @name handling text output
+    /// @name input/output
     // @{
 
     /// redirect output to file or stdout/stderr; called with NULL reverts
     /// previous call(s).
-    /// Don't use with more than one Fityk instance at the same time.
     /// Internally uses UiApi::set_show_message().
+    /// Bugs: can't be used with more than one Fityk instance at the same time.
     void redir_messages(std::FILE *stream);
 
     /// print string in the output of GUI/CLI (useful for embedded Lua)
     void out(std::string const& s) const;
+
+    /// query user (useful for embedded Lua)
+    /// If the prompt contains string "[y/n]" the GUI shows Yes/No buttons.
+    std::string input(std::string const& prompt);
 
     // @}
 

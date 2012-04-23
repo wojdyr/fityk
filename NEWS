@@ -1,8 +1,9 @@
 User-visible changes in version 1.1.2  (2012-04-  ):
 * added fitting method "mpfit" -- wrapper around MINPACK-1 based MPFIT library
   (http://www.physics.wisc.edu/~craigm/idl/cmpfit.html)
+* changed public API of libfityk; now cfityk uses only public API
 * added C API and Ruby and Java bindings to libfityk
-* Enhanced Python API and added Python equivalent of cfityk (samples/cfityk.py)
+* enhanced Python API and added Python equivalent of cfityk (samples/cfityk.py)
 * CLI: cfityk can be linked with libedit (but it works better with readline)
 * in scripts, backslash (\) at the end of line means line continuation
 

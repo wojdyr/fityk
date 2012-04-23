@@ -1,13 +1,14 @@
 
-* change dir structure: cli/ and wxgui/ should go to the top dir, src->fityk
-
-* API: query user, get_fitted_parameters(), get_variables(), get_functions(),
+* API: get_fitted_parameters(), get_variables(), get_functions(),
        get_components(int n, char='F')
 
 * Windows build: use readline lib if possible, investigate signing .exe,
   use xylib.dll -DXYLIB_DLL?
 
 ----- 1.1.2
+
+* change dir structure: cli/ and wxgui/ should go to the top dir,
+  rename src to fityk
 
 * NLopt interface
 

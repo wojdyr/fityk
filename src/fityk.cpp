@@ -269,6 +269,11 @@ void Fityk::out(string const& s) const
     ftk_->ui()->output_message(UserInterface::kNormal, s);
 }
 
+string Fityk::input(string const& prompt)
+{
+    return ftk_->ui()->get_input_from_user(prompt);
+}
+
 realt Fityk::get_wssr(int dataset)  throw(ExecuteError)
 {
     try {

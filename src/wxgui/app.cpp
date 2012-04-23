@@ -75,6 +75,23 @@ void gui_show_message(UserInterface::Style style, const string& s)
     frame->output_text(style, s + "\n");
 }
 
+string gui_user_input(const string& prompt)
+{
+    if (contains_element(prompt, "[y/n]")) {
+        int r = wxMessageBox(s2wx(prompt), "Query", wxYES_NO);
+        if (r == wxYES)
+            return "y";
+        else if (r == wxNO)
+            return "n";
+        else
+            return "";
+    }
+    else {
+        wxString s = wxGetTextFromUser(s2wx(prompt), "Query");
+        return strip_string(wx2s(s));
+    }
+}
+
 void gui_draw_plot(UserInterface::RepaintMode mode)
 {
     bool now = (mode == UserInterface::kRepaintImmediately);
@@ -178,6 +195,7 @@ bool FApp::OnInit(void)
     ftk->ui()->connect_draw_plot(gui_draw_plot);
     ftk->ui()->connect_hint_ui(gui_hint);
     ftk->ui()->connect_exec_command(gui_exec_command);
+    ftk->ui()->connect_user_input(gui_user_input);
 
     wxImage::AddHandler(new wxPNGHandler);
 
