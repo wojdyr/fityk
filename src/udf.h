@@ -8,6 +8,8 @@
 #include "mgr.h"
 #include "common.h"
 
+namespace fityk {
+
 /// Function which definition is based on other function(s)
 class CompoundFunction: public Function
 {
@@ -123,5 +125,6 @@ private:
     DISALLOW_COPY_AND_ASSIGN(SplitFunction);
 };
 
+} // namespace fityk
 #endif
 

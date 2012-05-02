@@ -16,6 +16,7 @@
 #include "../guess.h" //Guess::Kind
 
 using namespace std;
+using fityk::Tplate;
 
 DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
     : wxDialog(parent, -1, wxT("Function Definition Manager"),
@@ -104,7 +105,7 @@ void DefinitionMgrDlg::parse_definition()
         return;
     }
     try {
-        Lexer lex(value.c_str());
+        fityk::Lexer lex(value.c_str());
         tp = *parser_.parse_define_args(lex);
         update_desc(tp);
         // We check if SetString() is needed, because on wxGTK 2.8
@@ -143,7 +144,7 @@ void DefinitionMgrDlg::update_desc(const Tplate& tp)
                 used = true;
                 break; // don't report the same tplate twice
             }
-    v_foreach (Function*, i, ftk->mgr.functions())
+    v_foreach (fityk::Function*, i, ftk->mgr.functions())
         if ((*i)->tp()->name == tp.name) {
             desc += " %" + s2wx((*i)->name);
             used = true;

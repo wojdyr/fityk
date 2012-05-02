@@ -23,8 +23,8 @@ public:
 
 private:
     int selected_;
-    std::vector<Tplate> modified_;
-    Parser parser_;
+    std::vector<fityk::Tplate> modified_;
+    fityk::Parser parser_;
     wxListBox *lb;
     wxTextCtrl *def_tc, *desc_tc;
     wxStaticText *def_label_st;
@@ -32,7 +32,7 @@ private:
 
     void select_function();
     void parse_definition();
-    void update_desc(const Tplate& tp);
+    void update_desc(const fityk::Tplate& tp);
 };
 
 #endif

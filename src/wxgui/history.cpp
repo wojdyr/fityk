@@ -9,6 +9,7 @@
 #include "../fit.h"
 
 using namespace std;
+using fityk::FitMethodsContainer;
 
 enum {
     ID_SHIST_LC             = 26100,
@@ -95,7 +96,7 @@ void SumHistoryDlg::initialize_lc()
         lc->SetItem(pos, 2, wxT("      ?      "));
         for (int j = 0; j < 4; j++) {
             int n = view[j];
-            if (n < size(item))
+            if (n < (int) item.size())
                 lc->SetItem(pos, 3 + j, s2wx(S(item[n])));
         }
     }
@@ -160,7 +161,7 @@ void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)
     FitMethodsContainer const* fmc = ftk->get_fit_container();
     for (int i = 0; i != fmc->get_param_history_size(); ++i) {
         vector<realt> const& item = fmc->get_item(i);
-        wxString s = n < size(item) ? s2wx(S(item[n])) : wxString();
+        wxString s = n < (int) item.size() ? s2wx(S(item[n])) : wxString();
         lc->SetItem(i, 3 + v, s);
     }
 }

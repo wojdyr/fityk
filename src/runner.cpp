@@ -21,6 +21,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 RealRange args2range(const Token& t1, const Token& t2)
 {
     RealRange range;
@@ -847,3 +849,4 @@ void Runner::execute_statement(Statement& st)
         F_->settings_mgr()->set_all(*s_orig);
 }
 
+} // namespace fityk

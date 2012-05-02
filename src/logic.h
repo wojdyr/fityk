@@ -12,6 +12,7 @@
 #include "view.h"
 #include "settings.h"
 
+namespace fityk {
 
 class Ftk;
 class UserInterface;
@@ -131,4 +132,5 @@ private:
 
 };
 
+} // namespace fityk
 #endif

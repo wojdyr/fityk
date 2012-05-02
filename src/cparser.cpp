@@ -19,7 +19,8 @@
 
 
 using namespace std;
-using fityk::SyntaxError;
+
+namespace fityk {
 
 const char *command_list[] = {
     "debug", "define", "delete", "exec", "fit", "guess", "info", "lua",
@@ -1037,3 +1038,4 @@ string Parser::get_statements_repr() const
     return r;
 }
 
+} // namespace fityk

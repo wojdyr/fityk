@@ -92,8 +92,6 @@ extern const char* config_dirname; // ".fityk"
 /// flag that is set to interrupt fitting (it is checked after each iteration)
 extern volatile bool user_interrupt;
 
-
 } // namespace fityk
-
 #endif // FITYK_UI_API_H_
 

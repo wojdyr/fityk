@@ -8,6 +8,8 @@
 #include "common.h"
 #include "fit.h"
 
+namespace fityk {
+
 /// Vertex used in Nelder-Mead method
 struct Vertex
 {
@@ -42,5 +44,6 @@ private:
     void compute_v(Vertex& v);
 };
 
+} // namespace fityk
 #endif
 

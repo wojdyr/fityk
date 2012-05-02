@@ -9,6 +9,8 @@
 
 #include "common.h"
 
+namespace fityk {
+
 class DataAndModel;
 class Data;
 class Model;
@@ -58,4 +60,5 @@ private:
                      double &y_min, double &y_max);
 };
 
+} // namespace fityk
 #endif

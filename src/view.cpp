@@ -9,10 +9,10 @@
 
 using namespace std;
 
+namespace fityk {
 
 const double View::relative_x_margin = 1./20.;
 const double View::relative_y_margin = 1./20.;
-
 
 string View::str() const
 {
@@ -167,3 +167,4 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
     }
 }
 
+} // namespace fityk

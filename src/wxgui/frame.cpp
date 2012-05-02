@@ -106,8 +106,9 @@
 #include "img/powdifpat16.xpm"
 
 using namespace std;
+using fityk::FitMethodsContainer;
 FFrame *frame = NULL;
-Ftk *ftk = NULL;
+fityk::Ftk *ftk = NULL;
 
 UserInterface::Status exec(const std::string &s)
 {
@@ -447,9 +448,9 @@ void FFrame::OnQuit(wxCommandEvent&)
 void FFrame::update_peak_type_list()
 {
     peak_types_.clear();
-    v_foreach(Tplate::Ptr, i, ftk->get_tpm()->tpvec())
+    v_foreach(fityk::Tplate::Ptr, i, ftk->get_tpm()->tpvec())
         peak_types_.push_back((*i)->name);
-    if (peak_type_nr_ >= size(peak_types_))
+    if (peak_type_nr_ >= (int) peak_types_.size())
         peak_type_nr_ = 0;
     if (toolbar_)
         toolbar_->update_peak_type(peak_type_nr_, &peak_types_);
@@ -1081,7 +1082,7 @@ void FFrame::OnDataXLoad (wxCommandEvent&)
     vector<int> sel = get_selected_data_indices();
     int n = (sel.size() == 1 ? sel[0] : -1);
     // in case of multi-selection, use the first item
-    Data *data = ftk->get_data(sel[0]);
+    fityk::Data *data = ftk->get_data(sel[0]);
     DLoadDlg dload_dialog(this, n, data, data_dir_);
     dload_dialog.ShowModal();
 }
@@ -1121,7 +1122,7 @@ void FFrame::OnDataTable(wxCommandEvent&)
 
 void FFrame::OnDataEditor (wxCommandEvent&)
 {
-    vector<pair<int,Data*> > dd;
+    vector<pair<int,fityk::Data*> > dd;
     vector<int> sel = get_selected_data_indices();
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i)
         dd.push_back(make_pair(*i, ftk->get_data(*i)));
@@ -1446,7 +1447,7 @@ void FFrame::OnReInclude (wxCommandEvent&)
 
 void FFrame::OnNewFitykScript(wxCommandEvent&)
 {
-    show_editor("", fityk_version_line + wxString("\n"));
+    show_editor("", fityk::fityk_version_line + wxString("\n"));
 }
 
 void FFrame::OnNewLuaScript(wxCommandEvent&)
@@ -1765,7 +1766,7 @@ void FFrame::OnGScrollRight (wxCommandEvent&)
 
 void FFrame::OnGScrollUp (wxCommandEvent&)
 {
-    const View& view = ftk->view;
+    const fityk::View& view = ftk->view;
     const Scale& scale = plot_pane_->get_plot()->get_y_scale();
     double top, bottom;
     if (scale.logarithm) {
@@ -2119,7 +2120,7 @@ string FFrame::get_datasets()
     if (ftk->get_dm_count() == 1)
         return "";
     vector<int> sel = get_selected_data_indices();
-    if (ftk->get_dm_count() == size(sel))
+    if (ftk->get_dm_count() == (int) sel.size())
         return "@*: ";
     else
         return "@" + join_vector(sel, " @") + ": ";
@@ -2141,7 +2142,7 @@ string FFrame::get_guess_string(const std::string& name)
         s += "shape=$_shape";
     }
 
-    const Tplate* tp = ftk->get_tpm()->get_tp(name);
+    const fityk::Tplate* tp = ftk->get_tpm()->get_tp(name);
     vector<string> missing;
     try {
         missing = tp->get_missing_default_values();
@@ -2405,7 +2406,7 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
 void FToolBar::OnToolEnter(wxCommandEvent& event)
 {
     if (event.GetSelection() == ID_T_AUTO) {
-        Guess g(ftk->get_settings());
+        fityk::Guess g(ftk->get_settings());
         const DataAndModel* dm = ftk->get_dm(frame->get_focused_data_index());
         int len = dm->data()->get_n();
         if (len == 0)
@@ -2417,14 +2418,14 @@ void FToolBar::OnToolEnter(wxCommandEvent& event)
         if (ftk->get_tpm()->tpvec()[frame->peak_type_nr_]->peak_d) {
             boost::array<double,4> peak_v = g.estimate_peak_parameters();
             for (int i = 0; i != 4; ++i)
-                info += (i != 0 ? ", " : "")
-                          + Guess::peak_traits[i] + ": " + S(peak_v[i]);
+                info += (i != 0 ? ", " : "") +
+                        fityk::Guess::peak_traits[i] + ": " + S(peak_v[i]);
         }
         else {
             boost::array<double,3> lin_v = g.estimate_linear_parameters();
             for (int i = 0; i != 3; ++i)
-                info += (i != 0 ? ", " : "")
-                          + Guess::linear_traits[i] + ": " + S(lin_v[i]);
+                info += (i != 0 ? ", " : "") +
+                        fityk::Guess::linear_traits[i] + ": " + S(lin_v[i]);
         }
         frame->set_status_text(info);
     }

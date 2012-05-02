@@ -7,7 +7,8 @@
 
 #include "fityk.h" // struct Point
 #include "common.h" // realt
-using fityk::Point;
+
+namespace fityk {
 
 class Ftk;
 class Variable;
@@ -172,5 +173,6 @@ realt run_code_for_custom_func(const VMData& vm, realt x,
 realt run_code_for_custom_func_value(const VMData& vm, realt x,
                                      int code_offset);
 
+} // namespace fityk
 #endif // FITYK_VM_H_
 

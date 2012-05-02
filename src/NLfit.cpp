@@ -8,6 +8,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 // int major, minor, bugfix;
 // nlopt_version(&major, &minor, &bugfix);
 
@@ -106,3 +108,4 @@ void NLfit::autoiter()
     delete [] a;
 }
 
+} // namespace fityk

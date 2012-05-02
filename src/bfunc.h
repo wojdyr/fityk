@@ -28,6 +28,7 @@ public:\
                                         int first, int last) const;
 
 //////////////////////////////////////////////////////////////////////////
+namespace fityk {
 
 class FuncConstant : public Function
 {
@@ -222,5 +223,5 @@ private:
     mutable std::vector<PointD> q_;
 };
 
-
+} // namespace fityk
 #endif

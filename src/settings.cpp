@@ -17,6 +17,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 union OptVal
 {
     struct { int Settings::*ptr; int ini; } i;
@@ -293,3 +295,4 @@ void SettingsMgr::do_srand()
     srand(seed);
 }
 
+} // namespace fityk

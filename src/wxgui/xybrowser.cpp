@@ -17,9 +17,10 @@
 using namespace std;
 
 #ifndef XYCONVERT
-#include "../common.h"
 #include "../data.h"
+using fityk::get_file_basename;
 #else
+// copied from common.h
 template <typename T, int N>
 std::string format1(const char* fmt, T t)
 {

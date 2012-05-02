@@ -8,6 +8,8 @@
 #include "common.h"
 #include "tplate.h" // Tplate::Ptr
 
+namespace fityk {
+
 class Variable;
 class Function;
 class Ftk;
@@ -115,4 +117,5 @@ private:
 Variable* make_compound_variable(const std::string &name, VMData* vd,
                                  const std::vector<Variable*>& all_variables);
 
+} // namespace fityk
 #endif

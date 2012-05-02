@@ -12,8 +12,9 @@
 #include "eparser.h"
 #include "guess.h"
 
-
 using namespace std;
+
+namespace fityk {
 
 string Tplate::as_formula() const
 {
@@ -316,3 +317,4 @@ vector<VMData*> reorder_args(Tplate::Ptr tp, const vector<string> &keys,
     return vv;
 }
 
+} // namespace fityk

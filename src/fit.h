@@ -9,6 +9,7 @@
 #include <time.h>
 #include "common.h"
 
+namespace fityk {
 
 class DataAndModel;
 class Ftk;
@@ -146,5 +147,6 @@ private:
 
 extern const char* fit_method_enum[]; // used in settings.cpp
 
+} // namespace fityk
 #endif
 

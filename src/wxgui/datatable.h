@@ -7,7 +7,7 @@
 
 #include <wx/dialog.h>
 
-class Data;
+namespace fityk { class Data; }
 class GridTable;
 class wxGrid;
 class wxGridEvent;
@@ -17,7 +17,8 @@ class DataTableDlg : public wxDialog
 {
     friend class GridTable;
 public:
-    DataTableDlg(wxWindow* parent, wxWindowID id, int data_nr, Data* data);
+    DataTableDlg(wxWindow* parent, wxWindowID id, int data_nr,
+                 fityk::Data* data);
 
 private:
     GridTable *grid_table;

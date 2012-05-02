@@ -28,6 +28,8 @@
 #include "../logic.h"
 
 using namespace std;
+using fityk::UserInterface;
+using fityk::range_vector;
 
 IMPLEMENT_APP(FApp)
 
@@ -131,7 +133,7 @@ UserInterface::Status gui_exec_command(const string& s)
     try {
         r = ftk->ui()->execute_line(s);
     }
-    catch(ExitRequestedException) {
+    catch(fityk::ExitRequestedException) {
         frame->Close(true);
         return UserInterface::kStatusOk;
     }
@@ -188,7 +190,7 @@ bool FApp::OnInit(void)
         return false; //false = exit the application
     } //the rest of options will be processed in process_argv()
 
-    ftk = new Ftk;
+    ftk = new fityk::Ftk;
 
     // set callbacks
     ftk->ui()->connect_show_message(gui_show_message);

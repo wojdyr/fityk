@@ -27,7 +27,11 @@
 #include "../info.h"
 
 using namespace std;
-
+using fityk::is_zero;
+using fityk::Variable;
+using fityk::Function;
+using fityk::Tplate;
+using fityk::Model;
 
 enum {
     ID_plot_popup_za                = 25001,
@@ -595,7 +599,7 @@ void MainPlot::draw_peaks(wxDC& dc, const Model* model, bool set_pen)
         xx[i] = xs.val(i);
         xx[i] += model->zero_shift(xx[i]);
     }
-    for (int k = 0; k < size(idx); k++) {
+    for (int k = 0; k < (int) idx.size(); k++) {
         fill(yy.begin(), yy.end(), 0.);
         const Function* f = ftk->mgr.get_function(idx[k]);
         int from=0, to=n-1;
@@ -641,7 +645,7 @@ void MainPlot::draw_plabels (wxDC& dc, const Model* model, bool set_pen)
     set_font(dc, plabelFont);
     vector<wxRect> previous;
     const vector<int>& idx = model->get_ff().idx;
-    for (int k = 0; k < size(idx); k++) {
+    for (int k = 0; k < (int) idx.size(); k++) {
         const wxPoint &peaktop = special_points[k];
         if (set_pen)
             dc.SetTextForeground(peakCol[k % max_peak_cols]);
@@ -727,7 +731,7 @@ void MainPlot::prepare_peak_labels(const Model* model)
 {
     const vector<int>& idx = model->get_ff().idx;
     plabels_.resize(idx.size());
-    for (int k = 0; k < size(idx); k++) {
+    for (int k = 0; k < (int) idx.size(); k++) {
         const Function *f = ftk->mgr.get_function(idx[k]);
         string label = plabel_format_;
         string::size_type pos = 0;
@@ -767,7 +771,7 @@ void MainPlot::draw_desc(wxDC& dc, int dataset, bool set_pen)
     catch (const fityk::SyntaxError& e) {
         result = "syntax error!";
     }
-    catch (const ExecuteError& e) {
+    catch (const fityk::ExecuteError& e) {
         result = "(---)";
     }
     wxString label = s2wx(result);
@@ -793,7 +797,7 @@ void MainPlot::draw_baseline(wxDC& dc, bool set_pen)
     stroke_line(dc, YY);
 
     // bg points (circles)
-    v_foreach (PointQ, i, bgm_->get_bg()) {
+    v_foreach (fityk::PointQ, i, bgm_->get_bg()) {
         dc.DrawCircle(xs.px(i->x), ys.px(i->y), 3);
         dc.DrawCircle(xs.px(i->x), ys.px(i->y), 4);
     }
@@ -1343,10 +1347,10 @@ bool MainPlot::can_activate()
 {
     vector<int> sel = frame->get_sidebar()->get_selected_data_indices();
     v_foreach (int, i, sel) {
-        const Data* data = ftk->get_data(*i);
+        const fityk::Data* data = ftk->get_data(*i);
         // if data->is_empty() we allow to try disactivate data to let user
         // experiment with mouse right after launching the program
-        if (data->is_empty() || data->get_n() != size(data->points()))
+        if (data->is_empty() || data->get_n() != (int) data->points().size())
             return true;
     }
     return false;
@@ -1533,9 +1537,9 @@ void calculate_values(const vector<realt>& xx, vector<realt>& yy,
     vector<Variable*> variables(len);
     const vector<Variable*> dummy_vars;
     for (int i = 0; i != len; ++i) {
-        OpTree* tree = new OpTree(p_values[i]);
+        fityk::OpTree* tree = new fityk::OpTree(p_values[i]);
         variables[i] = new Variable("v" + S(i), vector<string>(),
-                                    vector1<OpTree*>(tree));
+                                    vector1<fityk::OpTree*>(tree));
         variables[i]->set_var_idx(dummy_vars);
         variables[i]->recalculate(dummy_vars, vector<realt>());
     }

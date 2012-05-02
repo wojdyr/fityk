@@ -7,6 +7,8 @@
 
 #include "vm.h"
 
+namespace fityk {
+
 class DatasetTransformer
 {
 public:
@@ -16,4 +18,5 @@ private:
     Ftk* F_;
 };
 
+} // namespace fityk
 #endif // FITYK_TRANSFORM_H_

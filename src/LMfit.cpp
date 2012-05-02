@@ -12,6 +12,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 // note: WSSR is also called chi2
 
 void LMfit::init()
@@ -132,3 +134,4 @@ bool LMfit::do_iteration()
     }
 }
 
+} // namespace fityk

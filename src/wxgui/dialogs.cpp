@@ -14,7 +14,7 @@
 #include "../data.h"
 
 using namespace std;
-
+using fityk::FitMethodsContainer;
 
 //=====================    fit->run  dialog    ==================
 
@@ -98,8 +98,7 @@ void FitRunDlg::update_allow_continue()
     initialize_cb->SetValue(true);
     bool is_initialized;
     int m_sel = method_c->GetSelection();
-    //use "::Fit", because Fit is also a method of wxDialog
-    ::Fit const* f = ftk->get_fit_container()->get_method(m_sel);
+    fityk::Fit const* f = ftk->get_fit_container()->get_method(m_sel);
     if (data_rb->GetSelection() == 0) {
         vector<DataAndModel*> dms(sel.size());
         for (size_t i = 0; i < sel.size(); ++i)
@@ -208,7 +207,7 @@ MergePointsDlg::MergePointsDlg(wxWindow* parent, wxWindowID id)
 void MergePointsDlg::update_info()
 {
     vector<int> dd = frame->get_selected_data_indices();
-    const Data* data = ftk->get_data(dd[0]);
+    const fityk::Data* data = ftk->get_data(dd[0]);
     double x_min = data->get_x_min();
     double x_max = data->get_x_max();
     int n = data->points().size();

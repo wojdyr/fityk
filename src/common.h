@@ -18,11 +18,8 @@
 #include <vector>
 #include <math.h>
 #include <assert.h>
-#include <float.h> // DBL_MAX
 
 #include "fityk.h" //ExecuteError
-using fityk::ExecuteError;
-using fityk::ExitRequestedException;
 
 // MS VC++ has no erf, erfc, trunc, snprintf functions
 #ifdef _MSC_VER
@@ -44,55 +41,11 @@ inline double trunc(double a) { return a >= 0 ? floor(a) : ceil(a); }
                       #expr, __FILE__, __LINE__)
 #endif
 
-
-//------------------  D A T A   S T R U C T U R E S  ------------------------
-
-struct RealRange
-{
-    double from, to;
-
-    RealRange() : from(-DBL_MAX), to(DBL_MAX) {}
-    RealRange(double from_, double to_) : from(from_), to(to_) {}
-    bool from_inf() const { return from == -DBL_MAX; }
-    bool to_inf() const { return to == DBL_MAX; }
-};
-
-//--------------------------  N U M E R I C  --------------------------------
-
-/// epsilon is used for comparision of real numbers
-/// defined in settings.cpp; it can be changed in Settings
-extern double epsilon;
-
-inline bool is_eq(double a, double b) { return fabs(a-b) <= epsilon; }
-inline bool is_neq(double a, double b) { return fabs(a-b) > epsilon; }
-inline bool is_lt(double a, double b) { return a < b - epsilon; }
-inline bool is_gt(double a, double b) { return a > b + epsilon; }
-inline bool is_le(double a, double b) { return a <= b + epsilon; }
-inline bool is_ge(double a, double b) { return a >= b - epsilon; }
-inline bool is_zero(double a) { return fabs(a) <= epsilon; }
-
-inline bool is_finite(double a)
-#if HAVE_FINITE
-    { return finite(a); }
-#else
-    { return a == a; }
-#endif
-
-
-#ifndef M_PI
-# define M_PI    3.1415926535897932384626433832795029  // pi
-#endif
-#ifndef M_LN2
-# define M_LN2   0.6931471805599453094172321214581766  // log_e 2
-#endif
-#ifndef M_SQRT2
-# define M_SQRT2 1.4142135623730950488016887242096981  // sqrt(2)
-#endif
+//---------------------------------------------------------------------------
+// inline helper functions that we keep outside of namespace
 
 /// Round real to integer.
 inline int iround(double d) { return static_cast<int>(floor(d+0.5)); }
-
-//---------------------------  S T R I N G  --------------------------------
 
 template <typename T, int N>
 std::string format1(const char* fmt, T t)
@@ -108,7 +61,6 @@ std::string format1(const char* fmt, T t)
 // generic version - disabled to prevent bugs such as printing pointer address
 //template <typename T> inline std::string S(T k)
 // { return static_cast<std::ostringstream&>(std::ostringstream() << k).str(); }
-
 inline std::string S(bool b) { return b ? "true" : "false"; }
 inline std::string S(const char *k) { return std::string(k); }
 inline std::string S(char k) { return std::string(1, k); }
@@ -123,19 +75,6 @@ inline std::string S(double d) { return format1<double, 16>("%g", d); }
 inline std::string eS(double d) { return format1<double, 24>("%.12g", d); }
 inline std::string S(long double d) { return S((double) d); }
 
-/// True if the string contains only a real number
-bool is_double (std::string const& s);
-
-/// True if the string contains only an integer number
-bool is_int (std::string const& s);
-
-/// replace all occurences of old in string s with new_
-void replace_all(std::string &s, std::string const &old,
-                                 std::string const &new_);
-
-void replace_words(std::string &t, std::string const &old_word,
-                                   std::string const &new_word);
-
 /// splits string into tokens, separated by one-character delimitors
 template<typename T>
 std::vector<std::string> split_string(std::string const &s, T delim) {
@@ -147,6 +86,40 @@ std::vector<std::string> split_string(std::string const &s, T delim) {
         start_pos = pos+1;
     }
     return v;
+}
+
+/// check if vector (first arg) contains given element (second arg)
+template<typename T, typename T2>
+bool contains_element(T const& vec, T2 const& t)
+{
+    return (find(vec.begin(), vec.end(), t) != vec.end());
+}
+
+/// check if string (first arg) contains given substring (second arg)
+template<typename T, typename T2>
+bool contains_element(std::basic_string<T> const& str, T2 const& t)
+{
+    return (str.find(t) != std::basic_string<T>::npos);
+}
+
+/// return first index of value, or -1 if not found
+template<typename T, typename T2>
+int index_of_element(std::vector<T> const& vec, T2 const& t)
+{
+    typename std::vector<T>::const_iterator p = find(vec.begin(), vec.end(), t);
+    if (p != vec.end())
+        return p - vec.begin();
+    else
+        return -1;
+}
+
+/// similar to Python string.startswith() method
+inline bool startswith(std::string const& s, std::string const& p) {
+    return p.size() <= s.size() && std::string(s, 0, p.size()) == p;
+}
+/// similar to Python string.endswith() method
+inline bool endswith(std::string const& s, std::string const& p) {
+    return p.size() <= s.size() && std::string(s, s.size() - p.size()) == p;
 }
 
 /// similar to Python string.strip() method
@@ -161,27 +134,6 @@ inline std::string strip_string(std::string const &s) {
     else
         return std::string(s, first, last-first+1);
 }
-
-/// similar to Python string.startswith() method
-inline bool startswith(std::string const& s, std::string const& p) {
-    return p.size() <= s.size() && std::string(s, 0, p.size()) == p;
-}
-/// similar to Python string.endswith() method
-inline bool endswith(std::string const& s, std::string const& p) {
-    return p.size() <= s.size() && std::string(s, s.size() - p.size()) == p;
-}
-
-std::string::size_type find_matching_bracket(std::string const& formula,
-                                             std::string::size_type left_pos);
-
-template<typename T, typename T2>
-bool contains_element(std::basic_string<T> const& str, T2 const& t)
-{
-    return (str.find(t) != std::basic_string<T>::npos);
-}
-
-/// matches name against pattern containing '*' (wildcard)
-bool match_glob(const char* name, const char* pattern);
 
 //---------------------------  V E C T O R  --------------------------------
 
@@ -222,16 +174,6 @@ inline std::vector<T> vector4 (T a, T b, T c, T d) {
 //    vector_of& operator()(const T& t) { this->push_back(t); return *this; }
 //};
 
-
-/// Make (u-l)-element vector, filled by numbers: l, l+1, ..., u-1.
-std::vector<int> range_vector(int l, int u);
-
-/// Expression like "i<v.size()", where i is int and v is a std::vector gives:
-/// "warning: comparison between signed and unsigned integer expressions"
-/// implicit cast IMHO makes code less clear than "i<size(v)":
-template <typename T>
-inline int size(std::vector<T> const& v) { return static_cast<int>(v.size()); }
-
 /// Return 0 <= n < a.size()
 template <typename T>
 inline bool is_index (int idx, std::vector<T> const& v)
@@ -267,23 +209,73 @@ void purge_all_elements(std::vector<T*> &vec)
     vec.clear();
 }
 
-/// check if vector (first arg) contains given element (second arg)
-template<typename T, typename T2>
-bool contains_element(T const& vec, T2 const& t)
-{
-    return (find(vec.begin(), vec.end(), t) != vec.end());
-}
 
-/// return first index of value, or -1 if not found
-template<typename T, typename T2>
-int index_of_element(std::vector<T> const& vec, T2 const& t)
-{
-    typename std::vector<T>::const_iterator p = find(vec.begin(), vec.end(), t);
-    if (p != vec.end())
-        return p - vec.begin();
-    else
-        return -1;
-}
+namespace fityk {
+
+//--------------------------  N U M E R I C  --------------------------------
+
+/// epsilon is used for comparision of real numbers
+/// defined in settings.cpp; it can be changed in Settings
+extern double epsilon;
+
+inline bool is_eq(double a, double b) { return fabs(a-b) <= epsilon; }
+inline bool is_neq(double a, double b) { return fabs(a-b) > epsilon; }
+inline bool is_lt(double a, double b) { return a < b - epsilon; }
+inline bool is_gt(double a, double b) { return a > b + epsilon; }
+inline bool is_le(double a, double b) { return a <= b + epsilon; }
+inline bool is_ge(double a, double b) { return a >= b - epsilon; }
+inline bool is_zero(double a) { return fabs(a) <= epsilon; }
+
+inline bool is_finite(double a)
+#if HAVE_FINITE
+    { return finite(a); }
+#else
+    { return a == a; }
+#endif
+
+
+#ifndef M_PI
+# define M_PI    3.1415926535897932384626433832795029  // pi
+#endif
+#ifndef M_LN2
+# define M_LN2   0.6931471805599453094172321214581766  // log_e 2
+#endif
+#ifndef M_SQRT2
+# define M_SQRT2 1.4142135623730950488016887242096981  // sqrt(2)
+#endif
+
+//---------------------------  S T R I N G  --------------------------------
+
+/// True if the string contains only a real number
+bool is_double (std::string const& s);
+
+/// True if the string contains only an integer number
+bool is_int (std::string const& s);
+
+/// replace all occurences of old in string s with new_
+void replace_all(std::string &s, std::string const &old,
+                                 std::string const &new_);
+
+void replace_words(std::string &t, std::string const &old_word,
+                                   std::string const &new_word);
+
+std::string::size_type find_matching_bracket(std::string const& formula,
+                                             std::string::size_type left_pos);
+
+/// matches name against pattern containing '*' (wildcard)
+bool match_glob(const char* name, const char* pattern);
+
+
+//                           v e c t o r
+
+/// Make (u-l)-element vector, filled by numbers: l, l+1, ..., u-1.
+std::vector<int> range_vector(int l, int u);
+
+/// Expression like "i<v.size()", where i is int and v is a std::vector gives:
+/// "warning: comparison between signed and unsigned integer expressions"
+/// implicit cast IMHO makes code less clear than "i<size(v)":
+template <typename T>
+inline int size(std::vector<T> const& v) { return static_cast<int>(v.size()); }
 
 //----------------  filename utils  -------------------------------------
 #if defined(_WIN32) || defined(WIN32) || defined(__NT__) || defined(__WIN32__) || defined(__OS2__)
@@ -315,5 +307,6 @@ extern const std::string help_filename;
 /// Get current date and time as formatted string
 std::string time_now();
 
+} // namespace fityk
 #endif
 

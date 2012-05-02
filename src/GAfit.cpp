@@ -14,8 +14,9 @@
 #include "settings.h"
 #include "numfuncs.h"
 
-
 using namespace std;
+
+namespace fityk {
 
 GAfit::GAfit(Ftk* F, const char* name)
    : Fit(F, name),
@@ -481,4 +482,4 @@ bool GAfit::termination_criteria_and_print_info (int iter)
     return stop;
 }
 
-
+} // namespace fityk

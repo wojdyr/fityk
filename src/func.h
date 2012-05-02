@@ -10,10 +10,24 @@
 #include "tplate.h"
 #include "var.h"
 
+namespace fityk {
+
 class Settings;
 class VariableManager;
 
-class Function
+class Func
+{
+public:
+    const std::string name;
+    Func(const std::string name_) : name(name_) {}
+    virtual ~Func() {}
+
+    virtual const std::string& get_template_name() const = 0;
+    virtual realt get_param_value(const std::string& param) const = 0;
+    virtual realt value_at(realt x) const = 0;
+};
+
+class Function : public Func
 {
 public:
     struct Multi
@@ -22,8 +36,6 @@ public:
         Multi(int n_, const Variable::ParMult& pm)
             : p(pm.p), n(n_), mult(pm.mult) {}
     };
-
-    const std::string name;
 
     Function(const Settings* settings, const std::string &name_,
              const Tplate::Ptr tp, const std::vector<std::string> &vars);
@@ -63,15 +75,12 @@ public:
     virtual bool get_nonzero_range(double /*level*/,
                       realt& /*left*/, realt& /*right*/) const { return false; }
 
-    // properties
-
     virtual bool get_center(realt* a) const;
     virtual bool get_height(realt* /*a*/) const { return false; }
     virtual bool get_fwhm(realt* /*a*/) const { return false; }
     virtual bool get_area(realt* /*a*/) const { return false; }
     /// integral width := area / height
     bool get_iwidth(realt* a) const;
-
     /// get list of other properties (e.g. like Lorentzian-FWHM of Voigt)
     virtual const std::vector<std::string>& get_other_prop_names() const
                 { static const std::vector<std::string> empty; return empty; }
@@ -89,7 +98,7 @@ public:
     virtual std::string get_param(int n) const { return tp_->fargs[n]; }
 
     int get_param_nr(const std::string& param) const;
-    realt get_param_value(const std::string& param) const;
+    virtual realt get_param_value(const std::string& param) const;
 
     realt numarea(realt x1, realt x2, int nsteps) const;
     realt find_x_with_value(realt x1, realt x2, realt val,
@@ -102,6 +111,10 @@ public:
     void set_param_name(int n, const std::string &new_p)
             { used_vars_.set_name(n, new_p); }
     const IndexedVars& used_vars() const { return used_vars_; }
+
+    // implementation of members of Func
+    virtual const std::string& get_template_name() const { return tp_->name; }
+    virtual realt value_at(realt x) const { return calculate_value(x); }
 protected:
     IndexedVars used_vars_;
     const Settings* settings_;
@@ -116,5 +129,6 @@ private:
     static std::vector<realt> calc_val_xx, calc_val_yy;
 };
 
+} // namespace fityk
 #endif
 

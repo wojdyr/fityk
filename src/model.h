@@ -9,6 +9,8 @@
 #include <memory>
 #include "common.h"
 
+namespace fityk {
+
 class Function;
 class Data;
 class VariableManager;
@@ -79,6 +81,6 @@ private:
     DISALLOW_COPY_AND_ASSIGN(Model);
 };
 
-
+} // namespace fityk
 #endif
 

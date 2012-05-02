@@ -17,6 +17,8 @@
 #include "../logic.h"
 
 using namespace std;
+using fityk::Data;
+using fityk::Model;
 
 enum {
     ID_aux_prefs            = 25310,
@@ -175,7 +177,7 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
         dc.DrawLine (X0, 0, X0, pixel_height);
     }
     if (ytics_visible) {
-        Rect rect(0, 0, ys.val(pixel_height), ys.val(0));
+        fityk::Rect rect(0, 0, ys.val(pixel_height), ys.val(0));
         draw_ytics(dc, rect, !monochrome);
     }
 

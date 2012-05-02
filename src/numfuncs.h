@@ -7,6 +7,7 @@
 #include <stdlib.h>
 #include "common.h"
 
+namespace fityk {
 
 /// Point used for linear interpolation and polyline convex hull algorithm.
 struct PointD
@@ -70,4 +71,5 @@ private:
     std::vector<PointD> vertices_;
 };
 
+} // namespace fityk
 #endif

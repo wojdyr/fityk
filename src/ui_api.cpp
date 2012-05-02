@@ -11,8 +11,9 @@
 
 using namespace std;
 
+namespace {
+using namespace fityk;
 // assumes that array ends with NULL.
-static
 void add_c_string_array(const char **array, const char* text,
                         vector<string> &entries)
 {
@@ -21,7 +22,6 @@ void add_c_string_array(const char **array, const char* text,
             entries.push_back(*p);
 }
 
-static
 void type_completions(Ftk *F, const char *text, vector<string> &entries)
 {
     v_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec())
@@ -29,7 +29,6 @@ void type_completions(Ftk *F, const char *text, vector<string> &entries)
             entries.push_back((*i)->name);
 }
 
-static
 bool starts_with_command(const char *cmd, int n,
                          const char* head, const char* tail)
 {
@@ -41,6 +40,8 @@ bool starts_with_command(const char *cmd, int n,
             return i == 0 || strncmp(cmd+hlen, tail, i) == 0;
     return false;
 }
+
+} // namespace
 
 
 namespace fityk {

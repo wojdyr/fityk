@@ -12,6 +12,7 @@
 using namespace std;
 using boost::math::lgamma;
 
+namespace fityk {
 
 #define CALCULATE_VALUE_BEGIN(NAME) \
 void NAME::calculate_value_in_range(vector<realt> const &xx, vector<realt> &yy,\
@@ -1062,3 +1063,4 @@ CALCULATE_DERIV_END(value)
 
 ///////////////////////////////////////////////////////////////////////
 
+} // namespace fityk

@@ -17,6 +17,8 @@
 using namespace std;
 using boost::array;
 
+namespace fityk {
+
 const array<string, 3> Guess::linear_traits =
                                     {{ "slope", "intercept", "avgy" }};
 const array<string, 4> Guess::peak_traits =
@@ -151,4 +153,4 @@ array<double,3> Guess::estimate_linear_parameters()
     return r;
 }
 
-
+} // namespace fityk

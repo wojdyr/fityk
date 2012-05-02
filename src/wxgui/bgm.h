@@ -31,7 +31,7 @@ public:
     void set_as_convex_hull();
     std::vector<double> calculate_bgline(int window_width,
                                          const Scale& y_scale);
-    const std::vector<PointQ>& get_bg() const { return bg_; }
+    const std::vector<fityk::PointQ>& get_bg() const { return bg_; }
     bool stripped() const;
     const wxString& get_recent_bg_name(int n) const;
     void read_recent_baselines();
@@ -40,8 +40,8 @@ public:
 private:
     const Scale& x_scale_;
     bool spline_;
-    std::vector<PointQ> bg_;
-    std::vector<std::pair<wxString, std::vector<PointQ> > > recent_bg_;
+    std::vector<fityk::PointQ> bg_;
+    std::vector<std::pair<wxString, std::vector<fityk::PointQ> > > recent_bg_;
     std::vector<bool> stripped_;
     int data_idx_;
 

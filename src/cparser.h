@@ -12,6 +12,8 @@
 #include "eparser.h"
 #include "tplate.h"
 
+namespace fityk {
+
 class DataAndModel;
 
 enum CommandType
@@ -122,4 +124,5 @@ private:
     void parse_fit_args(Lexer& lex, std::vector<Token>& args);
 };
 
+} // namespace fityk
 #endif //FITYK_CPARSER_H_

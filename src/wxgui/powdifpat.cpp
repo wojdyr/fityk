@@ -158,7 +158,7 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
         x_min = data->get_x_min();
         x_max = data->get_x_max();
         y_max = 0;
-        v_foreach(Point, p, data->points())
+        v_foreach(fityk::Point, p, data->points())
             if (p->is_active && p->y > y_max)
                 y_max = p->y;
     }
@@ -1181,7 +1181,7 @@ void PowderBook::set_peak_name(const string& name)
 static
 bool has_old_variables()
 {
-    v_foreach (Variable*, i, ftk->mgr.variables())
+    v_foreach (fityk::Variable*, i, ftk->mgr.variables())
         if (startswith((*i)->name, "pd"))
             return true;
     return false;
@@ -1584,7 +1584,7 @@ void var2lockctrl(const string& varname, LockableRealCtrl* ctrl, double mult=1.)
     int k = ftk->mgr.find_variable_nr(varname);
     if (k == -1)
         return;
-    const Variable* v = ftk->mgr.get_variable(k);
+    const fityk::Variable* v = ftk->mgr.get_variable(k);
     ctrl->set_value(v->get_value() * mult);
     ctrl->set_lock(v->is_constant());
 }
@@ -1645,14 +1645,14 @@ void PowderBook::fill_forms()
 
     // peak page
     if (first_func != -1) {
-        const Function *f = ftk->mgr.get_function(first_func);
+        const fityk::Function *f = ftk->mgr.get_function(first_func);
         set_peak_name(f->tp()->name);
         int w = index_of_element(f->tp()->fargs, "hwhm");
         if (w == -1)
             w = index_of_element(f->tp()->fargs, "hwhm1");
         if (w != -1) {
             int idx = f->used_vars().get_idx(w);
-            const Variable* hwhm = ftk->mgr.get_variable(idx);
+            const fityk::Variable* hwhm = ftk->mgr.get_variable(idx);
             if (!hwhm->is_simple() || hwhm->name == "pd_w")
                 width_rb->SetSelection(1);
         }
@@ -1661,7 +1661,7 @@ void PowderBook::fill_forms()
             sh = index_of_element(f->tp()->fargs, "shape1");
         if (sh != -1) {
             int idx = f->used_vars().get_idx(sh);
-            const Variable* shape = ftk->mgr.get_variable(idx);
+            const fityk::Variable* shape = ftk->mgr.get_variable(idx);
             if (!shape->is_simple() || shape->name == "pd_a") {
                 string formula = shape->get_formula(ftk->mgr.parameters());
                 bool has_div = contains_element(formula, '/');
@@ -1907,7 +1907,7 @@ bool PowderBook::is_d_active(double d) const
 {
 #if !STANDALONE_POWDIFPAT
     double x = d2x(d);
-    vector<Point>::const_iterator point = data->get_point_at(x);
+    vector<fityk::Point>::const_iterator point = data->get_point_at(x);
     return point != data->points().end() && point->is_active;
 #else
     return true;

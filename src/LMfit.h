@@ -10,6 +10,8 @@
 #include "common.h"
 #include "fit.h"
 
+namespace fityk {
+
 class LMfit : public Fit
 {
 public:
@@ -26,4 +28,5 @@ private:
     bool do_iteration();
 };
 
+} // namespace fityk
 #endif

@@ -12,19 +12,17 @@
 #include "plotpane.h"
 #include "../ui.h" // UserInterface::Style
 
-class ApplicationLogic;
-class FDXLoadDlg;
 class TextPane;
 class SideBar;
 class ProportionalSplitter;
-class DataEditorDlg;
 class PrintManager;
 class FStatusBar;
-class DataAndModel;
-struct RealRange;
 
-class Ftk;
-extern Ftk *ftk;
+namespace fityk { class Ftk; struct RealRange; class DataAndModel; }
+extern fityk::Ftk *ftk;
+using fityk::UserInterface;
+using fityk::RealRange;
+using fityk::DataAndModel;
 
 // execute command(s) from string
 UserInterface::Status exec(const std::string &s);

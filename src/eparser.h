@@ -11,6 +11,8 @@
 
 #include "vm.h"
 
+namespace fityk {
+
 struct Token;
 class Lexer;
 
@@ -106,5 +108,6 @@ private:
     void pop_until_bracket();
 };
 
+} // namespace fityk
 #endif // FITYK_EPARSER_H_
 

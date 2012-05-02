@@ -172,7 +172,7 @@ bool FStatusBar::set_extra_value(wxString const& s)
     static const vector<string> names = vector2(string("x"), string("y"));
     if (!s.empty()) {
         string as = wx2s(s);
-        Lexer lex(as.c_str());
+        fityk::Lexer lex(as.c_str());
         extra_parser.clear_vm();
         bool r = extra_parser.parse_full(lex, 0, &names);
         if (!r) {

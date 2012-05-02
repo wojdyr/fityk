@@ -15,6 +15,14 @@
 # define REALT_LENGTH_MOD ""
 #endif
 
+#include <cstdio>
+#include <cfloat> // DBL_MAX
+#include <string>
+#include <vector>
+#include <stdexcept>
+
+namespace fityk {
+
 #ifdef __cplusplus
 
 #ifdef _MSC_VER
@@ -22,20 +30,12 @@
 #pragma warning( disable : 4290 ) // C++ exception specification ignored...
 #endif
 
-#include <string>
-#include <vector>
-#include <cstdio>
-#include <stdexcept>
-class Ftk;
-
-
 /// Public C++ API of libfityk: class Fityk and helpers.
 ///
 /// Minimal examples of using libfityk in C++, Python, Lua and Perl are in
 /// samples/hello.* files.
-namespace fityk
-{
 
+class Ftk;
 class UiApi;
 struct FitykInternalData;
 
@@ -56,6 +56,18 @@ struct SyntaxError : public std::invalid_argument
 struct ExitRequestedException : std::exception
 {
 };
+
+/// used for variable domain and for plot borders
+struct RealRange
+{
+    double from, to;
+
+    RealRange() : from(-DBL_MAX), to(DBL_MAX) {}
+    RealRange(double from_, double to_) : from(from_), to(to_) {}
+    bool from_inf() const { return from == -DBL_MAX; }
+    bool to_inf() const { return to == DBL_MAX; }
+};
+
 
 /// used to get statistics for all datasets together, e.g. in Fityk::get_wssr()
 const int all_datasets=-1;
@@ -219,7 +231,7 @@ private:
     FitykInternalData *p_;
 };
 
-} // namespace
+} // namespace fityk
 
 #else /* !__cplusplus */
 /* C API.

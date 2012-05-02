@@ -10,9 +10,13 @@
 #include "frame.h"
 #include "plot.h"
 #include "../logic.h"
+#include "../data.h"
 #include "../func.h"
 
 using namespace std;
+using fityk::PointQ;
+using fityk::PointD;
+using fityk::VariableManager;
 
 BgManager::BgManager(const Scale& x_scale)
     : x_scale_(x_scale), spline_(true), data_idx_(-1)
@@ -70,7 +74,7 @@ void BgManager::bg_from_func()
         bg_.clear();
         return;
     }
-    const Function *f = ftk->mgr.get_function(nr);
+    const fityk::Function *f = ftk->mgr.get_function(nr);
     if (f->tp()->name != "Spline" && f->tp()->name != "Polyline") {
         bg_.clear();
         return;
@@ -139,13 +143,13 @@ void BgManager::define_bg_func()
     // if the function already exists and if it's exactly the same, return
     int nr = ftk->mgr.find_function_nr(name);
     if (nr != -1) {
-        const Function *f = ftk->mgr.get_function(nr);
+        const fityk::Function *f = ftk->mgr.get_function(nr);
         if (f->tp()->name == ftype && f->nv() == 2 * (int) bg_.size()) {
             bool the_same = true;
             for (size_t i = 0; i != bg_.size(); ++i) {
-                const Variable *vx =
+                const fityk::Variable *vx =
                     ftk->mgr.find_variable(f->used_vars().get_name(2*i));
-                const Variable *vy =
+                const fityk::Variable *vy =
                     ftk->mgr.find_variable(f->used_vars().get_name(2*i+1));
                 if (!VariableManager::is_auto(vx->name) || !vx->is_constant() ||
                         S(vx->get_value()) != S(bg_[i].x) ||
@@ -215,8 +219,8 @@ void BgManager::set_as_recent(int n)
 
 void BgManager::set_as_convex_hull()
 {
-    SimplePolylineConvex convex;
-    const Data* data = ftk->get_data(data_idx_);
+    fityk::SimplePolylineConvex convex;
+    const fityk::Data* data = ftk->get_data(data_idx_);
     for (int i = 0; i < data->get_n(); ++i)
         convex.push_point(data->get_x(i), data->get_y(i));
     const vector<PointD>& vertices = convex.get_vertices();

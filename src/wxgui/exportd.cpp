@@ -44,7 +44,7 @@ void exec_redirected_command(const vector<int>& sel,
         return;
     }
     string datasets;
-    if (ftk->get_dm_count() == size(sel))
+    if (ftk->get_dm_count() == (int) sel.size())
         datasets = "@*";
     else
         datasets = "@" + join_vector(sel, " @");

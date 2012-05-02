@@ -13,13 +13,15 @@
 #include "../logic.h"
 
 using namespace std;
+using fityk::Rect;
+using fityk::Model;
 
 void Scale::set(double m, double M, int pixels)
 {
     double h = 0;
     if (logarithm) {
-        M = log(max(M, epsilon));
-        m = log(max(m, epsilon));
+        M = log(max(M, fityk::epsilon));
+        m = log(max(m, fityk::epsilon));
     }
     h = M - m;
     origin = reversed ? M : m;
@@ -417,7 +419,7 @@ void FPlot::draw_data_by_activity(wxDC& dc, wxPoint2DDouble *pp,
 void FPlot::draw_data (wxDC& dc,
                        double (*compute_y)(vector<Point>::const_iterator,
                                            Model const*),
-                       Data const* data,
+                       fityk::Data const* data,
                        Model const* model,
                        wxColour const& color, wxColour const& inactive_color,
                        int Y_offset,

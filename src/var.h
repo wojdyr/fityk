@@ -1,12 +1,13 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__VAR__H__
-#define FITYK__VAR__H__
+#ifndef FITYK_VAR_H_
+#define FITYK_VAR_H_
 
 #include "common.h"
 #include "vm.h"
 
+namespace fityk {
 struct OpTree;
 class Variable;
 class Function;
@@ -59,39 +60,47 @@ private:
 ///    (VMData, again) that will be used to calculate value and derivatives.
 /// -  recalculate() calculates (using run_code_for_variable()) value
 ///    and derivatives for current parameter value
-class Variable
+
+class Var
 {
 public:
     const std::string name;
     RealRange domain;
 
+    Var(const std::string &name_, int nr) : name(name_), nr_(nr) {}
+    int get_nr() const { return nr_; };
+    realt get_value() const { return value_; };
+    bool is_simple() const { return nr_ != -1; }
+
+protected:
+    int nr_; /// see description of this class in var.h
+    realt value_;
+};
+
+class Variable : public Var
+{
+public:
     struct ParMult { int p; realt mult; };
     Variable(const std::string &name_, int nr);
     Variable(const std::string &name_, const std::vector<std::string> &vars,
              const std::vector<OpTree*> &op_trees);
     ~Variable();
+    bool is_constant() const;
+    std::string get_formula(const std::vector<realt> &parameters) const;
     void recalculate(const std::vector<Variable*> &variables,
                      const std::vector<realt> &parameters);
 
-    int get_nr() const { return nr_; };
     void erased_parameter(int k);
-    realt get_value() const { return value_; };
-    std::string get_formula(const std::vector<realt> &parameters) const;
     bool is_visible() const { return true; } //for future use
     void set_var_idx(const std::vector<Variable*> &variables);
     const std::vector<ParMult>& recursive_derivatives() const
                                             { return recursive_derivatives_; }
-    bool is_simple() const { return nr_ != -1; }
-    bool is_constant() const;
-
     std::vector<OpTree*> const& get_op_trees() const { return op_trees_; }
     void set_original(const Variable* orig) { assert(nr_==-2); original_=orig; }
     realt get_derivative(int n) const { return derivatives_[n]; }
     const IndexedVars& used_vars() const { return used_vars_; }
 
 private:
-    int nr_; /// see description of this class in .h
-    realt value_;
     IndexedVars used_vars_;
     std::vector<realt> derivatives_;
     std::vector<ParMult> recursive_derivatives_;
@@ -100,4 +109,5 @@ private:
     Variable const* original_;
 };
 
-#endif
+} // namespace fityk
+#endif // FITYK_VAR_H_

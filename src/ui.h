@@ -7,11 +7,12 @@
 #include "common.h"
 #include "ui_api.h"
 
+struct lua_State;
+
+namespace fityk {
 class Ftk;
 class Parser;
 class Runner;
-struct lua_State;
-using fityk::UiApi;
 
 /// commands, messages and plot refreshing
 /// it has callbacks that can be set by user interface
@@ -109,4 +110,5 @@ private:
     DISALLOW_COPY_AND_ASSIGN(UserInterface);
 };
 
+} // namespace fityk
 #endif

@@ -30,6 +30,7 @@ extern int luaopen_fityk(lua_State *L); // the SWIG wrappered library
 
 using namespace std;
 
+namespace fityk {
 
 // utils for reading FILE
 
@@ -185,7 +186,7 @@ UiApi::Status UserInterface::execute_line(const string& str)
     try {
         raw_execute_line(str);
     }
-    catch (fityk::SyntaxError &e) {
+    catch (SyntaxError &e) {
         warn(string("Syntax error: ") + e.what());
         status = UiApi::kStatusSyntaxError;
     }
@@ -325,7 +326,7 @@ lua_State* UserInterface::get_lua()
     swig_type_info *type_info = SWIG_TypeQuery(L_, "fityk::Fityk *");
     assert(type_info != NULL);
     int owned = 1;
-    fityk::Fityk *f = new fityk::Fityk(F_);
+    Fityk *f = new Fityk(F_);
     SWIG_NewPointerObj(L_, f, type_info, owned);
     lua_setglobal(L_, "F");
     return L_;
@@ -341,7 +342,7 @@ void UserInterface::close_lua()
 
 void UserInterface::exec_script(const string& filename)
 {
-    fityk::user_interrupt = false;
+    user_interrupt = false;
 
     if (endswith(filename, ".lua")) {
         exec_lua_script(filename);
@@ -380,14 +381,14 @@ void UserInterface::exec_script(const string& filename)
         bool r = execute_line(s);
         if (r != kStatusOk && F_->get_settings()->on_error[0] != 'n'/*nothing*/)
             break;
-        if (fityk::user_interrupt) {
+        if (user_interrupt) {
             mesg("Script stopped by signal INT.");
             break;
         }
         s.clear();
     }
     if (!s.empty())
-        throw fityk::SyntaxError("unfinished line");
+        throw SyntaxError("unfinished line");
 }
 
 
@@ -410,7 +411,7 @@ void UserInterface::exec_stream(FILE *fp)
         s.clear();
     }
     if (!s.empty())
-        throw fityk::SyntaxError("unfinished line");
+        throw SyntaxError("unfinished line");
 }
 
 void UserInterface::exec_string_as_script(const char* s)
@@ -502,3 +503,4 @@ void UserInterface::wait(float seconds) const
 #endif //_WIN32
 }
 
+} // namespace fityk

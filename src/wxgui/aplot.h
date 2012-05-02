@@ -61,7 +61,7 @@ private:
     void draw_diff (wxDC& dc, std::vector<Point>::const_iterator first,
                                 std::vector<Point>::const_iterator last);
     void draw_zoom_text(wxDC& dc, bool set_pen=true);
-    void fit_y_zoom(Data const* data, Model const* model);
+    void fit_y_zoom(fityk::Data const* data, fityk::Model const* model);
     void change_plot_kind(AuxPlotKind kind);
 
     DECLARE_EVENT_TABLE()

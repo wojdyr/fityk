@@ -9,6 +9,8 @@
 #include <boost/array.hpp>
 #include "common.h" // realt
 
+namespace fityk {
+
 class DataAndModel;
 class Tplate;
 class Settings;
@@ -41,5 +43,6 @@ private:
     double find_hwhm(int pos, double *area);
 };
 
+} // namespace fityk
 #endif
 

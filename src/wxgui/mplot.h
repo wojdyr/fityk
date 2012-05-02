@@ -5,13 +5,11 @@
 #define FITYK_WX_MPLOT_H_
 
 #include "plot.h"
-#include "../guess.h" // enum Guess::Kind
-
 
 /// it cares about visualization of spline / polyline background
 /// which can be set by selecting points on Plot
 
-class Function;
+namespace fityk { class Function; }
 class HintReceiver;
 class BgManager;
 class FunctionMouseDrag;
@@ -94,9 +92,9 @@ public:
         { hint_receiver_ = hr; update_mouse_hints(); }
     void set_auto_freeze(bool value) { auto_freeze_ = value; }
     BgManager* bgm() { return bgm_; }
-    void draw_overlay_func(const Function* f,
+    void draw_overlay_func(const fityk::Function* f,
                            const std::vector<realt>& p_values);
-    void draw_overlay_limits(const Function* f);
+    void draw_overlay_limits(const fityk::Function* f);
     bool crosshair_cursor() const { return crosshair_cursor_; }
     void set_crosshair_cursor(bool c)
         { crosshair_cursor_ = c; overlay.switch_mode(get_normal_ovmode()); }
@@ -135,16 +133,16 @@ private:
     void draw_x_axis (wxDC& dc, bool set_pen=true);
     void draw_y_axis (wxDC& dc, bool set_pen=true);
     void draw_baseline(wxDC& dc, bool set_pen=true);
-    void draw_model (wxDC& dc, const Model* model, bool set_pen=true);
-    //void draw_groups (wxDC& dc, const Model* model, bool set_pen=true);
-    void draw_peaks (wxDC& dc, const Model* model, bool set_pen=true);
-    void draw_peaktops (wxDC& dc, const Model* model);
-    void draw_peaktop_selection(wxDC& dc, const Model* model);
+    void draw_model (wxDC& dc, const fityk::Model* model, bool set_pen=true);
+    //void draw_groups (wxDC& dc, const fityk::Model* model, bool set_pen=true);
+    void draw_peaks (wxDC& dc, const fityk::Model* model, bool set_pen=true);
+    void draw_peaktops (wxDC& dc, const fityk::Model* model);
+    void draw_peaktop_selection(wxDC& dc, const fityk::Model* model);
     void draw_desc(wxDC& dc, int dataset, bool set_pen=true);
-    void draw_plabels (wxDC& dc, const Model* model, bool set_pen=true);
+    void draw_plabels (wxDC& dc, const fityk::Model* model, bool set_pen=true);
     void draw_dataset(wxDC& dc, int n, bool set_pen=true);
-    void prepare_peaktops(const Model* model, int Ymax);
-    void prepare_peak_labels(const Model* model);
+    void prepare_peaktops(const fityk::Model* model, int Ymax);
+    void prepare_peak_labels(const fityk::Model* model);
     void look_for_peaktop (wxMouseEvent& event);
     void show_peak_menu (wxMouseEvent &event);
     static bool visible_peaktops(MouseModeEnum mode);

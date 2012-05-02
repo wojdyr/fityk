@@ -39,6 +39,10 @@
 
 
 using namespace std;
+using fityk::Tplate;
+using fityk::Variable;
+using fityk::Function;
+using fityk::Model;
 
 enum {
     ID_DP_LIST       = 27500   ,
@@ -292,7 +296,7 @@ void SideBar::OnDataButtonDup (wxCommandEvent&)
 void SideBar::OnDataButtonRen (wxCommandEvent&)
 {
     int n = get_focused_data();
-    Data *data = ftk->get_data(n);
+    fityk::Data *data = ftk->get_data(n);
     wxString old_title = s2wx(data->get_title());
 
     wxString s = wxGetTextFromUser(
@@ -481,7 +485,7 @@ void SideBar::OnVarButtonNew (wxCommandEvent&)
 void SideBar::OnVarButtonEdit (wxCommandEvent&)
 {
     int n = get_focused_var();
-    if (n < 0 || n >= size(ftk->mgr.variables()))
+    if (n < 0 || n >= (int) ftk->mgr.variables().size())
         return;
     const Variable* var = ftk->mgr.get_variable(n);
     string t = "$" + var->name + " = "+ var->get_formula(ftk->mgr.parameters());
@@ -710,7 +714,7 @@ vector<int> SideBar::get_ordered_dataset_numbers()
     ordered.insert(ordered.end(), selected.begin(), selected.end());
     if (focused >= 0)
         ordered.push_back(focused);
-    assert (size(ordered) == count);
+    assert ((int) ordered.size() == count);
     return ordered;
 }
 

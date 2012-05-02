@@ -10,8 +10,7 @@
 #include "fit.h"
 #include "cmpfit/mpfit.h"
 
-
-struct mp_config_struct;
+namespace fityk {
 
 /// Wrapper around CMPFIT
 class MPfit : public Fit
@@ -31,5 +30,6 @@ private:
     int start_iter_;
 };
 
+} // namespace fityk
 #endif
 

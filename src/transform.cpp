@@ -10,6 +10,7 @@
 using namespace std;
 
 namespace {
+using namespace fityk;
 
 struct DtStackItem
 {
@@ -96,6 +97,7 @@ void shirley_bg(vector<Point> &pp)
 
 } // anonymous namespace
 
+namespace fityk {
 
 /// executes VM code and stores results in Dataset `out'
 void DatasetTransformer::run_dt(const VMData& vm, int out)
@@ -242,3 +244,4 @@ void DatasetTransformer::run_dt(const VMData& vm, int out)
         throw ExecuteError("dataset or 0 expected on RHS");
 }
 
+} // namespace fityk

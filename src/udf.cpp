@@ -8,6 +8,7 @@
 
 using namespace std;
 
+namespace fityk {
 
 Function* init_component(const string& func_name, const Tplate::Component& c,
                          vector<Variable*>& variables, const Settings* settings)
@@ -391,3 +392,4 @@ bool SplitFunction::get_nonzero_range(double level,
            right_->get_nonzero_range(level, dummy, right);
 }
 
+} // namespace fityk

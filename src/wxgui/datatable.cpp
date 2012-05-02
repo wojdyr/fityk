@@ -10,6 +10,8 @@
 #include "../data.h"
 
 using namespace std;
+using fityk::Point;
+using fityk::Data;
 
 class BetterGridCellFloatEditor : public wxGridCellFloatEditor
 {

@@ -238,9 +238,9 @@ int EditorDlg::exec_fityk_line(int n)
 
     // the same replacement as in UserInterface::exec_script()
     if (s.find("_SCRIPT_DIR_/") != string::npos) {
-        string dir = get_directory(wx2s(path_));
-        replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir); // old magic string
-        replace_all(s, "_SCRIPT_DIR_/", dir); // new magic string
+        string dir = fityk::get_directory(wx2s(path_));
+        fityk::replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir);// old magic string
+        fityk::replace_all(s, "_SCRIPT_DIR_/", dir); // new magic string
     }
 
     exec(s);

@@ -15,6 +15,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 Model::Model(Ftk *F)
     : F_(F), mgr(F->mgr)
 {
@@ -241,3 +243,4 @@ realt Model::numarea(realt x1, realt x2, int nsteps) const
     return a;
 }
 
+} // namespace fityk

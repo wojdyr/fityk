@@ -11,6 +11,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 /// checks if *this depends (directly or indirectly) on variable with index idx
 bool IndexedVars::depends_on(int idx, vector<Variable*> const &variables) const
 {
@@ -50,7 +52,7 @@ int IndexedVars::get_max_idx() const
 
 // ctor for simple variables and mirror variables
 Variable::Variable(string const &name_, int nr)
-    : name(name_), nr_(nr), original_(NULL)
+    : Var(name_, nr), original_(NULL)
 {
     assert(!name_.empty());
     if (nr_ != -2) {
@@ -64,7 +66,7 @@ Variable::Variable(string const &name_, int nr)
 // ctor for compound variables
 Variable::Variable(string const &name_, vector<string> const &vars,
                    vector<OpTree*> const &op_trees)
-    : name(name_), nr_(-1), used_vars_(vars),
+    : Var(name_, -1), used_vars_(vars),
       derivatives_(vars.size()), op_trees_(op_trees), original_(NULL)
 {
     assert(!name_.empty());
@@ -149,3 +151,4 @@ bool Variable::is_constant() const
     return nr_ == -1 && op_trees_.back()->op == 0;
 }
 
+} // namespace fityk

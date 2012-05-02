@@ -18,6 +18,7 @@
 using namespace std;
 
 namespace {
+using namespace fityk;
 
 vector<int>::const_iterator
 skip_code(vector<int>::const_iterator i, int start_op, int finish_op)
@@ -76,6 +77,7 @@ realt find_idx_in_sorted(vector<Point> const& pp, realt x)
 
 } // anonymous namespace
 
+namespace fityk {
 
 /// debuging utility
 #define OP_(x) \
@@ -779,3 +781,4 @@ realt run_code_for_custom_func_value(const VMData& vm, realt x,
     return stack[0];
 }
 
+} // namespace fityk

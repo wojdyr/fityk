@@ -17,7 +17,7 @@
 #  include <wx/filepicker.h>
 #  include <xylib/xylib.h>
 #else
-   class Data;
+   namespace fityk { class Data; }
 #endif
 
 class LockableRealCtrl;
@@ -73,7 +73,7 @@ private:
     RealNumberCtrl *range_from, *range_to;
     const xylib::DataSet* data;
 #else
-    const Data* data;
+    const fityk::Data* data;
 #endif
     wxRadioBox *radiation_rb, *xaxis_rb;
     wxRadioBox *peak_rb, *center_rb, *width_rb, *shape_rb;

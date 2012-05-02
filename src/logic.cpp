@@ -23,6 +23,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 DataAndModel::DataAndModel(Ftk *F, Data* data)
     : data_(data ? data : new Data(F)), model_(new Model(F))
 {}
@@ -252,3 +254,4 @@ void Ftk::outdated_plot()
     fit_container_->outdated_error_cache();
 }
 
+} // namespace fityk

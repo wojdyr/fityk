@@ -7,6 +7,8 @@
 #include <utility>
 #include "common.h"
 
+namespace fityk {
+
 class Ftk;
 
 // settings that can be changed using the set command
@@ -108,5 +110,6 @@ private:
     DISALLOW_COPY_AND_ASSIGN(SettingsMgr);
 };
 
+} // namespace fityk
 #endif
 

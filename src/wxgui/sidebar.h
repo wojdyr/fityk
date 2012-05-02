@@ -18,9 +18,7 @@ class GradientDlg;
 class FancyRealCtrl;
 class ListPlusText;
 class DataListPlusText;
-class Function;
-class Variable;
-
+namespace fityk { class Function; }
 
 class SideBar : public ProportionalSplitter, public ParameterPanelObserver
 {
@@ -94,7 +92,7 @@ public:
 private:
     wxNotebook *nb;
     wxPanel *data_page, *func_page, *var_page;
-    Function const* pp_func; ///parameter panel function
+    fityk::Function const* pp_func; ///parameter panel function
     ParameterPanel *param_panel;
     DataListPlusText *d;
     ListPlusText *f, *v;

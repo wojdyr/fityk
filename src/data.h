@@ -9,11 +9,10 @@
 #include "common.h"
 
 #include "fityk.h" // struct Point
-using fityk::Point;
-//using fityk::operator<;
+
+namespace fityk {
 
 class Ftk;
-namespace xylib { class DataSet; }
 
 std::string get_file_basename(std::string const& path);
 
@@ -106,5 +105,6 @@ inline std::vector<realt> Data::get_xx() const
     return xx;
 }
 
+} // namespace fityk
 #endif
 

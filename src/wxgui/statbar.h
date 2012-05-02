@@ -9,8 +9,7 @@
 #include <wx/config.h>
 
 #include "cmn.h" //SpinCtrl
-#include "../eparser.h" //ExpressionParser
-
+#include "../eparser.h" // ExpressionParser
 
 // used by MainPlot to set hints on FStatusBar
 class HintReceiver
@@ -53,7 +52,7 @@ private:
     // a number calculated as a function of cursor coordinates x and y and
     // shown at the status bar (as a 3rd number, after x and y)
     wxString extra_value;
-    ExpressionParser extra_parser; // parser/vm for calculating extra value
+    fityk::ExpressionParser extra_parser; // parser/vm for extra value
     int e_prec; // precision of extra value shown at status bar
 
     bool show_btn;

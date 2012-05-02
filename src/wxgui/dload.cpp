@@ -21,6 +21,7 @@
 #include "../common.h"
 
 using namespace std;
+using fityk::Data;
 
 /// data_idx - data slot to be used by "Replace ..." button, -1 means none
 /// data - used for default settings (path, columns, etc.), not NULL

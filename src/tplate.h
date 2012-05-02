@@ -11,6 +11,8 @@
 #include "common.h" // DISALLOW_COPY_AND_ASSIGN
 #include "vm.h" // VMData
 
+namespace fityk {
+
 class Settings;
 class Function;
 class Parser;
@@ -92,4 +94,5 @@ Function* create_SplitFunction(const Settings* s, const std::string& name,
 Function* create_CustomFunction(const Settings* s, const std::string& name,
                         Tplate::Ptr tp, const std::vector<std::string>& vars);
 
+} // namespace fityk
 #endif // FITYK_TPLATE_H_

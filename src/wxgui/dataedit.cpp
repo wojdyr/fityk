@@ -17,7 +17,6 @@
 
 using namespace std;
 
-
 // ';' will be replaced by line break
 static const char *default_transforms[] = {
 
@@ -388,7 +387,7 @@ void EditTransDlg::OnUp(wxCommandEvent&)
 void EditTransDlg::OnDown(wxCommandEvent&)
 {
     int item = trans_list->GetSelection();
-    if (item == wxNOT_FOUND || item >= size(transforms) - 1)
+    if (item == wxNOT_FOUND || item >= (int) transforms.size() - 1)
         return;
     swap(transforms[item], transforms[item+1]);
     trans_list->SetString(item, transforms[item].name);

@@ -22,6 +22,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 string OpTree::str(const OpTreeFormat& fmt)
 {
     if (op < 0) {
@@ -789,7 +791,7 @@ string simplify_formula(string const &formula, const char* num_fmt)
     try {
         ep.parse_expr(lex, -1, NULL, NULL, ExpressionParser::kAstMode);
     }
-    catch (fityk::SyntaxError&) {
+    catch (SyntaxError&) {
         return formula;
     }
     // derivatives are calculated only as a side effect
@@ -1164,3 +1166,4 @@ void add_bytecode_from_tree(const OpTree* tree, const vector<int> &symbol_map,
     }
 }
 
+} // namespace fityk

@@ -15,6 +15,8 @@
 #include <nlopt.h>
 #include "fit.h"
 
+namespace fityk {
+
 class NLfit : public Fit
 {
 public:
@@ -31,7 +33,8 @@ private:
     int start_iter_;
 };
 
+} // namespace fityk
 #endif //HAVE_LIBNLOPT
 
-#endif
+#endif // FITYK_NLFIT_H_
 

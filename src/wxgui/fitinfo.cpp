@@ -16,6 +16,7 @@
 #include "../var.h"
 
 using namespace std;
+using fityk::Variable;
 
 NumericFormatPanel::NumericFormatPanel(wxWindow* parent)
     : wxPanel(parent, -1)
@@ -124,7 +125,7 @@ bool FitInfoDlg::Initialize()
     try {
         update_left_tc();
         update_right_tc();
-    } catch (ExecuteError &e) {
+    } catch (fityk::ExecuteError &e) {
         ftk->ui()->warn(string("Error: ") + e.what());
         return false;
     }
@@ -143,7 +144,7 @@ void FitInfoDlg::update_left_tc()
     string s;
     vector<DataAndModel*> dms = frame->get_selected_dms();
     const vector<realt> &pp = ftk->mgr.parameters();
-    ::Fit *fit = ftk->get_fit();
+    fityk::Fit *fit = ftk->get_fit();
     int dof = fit->get_dof(dms);
     double wssr = fit->do_compute_wssr(pp, dms, true);
     wssr_over_dof = wssr / dof;
@@ -172,7 +173,7 @@ void FitInfoDlg::update_left_tc()
 
 void FitInfoDlg::update_right_tc()
 {
-    ::Fit *fit = ftk->get_fit();
+    fityk::Fit *fit = ftk->get_fit();
     int choice = right_c->GetSelection();
     vector<DataAndModel*> dms = frame->get_selected_dms();
     vector<realt> const &pp = ftk->mgr.parameters();
@@ -184,7 +185,7 @@ void FitInfoDlg::update_right_tc()
             try {
                 errors = fit->get_standard_errors(dms);
             }
-            catch (ExecuteError&) {
+            catch (fityk::ExecuteError&) {
                 errors.resize(na, 0.);
             }
             if (choice == 1)
@@ -204,7 +205,7 @@ void FitInfoDlg::update_right_tc()
             try {
                 errors = fit->get_confidence_limits(dms, level);
             }
-            catch (ExecuteError&) {
+            catch (fityk::ExecuteError&) {
                 errors.resize(na, 0.);
             }
         }
@@ -236,7 +237,7 @@ void FitInfoDlg::update_right_tc()
         try {
             alpha = fit->get_covariance_matrix(dms);
         }
-        catch (ExecuteError&) {
+        catch (fityk::ExecuteError&) {
             alpha.resize(na*na, 0.);
         }
         for (int i = 0; i < na; ++i)

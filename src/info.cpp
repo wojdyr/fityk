@@ -31,6 +31,7 @@ extern "C" {
 
 using namespace std;
 
+namespace fityk {
 
 // get standard formula and make it parsable by the gnuplot program
 string& gnuplotize_formula(string& formula)
@@ -656,7 +657,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
             while (parser.parse_statement(lex))
                 r += parser.get_statements_repr();
         }
-        catch (fityk::SyntaxError& e) {
+        catch (SyntaxError& e) {
             r += string("ERR: ") + e.what();
         }
     }
@@ -674,7 +675,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
             parser.parse_expr(lex, -1);
             r += vm2str(parser.vm());
         }
-        catch (fityk::SyntaxError& e) {
+        catch (SyntaxError& e) {
             r += "ERROR at " + S(lex.scanned_chars()) + ": " + e.what();
         }
         if (lex.peek_token().type != kTokenNop)
@@ -792,3 +793,4 @@ void parse_and_eval_info(Ftk *F, const string& s, int dataset,
     eval_info_args(F, dataset, args, args.size(), result);
 }
 
+} // namespace fityk

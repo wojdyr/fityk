@@ -8,6 +8,8 @@
 
 #include <string>
 
+namespace fityk {
+
 class VMData;
 
 #ifdef _WIN32
@@ -148,4 +150,5 @@ private:
 
 std::string token2str(const Token& token);
 
+} // namespace fityk
 #endif // FITYK__LEXER__H__

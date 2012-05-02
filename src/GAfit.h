@@ -7,6 +7,7 @@
 #include "common.h"
 #include "fit.h"
 
+namespace fityk {
 /// Individual in Genetic Algorithms (i.e. candidate solutions)
 struct Individual
 {
@@ -80,5 +81,6 @@ private:
     void compute_wssr_for_ind (std::vector<Individual>::iterator ind);
 };
 
+} // namespace fityk
 #endif
 

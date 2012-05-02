@@ -8,6 +8,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 /// returns position pos in sorted vector of points, *pos and *(pos+1) are
 /// required segment for interpolation
 /// optimized for sequenced calling with slowly increasing x's
@@ -156,3 +158,4 @@ void SimplePolylineConvex::push_point(PointD const& p)
     }
 }
 
+} // namespace fityk

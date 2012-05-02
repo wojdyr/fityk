@@ -76,7 +76,7 @@ bool ModelInfoDlg::Initialize()
 
     try {
         update_text();
-    } catch (ExecuteError &e) {
+    } catch (fityk::ExecuteError &e) {
         ftk->ui()->warn(string("Error: ") + e.what());
         return false;
     }
@@ -103,13 +103,13 @@ void ModelInfoDlg::update_text()
     bool simplify = simplify_cb->GetValue();
     bool extra_breaks = extra_space_cb->GetValue();
     const char* fmt = nf->format().c_str();
-    vector<DataAndModel*> dms = frame->get_selected_dms();
-    v_foreach (DataAndModel*, i, dms) {
-        Model *model = (*i)->model();
+    vector<fityk::DataAndModel*> dms = frame->get_selected_dms();
+    v_foreach (fityk::DataAndModel*, i, dms) {
+        fityk::Model *model = (*i)->model();
         if (sel == 0 || sel == 1) { // formula or gnuplot formula
             string formula = model->get_formula(simplify, fmt, extra_breaks);
             if (sel == 1)
-                formula = gnuplotize_formula(formula);
+                formula = fityk::gnuplotize_formula(formula);
             if (i != dms.begin())
                 s += "\n";
             s += formula;

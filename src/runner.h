@@ -9,6 +9,8 @@
 #include "eparser.h"
 #include "view.h" //RealRange
 
+namespace fityk {
+
 class Ftk;
 struct Statement;
 struct Command;
@@ -60,4 +62,5 @@ private:
     VMData* get_vm_from_token(const Token& t) const;
 };
 
+} // namespace fityk
 #endif //FITYK_RUNNER_H_

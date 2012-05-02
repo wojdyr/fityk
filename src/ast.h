@@ -7,6 +7,8 @@
 #include <assert.h>
 #include "vm.h" // opcodes
 
+namespace fityk {
+
 struct Tplate;
 
 struct OpTreeFormat
@@ -59,6 +61,6 @@ std::string simplify_formula(const std::string &formula, const char* num_fmt);
 void get_derivatives_str(const char* formula, std::string& result);
 void add_bytecode_from_tree(const OpTree* tree,
                             const std::vector<int> &symbol_map, VMData& vm);
-
+} // namespace fityk
 #endif
 

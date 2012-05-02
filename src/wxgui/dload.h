@@ -6,13 +6,14 @@
 
 #include "cmn.h" //ProportionalSplitter, KFTextCtrl, ...
 
-class Data;
+namespace fityk { class Data; }
 class XyFileBrowser;
 
 class DLoadDlg : public wxDialog
 {
 public:
-    DLoadDlg(wxWindow* parent, int data_idx, Data* data, const wxString& dir);
+    DLoadDlg(wxWindow* parent, int data_idx, fityk::Data* data,
+             const wxString& dir);
 
 private:
     int data_idx_;

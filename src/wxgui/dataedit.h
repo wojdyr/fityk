@@ -8,7 +8,7 @@
 #include <string>
 #include <vector>
 
-class Data;
+namespace fityk { class Data; }
 
 struct DataTransform
 {
@@ -32,7 +32,7 @@ struct DataTransform
 class EditTransDlg : public wxDialog
 {
     friend class DataTable;
-    typedef std::vector<std::pair<int,Data*> > ndnd_type;
+    typedef std::vector<std::pair<int,fityk::Data*> > ndnd_type;
 public:
     EditTransDlg (wxWindow* parent, wxWindowID id, ndnd_type const& dd);
     static std::vector<DataTransform> const& get_transforms()

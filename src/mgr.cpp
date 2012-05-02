@@ -22,6 +22,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 VariableManager::VariableManager(const Ftk* F)
     : F_(F),
       var_autoname_counter_(0),
@@ -626,3 +628,5 @@ void VariableManager::update_indices_in_models()
         update_indices((*i)->get_zz());
     }
 }
+
+} // namespace fityk

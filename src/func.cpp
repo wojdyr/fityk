@@ -9,6 +9,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 vector<realt> Function::calc_val_xx(1);
 vector<realt> Function::calc_val_yy(1);
 
@@ -16,7 +18,7 @@ Function::Function(const Settings* settings,
                    const string &name_,
                    const Tplate::Ptr tp,
                    const vector<string> &vars)
-    : name(name_),
+    : Func(name_),
       used_vars_(vars),
       settings_(settings),
       tp_(tp),
@@ -354,3 +356,4 @@ realt Function::find_extremum(realt x1, realt x2, int max_iter) const
                        + " steps");
 }
 
+} // namespace fityk

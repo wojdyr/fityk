@@ -18,6 +18,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 // filename utils
 string get_file_basename(const string& path)
 {
@@ -471,3 +473,4 @@ double Data::get_x_max() const
     return 180.;
 }
 
+} // namespace fityk

@@ -10,6 +10,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 const char* fityk_version_line = "# Fityk script. Fityk version: " VERSION;
 
 vector<int> range_vector(int l, int u)
@@ -132,3 +134,4 @@ bool match_glob(const char* name, const char* pattern)
     return *name == '\0';
 }
 
+} // namespace fityk

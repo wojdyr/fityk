@@ -7,8 +7,9 @@
 #include <limits.h>
 #include <vector>
 #include <wx/config.h>
-#include "../data.h" //Point
-#include "uplot.h" //BufferedPanel
+#include "../fityk.h" // Point
+#include "../common.h" // iround()
+#include "uplot.h" // BufferedPanel
 #include "cmn.h" // compatibility with wx2.8 (defined wxPenStyle, etc.)
 
 // convention: lowercase coordinates of point are real values,
@@ -16,10 +17,8 @@
 
 // INT_MIN, given as coordinate, is invalid value, means "cancel drawing"
 
-class Model;
-class Function;
-class Data;
-class Rect;
+namespace fityk { class Model; class Data; struct Rect; }
+using fityk::Point;
 struct wxPoint2DDouble;
 
 inline int get_pixel_width(wxDC const& dc)
@@ -171,18 +170,18 @@ protected:
     std::vector<wxPoint> special_points; //used to mark positions of peak tops
     wxWindow *esc_source_; // temporary source of OnKeyDown() events
 
-    void draw_xtics (wxDC& dc, Rect const& v, bool set_pen=true);
-    void draw_ytics (wxDC& dc, Rect const &v, bool set_pen=true);
+    void draw_xtics (wxDC& dc, fityk::Rect const& v, bool set_pen=true);
+    void draw_ytics (wxDC& dc, fityk::Rect const &v, bool set_pen=true);
     double get_max_abs_y(double (*compute_y)(std::vector<Point>::const_iterator,
-                                             Model const*),
+                                             fityk::Model const*),
                          std::vector<Point>::const_iterator first,
                          std::vector<Point>::const_iterator last,
-                         Model const* model);
+                         fityk::Model const* model);
     void draw_data (wxDC& dc,
                     double (*compute_y)(std::vector<Point>::const_iterator,
-                                        Model const*),
-                    Data const* data,
-                    Model const* model,
+                                        fityk::Model const*),
+                    fityk::Data const* data,
+                    fityk::Model const* model,
                     wxColour const& color = wxNullColour,
                     wxColour const& inactive_color = wxNullColour,
                     int Y_offset = 0,

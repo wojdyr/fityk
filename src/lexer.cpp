@@ -14,7 +14,8 @@
 #include "common.h" // S()
 
 using namespace std;
-using fityk::SyntaxError;
+
+namespace fityk {
 
 string Lexer::get_string(const Token& token)
 {
@@ -440,3 +441,4 @@ void Lexer::throw_syntax_error(const string& msg)
     throw SyntaxError("at " + s + ": " + msg);
 }
 
+} // namespace fityk

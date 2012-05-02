@@ -44,10 +44,11 @@ void write_message_to_file(UserInterface::Style style, string const& s)
 } // namespace fityk
 
 namespace {
+using namespace fityk;
 
 realt get_wssr_or_ssr(Ftk const* ftk, int dataset, bool weigthed)
 {
-    if (dataset == fityk::all_datasets) {
+    if (dataset == all_datasets) {
         realt result = 0;
         for (int i = 0; i < ftk->get_dm_count(); ++i)
             result += Fit::compute_wssr_for_data(ftk->get_dm(i), weigthed);
@@ -62,7 +63,7 @@ realt get_wssr_or_ssr(Ftk const* ftk, int dataset, bool weigthed)
 vector<DataAndModel*> get_datasets_(Ftk* ftk, int dataset)
 {
     vector<DataAndModel*> dd;
-    if (dataset == fityk::all_datasets) {
+    if (dataset == all_datasets) {
         for (int i = 0; i < ftk->get_dm_count(); ++i)
             dd.push_back(ftk->get_dm(i));
     }
@@ -72,7 +73,7 @@ vector<DataAndModel*> get_datasets_(Ftk* ftk, int dataset)
     return dd;
 }
 
-} //anonymous namespace
+} // anonymous namespace
 
 namespace fityk
 {
@@ -255,8 +256,8 @@ void Fityk::redir_messages(FILE *stream)
 {
     if (stream) {
         UiApi::t_show_message_callback* old
-          = ftk_->ui()->connect_show_message(fityk::write_message_to_file);
-        if (old != fityk::write_message_to_file)
+          = ftk_->ui()->connect_show_message(write_message_to_file);
+        if (old != write_message_to_file)
             p_->old_message_callback = old;
     }
     else
@@ -295,7 +296,7 @@ realt Fityk::get_ssr(int dataset)  throw(ExecuteError)
 realt Fityk::get_rsquared(int dataset)  throw(ExecuteError)
 {
     try {
-        if (dataset == fityk::all_datasets) {
+        if (dataset == all_datasets) {
             realt result = 0;
             for (int i = 0; i < ftk_->get_dm_count(); ++i)
                 result += Fit::compute_r_squared_for_data(ftk_->get_dm(i),

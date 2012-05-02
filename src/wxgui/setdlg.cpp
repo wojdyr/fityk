@@ -87,7 +87,7 @@ wxChoice *addEnumSetting(wxWindow *parent, const wxString& label,
     wxStaticText *st = new wxStaticText(parent, -1, label);
     hsizer->Add(st, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     wxArrayString array;
-    const char** values = SettingsMgr::get_allowed_values(option);
+    const char** values = fityk::SettingsMgr::get_allowed_values(option);
     while (*values != NULL) {
         array.Add(pchar2wx(*values));
         ++values;
@@ -131,7 +131,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
                wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
 {
-    const Settings* settings = ftk->get_settings();
+    const fityk::Settings* settings = ftk->get_settings();
     wxNotebook *nb = new wxNotebook(this, -1);
     wxPanel *page_general = new wxPanel(nb, -1);
     nb->AddPage(page_general, wxT("general"));

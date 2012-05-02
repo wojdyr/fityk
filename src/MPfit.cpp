@@ -7,6 +7,7 @@
 
 using namespace std;
 
+namespace fityk {
 
 void MPfit::init()
 {
@@ -156,3 +157,4 @@ void MPfit::autoiter()
     delete [] perror;
 }
 
+} // namespace fityk

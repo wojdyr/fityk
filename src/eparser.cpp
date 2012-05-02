@@ -22,6 +22,8 @@ using namespace std;
 
 namespace {
 
+using namespace fityk;
+
 int get_op_priority(int op)
 {
     switch (op) {
@@ -284,6 +286,7 @@ protected:
 
 } // anonymous namespace
 
+namespace fityk {
 
 void ExpressionParser::pop_onto_que()
 {
@@ -1054,3 +1057,4 @@ void ExpressionParser::push_assign_lhs(const Token& t)
     vm_.append_code(op);
 }
 
+} // namespace fityk

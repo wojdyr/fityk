@@ -22,6 +22,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 Fit::Fit(Ftk *F, const string& m)
     : name(m), F_(F),
       evaluations_(0), iter_nr_(0), na_(0), last_refresh_time_(0)
@@ -770,4 +772,4 @@ string ParameterHistoryMgr::param_history_info() const
     return s;
 }
 
-
+} // namespace fityk

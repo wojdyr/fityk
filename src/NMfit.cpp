@@ -13,6 +13,8 @@
 
 using namespace std;
 
+namespace fityk {
+
 void NMfit::init()
 {
     bool move_all = F_->get_settings()->nm_move_all;
@@ -174,3 +176,4 @@ void NMfit::compute_v(Vertex& v)
     v.computed = true;
 }
 
+} // namespace fityk
