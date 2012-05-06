@@ -54,7 +54,7 @@ endif
 
 swig__fityk_la_SOURCES = swig/fityk_python.cpp
 swig__fityk_la_CPPFLAGS = $(PYTHON_CPPFLAGS) -I$(srcdir)
-swig__fityk_la_LDFLAGS = $(LIBRARY_VERSION_FLAG) -module
+swig__fityk_la_LDFLAGS = -module -avoid-version -shared
 swig__fityk_la_LIBADD = libfityk.la
 
 $(srcdir)/swig/luarun.h:
