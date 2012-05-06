@@ -1,6 +1,8 @@
 
-* API: get_fitted_parameters(), get_variables(), get_functions(),
+* API: all_parameters(), all_variables(), all_functions()
        get_components(int n, char='F')
+
+* #define FITYK_API //__declspec(dllexport)
 
 * Windows build: use readline lib if possible, investigate signing .exe,
   use xylib.dll -DXYLIB_DLL?

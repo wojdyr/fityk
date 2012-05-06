@@ -163,6 +163,8 @@ Active and Inactive Points
 We often have the situation that only a part of the data from a file is
 of interest. In Fityk, each point is either *active* or *inactive*.
 Inactive points are excluded from fitting and all calculations.
+(Since active points do not need to be in one region, we do not use
+the *region of interest* term here, but such region can be easy selected).
 A data :ref:`transformation <transform>`::
 
    A = boolean-condition
