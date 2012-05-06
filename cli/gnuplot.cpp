@@ -14,7 +14,7 @@
 #include <string>
 #include <algorithm>
 
-#include "fityk.h"
+#include "fityk/fityk.h"
 #include <config.h> // HAVE_FINITE
 
 #define GNUPLOT_PATH "gnuplot"

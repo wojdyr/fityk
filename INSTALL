@@ -55,7 +55,7 @@ To install the latest version from Git
 Install automake, autoconf, libtool.
 
 Download http://www.physics.wisc.edu/~craigm/idl/down/cmpfit-1.2.tar.gz
-unpack it and copy cmpfit-1.2/mpfit.* to fityk/src/cmpfit/
+unpack it and copy cmpfit-1.2/mpfit.* to fityk/fityk/cmpfit/
 
 Before the ./configure step, run:
 $ autoreconf -iv
@@ -72,7 +72,7 @@ Configuration Options
 To build python bindings, use --enable-python option.
 
 To build perl bindings, install perl-ExtUtils-Embed and do "make perl"
-in src/ subdirectory. swig/Fityk.pm and swig/perl/Fityk.so can be installed
+in fityk/ subdirectory. swig/Fityk.pm and swig/perl/Fityk.so can be installed
 manually. Try test: samples/hello.pl.
 
 

@@ -10,8 +10,8 @@ set -x
 # from http://www.physics.wisc.edu/~craigm/idl/cmpfit.html
 curl -O http://www.physics.wisc.edu/~craigm/idl/down/cmpfit-1.2.tar.gz
 tar xzf cmpfit-1.2.tar.gz
-mkdir -p src/cmpfit/
-cp -af cmpfit-1.2/mpfit.* src/cmpfit/
+mkdir -p fityk/cmpfit/
+cp -af cmpfit-1.2/mpfit.* fityk/cmpfit/
 
 autoreconf --install --verbose  \
 && ./configure "$@"

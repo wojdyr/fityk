@@ -4,7 +4,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include <fityk.h>
+#include <fityk/fityk.h>
 
 
 int main()

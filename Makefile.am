@@ -8,7 +8,7 @@ EXTRA_DIST = fityk.iss fityk.url fityk.svg \
              doc/Makefile \
              doc/html
 
-SUBDIRS = src
+SUBDIRS = fityk
 if CLI_DIR
 bin_PROGRAMS = cli/cfityk
 endif
@@ -23,8 +23,7 @@ dist_mimepkg_DATA = fityk.xml
 
 # ---  cli/ ---
 cli_cfityk_SOURCES = cli/gnuplot.cpp cli/main.cpp cli/gnuplot.h
-cli_cfityk_CPPFLAGS = -I$(srcdir)/src
-cli_cfityk_LDADD = src/libfityk.la $(READLINE_LIBS)
+cli_cfityk_LDADD = fityk/libfityk.la $(READLINE_LIBS)
 
 # --- samples/ ---
 
@@ -42,11 +41,11 @@ dist_samples_DATA = samples/nacl01.fit samples/nacl01.dat \
 
 check_PROGRAMS = samples/hello samples/helloc
 samples_hello_SOURCES = samples/hello.cc
-samples_hello_CPPFLAGS = -I$(srcdir)/src
-samples_hello_LDADD = src/libfityk.la
+samples_hello_CPPFLAGS = -I$(srcdir)
+samples_hello_LDADD = fityk/libfityk.la
 samples_helloc_SOURCES = samples/hello.c
-samples_helloc_CPPFLAGS = -I$(srcdir)/src
-samples_helloc_LDADD = src/libfityk.la
+samples_helloc_CPPFLAGS = -I$(srcdir)
+samples_helloc_LDADD = fityk/libfityk.la
 
 
 # --- doc/ ---

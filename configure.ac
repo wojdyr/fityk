@@ -3,7 +3,7 @@
 AC_INIT([fityk],[1.1.2])
 LIBRARY_VERSION_FLAG="-version-info 3:1:0"
 
-AC_CONFIG_SRCDIR([src/voigt.h])
+AC_CONFIG_SRCDIR([fityk/voigt.h])
 AC_CONFIG_AUX_DIR(build-aux)
 AC_CONFIG_MACRO_DIR([m4])
 AC_CONFIG_HEADER([config.h])
@@ -199,6 +199,6 @@ AC_DEFINE_UNQUOTED(CONFIGURE_ARGS, "$ac_configure_args", [ac_configure_args])
 
 AC_OUTPUT([Makefile
            fityk.iss
-	   src/Makefile
-	   src/wxgui/Makefile])
+           fityk/Makefile
+           fityk/wxgui/Makefile])
 

@@ -2,7 +2,7 @@
 #include <iostream>
 #include <cmath>
 
-#include <fityk.h>
+#include <fityk/fityk.h>
 
 using namespace std;
 using namespace fityk;

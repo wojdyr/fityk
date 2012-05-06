@@ -15,6 +15,8 @@
 # define REALT_LENGTH_MOD ""
 #endif
 
+#ifdef __cplusplus
+
 #include <cstdio>
 #include <cfloat> // DBL_MAX
 #include <string>
@@ -22,8 +24,6 @@
 #include <stdexcept>
 
 namespace fityk {
-
-#ifdef __cplusplus
 
 #ifdef _MSC_VER
 // C++ exception specifications are used by SWIG bindings
