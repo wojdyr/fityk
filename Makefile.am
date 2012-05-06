@@ -9,6 +9,9 @@ EXTRA_DIST = fityk.iss fityk.url fityk.svg \
              doc/html
 
 SUBDIRS = fityk
+if GUI_DIR
+SUBDIRS += wxgui
+endif
 if CLI_DIR
 bin_PROGRAMS = cli/cfityk
 endif

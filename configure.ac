@@ -200,5 +200,5 @@ AC_DEFINE_UNQUOTED(CONFIGURE_ARGS, "$ac_configure_args", [ac_configure_args])
 AC_OUTPUT([Makefile
            fityk.iss
            fityk/Makefile
-           fityk/wxgui/Makefile])
+           wxgui/Makefile])
 

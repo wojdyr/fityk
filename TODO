@@ -9,9 +9,6 @@
 
 ----- 1.1.2
 
-* change dir structure: cli/ and wxgui/ should go to the top dir,
-  rename src to fityk
-
 * NLopt interface
 
 * FFT data transformation using FFTW library,

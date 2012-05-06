@@ -53,8 +53,8 @@ elif [ $1 -eq 1 ]; then
  cd ./samples
  ../cli/cfityk nacl01.fit
  ../cli/cfityk test_syntax.fit
- ../fityk/wxgui/fityk nacl01.fit
- ../fityk/wxgui/fityk SiC_Zn.fit
+ ../wxgui/fityk nacl01.fit
+ ../wxgui/fityk SiC_Zn.fit
  make && ./hello
 
 
@@ -89,7 +89,7 @@ elif [ $1 -eq 4 ]; then
  cp -r $SRC_DIR/doc/html/ $ALL_WIN_FILES/
  cp $SRC_DIR/samples/*.fit $SRC_DIR/samples/*.dat $SRC_DIR/samples/README \
     $ALL_WIN_FILES/samples/
- cp fityk/wxgui/fityk.exe cli/cfityk.exe $ALL_WIN_FILES/fityk/
+ cp wxgui/fityk.exe cli/cfityk.exe $ALL_WIN_FILES/fityk/
  echo everything is in: `pwd`/$ALL_WIN_FILES
  
 
@@ -131,12 +131,12 @@ elif [ $1 -eq 10 ]; then
 elif [ $1 -eq 11 ]; then
  echo "11. (optional) update xyconvert"
  xylib_version=0.6
- cp -f $MINGW_DIR/fityk/wxgui/xyconvert.exe . || exit 1
+ cp -f $MINGW_DIR/wxgui/xyconvert.exe . || exit 1
  rm -f xyconvert-$xylib_version.zip
  zip xyconvert-$xylib_version.zip xyconvert.exe
  rm -f xyconvert.exe
- (cd fityk/wxgui/ && make xyconvert.html)
- scp fityk/wxgui/xyconvert.html $WEB/xyconvert/index.html
+ (cd wxgui/ && make xyconvert.html)
+ scp wxgui/xyconvert.html $WEB/xyconvert/index.html
  scp xyconvert-$xylib_version.zip $WEB/xyconvert/
 
 else
