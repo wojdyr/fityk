@@ -72,8 +72,8 @@ Configuration Options
 To build python bindings, use --enable-python option.
 
 To build perl bindings, install perl-ExtUtils-Embed and do "make perl"
-in src/ subdirectory. Fityk.pm and Fityk.so should be in swig/, install
-them manually and test bindings using samples/hello.pl.
+in src/ subdirectory. swig/Fityk.pm and swig/perl/Fityk.so can be installed
+manually. Try test: samples/hello.pl.
 
 
 For debugging you may use:

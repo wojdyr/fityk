@@ -9,6 +9,9 @@ EXTRA_DIST = fityk.iss fityk.url fityk.svg \
              doc/html
 
 SUBDIRS = src
+if CLI_DIR
+bin_PROGRAMS = cli/cfityk
+endif
 
 icondir = $(datadir)/pixmaps
 desktopdir = $(datadir)/applications
@@ -17,6 +20,11 @@ mimepkgdir = $(datadir)/mime/packages
 dist_icon_DATA = fityk.png
 dist_desktop_DATA = fityk.desktop
 dist_mimepkg_DATA = fityk.xml
+
+# ---  cli/ ---
+cli_cfityk_SOURCES = cli/gnuplot.cpp cli/main.cpp cli/gnuplot.h
+cli_cfityk_CPPFLAGS = -I$(srcdir)/src
+cli_cfityk_LDADD = src/libfityk.la $(READLINE_LIBS)
 
 # --- samples/ ---
 

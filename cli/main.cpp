@@ -19,8 +19,8 @@
 # include <signal.h>
 #endif
 
-#include "../fityk.h"
-#include "../ui_api.h"
+#include "fityk.h"
+#include "ui_api.h"
 #include "gnuplot.h"
 #include <config.h> // VERSION, HAVE_LIBREADLINE, etc
 

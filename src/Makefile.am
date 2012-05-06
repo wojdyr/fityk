@@ -1,8 +1,5 @@
 
 SUBDIRS = .
-if CLI_DIR
-bin_PROGRAMS = cli/cfityk
-endif
 if GUI_DIR
 SUBDIRS += wxgui
 endif
@@ -39,10 +36,6 @@ libfityk_la_SOURCES += NLfit.cpp NLfit.h
 endif
 
 pkginclude_HEADERS = fityk.h ui_api.h
-
-# ---  directory cli/ ---
-cli_cfityk_SOURCES = cli/gnuplot.cpp cli/main.cpp cli/gnuplot.h
-cli_cfityk_LDADD = libfityk.la $(READLINE_LIBS)
 
 
 # --- directory swig/ ---
