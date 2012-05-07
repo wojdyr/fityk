@@ -33,11 +33,3 @@ g = GaussianFitter(os.path.join(os.path.dirname(sys.argv[0]), "nacl01.dat"))
 g.run()
 g.save_session("tmp_save.fit")
 
-dd = g.all_parameters()
-print dd
-print "dir",dir(dd[0])
-for d in dd[:10]:
-    print d
-print len(dd)
-#pp = g.all_parameters()
-#print "parameters:", g.all_parameters()
