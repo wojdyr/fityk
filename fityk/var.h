@@ -61,22 +61,6 @@ private:
 /// -  recalculate() calculates (using run_code_for_variable()) value
 ///    and derivatives for current parameter value
 
-class Var
-{
-public:
-    const std::string name;
-    RealRange domain;
-
-    Var(const std::string &name_, int nr) : name(name_), nr_(nr) {}
-    int get_nr() const { return nr_; };
-    realt get_value() const { return value_; };
-    bool is_simple() const { return nr_ != -1; }
-
-protected:
-    int nr_; /// see description of this class in var.h
-    realt value_;
-};
-
 class Variable : public Var
 {
 public:

@@ -13,11 +13,13 @@ class GaussianFitter(Fityk):
         print "Data info:", self.get_info("data", 0)
 
     def run(self):
-        self.execute("guess %gauss = Gaussian")
+        self.execute("guess Gaussian")
+        gauss = self.all_functions()[-1] # the last function (just created)
+        print "initial Gaussian center: %g" % gauss.get_param_value("center")
         print "Fitting %s ..." % self.filename
         self.execute("fit")
         print "WSSR=", self.get_wssr()
-        print "Gaussian center: %.5g" % self.calculate_expr("%gauss.center")
+        print "Gaussian center: %g" % gauss.get_param_value("center")
 
     def save_session(self, filename):
         self.execute("info state >'%s'" % filename)
@@ -27,7 +29,15 @@ print f.get_info("version")
 print "ln(2) =", f.calculate_expr("ln(2)")
 del f
 
-g = GaussianFitter("nacl01.dat")
+g = GaussianFitter(os.path.join(os.path.dirname(sys.argv[0]), "nacl01.dat"))
 g.run()
 g.save_session("tmp_save.fit")
 
+dd = g.all_parameters()
+print dd
+print "dir",dir(dd[0])
+for d in dd[:10]:
+    print d
+print len(dd)
+#pp = g.all_parameters()
+#print "parameters:", g.all_parameters()

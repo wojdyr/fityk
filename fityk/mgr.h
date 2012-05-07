@@ -72,7 +72,7 @@ public:
                                const std::string &param,
                                VMData* vd);
     void delete_funcs(const std::vector<std::string> &names);
-    ///returns -1 if not found or idx in variables if found
+    ///returns -1 if not found or idx in functions_ if found
     int find_function_nr(const std::string &name) const;
     const Function* find_function(const std::string &name) const;
     const std::vector<Function*>& functions() const { return functions_; }

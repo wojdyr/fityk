@@ -77,7 +77,7 @@ string get_config_dir()
     }
     if (home_dir != NULL) {
         // '/' is assumed as path separator
-        dir = string(home_dir) + "/" + config_dirname + "/";
+        dir = string(home_dir) + "/" + config_dirname() + "/";
         if (access(dir.c_str(), X_OK) != 0)
             dir = "";
     }
@@ -307,7 +307,7 @@ int main (int argc, char **argv)
 
     if (exec_init_file) {
         // file with initial commands is executed first (if exists)
-        string init_file = get_config_dir() + startup_commands_filename;
+        string init_file = get_config_dir() + startup_commands_filename();
         if (access(init_file.c_str(), R_OK) == 0) {
             fprintf(stderr, " -- init file: %s --\n", init_file.c_str());
             ftk->get_ui_api()->exec_script(init_file);

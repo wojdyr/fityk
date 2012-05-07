@@ -15,18 +15,6 @@ namespace fityk {
 class Settings;
 class VariableManager;
 
-class Func
-{
-public:
-    const std::string name;
-    Func(const std::string name_) : name(name_) {}
-    virtual ~Func() {}
-
-    virtual const std::string& get_template_name() const = 0;
-    virtual realt get_param_value(const std::string& param) const = 0;
-    virtual realt value_at(realt x) const = 0;
-};
-
 class Function : public Func
 {
 public:

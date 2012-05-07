@@ -46,8 +46,9 @@ bool starts_with_command(const char *cmd, int n,
 
 namespace fityk {
 
-const char* config_dirname = ".fityk";
-const char* startup_commands_filename = "init";
+const char* config_dirname() { return ".fityk"; }
+const char* startup_commands_filename() { return "init"; }
+
 volatile bool user_interrupt = false;
 
 void simple_show_message(UiApi::Style style, const string& s)

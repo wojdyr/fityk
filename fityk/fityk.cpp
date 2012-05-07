@@ -166,6 +166,41 @@ int Fityk::get_parameter_count() const
     return ftk_->mgr.parameters().size();
 }
 
+const vector<realt>& Fityk::all_parameters() const
+{
+    return ftk_->mgr.parameters();
+}
+
+vector<Var*> Fityk::all_variables() const
+{
+    const vector<Variable*>& variables = ftk_->mgr.variables();
+    return vector<Var*>(variables.begin(), variables.end());
+}
+
+vector<Func*> Fityk::all_functions() const
+{
+    const vector<Function*>& functions = ftk_->mgr.functions();
+    return vector<Func*>(functions.begin(), functions.end());
+}
+
+vector<Func*> Fityk::get_components(int dataset, char fz)
+{
+    const vector<int>& indexes = ftk_->get_model(dataset)->get_fz(fz).idx;
+    const vector<Function*>& functions = ftk_->mgr.functions();
+    vector<Func*> ret(indexes.size());
+    for (size_t i = 0; i != indexes.size(); ++i)
+        ret[i] = functions[indexes[i]];
+    return ret;
+}
+
+Var* Fityk::get_var(const Func *func, const string& parameter)
+{
+    const Function *f = static_cast<const Function*>(func);
+    int param_idx = f->get_param_nr(parameter);
+    int var_idx = f->used_vars().get_idx(param_idx);
+    return ftk_->mgr.variables()[var_idx];
+}
+
 realt Fityk::get_model_value(realt x, int dataset)  throw(ExecuteError)
 {
     try {

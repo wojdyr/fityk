@@ -87,8 +87,8 @@ std::vector<std::string>
 complete_fityk_line(Fityk *F, const char* line_buffer, int start, int end,
                     const char *text);
 
-extern const char* startup_commands_filename; // "init"
-extern const char* config_dirname; // ".fityk"
+const char* startup_commands_filename(); // "init"
+const char* config_dirname(); // ".fityk"
 /// flag that is set to interrupt fitting (it is checked after each iteration)
 extern volatile bool user_interrupt;
 

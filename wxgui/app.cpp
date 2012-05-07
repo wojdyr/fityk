@@ -263,7 +263,8 @@ bool FApp::OnInit(void)
 
     if (!cmdLineParser.Found(wxT("I"))) {
         // run initial commands
-        wxString startup_file = get_conf_file(fityk::startup_commands_filename);
+        wxString startup_file =
+                    get_conf_file(fityk::startup_commands_filename());
         if (wxFileExists(startup_file)) {
             ftk->ui()->exec_script(wx2s(startup_file));
         }

@@ -51,7 +51,6 @@ struct SyntaxError : public std::invalid_argument
     SyntaxError(const std::string& msg="") : invalid_argument(msg) {}
 };
 
-
 /// exception thrown to finish the program (on command "quit")
 struct ExitRequestedException : std::exception
 {
@@ -66,6 +65,39 @@ struct RealRange
     RealRange(double from_, double to_) : from(from_), to(to_) {}
     bool from_inf() const { return from == -DBL_MAX; }
     bool to_inf() const { return to == DBL_MAX; }
+};
+
+/// represents $variable
+/// (public API has only a subset of members)
+class Var
+{
+public:
+    const std::string name;
+    RealRange domain;
+
+    realt get_value() const { return value_; };
+    int get_nr() const { return nr_; };
+    bool is_simple() const { return nr_ != -1; }
+
+protected:
+    Var(const std::string &name_, int nr) : name(name_), nr_(nr) {}
+    int nr_; /// see description of this class in var.h
+    realt value_;
+};
+
+/// represents %function
+/// (public API has only a subset of members)
+class Func
+{
+public:
+    const std::string name;
+    virtual ~Func() {}
+
+    virtual const std::string& get_template_name() const = 0;
+    virtual realt get_param_value(const std::string& param) const = 0;
+    virtual realt value_at(realt x) const = 0;
+protected:
+    Func(const std::string name_) : name(name_) {}
 };
 
 
@@ -169,11 +201,26 @@ public:
     /// returns dataset set by "use @n" command
     int get_default_dataset() const;
 
+    /// get data points
+    std::vector<Point> const& get_data(int dataset=0)  throw(ExecuteError);
+
     /// returns number of simple-variables (parameters that can be fitted)
     int get_parameter_count() const;
 
-    /// get data points
-    std::vector<Point> const& get_data(int dataset=0)  throw(ExecuteError);
+    /// returns vector of simple-variables (parameters that can be fitted)
+    const std::vector<realt>& all_parameters() const;
+
+    /// returns all $variables
+    std::vector<Var*> all_variables() const;
+
+    /// returns all %functions
+    std::vector<Func*> all_functions() const;
+
+    /// returns %functions used in dataset
+    std::vector<Func*> get_components(int dataset, char fz='F');
+
+    /// returns a variable used as a parameter of function
+    Var* get_var(const Func *func, const std::string& parameter);
 
     /// returns the value of the model for a given dataset at x
     realt get_model_value(realt x, int dataset=0)  throw(ExecuteError);
