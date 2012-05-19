@@ -2406,6 +2406,14 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
 void FToolBar::OnToolEnter(wxCommandEvent& event)
 {
     if (event.GetSelection() == ID_T_AUTO) {
+        on_addpeak_hover();
+    }
+}
+
+void FToolBar::on_addpeak_hover()
+{
+    string info;
+    try {
         fityk::Guess g(ftk->get_settings());
         const DataAndModel* dm = ftk->get_dm(frame->get_focused_data_index());
         int len = dm->data()->get_n();
@@ -2414,7 +2422,6 @@ void FToolBar::OnToolEnter(wxCommandEvent& event)
         g.initialize(dm, 0, len, -1);
         if (frame->peak_type_nr_ >= (int) ftk->get_tpm()->tpvec().size())
             return;
-        string info;
         if (ftk->get_tpm()->tpvec()[frame->peak_type_nr_]->peak_d) {
             boost::array<double,4> peak_v = g.estimate_peak_parameters();
             for (int i = 0; i != 4; ++i)
@@ -2427,7 +2434,10 @@ void FToolBar::OnToolEnter(wxCommandEvent& event)
                 info += (i != 0 ? ", " : "") +
                         fityk::Guess::linear_traits[i] + ": " + S(lin_v[i]);
         }
-        frame->set_status_text(info);
     }
+    catch (fityk::ExecuteError &) {
+        // ignore peak-outside-of-range or empty-range errors
+    }
+    frame->set_status_text(info);
 }
 

@@ -42,6 +42,7 @@ public:
 
 private:
     wxChoice *peak_choice;
+    void on_addpeak_hover();
 
     DECLARE_EVENT_TABLE()
 };
