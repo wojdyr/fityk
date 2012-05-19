@@ -83,7 +83,7 @@ public:
     void OnSGuess        (wxCommandEvent& event);
     void OnSPFInfo       (wxCommandEvent& event);
     void OnAutoFreeze    (wxCommandEvent& event);
-    void OnSExport       (wxCommandEvent& event);
+    void OnParametersExport (wxCommandEvent& event);
     void OnModelExport   (wxCommandEvent& event);
 
     void OnFMethodUpdate (wxUpdateUIEvent& event);
@@ -239,8 +239,8 @@ private:
     void read_recent_data_files();
     void write_recent_data_files();
     void change_mouse_mode(MouseModeEnum mode);
-    void export_as_info(const std::string& info, const char* ext,
-                        const char* wildcards);
+    void export_as_info(const std::string& info, const char* caption,
+                        const char* ext, const char* wildcards);
 
     DECLARE_EVENT_TABLE()
 };

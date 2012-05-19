@@ -305,7 +305,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_S_GUESS,       FFrame::OnSGuess)
     EVT_MENU (ID_S_PFINFO,      FFrame::OnSPFInfo)
     EVT_MENU (ID_S_AUTOFREEZE,  FFrame::OnAutoFreeze)
-    EVT_MENU (ID_S_EXPORTP,     FFrame::OnSExport)
+    EVT_MENU (ID_S_EXPORTP,     FFrame::OnParametersExport)
     EVT_MENU (ID_S_EXPORTF,     FFrame::OnModelExport)
     EVT_MENU (ID_S_EXPORTD,     FFrame::OnDataExport)
 
@@ -1229,18 +1229,18 @@ void FFrame::OnModelExport(wxCommandEvent&)
     if (!dlg.Initialize())
         return;
     if (dlg.ShowModal() == wxID_OK)
-        export_as_info(dlg.get_info_cmd(), ".formula",
+        export_as_info(dlg.get_info_cmd(), "Export to file", ".formula",
                        "mathematic formula (*.formula)|*.formula");
 }
 
-void FFrame::OnSExport(wxCommandEvent&)
+void FFrame::OnParametersExport(wxCommandEvent&)
 {
-    export_as_info("info peaks", ".peaks",
+    export_as_info("info peaks", "Export parameters to file", ".peaks",
                    "parameters of functions (*.peaks)|*.peaks");
 }
 
-void FFrame::export_as_info(const string& info, const char* ext,
-                            const char* wildcards)
+void FFrame::export_as_info(const string& info, const char* caption,
+                            const char* ext, const char* wildcards)
 {
     wxString name;
     vector<int> sel = get_selected_data_indices();
@@ -1249,7 +1249,7 @@ void FFrame::export_as_info(const string& info, const char* ext,
         if (!filename.empty())
             name = wxFileName(s2wx(filename)).GetName() + ext;
     }
-    wxFileDialog fdlg(this, "Export curve to file", export_dir_, name,
+    wxFileDialog fdlg(this, caption, export_dir_, name,
                       wildcards + wxString("|all files|*"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
