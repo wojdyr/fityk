@@ -387,7 +387,7 @@ void UserInterface::exec_script(const string& filename)
         }
         s.clear();
     }
-    if (!s.empty())
+    if (line == NULL && !s.empty())
         throw SyntaxError("unfinished line");
 }
 
@@ -410,7 +410,7 @@ void UserInterface::exec_stream(FILE *fp)
             break;
         s.clear();
     }
-    if (!s.empty())
+    if (line == NULL && !s.empty())
         throw SyntaxError("unfinished line");
 }
 
