@@ -27,6 +27,10 @@ private:
     void OnApply(wxCommandEvent& event);
     void OnUpdateCheckBox(wxCommandEvent& event);
     void OnCellChanged(wxGridEvent& event);
+    void OnCellRightClick(wxGridEvent& event);
+    void OnCopy(wxCommandEvent&) { OnCopy(); }
+    void OnCopy();
+    void OnKeyDown(wxKeyEvent& event);
 };
 
 #endif // FITYK_WX_DATATABLE_H_

@@ -5,6 +5,7 @@
 
 #include <wx/wx.h>
 #include <wx/grid.h>
+#include <wx/clipbrd.h>
 
 #include "frame.h"
 #include "fityk/data.h"
@@ -262,6 +263,12 @@ DataTableDlg::DataTableDlg(wxWindow* parent, wxWindowID id,
 #endif
     Connect(grid->GetId(), wxEVT_GRID_CELL_CHANGED,
             wxGridEventHandler(DataTableDlg::OnCellChanged));
+    Connect(grid->GetId(), wxEVT_GRID_CELL_RIGHT_CLICK,
+            wxGridEventHandler(DataTableDlg::OnCellRightClick));
+    Connect(wxID_COPY, wxEVT_COMMAND_MENU_SELECTED,
+            wxCommandEventHandler(DataTableDlg::OnCopy));
+    Connect(wxID_ANY, wxEVT_KEY_DOWN,
+            wxKeyEventHandler(DataTableDlg::OnKeyDown));
 }
 
 void DataTableDlg::OnApply(wxCommandEvent&)
@@ -281,5 +288,41 @@ void DataTableDlg::OnCellChanged(wxGridEvent& event)
 {
     if (event.GetCol() == 1 && cb->GetValue()) // order of items can be changed
         grid->ForceRefresh();
+}
+
+void DataTableDlg::OnCellRightClick(wxGridEvent& event)
+{
+    wxMenu menu;
+    menu.Append(wxID_COPY);
+    if (!grid->IsSelection())
+        menu.Enable(wxID_COPY, false);
+    PopupMenu(&menu, event.GetPosition());
+}
+
+void DataTableDlg::OnCopy()
+{
+    if (!grid->IsSelection())
+        return;
+    wxString data;
+    wxArrayInt sel = grid->GetSelectedRows();
+    for (size_t i=0; i < sel.GetCount(); ++i) {
+        if (i != 0)
+            data += "\n";
+        int row = sel.Item(i);
+        data += grid->GetCellValue(row, 1) + "\t" +
+                grid->GetCellValue(row, 2) + "\t" +
+                grid->GetCellValue(row, 3);
+    }
+    if (wxTheClipboard->Open()) {
+        wxTheClipboard->SetData(new wxTextDataObject(data));
+        wxTheClipboard->Close();
+    }
+}
+
+void DataTableDlg::OnKeyDown(wxKeyEvent& event)
+{
+    if (event.GetUnicodeKey() == 'C' && event.ControlDown())
+        OnCopy();
+    event.Skip();
 }
 
