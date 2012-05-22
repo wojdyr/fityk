@@ -33,6 +33,18 @@ RealRange args2range(const Token& t1, const Token& t2)
     return range;
 }
 
+void add_dms_from_token(Ftk* F, const Token& token, vector<DataAndModel*>& dms)
+{
+    assert(token.type == kTokenDataset);
+    int d = token.value.i;
+    if (d == Lexer::kAll) {
+        dms = F->get_dms();
+        return;
+    }
+    else
+        dms.push_back(F->get_dm(d));
+}
+
 VMData* Runner::get_vm_from_token(const Token& t) const
 {
     assert (t.type == kTokenEVar);
@@ -137,23 +149,6 @@ void Runner::command_exec(TokenType tt, const string& str)
     }
 }
 
-void Runner::read_dms(vector<Token>::const_iterator first,
-                      vector<Token>::const_iterator last,
-                      vector<DataAndModel*>& dms)
-{
-    while (first != last) {
-        assert(first->type == kTokenDataset);
-        int d = first->value.i;
-        if (d == Lexer::kAll) {
-            dms = F_->get_dms();
-            return;
-        }
-        else
-            dms.push_back(F_->get_dm(d));
-        ++first;
-    }
-}
-
 void Runner::command_fit(const vector<Token>& args, int ds)
 {
     if (args.empty()) {
@@ -162,16 +157,17 @@ void Runner::command_fit(const vector<Token>& args, int ds)
     }
     else if (args[0].type == kTokenDataset) {
         vector<DataAndModel*> dms;
-        read_dms(args.begin(), args.end(), dms);
+        v_foreach(Token, i, args)
+            add_dms_from_token(F_, *i, dms);
         F_->get_fit()->fit(-1, dms);
         F_->outdated_plot();
     }
     else if (args[0].type == kTokenNumber) {
         int n_steps = iround(args[0].value.d);
         vector<DataAndModel*> dms;
-        if (args.size() > 1)
-            read_dms(args.begin() + 1, args.end(), dms);
-        else
+        for (size_t i = 1; i < args.size(); ++i)
+            add_dms_from_token(F_, args[i], dms);
+        if (dms.empty())
             dms.push_back(F_->get_dm(ds));
         F_->get_fit()->fit(n_steps, dms);
         F_->outdated_plot();

@@ -17,6 +17,8 @@ struct Command;
 class DataAndModel;
 
 RealRange args2range(const Token& t1, const Token& t2);
+void add_dms_from_token(Ftk* F, const Token& token,
+                        std::vector<DataAndModel*>& dms);
 
 class Runner
 {
@@ -53,9 +55,6 @@ private:
     void command_assign_all(const std::vector<Token>& args, int ds);
     void command_name_var(const std::vector<Token>& args);
     void command_change_model(const std::vector<Token>& args, int ds);
-    void read_dms(std::vector<Token>::const_iterator first,
-                  std::vector<Token>::const_iterator last,
-                  std::vector<DataAndModel*>& dms);
     void recalculate_command(Command& c, int ds, Statement& st);
     int make_func_from_template(const std::string& name,
                                 const std::vector<Token>& args, int pos);

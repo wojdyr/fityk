@@ -444,9 +444,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             }
             vector<DataAndModel*> v;
             while (args[n+1].type == kTokenDataset) {
-                int k = args[n+1].value.i;
-                DataAndModel* dm = const_cast<DataAndModel*>(F->get_dm(k));
-                v.push_back(dm);
+                add_dms_from_token(const_cast<Ftk*>(F), args[n+1], v);
                 ++n;
                 ++ret;
             }
