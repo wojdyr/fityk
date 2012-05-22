@@ -472,14 +472,23 @@ void Fit::fit(int max_iter, const vector<DataAndModel*>& dms)
     autoiter();
 }
 
+bool Fit::can_continue() const
+{
+    if (na_ != (int) F_->mgr.parameters().size())
+        return false;
+    v_foreach (DataAndModel*, i, dmdm_)
+        if (!contains_element(F_->get_dms(), *i))
+            return false;
+    return true;
+}
+
 /// run fitting procedure (without initialization)
 void Fit::continue_fit(int max_iter)
 {
     start_time_ = clock();
     last_refresh_time_ = time(0);
-    v_foreach (DataAndModel*, i, dmdm_)
-        if (!F_->contains_dm(*i) || na_ != size(F_->mgr.parameters()))
-            throw ExecuteError(name + " method should be initialized first.");
+    if (!can_continue())
+        throw ExecuteError(name + " method should be initialized first.");
     update_parameters(dmdm_);
     a_orig_ = F_->mgr.parameters();  //should it be also updated?
     fityk::user_interrupt = false;

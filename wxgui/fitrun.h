@@ -17,10 +17,9 @@ public:
 private:
     wxRadioBox* data_rb;
     wxChoice* method_c;
-    wxCheckBox* initialize_cb, *autoplot_cb;
+    wxCheckBox *separately_cb, *initialize_cb, *autoplot_cb;
     SpinCtrl *maxiter_sc, *maxeval_sc;
     wxStaticText *nomaxeval_st, *nomaxiter_st;
-    std::vector<int> sel; // indices of selected datasets
 
     void OnSpinEvent(wxSpinEvent &) { update_unlimited(); }
     void OnChangeDsOrMethod(wxCommandEvent&) { update_allow_continue(); }

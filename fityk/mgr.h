@@ -15,7 +15,6 @@ class Function;
 class Ftk;
 class Model;
 struct FunctionSum;
-struct Token;
 
 /// keeps all functions and variables
 class VariableManager

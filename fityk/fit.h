@@ -25,9 +25,7 @@ public:
     virtual ~Fit() {};
     void fit(int max_iter, const std::vector<DataAndModel*>& dms);
     void continue_fit(int max_iter);
-    bool is_initialized() const { return !dmdm_.empty(); }
-    bool is_initialized(const std::vector<DataAndModel*>& dms) const
-                                                    { return dms == dmdm_; }
+    bool can_continue() const;
     std::string get_goodness_info(const std::vector<DataAndModel*>& dms);
     int get_dof(const std::vector<DataAndModel*>& dms);
     std::string get_cov_info(const std::vector<DataAndModel*>& dms);
@@ -38,7 +36,7 @@ public:
     std::vector<realt>
         get_confidence_limits(const std::vector<DataAndModel*>& dms,
                               double level_percent);
-    //const std::vector<DataAndModel*>& get_datsums() const { return dmdm_; }
+    const std::vector<DataAndModel*>& get_last_dm() const { return dmdm_; }
     static realt compute_wssr_for_data (const DataAndModel* dm, bool weigthed);
     static int compute_deviates_for_data(const DataAndModel* dm,
                                          double *deviates);

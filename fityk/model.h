@@ -11,8 +11,6 @@
 
 namespace fityk {
 
-class Function;
-class Data;
 class VariableManager;
 class Ftk;
 

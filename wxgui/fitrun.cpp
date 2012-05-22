@@ -25,7 +25,7 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
 {
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     wxArrayString data_choices;
-    sel = frame->get_selected_data_indices();
+    vector<int> sel = frame->get_selected_data_indices();
     string a = S(sel.size()) + " selected dataset";
     if (sel.size() == 1)
         a += ": @" + S(sel[0]);
@@ -36,9 +36,13 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
     data_rb = new wxRadioBox(this, -1, wxT("fit..."),
                              wxDefaultPosition, wxDefaultSize,
                              data_choices, 1, wxRA_SPECIFY_COLS);
-    if (ftk->get_dm_count() == 1)
+    separately_cb = new wxCheckBox(this, -1, "fit each dataset separately");
+    if (ftk->get_dm_count() == 1) {
         data_rb->Enable(1, false);
+        separately_cb->Enable(false);
+    }
     top_sizer->Add(data_rb, 0, wxALL|wxEXPAND, 5);
+    top_sizer->Add(separately_cb, 0, wxALL|wxEXPAND, 5);
     wxBoxSizer *method_sizer = new wxBoxSizer(wxHORIZONTAL);
     method_sizer->Add(new wxStaticText(this, -1, wxT("method:")),
                       0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
@@ -90,19 +94,15 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
 void FitRunDlg::update_allow_continue()
 {
     initialize_cb->SetValue(true);
-    bool is_initialized;
     int m_sel = method_c->GetSelection();
     fityk::Fit const* f = ftk->get_fit_container()->get_method(m_sel);
-    if (data_rb->GetSelection() == 0) {
-        vector<DataAndModel*> dms(sel.size());
-        for (size_t i = 0; i < sel.size(); ++i)
-            dms[i] = ftk->get_dm(sel[i]);
-        is_initialized = f->is_initialized(dms);
-    }
-    else {
-        is_initialized = f->is_initialized(ftk->get_dms());
-    }
-    initialize_cb->Enable(is_initialized);
+    bool only_selected = (data_rb->GetSelection() == 0);
+    vector<DataAndModel*> dms = only_selected ? frame->get_selected_dms()
+                                              : ftk->get_dms();
+    // no point in trying to continue fit for separate fits ("@*: fit")
+    bool can_continue = (!separately_cb->GetValue() || dms.size() == 1) &&
+                        f->get_last_dm() == dms && f->can_continue();
+    initialize_cb->Enable(can_continue);
 }
 
 void FitRunDlg::update_unlimited()
@@ -129,21 +129,19 @@ string FitRunDlg::get_cmd() const
                 + " max_wssr_evaluations=" + S(max_eval) + " ";
 
     bool ini = initialize_cb->GetValue();
-    cmd +=  ini ? "fit " : "fit + ";
+    cmd +=  ini ? "fit" : "fit +";
 
     int max_iter = maxiter_sc->GetValue();
     if (max_iter > 0)
-        cmd += S(max_iter);
+        cmd += " " + S(max_iter);
 
     if (ini) {
-        if (data_rb->GetSelection() == 0) {
-            string ds = frame->get_datasets();
-            if (!ds.empty())
-                // do not append ": "
-                cmd += ds.substr(0, ds.size() - 2);
-        }
+        bool only_selected = (data_rb->GetSelection() == 0);
+        string ds = only_selected ? frame->get_datasets() : "@*: ";
+        if (separately_cb->GetValue())
+            cmd = ds + cmd; // e.g. @*: fit
         else
-            cmd += " @*";
+            cmd += " " + ds.substr(0, ds.size() - 2); // e.g. fit @*
     }
     return cmd;
 }
