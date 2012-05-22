@@ -40,7 +40,7 @@ dist_samples_DATA = samples/nacl01.fit samples/nacl01.dat \
 		    samples/hello.py samples/hello.lua samples/hello.pl \
 		    samples/hello.rb samples/hello.java \
 		    samples/cfityk.py \
-		    README
+		    samples/README
 
 check_PROGRAMS = samples/hello samples/helloc
 samples_hello_SOURCES = samples/hello.cc
