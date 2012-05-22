@@ -2391,7 +2391,13 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             break;
         }
         case ID_T_RUN:
-            exec(frame->get_datasets() + "fit");
+            if (ftk->are_independent(frame->get_selected_dms()))
+                exec(frame->get_datasets() + "fit");
+            else {
+                string ds = frame->get_datasets();
+                ds.resize(ds.size() - 2); // we don't need ": " at the end
+                exec("fit " + ds);
+            }
             break;
         case ID_T_UNDO:
             exec("fit undo");

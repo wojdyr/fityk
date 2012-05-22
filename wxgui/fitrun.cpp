@@ -41,6 +41,10 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
         data_rb->Enable(1, false);
         separately_cb->Enable(false);
     }
+    else {
+        bool independent = ftk->are_independent(ftk->get_dms());
+        separately_cb->SetValue(independent);
+    }
     top_sizer->Add(data_rb, 0, wxALL|wxEXPAND, 5);
     top_sizer->Add(separately_cb, 0, wxALL|wxEXPAND, 5);
     wxBoxSizer *method_sizer = new wxBoxSizer(wxHORIZONTAL);

@@ -254,4 +254,19 @@ void Ftk::outdated_plot()
     fit_container_->outdated_error_cache();
 }
 
+bool Ftk::are_independent(std::vector<DataAndModel*> dms) const
+{
+    for (size_t i = 0; i != mgr.variables().size(); ++i)
+        if (mgr.get_variable(i)->is_simple()) {
+            bool dep = false;
+            v_foreach(DataAndModel*, dm, dms)
+                if ((*dm)->model()->is_dependent_on_var(i)) {
+                    if (dep)
+                        return false;
+                    dep = true;
+                }
+        }
+    return true;
+}
+
 } // namespace fityk

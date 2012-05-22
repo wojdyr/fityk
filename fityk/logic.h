@@ -108,6 +108,9 @@ public:
     /// returns true if the plot should be replotted
     bool is_plot_outdated() const { return dirty_plot_; }
 
+    // check if given models share common parameters
+    bool are_independent(std::vector<DataAndModel*> dms) const;
+
 private:
     int default_dm_;
     std::vector<DataAndModel*> dms_;
