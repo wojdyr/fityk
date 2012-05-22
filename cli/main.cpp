@@ -208,19 +208,21 @@ void main_loop()
 void main_loop()
 {
     string s;
+    char line_buffer[1024];
     for (;;) {
         printf("%s", prompt);
         fflush(stdout);
-        if (!getline(cin, s))
+        if (!fgets(line_buffer, sizeof(line_buffer), stdin))
             break;
+        s = line_buffer;
         while (!s.empty() && *(s.end()-1) == '\\') {
             s.resize(s.size()-1);
             printf("... ");
             fflush(stdout);
             string cont;
-            if (!getline(cin, cont))
+            if (!fgets(line_buffer, sizeof(line_buffer), stdin))
                 break;
-            s += cont;
+            s += line_buffer;
         }
         ftk->get_ui_api()->exec_and_log(s);
     }
