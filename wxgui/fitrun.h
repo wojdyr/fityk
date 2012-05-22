@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__WX_DLG__H__
-#define FITYK__WX_DLG__H__
+#ifndef FITYK_WX_FITRUN_H_
+#define FITYK_WX_FITRUN_H_
 
 #include <vector>
 #include <wx/spinctrl.h>
@@ -29,33 +29,4 @@ private:
     DECLARE_EVENT_TABLE()
 };
 
-
-class MergePointsDlg : public wxDialog
-{
-public:
-    MergePointsDlg(wxWindow* parent, wxWindowID id=wxID_ANY);
-    std::string get_command();
-    void update_info();
-    void OnCheckBox(wxCommandEvent&) { y_rb->Enable(dx_cb->GetValue()); }
-
-private:
-    int focused_data;
-    wxRadioBox *y_rb, *output_rb;
-    wxCheckBox *dx_cb;
-    RealNumberCtrl *dx_val;
-    wxTextCtrl *inf;
-    DECLARE_EVENT_TABLE()
-};
-
-
-// similar to wxTextEntryDialog, but uses wxComboBox instead of wxTextCtrl
-class TextComboDlg : public wxDialog
-{
-public:
-    TextComboDlg(wxWindow *parent, const wxString& message,
-                 const wxString& caption);
-    wxComboBox *combo;
-};
-
 #endif
-

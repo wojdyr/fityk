@@ -206,4 +206,13 @@ inline wxStaticText* persistance_note(wxWindow *parent)
         wxT("To save preferences use GUI \u2023 Save current config"));
 }
 
+// similar to wxTextEntryDialog, but uses wxComboBox instead of wxTextCtrl
+class TextComboDlg : public wxDialog
+{
+public:
+    TextComboDlg(wxWindow *parent, const wxString& message,
+                 const wxString& caption);
+    wxComboBox *combo;
+};
+
 #endif // FITYK_WX_CMN_H_

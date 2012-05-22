@@ -11,7 +11,6 @@
 
 #include "frame.h"
 #include "app.h" // get_full_path_of_help_file()
-#include "dialogs.h" //export_data_dlg()
 #include "fityk/data.h" // Data, Point
 #include "fityk/logic.h" // ui()
 
