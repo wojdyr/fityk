@@ -1,9 +1,4 @@
 
-* Windows build: use readline lib if possible, investigate signing .exe,
-  use xylib.dll -DXYLIB_DLL?
-
------ 1.1.2
-
 * NLopt interface
 
 * FFT data transformation using FFTW library,

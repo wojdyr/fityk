@@ -4,7 +4,7 @@ BUILT_SOURCES = swig/fityk_lua.cpp swig/luarun.h
 
 lib_LTLIBRARIES = libfityk.la
 
-libfityk_la_LDFLAGS = $(LIBRARY_VERSION_FLAG)
+libfityk_la_LDFLAGS = $(LIBRARY_VERSION_FLAG) -no-undefined
 libfityk_la_LIBADD = -lxy -lz $(LUA_LIB)
 libfityk_la_CPPFLAGS = $(LUA_INCLUDE)
 
@@ -41,7 +41,7 @@ endif
 
 swig__fityk_la_SOURCES = swig/fityk_python.cpp
 swig__fityk_la_CPPFLAGS = $(PYTHON_CPPFLAGS) -I$(srcdir)
-swig__fityk_la_LDFLAGS = -module -avoid-version -shared
+swig__fityk_la_LDFLAGS = -module -avoid-version -shared -no-undefined
 swig__fityk_la_LIBADD = libfityk.la
 
 $(srcdir)/swig/luarun.h:

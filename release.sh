@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-version=1.1.1
+version=1.2.0
 WEB="iris.unipress.waw.pl:www/fityk2/"
 
 MINGW_DIR=mingw-build
@@ -70,26 +70,35 @@ elif [ $1 -eq 3 ]; then
 elif [ $1 -eq 4 ]; then
  echo Building MS Windows version
  SRC_DIR=fityk-$version/
- MDIR=$HOME/local/mingw32msvc
- BOOST_DIR=$HOME/local/src/boost_1_42_0/
- rm -rf $MINGW_DIR
- mkdir -p $MINGW_DIR
+ MDIR=$HOME/local/mingw32
+ #BOOST_DIR=$HOME/local/src/boost_1_42_0/
+ BOOST_DIR=/usr/local/boost
+# rm -rf $MINGW_DIR
+# mkdir -p $MINGW_DIR
  cd $MINGW_DIR
- tar xjf ../$tarball_filename || exit 1
- # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
- $SRC_DIR/configure --build=x86_64-pc-linux-gnu --host=i586-mingw32msvc \
-   CPPFLAGS="-I$BOOST_DIR -I$MDIR/include/" \
-   CXXFLAGS="-O3" LDFLAGS="-s -L$MDIR/lib" \
-   --without-readline --enable-static --disable-shared \
-   --with-wx-config=$MDIR/bin/wx-config
- make || exit
+# tar xjf ../$tarball_filename || exit 1
+# # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
+# #       from Fedora: i686-w64-mingw32
+# $SRC_DIR/configure --host=i686-w64-mingw32 \
+#   CPPFLAGS="-I$BOOST_DIR -I$MDIR/include/" \
+#   CXXFLAGS="-O3" LDFLAGS="-s -L$MDIR/lib" \
+#   --without-readline --with-wx-config=$MDIR/bin/wx-config \
+#   --disable-static --enable-shared
+#   #--enable-static --disable-shared
+# make || exit
  mkdir -p $ALL_WIN_FILES/samples $ALL_WIN_FILES/fityk
  cp fityk.iss $SRC_DIR/fityk.url $SRC_DIR/COPYING $SRC_DIR/TODO \
     $SRC_DIR/NEWS $ALL_WIN_FILES
  cp -r $SRC_DIR/doc/html/ $ALL_WIN_FILES/
- cp $SRC_DIR/samples/*.fit $SRC_DIR/samples/*.dat $SRC_DIR/samples/README \
-    $ALL_WIN_FILES/samples/
- cp wxgui/fityk.exe cli/cfityk.exe $ALL_WIN_FILES/fityk/
+ cp $SRC_DIR/samples/*.fit $SRC_DIR/samples/*.dat $SRC_DIR/samples/*.lua \
+    $SRC_DIR/samples/README $ALL_WIN_FILES/samples/
+ #cp wxgui/fityk.exe cli/cfityk.exe $ALL_WIN_FILES/fityk/
+ cp wxgui/.libs/fityk.exe cli/.libs/cfityk.exe fityk/.libs/libfityk-*.dll \
+    $MDIR/bin/libxy-*.dll $MDIR/bin/xyconv.exe $MDIR/bin/lua5*.dll \
+    $ALL_WIN_FILES/fityk/
+ cp /usr/i686-w64-mingw32/sys-root/mingw/bin/libgcc_s_sjlj-1.dll \
+    /usr/i686-w64-mingw32/sys-root/mingw/bin/libstdc++-6.dll \
+    $ALL_WIN_FILES/fityk/
  echo everything is in: `pwd`/$ALL_WIN_FILES
  
 
