@@ -299,7 +299,7 @@ void DataTableDlg::OnCellRightClick(wxGridEvent& event)
     PopupMenu(&menu, event.GetPosition());
 }
 
-void DataTableDlg::OnCopy()
+void DataTableDlg::Copy()
 {
     if (!grid->IsSelection())
         return;
@@ -322,7 +322,7 @@ void DataTableDlg::OnCopy()
 void DataTableDlg::OnKeyDown(wxKeyEvent& event)
 {
     if (event.GetUnicodeKey() == 'C' && event.ControlDown())
-        OnCopy();
+        Copy();
     event.Skip();
 }
 

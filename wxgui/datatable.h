@@ -28,8 +28,8 @@ private:
     void OnUpdateCheckBox(wxCommandEvent& event);
     void OnCellChanged(wxGridEvent& event);
     void OnCellRightClick(wxGridEvent& event);
-    void OnCopy(wxCommandEvent&) { OnCopy(); }
-    void OnCopy();
+    void OnCopy(wxCommandEvent&) { Copy(); }
+    void Copy();
     void OnKeyDown(wxKeyEvent& event);
 };
 
