@@ -290,7 +290,7 @@ int FApp::OnExit()
 void FApp::MacOpenFile(const wxString &filename)
 {
     try {
-        ftk->ui()->process_cmd_line_filename(wx2s(filename));
+        ftk->ui()->process_cmd_line_arg(wx2s(filename));
     }
     catch (runtime_error const& e) {
         wxMessageBox(s2wx(e.what()), "Open File Error", wxOK|wxICON_ERROR);
