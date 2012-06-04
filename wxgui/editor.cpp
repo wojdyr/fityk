@@ -56,7 +56,12 @@ public:
         SetMarginType(0, wxSTC_MARGIN_NUMBER);
         SetMarginWidth(0, 32);
         SetUseVerticalScrollBar(true);
-        wxFont mono(11, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL,
+#ifdef __WXMAC__
+        const int font_size = 13;
+#else
+        const int font_size = 11;
+#endif
+        wxFont mono(font_size, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL,
                     wxFONTWEIGHT_NORMAL);
         StyleSetFont(wxSTC_STYLE_DEFAULT, mono);
     }
