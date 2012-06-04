@@ -52,7 +52,7 @@ struct Settings
     double nm_move_factor;
 };
 
-/// Wraps class Settings
+/// Wraps struct Settings
 class SettingsMgr
 {
 public:

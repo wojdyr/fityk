@@ -12,9 +12,7 @@
 namespace fityk {
 
 class DataAndModel;
-class Tplate;
-class Settings;
-
+struct Settings;
 
 /// guessing initial parameters of functions
 class Guess

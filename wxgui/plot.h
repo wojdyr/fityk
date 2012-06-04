@@ -19,7 +19,7 @@
 
 namespace fityk { class Model; class Data; struct Rect; }
 using fityk::Point;
-struct wxPoint2DDouble;
+class wxPoint2DDouble;
 
 inline int get_pixel_width(wxDC const& dc)
 {

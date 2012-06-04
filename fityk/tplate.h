@@ -13,7 +13,7 @@
 
 namespace fityk {
 
-class Settings;
+struct Settings;
 class Function;
 class Parser;
 struct OpTree;

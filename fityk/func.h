@@ -12,7 +12,7 @@
 
 namespace fityk {
 
-class Settings;
+struct Settings;
 class VariableManager;
 
 class Function : public Func
