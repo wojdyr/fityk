@@ -121,8 +121,8 @@ ProportionalSplitter::ProportionalSplitter(wxWindow* parent, wxWindowID id,
                       (wxObjectEventFunction) &ProportionalSplitter::OnPaint);
 }
 
-bool ProportionalSplitter::SplitHorizontally(wxWindow* win1, wxWindow* win2,
-                                             float proportion)
+bool ProportionalSplitter::SplitHorizProp(wxWindow* win1, wxWindow* win2,
+                                          float proportion)
 {
     if (proportion >= 0. && proportion <= 1.)
         m_proportion = proportion;
@@ -134,8 +134,8 @@ bool ProportionalSplitter::SplitHorizontally(wxWindow* win1, wxWindow* win2,
     return wxSplitterWindow::SplitHorizontally(win1, win2, h);
 }
 
-bool ProportionalSplitter::SplitVertically(wxWindow* win1, wxWindow* win2,
-                                           float proportion)
+bool ProportionalSplitter::SplitVertProp(wxWindow* win1, wxWindow* win2,
+                                         float proportion)
 {
     if (proportion >= 0. && proportion <= 1.)
         m_proportion = proportion;

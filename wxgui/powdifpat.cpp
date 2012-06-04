@@ -586,9 +586,9 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
                              wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
     info_tc->SetBackgroundColour(powder_book->GetBackgroundColour());
 
-    vsplit->SplitHorizontally(hkl_split, atom_split);
-    hkl_split->SplitVertically(hkl_list, sample_plot_);
-    atom_split->SplitVertically(atoms_tc, info_tc);
+    vsplit->SplitHorizProp(hkl_split, atom_split);
+    hkl_split->SplitVertProp(hkl_list, sample_plot_);
+    atom_split->SplitVertProp(atoms_tc, info_tc);
 
     vsizer->Add(vsplit, wxSizerFlags(1).Expand().Border());
     SetSizerAndFit(vsizer);

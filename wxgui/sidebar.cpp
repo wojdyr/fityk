@@ -146,7 +146,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     //upper->SetSizerAndFit(upper_sizer);
     param_panel = new ParameterPanel(this, -1, this);
     param_panel->set_key_sink(frame, wxKeyEventHandler(FFrame::focus_input));
-    SplitHorizontally(nb, param_panel);
+    SplitHorizProp(nb, param_panel);
 
     //-----  data page  -----
     data_page = new wxPanel(nb, -1);

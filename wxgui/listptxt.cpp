@@ -174,7 +174,7 @@ void ListPlusText::OnSwitchInfo(wxCommandEvent&)
     if (IsSplit())
         Unsplit(inf);
     else
-        SplitHorizontally(list, inf);
+        SplitHorizProp(list, inf);
 }
 
 

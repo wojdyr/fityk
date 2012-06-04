@@ -113,8 +113,8 @@ public:
                          float proportion=0.66, // 0. - 1.
                          const wxSize& size = wxDefaultSize,
                          long style=wxSP_NOBORDER|wxSP_3DSASH);
-    bool SplitHorizontally(wxWindow* win1, wxWindow* win2, float proportion=-1);
-    bool SplitVertically(wxWindow* win1, wxWindow* win2, float proportion=-1);
+    bool SplitHorizProp(wxWindow* win1, wxWindow* win2, float proportion=-1);
+    bool SplitVertProp(wxWindow* win1, wxWindow* win2, float proportion=-1);
     float GetProportion() const { return m_proportion; }
     void SetProportion(float proportion) {m_proportion=proportion; ResetSash();}
     void SetSashPosition(int position);

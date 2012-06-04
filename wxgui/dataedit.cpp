@@ -238,7 +238,7 @@ void EditTransDlg::init()
     help_btn = new wxButton(left_panel, wxID_HELP);
     */
 
-    splitter->SplitVertically(left_panel, right_panel);
+    splitter->SplitVertProp(left_panel, right_panel);
     wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
     top_sizer->Add(splitter, wxSizerFlags(1).Expand());
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 10);

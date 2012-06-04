@@ -37,7 +37,7 @@ PlotPane::PlotPane(wxWindow *parent, wxWindowID id)
 {
     plot_ = new MainPlot(this);
     aux_split_ = new ProportionalSplitter(this, -1, 0.5);
-    SplitHorizontally(plot_, aux_split_);
+    SplitHorizProp(plot_, aux_split_);
 
     aux_plot_[0] = new AuxPlot(aux_split_, plot_, wxT("0"));
     aux_plot_[1] = new AuxPlot(aux_split_, plot_, wxT("1"));
@@ -111,19 +111,19 @@ void PlotPane::show_aux(int n, bool show)
 
     if (show) {
         if (!IsSplit()) { //both where invisible
-            SplitHorizontally(plot_, aux_split_);
+            SplitHorizProp(plot_, aux_split_);
             aux_split_->Show(true);
             assert(!aux_split_->IsSplit());
             if (aux_split_->GetWindow1() == aux_plot_[n])
                 ;
             else {
-                aux_split_->SplitHorizontally(aux_plot_[0], aux_plot_[1]);
+                aux_split_->SplitHorizProp(aux_plot_[0], aux_plot_[1]);
                 aux_plot_[n]->Show(true);
                 aux_split_->Unsplit(aux_plot_[n==0 ? 1 : 0]);
             }
         }
         else {//one was invisible
-            aux_split_->SplitHorizontally(aux_plot_[0], aux_plot_[1]);
+            aux_split_->SplitHorizProp(aux_plot_[0], aux_plot_[1]);
             aux_plot_[n]->Show(true);
         }
     }

@@ -399,7 +399,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     main_pane_ = new ProportionalSplitter(v_splitter_);
     plot_pane_ = new PlotPane(main_pane_);
     text_pane_ = new TextPane(main_pane_);
-    main_pane_->SplitHorizontally(plot_pane_, text_pane_);
+    main_pane_->SplitHorizProp(plot_pane_, text_pane_);
     sidebar_ = new SideBar(v_splitter_);
     sidebar_->Show(false);
     v_splitter_->Initialize(main_pane_);
@@ -1667,7 +1667,7 @@ void FFrame::SwitchSideBar(bool show)
     //v_splitter_->IsSplit() means sidebar_ is visible
     if (show && !v_splitter_->IsSplit()) {
         sidebar_->Show(true);
-        v_splitter_->SplitVertically(main_pane_, sidebar_);
+        v_splitter_->SplitVertProp(main_pane_, sidebar_);
     }
     else if (!show && v_splitter_->IsSplit()) {
         v_splitter_->Unsplit();
@@ -1687,7 +1687,7 @@ void FFrame::SwitchTextPane(bool show)
     //main_pane_->IsSplit() means text_pane_ is visible
     if (show && !main_pane_->IsSplit()) {
         text_pane_->Show(true);
-        main_pane_->SplitHorizontally(plot_pane_, text_pane_);
+        main_pane_->SplitHorizProp(plot_pane_, text_pane_);
     }
     else if (!show && main_pane_->IsSplit()) {
         main_pane_->Unsplit();
