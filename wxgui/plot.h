@@ -135,10 +135,6 @@ public:
     FPlot(wxWindow *parent);
     virtual ~FPlot();
 
-    // in wxGTK 2.9 it seems that changing this to true doesn't make
-    // the window accept focus
-    virtual bool AcceptsFocus() { return false; }
-
     void set_font(wxDC &dc, wxFont const& font);
     void set_scale(int pixel_width, int pixel_height);
     int get_special_point_at_pointer(wxMouseEvent& event);
