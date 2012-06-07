@@ -106,21 +106,23 @@ double Guess::find_hwhm(int pos, double* area)
 // returns values corresponding to peak_traits
 array<double,4> Guess::estimate_peak_parameters()
 {
-    // find the highest point, which must be higher than the previous and next
-    // points (-> it cannot be the first/last point)
+    // find the highest point, which must be higher than the previous point
+    // and not lower than the next one (-> it cannot be the first/last point)
     int pos = -1;
     if (!sigma_.empty()) {
         for (int i = 1; i < (int) yy_.size() - 1; ++i) {
-            int t = pos == -1 ? i-1 : pos;
-            if (sigma_[i+1] * yy_[i] > sigma_[i] * yy_[i+1] &&
-                    sigma_[t] * yy_[i] > sigma_[i] * yy_[t])
+            int t = (pos == -1 ? i-1 : pos);
+            if (sigma_[t] * yy_[i] > sigma_[i] * yy_[t] &&
+                    sigma_[i+1] * yy_[i] >= sigma_[i] * yy_[i+1])
                 pos = i;
         }
     }
     else {
-        for (int i = 1; i < (int) yy_.size() - 1; ++i)
-            if (yy_[i] > yy_[i+1] && yy_[i] > (pos == -1 ? yy_[i-1] : yy_[pos]))
+        for (int i = 1; i < (int) yy_.size() - 1; ++i) {
+            int t = (pos == -1 ? i-1 : pos);
+            if (yy_[i] > yy_[t] && yy_[i] >= yy_[i+1])
                 pos = i;
+        }
     }
     if (pos == -1)
         throw ExecuteError("Peak outside of the range.");
