@@ -87,7 +87,6 @@ string Point::str() const { return "(" + S(x) + "; " + S(y) + "; " +
 
 struct FitykInternalData
 {
-public:
     bool owns;
     UiApi::t_show_message_callback* old_message_callback;
 };
@@ -98,6 +97,7 @@ Fityk::Fityk()
 {
     ftk_ = new Ftk;
     p_->owns = true;
+    p_->old_message_callback = NULL;
 }
 
 Fityk::Fityk(Ftk* F)
@@ -105,6 +105,7 @@ Fityk::Fityk(Ftk* F)
 {
     ftk_ = F;
     p_->owns = false;
+    p_->old_message_callback = NULL;
 }
 
 Fityk::~Fityk()
@@ -296,6 +297,8 @@ void Fityk::redir_messages(FILE *stream)
             p_->old_message_callback = old;
     }
     else
+        // note: if redir_messages(not-null) was not used yet,
+        // p_->old_message_callback is NULL and the output is just disabled
         ftk_->ui()->connect_show_message(p_->old_message_callback);
     message_sink_ = stream;
 }
