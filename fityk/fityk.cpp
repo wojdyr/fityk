@@ -296,10 +296,12 @@ void Fityk::redir_messages(FILE *stream)
         if (old != write_message_to_file)
             p_->old_message_callback = old;
     }
-    else
-        // note: if redir_messages(not-null) was not used yet,
+    else {
+        // note: if redir_messages() is used for the first time,
         // p_->old_message_callback is NULL and the output is just disabled
-        ftk_->ui()->connect_show_message(p_->old_message_callback);
+        p_->old_message_callback =
+            ftk_->ui()->connect_show_message(p_->old_message_callback);
+    }
     message_sink_ = stream;
 }
 
