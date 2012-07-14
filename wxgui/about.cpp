@@ -14,6 +14,9 @@ extern "C" {
 #include <lua.h> // LUA_RELEASE
 }
 
+#ifndef LUA_RELEASE // LUA_RELEASE was added in Lua 5.1.1
+#define LUA_RELEASE LUA_VERSION
+#endif
 
 AboutDlg::AboutDlg(wxWindow* parent)
     : wxDialog(parent, -1, wxT("About Fityk"), wxDefaultPosition,

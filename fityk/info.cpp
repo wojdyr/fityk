@@ -31,6 +31,10 @@ extern "C" {
 
 using namespace std;
 
+#ifndef LUA_RELEASE // LUA_RELEASE was added in Lua 5.1.1
+#define LUA_RELEASE LUA_VERSION
+#endif
+
 namespace fityk {
 
 // get standard formula and make it parsable by the gnuplot program
