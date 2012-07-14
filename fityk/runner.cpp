@@ -616,8 +616,13 @@ void Runner::command_point_tr(const vector<Token>& args, int ds)
         double val = args[n+2].value.d;
         if (idx < 0)
             idx += points.size();
-        if (idx < 0 || idx >= (int) points.size())
+        if (idx < 0 || idx > (int) points.size())
             throw ExecuteError("wrong point index: " + S(idx));
+        if (idx == (int) points.size()) {
+            if (c != 'x' && c != 'X')
+                throw ExecuteError("wrong index; to add point assign X first.");
+            data->append_point();
+        }
         Point& p = points[idx];
         if (c == 'x' || c == 'X') {
             p.x = val;
@@ -642,6 +647,7 @@ void Runner::command_point_tr(const vector<Token>& args, int ds)
     if (!sorted) {
         data->sort_points();
         data->find_step();
+        data->update_active_p();
     }
     F_->outdated_plot();
 }

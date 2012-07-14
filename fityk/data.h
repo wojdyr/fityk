@@ -57,7 +57,6 @@ public :
     bool has_any_info() const { return !is_empty() || !get_title().empty(); }
     double get_x_step() const { return x_step_; } /// 0.0 if not fixed
     void after_transform(); // update x_step_, active_
-    void update_active_p();
     std::string range_as_string () const;
     int get_lower_bound_ac (double x) const;
     int get_upper_bound_ac (double x) const;
@@ -67,7 +66,13 @@ public :
 
     void find_step();
     void sort_points();
+
+    // update active points bookkeeping
+    void update_active_p();
+    // quick change in active points bookkeeping
     void update_active_for_one_point(int idx);
+    void append_point() { size_t n = p_.size(); p_.resize(n+1);
+                                                active_.push_back(n); }
     //double get_y_at (double x) const;
     // return points at x (if any) or (usually) after it.
     std::vector<Point>::const_iterator get_point_at(double x) const;

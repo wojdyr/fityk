@@ -34,7 +34,7 @@ public:
           dataset_str_("@" + S(data_nr_) + ": "),
           instant_update_(true)
     {
-        has_last_num[0] = has_last_num[1] = has_last_num[2] = false;
+        has_last_num_[0] = has_last_num_[1] = has_last_num_[2] = false;
     }
 
     virtual int GetNumberRows() { return get_points().size() + 1; }
@@ -48,7 +48,7 @@ public:
     {
         if (col == 0)
             return GetValueAsBool(row, col) ? wxT("1") : wxT("0");
-        if (row == GetNumberRows() - 1 && !has_last_num[col-1])
+        if (row == GetNumberRows() - 1 && !has_last_num_[col-1])
             return wxEmptyString;
         return wxString::Format((col == 3 ? wxT("%g") : wxT("%.12g")),
                                 GetValueAsDouble(row, col));
@@ -75,6 +75,8 @@ public:
 
     virtual double GetValueAsDouble(int row, int col)
     {
+        if ((size_t) row > get_points().size())
+            return 0;
         const Point &p = get_point(row);
         switch (col) {
             case 1: return p.x;
@@ -87,6 +89,8 @@ public:
     virtual bool GetValueAsBool(int row, int col)
     {
         assert(col == 0);
+        if ((size_t) row > get_points().size())
+            return false;
         return get_point(row).is_active;
     }
 
@@ -94,11 +98,11 @@ public:
     {
         if (row == GetNumberRows() - 1) {
             update_point(last_point_, col, value);
-            has_last_num[col-1] = true;
-            if (has_last_num[0] && has_last_num[1]) {
+            has_last_num_[col-1] = true;
+            if (has_last_num_[0] && has_last_num_[1]) {
               char buffer[128];
               sprintf(buffer,
-                      "M=M+1, X[%d]=%.12g, Y[%d]=%.12g, S[%d]=%.12g, A[%d]=%d",
+                      "X[%d]=%.12g, Y[%d]=%.12g, S[%d]=%.12g, A[%d]=%d",
                       row, (double) last_point_.x,
                       row, (double) last_point_.y,
                       row, (double) last_point_.sigma,
@@ -107,7 +111,7 @@ public:
               if (!instant_update_)
                   local_points_.push_back(last_point_);
               last_point_ = Point();
-              has_last_num[0] = has_last_num[1] = has_last_num[2] = false;
+              has_last_num_[0] = has_last_num_[1] = has_last_num_[2] = false;
               wxGridTableMessage msg(this, wxGRIDTABLE_NOTIFY_ROWS_APPENDED, 1);
               GetView()->ProcessTableMessage(msg);
             }
@@ -169,7 +173,6 @@ public:
         vector<Point> const& points = get_points();
         if (row == (int) points.size())
             return last_point_;
-        assert(row < (int) points.size());
         return points[row];
     }
 
@@ -221,7 +224,7 @@ private:
     string pending_cmd_;
     vector<Point> local_points_;
     Point last_point_;
-    bool has_last_num[3];
+    bool has_last_num_[3];
 };
 
 
