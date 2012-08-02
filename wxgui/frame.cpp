@@ -1458,8 +1458,11 @@ void FFrame::OnNewLuaScript(wxCommandEvent&)
 
 void FFrame::OnNewHistoryScript(wxCommandEvent&)
 {
-    //TODO
-    //show_editor("", );
+    wxString history = fityk::fityk_version_line + wxString("\n");
+    v_foreach(UserInterface::Cmd, c, ftk->ui()->cmds()) {
+        history += s2wx(c->str()) + "\n";
+    }
+    show_editor("", history);
 }
 
 void FFrame::OnScriptEdit(wxCommandEvent&)
