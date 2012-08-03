@@ -6,7 +6,6 @@
 
 #include <list>
 #include <wx/spinctrl.h>
-
 #include <wx/filename.h>
 #include "cmn.h"  // enums
 #include "plotpane.h"
@@ -46,7 +45,6 @@ private:
 
     DECLARE_EVENT_TABLE()
 };
-
 
 
 /// Fityk-GUI main window
@@ -118,7 +116,8 @@ public:
 #ifdef __WXMAC__
     void OnNewWindow   (wxCommandEvent&);
 #endif
-    void OnDump         (wxCommandEvent&);
+    void OnSessionLoad(wxCommandEvent&);
+    void OnSessionSave(wxCommandEvent&);
     void OnSettings      (wxCommandEvent&);
     void OnEditInit      (wxCommandEvent&);
     void OnPrintPreview  (wxCommandEvent&);

@@ -182,7 +182,8 @@ enum {
     ID_SESSION_NEW_L           ,
     ID_SESSION_NEW_H           ,
     ID_SCRIPT_EDIT             ,
-    ID_SESSION_DUMP            ,
+    ID_SESSION_LOAD            ,
+    ID_SESSION_SAVE            ,
     ID_SESSION_SET             ,
     ID_SESSION_EI              ,
     ID_G_MODE                  ,
@@ -262,32 +263,33 @@ void append_mi(wxMenu* menu, int id, wxBitmap const& bitmap,
 
 
 BEGIN_EVENT_TABLE(FFrame, wxFrame)
-    EVT_UPDATE_UI (ID_LOG_START, FFrame::OnMenuLogStartUpdate)
-    EVT_MENU (ID_LOG_START,     FFrame::OnLogStart)
-    EVT_UPDATE_UI (ID_LOG_STOP, FFrame::OnMenuLogStopUpdate)
-    EVT_MENU (ID_LOG_STOP,      FFrame::OnLogStop)
-    EVT_UPDATE_UI (ID_LOG_WITH_OUTPUT, FFrame::OnMenuLogOutputUpdate)
-    EVT_MENU (ID_LOG_WITH_OUTPUT, FFrame::OnLogWithOutput)
-    EVT_MENU (ID_SAVE_HISTORY,  FFrame::OnSaveHistory)
-    EVT_MENU (ID_SESSION_RESET, FFrame::OnReset)
-#ifdef __WXMAC__
-    EVT_MENU (ID_SESSION_NEWWIN, FFrame::OnNewWindow)
-#endif
     EVT_MENU (ID_SESSION_INCLUDE, FFrame::OnInclude)
     EVT_MENU (ID_SESSION_REINCLUDE, FFrame::OnReInclude)
     EVT_MENU (ID_SESSION_NEW_F, FFrame::OnNewFitykScript)
     EVT_MENU (ID_SESSION_NEW_L, FFrame::OnNewLuaScript)
     EVT_MENU (ID_SESSION_NEW_H, FFrame::OnNewHistoryScript)
     EVT_MENU (ID_SCRIPT_EDIT,   FFrame::OnScriptEdit)
+#ifdef __WXMAC__
+    EVT_MENU (ID_SESSION_NEWWIN, FFrame::OnNewWindow)
+#endif
+    EVT_MENU (ID_SESSION_LOAD,  FFrame::OnSessionLoad)
+    EVT_MENU (ID_SESSION_SAVE,  FFrame::OnSessionSave)
+    EVT_MENU (ID_SAVE_HISTORY,  FFrame::OnSaveHistory)
+    EVT_UPDATE_UI (ID_LOG_START, FFrame::OnMenuLogStartUpdate)
+    EVT_MENU (ID_LOG_START,     FFrame::OnLogStart)
+    EVT_UPDATE_UI (ID_LOG_STOP, FFrame::OnMenuLogStopUpdate)
+    EVT_MENU (ID_LOG_STOP,      FFrame::OnLogStop)
+    EVT_UPDATE_UI (ID_LOG_WITH_OUTPUT, FFrame::OnMenuLogOutputUpdate)
+    EVT_MENU (ID_LOG_WITH_OUTPUT, FFrame::OnLogWithOutput)
     EVT_MENU (wxID_PRINT,       FFrame::OnPrint)
     EVT_MENU (ID_PRINT_PSFILE,  FFrame::OnPrintPSFile)
     EVT_MENU (ID_COPY_TO_CLIPB, FFrame::OnCopyToClipboard)
     EVT_MENU (ID_PAGE_SETUP,    FFrame::OnPageSetup)
     EVT_MENU (wxID_PREVIEW,     FFrame::OnPrintPreview)
     EVT_MENU (ID_SAVE_IMAGE,    FFrame::OnSaveAsImage)
-    EVT_MENU (ID_SESSION_DUMP,  FFrame::OnDump)
     EVT_MENU (ID_SESSION_SET,   FFrame::OnSettings)
     EVT_MENU (ID_SESSION_EI,    FFrame::OnEditInit)
+    EVT_MENU (ID_SESSION_RESET, FFrame::OnReset)
 
     EVT_MENU (ID_D_QLOAD,       FFrame::OnDataQLoad)
     EVT_MENU (ID_D_XLOAD,       FFrame::OnDataXLoad)
@@ -457,7 +459,6 @@ void FFrame::update_peak_type_list()
         toolbar_->update_peak_type(peak_type_nr_, &peak_types_);
 }
 
-
 void FFrame::read_recent_data_files()
 {
     recent_data_files_.clear();
@@ -589,8 +590,6 @@ void FFrame::set_menubar()
     session_menu->Append (ID_SESSION_REINCLUDE, wxT("R&e-Execute script"),
              wxT("Reset & execute commands from the file included last time"));
     session_menu->Enable (ID_SESSION_REINCLUDE, false);
-    append_mi(session_menu, ID_SESSION_RESET, GET_BMP(reload16), wxT("&Reset"),
-                                      wxT("Reset current session"));
     wxMenu *session_new_script_menu = new wxMenu;
     session_new_script_menu->Append(ID_SESSION_NEW_F, "&Blank Fityk Script");
     session_new_script_menu->Append(ID_SESSION_NEW_L, "&Blank Lua Script");
@@ -603,21 +602,23 @@ void FFrame::set_menubar()
                           "Open new window (new process)");
 #endif
     session_menu->AppendSeparator();
+    append_mi(session_menu, ID_SESSION_LOAD, GET_BMP(fileopen16),
+              "&Load Session",
+              "Reset session and execute script");
+    append_mi(session_menu, ID_SESSION_SAVE, GET_BMP(filesaveas16),
+              wxT("&Save Session..."),
+              wxT("Save current program state (as fityk script)"));
+    append_mi(session_menu, ID_SAVE_HISTORY, GET_BMP(filesaveas16),
+              wxT("Save &History..."),
+              wxT("Save all commands executed so far to file (fityk script)"));
     wxMenu *session_log_menu = new wxMenu;
     append_mi(session_log_menu, ID_LOG_START, GET_BMP(recordmacro16),
-           wxT("Choose Log File"), wxT("Start logging to file (make script)"));
+           wxT("Choose Log File"), wxT("Start logging commands to file"));
     append_mi(session_log_menu, ID_LOG_STOP, GET_BMP(stopmacro16),
-              wxT("Stop Logging"), wxT("Finish logging to file"));
+              wxT("Stop Logging"), wxT("Finish logging commands to file"));
     session_log_menu->AppendCheckItem(ID_LOG_WITH_OUTPUT,wxT("Log also output"),
                           wxT("output can be included in logfile as comments"));
-    session_menu->Append(ID_SESSION_LOG, wxT("&Logging"), session_log_menu);
-    append_mi(session_menu, ID_SESSION_DUMP, GET_BMP(filesaveas16),
-              wxT("&Save Session..."),
-              wxT("Save current program state as script file"));
-    append_mi(session_menu, ID_SAVE_HISTORY, GET_BMP(filesaveas16),
-              wxT("Save History..."),
-              wxT("Save all commands executed so far to file")
-                      wxT(" (it also creates a script)"));
+    session_menu->Append(ID_SESSION_LOG, wxT("Logging"), session_log_menu);
     session_menu->AppendSeparator();
     session_menu->Append(ID_PAGE_SETUP, wxT("Page Se&tup..."),
                                         wxT("Page setup"));
@@ -636,13 +637,15 @@ void FFrame::set_menubar()
     session_menu->Append(ID_COPY_TO_CLIPB, wxT("&Copy to Clipboard"),
                          wxT("Copy main plot to clipboard."));
     append_mi(session_menu, ID_SAVE_IMAGE, GET_BMP(image16),
-              wxT("Sa&ve As Image..."), wxT("Save plot as PNG image."));
+              wxT("Sa&ve as Image..."), wxT("Save plot as PNG image."));
     session_menu->AppendSeparator();
     append_mi(session_menu, ID_SESSION_SET, GET_BMP(preferences16),
               wxT("&Settings"), wxT("Preferences and options"));
     session_menu->Append (ID_SESSION_EI, wxT("Edit &Init File"),
                          wxT("Edit the script run at startup"));
     session_menu->AppendSeparator();
+    append_mi(session_menu, ID_SESSION_RESET, GET_BMP(reload16), wxT("&Reset"),
+                                      wxT("Reset current session"));
     session_menu->Append(wxID_EXIT, wxT("&Quit"));
 
     wxMenu* data_menu = new wxMenu;
@@ -1405,14 +1408,8 @@ void FFrame::OnSaveHistory (wxCommandEvent&)
 
 void FFrame::OnReset (wxCommandEvent&)
 {
-    int r = wxMessageBox(wxT("Do you really want to reset current session \n")
-                      wxT("and lose everything you have done in this session?"),
-                         wxT("Are you sure?"),
-                         wxYES_NO | wxCENTRE | wxICON_QUESTION);
-    if (r == wxYES) {
-        get_main_plot()->bgm()->clear_background();
-        exec("reset");
-    }
+    get_main_plot()->bgm()->clear_background();
+    exec("reset");
 }
 
 #ifdef __WXMAC__
@@ -1486,7 +1483,21 @@ void FFrame::show_editor(const wxString& path, const wxString& content)
     dlg->Show(true);
 }
 
-void FFrame::OnDump (wxCommandEvent&)
+void FFrame::OnSessionLoad(wxCommandEvent&)
+{
+    wxFileDialog fdlg(this, "Run script (after resetting session)",
+                      script_dir_, "", fityk_lua_wildcards,
+                      wxFD_OPEN | wxFD_FILE_MUST_EXIST);
+    if (fdlg.ShowModal() == wxID_OK) {
+        get_main_plot()->bgm()->clear_background();
+        exec("reset; exec '" + wx2s(fdlg.GetPath()) + "'");
+        //last_include_path_ = wx2s(fdlg.GetPath());
+        //GetMenuBar()->Enable(ID_SESSION_REINCLUDE, true);
+    }
+    script_dir_ = fdlg.GetDirectory();
+}
+
+void FFrame::OnSessionSave(wxCommandEvent&)
 {
     wxFileDialog fdlg(this, wxT("Save everything as a script"),
                       export_dir_, wxT(""),
@@ -2300,7 +2311,7 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
             wxBitmap(run_script_xpm), wxNullBitmap, wxITEM_NORMAL,
             wxT("Execute script [Ctrl+X]"),
             wxT("Execute (include) script from file"));
-    AddTool(ID_SESSION_DUMP, wxT("Save Session"),
+    AddTool(ID_SESSION_SAVE, wxT("Save Session"),
             wxBitmap(save_script_xpm), wxNullBitmap, wxITEM_NORMAL,
             wxT("Save session to file"),
             wxT("Save current session to file"));
