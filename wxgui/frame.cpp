@@ -173,7 +173,6 @@ enum {
     ID_SESSION_RESET           ,
     ID_SESSION_NEWWIN          ,
     ID_PAGE_SETUP              ,
-    ID_PRINT_PSFILE            ,
     ID_COPY_TO_CLIPB           ,
     ID_SAVE_IMAGE              ,
     ID_SESSION_INCLUDE         ,
@@ -282,7 +281,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_UPDATE_UI (ID_LOG_WITH_OUTPUT, FFrame::OnMenuLogOutputUpdate)
     EVT_MENU (ID_LOG_WITH_OUTPUT, FFrame::OnLogWithOutput)
     EVT_MENU (wxID_PRINT,       FFrame::OnPrint)
-    EVT_MENU (ID_PRINT_PSFILE,  FFrame::OnPrintPSFile)
     EVT_MENU (ID_COPY_TO_CLIPB, FFrame::OnCopyToClipboard)
     EVT_MENU (ID_PAGE_SETUP,    FFrame::OnPageSetup)
     EVT_MENU (wxID_PREVIEW,     FFrame::OnPrintPreview)
@@ -625,15 +623,6 @@ void FFrame::set_menubar()
     session_menu->Append(wxID_PREVIEW, wxT("Print Previe&w"));
     session_menu->Append(wxID_PRINT, wxT("&Print...\tCtrl-P"),
                          wxT("Print plots"));
-#if 0
-    //it doesn't work on Windows, because there is no way
-    // to have wxPostScriptPrintNativeData on MSW
-    // see: src/common/prntbase.cpp:
-    //        wxNativePrintFactory::CreatePrintNativeData()
-    //
-    session_menu->Append(ID_PRINT_PSFILE, wxT("Print to PS &File"),
-                         wxT("Export plots to postscript file."));
-#endif
     session_menu->Append(ID_COPY_TO_CLIPB, wxT("&Copy to Clipboard"),
                          wxT("Copy main plot to clipboard."));
     append_mi(session_menu, ID_SAVE_IMAGE, GET_BMP(image16),
@@ -1943,11 +1932,6 @@ void FFrame::OnPageSetup(wxCommandEvent&)
 void FFrame::OnPrint(wxCommandEvent&)
 {
     print_mgr_->print();
-}
-
-void FFrame::OnPrintPSFile(wxCommandEvent&)
-{
-    print_mgr_->print_to_psfile();
 }
 
 void FFrame::OnCopyToClipboard(wxCommandEvent&)

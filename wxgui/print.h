@@ -25,7 +25,6 @@ public:
     wxPrintData& get_print_data();
     wxPageSetupDialogData& get_page_data();
     void print();
-    void print_to_psfile();
     void printPreview();
     void pageSetup();
     void save_settings(wxConfigBase *cf) const;

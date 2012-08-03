@@ -123,7 +123,6 @@ public:
     void OnPrintPreview  (wxCommandEvent&);
     void OnPageSetup     (wxCommandEvent&);
     void OnPrint         (wxCommandEvent&);
-    void OnPrintPSFile   (wxCommandEvent&);
     void OnCopyToClipboard (wxCommandEvent&);
     void OnSaveAsImage (wxCommandEvent&);
     void OnChangeMouseMode (wxCommandEvent&);

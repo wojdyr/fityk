@@ -370,27 +370,3 @@ void PrintManager::print()
                      wxT("Printing"), wxOK);
 }
 
-
-void PrintManager::print_to_psfile()
-{
-	// disabled, see the comment in frame.cpp
-#if 0
-    wxFileDialog dialog(0, wxT("PostScript file"), wxT(""), wxT(""),
-                        wxT("*.ps"), wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-    if (dialog.ShowModal() != wxID_OK)
-        return;
-    get_print_data().SetPrintMode(wxPRINT_MODE_FILE);
-    get_print_data().SetFilename(dialog.GetPath());
-    wxPrintDialogData print_dialog_data(get_print_data());
-    print_dialog_data.SetFromPage(1);
-    print_dialog_data.SetToPage(1);
-    wxPostScriptPrinter printer (&print_dialog_data);
-    FPrintout printout(this);
-    bool r = printer.Print(0, &printout, false);
-    if (!r)
-        wxMessageBox(wxT("Can't save plots as a file:\n") + dialog.GetPath(),
-                     wxT("Exporting to PostScript"), wxOK|wxICON_ERROR);
-#endif
-}
-
-
