@@ -373,11 +373,18 @@ __ http://dx.doi.org/10.1016/0022-4073(77)90161-3
 
 .. math:: 
    y = \frac{ac\sqrt{2\pi}}{2d}
-       \exp\left(\frac{b-x}{d}+\frac{c^2}{2d^2}\right)
+       \exp\left(\frac{c^2}{2d^2}-\frac{x-b}{d}\right)
        \left[\frac{d}{\left|d\right|}
-             -\textrm{erf}\left(\frac{b-x}{\sqrt{2}c}
-                                + \frac{c}{\sqrt{2}d}\right)
+             +\textrm{erf}\left(\frac{x-b}{\sqrt{2}c}
+                                - \frac{c}{\sqrt{2}d}\right)
        \right]
+
+The exponentially modified Gaussian is a convolution of Gaussian and
+exponential probability density.
+*a* = Gaussian heigth,
+*b* = location parameter (Gaussian center),
+*c* = Gaussian width,
+*d* = distortion parameter (a.k.a. modification factor or time constant).
 
 **LogNormal:**
 
