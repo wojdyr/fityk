@@ -748,6 +748,13 @@ CALCULATE_DERIV_BEGIN(FuncEMG)
     dy_dx = - dy_dv[1];
 CALCULATE_DERIV_END(a*t)
 
+
+bool FuncEMG::get_area(realt* a) const
+{
+    *a = av_[0]*av_[2]*sqrt(2*M_PI);
+    return true;
+}
+
 ///////////////////////////////////////////////////////////////////////
 
 bool FuncDoniachSunjic::get_nonzero_range(double/*level*/,

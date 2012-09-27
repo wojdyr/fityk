@@ -165,6 +165,7 @@ class FuncEMG : public Function
     void more_precomputations();
     bool get_nonzero_range(double level, realt &left, realt &right) const;
     bool get_center(realt* a) const { *a = av_[1]; return true; }
+    bool get_area(realt* a) const;
 };
 
 class FuncDoniachSunjic : public Function
