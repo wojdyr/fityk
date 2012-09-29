@@ -17,8 +17,6 @@ doc/html/
 doc/latex/
 doc/web/
 doc/doctrees/
-doc/fityk-banner.svg
-doc/fityk-banner.pdf
 samples/tmp_*
 src/swig/Fityk.pm
 src/swig/fityk.py
