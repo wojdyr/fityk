@@ -42,7 +42,8 @@ void on_mpfit_iteration(void *mpfit)
 
 int MPfit::on_iteration()
 {
-    return (int) common_termination_criteria(iter_nr_-start_iter_);
+    // max. iterations/evaluations number is handled in proper place by mpfit
+    return (int) common_termination_criteria(iter_nr_-start_iter_, false);
 }
 
 int MPfit::calculate(int /*m*/, int npar, double *par, double *deviates,
@@ -106,7 +107,6 @@ void MPfit::autoiter()
     v_foreach (DataAndModel*, i, dmdm_)
         m += (*i)->data()->get_n();
 
-    // this is also handled in Fit::common_termination_criteria()
     mp_conf_.maxiter = max_iterations_;
     mp_conf_.maxfev = F_->get_settings()->max_wssr_evaluations;
 

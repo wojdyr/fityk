@@ -521,26 +521,28 @@ void Fit::update_parameters(const vector<DataAndModel*>& dms)
 }
 
 /// checks termination criteria common for all fitting methods
-bool Fit::common_termination_criteria(int iter)
+bool Fit::common_termination_criteria(int iter, bool all)
 {
     bool stop = false;
     if (fityk::user_interrupt) {
         F_->msg ("Fitting stopped manually.");
         stop = true;
     }
-    if (max_iterations_ >= 0 && iter >= max_iterations_) {
-        F_->msg("Maximum iteration number reached.");
-        stop = true;
-    }
-    int max_eval = F_->get_settings()->max_wssr_evaluations;
-    if (max_eval > 0 && evaluations_ >= max_eval) {
-        F_->msg("Maximum evaluations number reached.");
-        stop = true;
-    }
     double max_time = F_->get_settings()->max_fitting_time;
     if (max_time > 0 && clock() >= start_time_ + max_time * CLOCKS_PER_SEC) {
         F_->msg("Maximum processor time exceeded.");
         stop = true;
+    }
+    if (all) {
+        if (max_iterations_ >= 0 && iter >= max_iterations_) {
+            F_->msg("Maximum iteration number reached.");
+            stop = true;
+        }
+        int max_eval = F_->get_settings()->max_wssr_evaluations;
+        if (max_eval > 0 && evaluations_ >= max_eval) {
+            F_->msg("Maximum evaluations number reached.");
+            stop = true;
+        }
     }
     return stop;
 }

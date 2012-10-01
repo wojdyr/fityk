@@ -67,7 +67,7 @@ protected:
 
     virtual void init() = 0; // called before autoiter()
     virtual void autoiter() = 0;
-    bool common_termination_criteria(int iter);
+    bool common_termination_criteria(int iter, bool all=true);
     void compute_derivatives(const std::vector<realt> &A,
                           const std::vector<DataAndModel*>& dms,
                           std::vector<realt>& alpha, std::vector<realt>& beta);
