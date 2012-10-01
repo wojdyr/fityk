@@ -1289,9 +1289,10 @@ void FFrame::OnFOneOfMethods (wxCommandEvent& event)
 void FFrame::OnFRun (wxCommandEvent&)
 {
     FitRunDlg dlg(this, -1, true);
-    dlg.ShowModal();
-    string cmd = dlg.get_cmd();
-    exec(cmd);
+    if (dlg.ShowModal() == wxID_OK) {
+        string cmd = dlg.get_cmd();
+        exec(cmd);
+    }
 }
 
 void FFrame::OnFInfo (wxCommandEvent&)
