@@ -100,9 +100,13 @@ protected:
     Func(const std::string name_) : name(name_) {}
 };
 
-
-/// used to get statistics for all datasets together, e.g. in Fityk::get_wssr()
-const int all_datasets=-1;
+/// special dataset magic numbers used only in this API
+enum {
+    /// all datasets, used to get statistics for all datasets together
+    ALL_DATASETS=-1,
+    /// default dataset (as set by the 'use' command)
+    DEFAULT_DATASET=-2
+};
 
 /// data point
 struct Point
@@ -142,7 +146,7 @@ public:
                    std::string const& title="")  throw(ExecuteError);
 
     /// add one data point to dataset
-    void add_point(realt x, realt y, realt sigma, int dataset=0)
+    void add_point(realt x, realt y, realt sigma, int dataset=DEFAULT_DATASET)
                                                      throw(ExecuteError);
 
     // @}
@@ -188,11 +192,11 @@ public:
     // @{
 
     /// return output of the info command
-    std::string get_info(std::string const& s, int dataset=0)
+    std::string get_info(std::string const& s, int dataset=DEFAULT_DATASET)
                                             throw(SyntaxError, ExecuteError);
 
     /// return expression value, similarly to the print command
-    realt calculate_expr(std::string const& s, int dataset=0)
+    realt calculate_expr(std::string const& s, int dataset=DEFAULT_DATASET)
                                             throw(SyntaxError, ExecuteError);
 
     /// returns number of datasets n, always n >= 1
@@ -202,7 +206,8 @@ public:
     int get_default_dataset() const;
 
     /// get data points
-    std::vector<Point> const& get_data(int dataset=0)  throw(ExecuteError);
+    std::vector<Point> const& get_data(int dataset=DEFAULT_DATASET)
+                                                         throw(ExecuteError);
 
     /// returns number of simple-variables (parameters that can be fitted)
     int get_parameter_count() const;
@@ -223,12 +228,13 @@ public:
     Var* get_var(const Func *func, const std::string& parameter);
 
     /// returns the value of the model for a given dataset at x
-    realt get_model_value(realt x, int dataset=0)  throw(ExecuteError);
+    realt get_model_value(realt x, int dataset=DEFAULT_DATASET)
+                                                         throw(ExecuteError);
 
     /// multiple point version of the get_model_value()
     std::vector<realt>
-    get_model_vector(std::vector<realt> const& x, int dataset=0)
-                                                        throw(ExecuteError);
+    get_model_vector(std::vector<realt> const& x, int dataset=DEFAULT_DATASET)
+                                                         throw(ExecuteError);
 
     /// \brief returns the index of parameter hold by the variable
     /// (the same index as in get_covariance_matrix(),
@@ -245,22 +251,22 @@ public:
     // @{
 
     /// get WSSR for given dataset or for all datasets
-    realt get_wssr(int dataset=all_datasets)  throw(ExecuteError);
+    realt get_wssr(int dataset=ALL_DATASETS)  throw(ExecuteError);
 
     /// get SSR for given dataset or for all datasets
-    realt get_ssr(int dataset=all_datasets)  throw(ExecuteError);
+    realt get_ssr(int dataset=ALL_DATASETS)  throw(ExecuteError);
 
     /// get R-squared for given dataset or for all datasets
-    realt get_rsquared(int dataset=all_datasets)  throw(ExecuteError);
+    realt get_rsquared(int dataset=ALL_DATASETS)  throw(ExecuteError);
 
     /// get number of degrees-of-freedom for given dataset or for all datasets
-    int get_dof(int dataset=all_datasets)  throw(ExecuteError);
+    int get_dof(int dataset=ALL_DATASETS)  throw(ExecuteError);
 
     /// \brief get covariance matrix (for given dataset or for all datasets)
     /// get_variable_nr() can be used to connect variables with parameter
     /// positions
     std::vector<std::vector<realt> >
-    get_covariance_matrix(int dataset=all_datasets)  throw(ExecuteError);
+    get_covariance_matrix(int dataset=ALL_DATASETS)  throw(ExecuteError);
     // @}
 
     /// UiApi contains functions used by CLI and may be used to implement

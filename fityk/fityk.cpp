@@ -48,7 +48,7 @@ using namespace fityk;
 
 realt get_wssr_or_ssr(Ftk const* ftk, int dataset, bool weigthed)
 {
-    if (dataset == all_datasets) {
+    if (dataset == ALL_DATASETS) {
         realt result = 0;
         for (int i = 0; i < ftk->get_dm_count(); ++i)
             result += Fit::compute_wssr_for_data(ftk->get_dm(i), weigthed);
@@ -63,7 +63,7 @@ realt get_wssr_or_ssr(Ftk const* ftk, int dataset, bool weigthed)
 vector<DataAndModel*> get_datasets_(Ftk* ftk, int dataset)
 {
     vector<DataAndModel*> dd;
-    if (dataset == all_datasets) {
+    if (dataset == ALL_DATASETS) {
         for (int i = 0; i < ftk->get_dm_count(); ++i)
             dd.push_back(ftk->get_dm(i));
     }
@@ -71,6 +71,11 @@ vector<DataAndModel*> get_datasets_(Ftk* ftk, int dataset)
         dd.push_back(ftk->get_dm(dataset));
     }
     return dd;
+}
+
+int hd(Ftk* ftk, int dataset)
+{
+    return dataset == DEFAULT_DATASET ? ftk->default_dm() : dataset;
 }
 
 } // anonymous namespace
@@ -130,7 +135,7 @@ string Fityk::get_info(string const& s, int dataset)  throw(SyntaxError,
 {
     try {
         string result;
-        parse_and_eval_info(ftk_, s, dataset, result);
+        parse_and_eval_info(ftk_, s, hd(ftk_, dataset), result);
         return result;
     }
     CATCH_SYNTAX_ERROR
@@ -144,8 +149,9 @@ realt Fityk::calculate_expr(string const& s, int dataset)  throw(SyntaxError,
     try {
         Lexer lex(s.c_str());
         ExpressionParser ep(ftk_);
-        ep.parse_expr(lex, dataset);
-        return ep.calculate(0, ftk_->get_data(dataset)->points());
+        int d = hd(ftk_, dataset);
+        ep.parse_expr(lex, d);
+        return ep.calculate(0, ftk_->get_data(d)->points());
     }
     CATCH_SYNTAX_ERROR
     CATCH_EXECUTE_ERROR
@@ -205,7 +211,7 @@ Var* Fityk::get_var(const Func *func, const string& parameter)
 realt Fityk::get_model_value(realt x, int dataset)  throw(ExecuteError)
 {
     try {
-        return ftk_->get_model(dataset)->value(x);
+        return ftk_->get_model(hd(ftk_, dataset))->value(x);
     }
     CATCH_EXECUTE_ERROR
     return 0.;
@@ -217,7 +223,7 @@ vector<realt> Fityk::get_model_vector(vector<realt> const& x, int dataset)
     vector<realt> xx(x);
     vector<realt> yy(x.size(), 0.);
     try {
-        ftk_->get_model(dataset)->compute_model(xx, yy);
+        ftk_->get_model(hd(ftk_, dataset))->compute_model(xx, yy);
     }
     CATCH_EXECUTE_ERROR
     return yy;
@@ -272,7 +278,7 @@ void Fityk::add_point(realt x, realt y, realt sigma, int dataset)
                                                           throw(ExecuteError)
 {
     try {
-        ftk_->get_data(dataset)->add_one_point(x, y, sigma);
+        ftk_->get_data(hd(ftk_, dataset))->add_one_point(x, y, sigma);
     }
     CATCH_EXECUTE_ERROR
 }
@@ -281,7 +287,7 @@ vector<Point> const& Fityk::get_data(int dataset)  throw(ExecuteError)
 {
     static const vector<Point> empty;
     try {
-        return ftk_->get_data(dataset)->points();
+        return ftk_->get_data(hd(ftk_, dataset))->points();
     }
     CATCH_EXECUTE_ERROR
     return empty;
@@ -336,7 +342,7 @@ realt Fityk::get_ssr(int dataset)  throw(ExecuteError)
 realt Fityk::get_rsquared(int dataset)  throw(ExecuteError)
 {
     try {
-        if (dataset == all_datasets) {
+        if (dataset == ALL_DATASETS) {
             realt result = 0;
             for (int i = 0; i < ftk_->get_dm_count(); ++i)
                 result += Fit::compute_r_squared_for_data(ftk_->get_dm(i),
