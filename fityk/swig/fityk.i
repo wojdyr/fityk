@@ -32,7 +32,12 @@
 %include "std_except.i"
 namespace std {
     %template(PointVector) vector<fityk::Point>;
-    %template(RealVector) vector<realt>;
+    /* temporarily realt is replaced by double as a workaround of SWIG bug.
+     * It's likely the same bug as in:
+     * http://article.gmane.org/gmane.comp.programming.swig.devel/21772
+     */
+    //%template(RealVector) vector<realt>;
+    %template(RealVector) vector<double>;
     %template(VarVector) vector<fityk::Var*>;
     %template(FuncVector) vector<fityk::Func*>;
 }
