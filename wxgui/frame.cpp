@@ -1927,7 +1927,8 @@ void FFrame::OnPrintPreview(wxCommandEvent&)
 
 void FFrame::OnPageSetup(wxCommandEvent&)
 {
-    print_mgr_->pageSetup();
+    PageSetupDialog dlg(NULL, print_mgr_);
+    dlg.ShowModal();
 }
 
 void FFrame::OnPrint(wxCommandEvent&)

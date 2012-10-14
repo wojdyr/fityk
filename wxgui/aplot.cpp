@@ -258,7 +258,9 @@ void AuxPlot::set_scale(int pixel_width, int pixel_height)
     // This functions depends on the x and y scales in MainPlot.
     // Since the order in which the plots are redrawn is undetermined,
     // we are updating here the MainPlot scale.
-    master_->set_scale(pixel_width, master_->GetClientSize().GetHeight());
+    // But don't change MainPlot's scale when printing.
+    if (pixel_height == GetClientSize().GetHeight()) // probably not printing
+        master_->set_scale(pixel_width, master_->GetClientSize().GetHeight());
 
     xs = master_->get_x_scale();
 

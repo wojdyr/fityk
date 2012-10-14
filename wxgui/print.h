@@ -13,25 +13,18 @@ class SpinCtrl;
 class PrintManager
 {
 public:
-    bool landscape;
     bool colors;
-    //int scale;
-    //bool keep_ratio;
     bool plot_aux[2], plot_borders;
+    int margin_left, margin_right, margin_top, margin_bottom;
     PlotPane* plot_pane;
+    wxPrintData print_data;
 
     PrintManager(PlotPane* pane);
     ~PrintManager();
-    wxPrintData& get_print_data();
-    wxPageSetupDialogData& get_page_data();
     void print();
     void printPreview();
-    void pageSetup();
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
-private:
-    wxPrintData *print_data;
-    wxPageSetupDialogData *page_setup_data;
 };
 
 
@@ -42,12 +35,10 @@ public:
     void OnOk(wxCommandEvent& event);
 protected:
     PrintManager *pm;
-    wxRadioBox *orientation, *colors;
-    wxComboBox *papers;
-    //wxCheckBox *keep_ratio;
-    wxCheckBox *plot_aux[2], *plot_borders;
-    SpinCtrl *left_margin, *right_margin, *top_margin, *bottom_margin;
-    //SpinCtrl *scale;
+    wxRadioBox *orientation_rb, *colors_rb;
+    wxCheckBox *plot_aux_cb[2], *plot_borders_cb;
+    SpinCtrl *left_margin_sc, *right_margin_sc,
+             *top_margin_sc, *bottom_margin_sc;
     DECLARE_EVENT_TABLE()
 };
 
@@ -55,16 +46,13 @@ protected:
 class FPrintout: public wxPrintout
 {
 public:
-    FPrintout(PrintManager const* print_manager);
+    FPrintout(PrintManager const* pm) : wxPrintout("fityk"), pm_(pm) {}
     bool HasPage(int page) { return (page == 1); }
     bool OnPrintPage(int page);
     void GetPageInfo(int *minPage,int *maxPage,int *selPageFrom,int *selPageTo)
         { *minPage = *maxPage = *selPageFrom = *selPageTo = 1; }
 private:
-    PrintManager const* pm;
+    PrintManager const* pm_;
 };
-
-void do_print_plots(wxDC *dc, PrintManager const* pm);
-
 
 #endif
