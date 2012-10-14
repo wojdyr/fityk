@@ -304,7 +304,14 @@ void UserInterface::exec_lua_string(const string& str)
 {
     lua_State *L = get_lua();
     int status = luaL_dostring(L, str.c_str());
-    if (status != 0)
+    if (status == 0 && lua_gettop(L) > 0) { // print returned values
+        luaL_checkstack(L, LUA_MINSTACK, "too many results to print");
+        lua_getglobal(L, "print");
+        lua_insert(L, 1);
+        status = lua_pcall(L, lua_gettop(L)-1, 0, 0);
+    }
+
+    if (status != 0) // LUA_OK(=0) was added in Lua 5.2
         handle_lua_error();
 }
 
@@ -323,6 +330,9 @@ lua_State* UserInterface::get_lua()
     L_ = luaL_newstate();
     luaL_openlibs(L_);
     luaopen_fityk(L_);
+    // SWIG-generated luaopen_fityk() leaves two tables on the stack,
+    // clear the stack
+    lua_settop(L_, 0);
     swig_type_info *type_info = SWIG_TypeQuery(L_, "fityk::Fityk *");
     assert(type_info != NULL);
     int owned = 1;
