@@ -36,15 +36,13 @@ One-liners can be run with command ``lua``::
     %_1 = Constant($_1)
     %_2 = Cycle($_2, $_3, $_4)
 
-Scripts with multiple lines must be put into a file.
+(The Lua ``print`` function in fityk is redefined to show the output
+in the GUI instead of writing to ``stdout``).
 
-The ``print`` function in Lua (used above) writes a string to the standard
-output, so we will not see the output in the GUI.
-But the Lua interpreter in Fityk has defined global object ``F`` which
-enables interaction with the program. For example, we can display text
-in the output window::
+The Lua interpreter in Fityk has defined global object ``F`` which
+enables interaction with the program::
 
-    =-> lua F:out(os.date("Today is %A."))
+    =-> lua print(F:get_info("version"))
 
 ``F`` is an instance of `class Fityk`_ in Lua wrapper.
 For now, the only documentation is in the `fityk.h`_ header.
@@ -62,7 +60,7 @@ Here is an example of Lua-Fityk interactions::
 
     -- print some statistics about loaded data
     n = F:get_dataset_count()
-    F:out(n .. " datasets loaded.")
+    print(n .. " datasets loaded.")
 
     total_max_y = 0
     for i=0,n-1 do
@@ -71,7 +69,7 @@ Here is an example of Lua-Fityk interactions::
             total_max_y = max_y
         end
     end
-    F:out("The largest y: " .. total_max_y)
+    print("The largest y: " .. total_max_y)
 
 If a fityk command executed from Lua script fails, the whole script is
 stopped, unless you catch the error::
@@ -79,7 +77,7 @@ stopped, unless you catch the error::
     -- wrap F:execute() in pcall to handle possible errors
     status, err = pcall(function() F:execute("fit") end)
     if status == false then
-        F:out("Error: " .. err)
+        print("Error: " .. err)
     end
 
 Here is another example::
@@ -96,7 +94,7 @@ Here is another example::
             s = s .. string.format("  (%+.4f)", x-prev_x)
         end
         prev_x = x
-        F:out(s)
+        print(s)
     end
 
 .. highlight:: fityk

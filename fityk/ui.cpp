@@ -322,6 +322,28 @@ void UserInterface::handle_lua_error()
     lua_pop(L_, 1);
 }
 
+// based on luaB_print from lbaselib.c
+static int fityk_lua_print(lua_State* L) {
+    string str;
+    int n = lua_gettop(L); // number of arguments
+    lua_getglobal(L, "tostring");
+    for (int i=1; i<=n; i++) {
+        lua_pushvalue(L, -1);  // `tostring' function
+        lua_pushvalue(L, i);   // i'th arg
+        lua_call(L, 1, 1);     // calls tostring(arg_i)
+        const char *s = lua_tostring(L, -1);  // get result
+        if (s == NULL)
+            return luaL_error(L, "cannot convert argument to string");
+        if (i > 1)
+            str += "\t";
+        str += s;
+        lua_pop(L, 1);  // pop result
+    }
+    UserInterface *ui = (UserInterface*) lua_touserdata(L, lua_upvalueindex(1));
+    ui->output_message(UserInterface::kNormal, str);
+    return 0;
+}
+
 lua_State* UserInterface::get_lua()
 {
     if (L_ != NULL)
@@ -330,15 +352,24 @@ lua_State* UserInterface::get_lua()
     L_ = luaL_newstate();
     luaL_openlibs(L_);
     luaopen_fityk(L_);
+
     // SWIG-generated luaopen_fityk() leaves two tables on the stack,
     // clear the stack
     lua_settop(L_, 0);
+
+    // define F
     swig_type_info *type_info = SWIG_TypeQuery(L_, "fityk::Fityk *");
     assert(type_info != NULL);
     int owned = 1;
     Fityk *f = new Fityk(F_);
     SWIG_NewPointerObj(L_, f, type_info, owned);
     lua_setglobal(L_, "F");
+
+    // redefine print
+    lua_pushlightuserdata(L_, this);
+    lua_pushcclosure(L_, fityk_lua_print, 1);
+    lua_setglobal(L_, "print");
+
     return L_;
 }
 
