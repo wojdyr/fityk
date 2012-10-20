@@ -53,7 +53,7 @@ and optionally:
 To install the latest version from Git
 ======================================
 
-Install automake, autoconf, libtool.
+Install automake, autoconf, libtool and SWIG.
 
 Download http://www.physics.wisc.edu/~craigm/idl/down/cmpfit-1.2.tar.gz
 unpack it and copy cmpfit-1.2/mpfit.* to fityk/fityk/cmpfit/
