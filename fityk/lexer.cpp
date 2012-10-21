@@ -352,10 +352,15 @@ Token Lexer::get_filename_token()
 
 Token Lexer::get_rest_of_line()
 {
-    Token t = get_token();
+    // avoid calling here read_token() because it may throw exception
+    Token t;
+    t.type = kTokenRest;
+    while (isspace(*cur_))
+        ++cur_;
+    t.str = peeked_ ? tok_.str : cur_;
+    peeked_ = false;
     while (*cur_ != '\0')
         ++cur_;
-    t.type = kTokenRest;
     t.length = cur_ - t.str;
     return t;
 }

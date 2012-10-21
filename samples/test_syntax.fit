@@ -1,4 +1,4 @@
-# Fityk 1.0.4
+# Fityk 1.2.1
 
 ### syntax testing
 ### this script doesn't assume location of any other files (ie. no data files
@@ -251,6 +251,10 @@ delete file tmp_dump.fit
 delete file tmp_log.fit
 
 lua print("current date and time:\t\t" .. os.date())
+= "again: \t" .. os.date()
+= "again:", os.date()
+exec= "info version"
+= F:get_info('version'):lower(), _VERSION
 lua F:out((F:get_info("F[0]")))
 
 # settings
