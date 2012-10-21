@@ -816,8 +816,10 @@ void Runner::execute_statement(Statement& st)
                 if (c->type == kCmdExec || c->type == kCmdLua) {
                     // this command contains nested commands that use the same
                     // Parser/Runner.
-                    assert(c->args.size() == 1);
-                    const Token& t = c->args[0];
+                    assert(c->args.size() == 1 || (c->args.size() == 2 &&
+                                             c->args[0].type == kTokenAssign));
+                    bool eq = (c->args[0].type == kTokenAssign);
+                    const Token& t = c->args.back();
                     TokenType tt = t.type;
                     string str = Lexer::get_string(t);
                     Statement backup;
@@ -828,10 +830,18 @@ void Runner::execute_statement(Statement& st)
                     st.commands.swap(backup.commands);
                     int old_default_dm = F_->default_dm();
                     F_->set_default_dm(*i);
-                    if (c->type == kCmdExec)
-                        command_exec(tt, str);
-                    else // if (c->type == kCmdLua)
-                        F_->ui()->exec_lua_string(str);
+                    if (eq) {
+                        if (c->type == kCmdExec)
+                            F_->ui()->exec_lua_output(str);
+                        else // if (c->type == kCmdLua)
+                            F_->ui()->exec_lua_string("return " + str);
+                    }
+                    else {
+                        if (c->type == kCmdExec)
+                            command_exec(tt, str);
+                        else // if (c->type == kCmdLua)
+                            F_->ui()->exec_lua_string(str);
+                    }
                     F_->set_default_dm(old_default_dm);
                     st.datasets.swap(backup.datasets);
                     st.with_args.swap(backup.with_args);

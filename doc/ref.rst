@@ -39,10 +39,31 @@ One-liners can be run with command ``lua``::
 (The Lua ``print`` function in fityk is redefined to show the output
 in the GUI instead of writing to ``stdout``).
 
+Like in the Lua interpreter, ``=`` at the beginning of line can be used
+to save some typing::
+
+    =-> = os.date("Today is %A.")
+    Today is Thursday.
+
+Similarly, ``=`` after ``execute`` also interprets the rest of line
+as Lua expressions, but this time the results are not printed,
+they are executed as fityk commands::
+
+    =-> = string.format("fit %d", math.random(10,20))
+    fit 17
+    =-> exec= string.format("fit %d", math.random(10,20))
+    (runs from 10 to 20 iterations of fitting)
+
 The Lua interpreter in Fityk has defined global object ``F`` which
 enables interaction with the program::
 
-    =-> lua print(F:get_info("version"))
+    =-> = F:get_info("version")
+
+Now the first example that can be useful. For each dataset write output
+of the ``info peaks`` command to a file named after the data file,
+with appended ".out"::
+
+    =-> @*: exec= "info peaks >'"..F:get_info("filename")..".out'"
 
 ``F`` is an instance of `class Fityk`_ in Lua wrapper.
 For now, the only documentation is in the `fityk.h`_ header.

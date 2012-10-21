@@ -86,6 +86,7 @@ public:
     void close_lua();
     void exec_lua_string(const std::string& str);
     void exec_lua_script(const std::string& str);
+    void exec_lua_output(const std::string& str);
     bool is_lua_line_incomplete(const char* str);
 
 private:

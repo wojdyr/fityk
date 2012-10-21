@@ -444,6 +444,10 @@ void parse_exec_args(Lexer& lex, vector<Token>& args)
 {
     if (lex.discard_token_if(kTokenBang))
         args.push_back(lex.get_rest_of_line());
+    else if (lex.peek_token().type == kTokenAssign) {
+        args.push_back(lex.get_token());
+        args.push_back(lex.get_rest_of_line());
+    }
     else
         args.push_back(lex.get_filename_token());
 }
@@ -943,6 +947,11 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
         }
         else
             lex.throw_syntax_error("unknown name: " + token.as_string());
+    }
+    else if (token.type == kTokenAssign) {
+        cmd.type = kCmdLua;
+        cmd.args.push_back(token);
+        cmd.args.push_back(lex.get_rest_of_line());
     }
     else if (token.type == kTokenBang) {
         cmd.type = kCmdShell;

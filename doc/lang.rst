@@ -25,7 +25,7 @@ still need to be programmed in a general-purpose language.
 That is why Fityk comes with embedded Lua (lightweight programming language)
 and also with bindings to Python and several other languages.
 
-Now a quick glimps at the syntax. Here, the ``=->`` prompt marks an input::
+Now a quick glimpse at the syntax. Here, the ``=->`` prompt marks an input::
 
   =-> print pi
   3.14159
@@ -157,6 +157,7 @@ The kCmd* names in the comments correspond to constants in the code.
     : "g:uess" `guess`                   | (*kCmdGuess*)
     : "i:nfo" `info_arg` % "," [`redir`]   | (*kCmdInfo*)
     : "l:ua" RestOfLine                | (*kCmdLua*)
+    : "=" RestOfLine                   | (*kCmdLua*)
     : "pl:ot" [`range`] [`range`] Dataset* | (*kCmdPlot*)
     : "p:rint" `print_args` [`redir`]      | (*kCmdPrint*)
     : "quit"                           | (*kCmdQuit*)
@@ -189,7 +190,8 @@ The kCmd* names in the comments correspond to constants in the code.
    delete: (Varname | `func_id` | Dataset | "file" `filename`) % ","
    delete_points: "(" `p_expr` ")"
    exec: `filename` |
-       : "!" RestOfLine
+       : "!" RestOfLine |
+       : "=" RestOfLine
    fit: [Number] [Dataset*] |
       : "+" Number |
       : "undo" |

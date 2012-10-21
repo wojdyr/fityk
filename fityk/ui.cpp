@@ -315,6 +315,36 @@ void UserInterface::exec_lua_string(const string& str)
         handle_lua_error();
 }
 
+void UserInterface::exec_lua_output(const string& str)
+{
+    lua_State *L = get_lua();
+    int status = luaL_dostring(L, ("return "+str).c_str());
+    if (status != 0) {
+        handle_lua_error();
+        return;
+    }
+    int n = lua_gettop(L); // number of args
+    lua_getglobal(L, "tostring");
+    for (int i = 1; i <= n; ++i) {
+        lua_pushvalue(L, -1); // tostring()
+        lua_pushvalue(L, i);  // value
+        lua_call(L, 1, 1);
+        const char *s = lua_tolstring(L, -1, NULL);
+        if (s == NULL) {
+            luaL_error(L, "cannot covert value to string");
+            return;
+        }
+        bool r = execute_line(s);
+        if (r != kStatusOk && F_->get_settings()->on_error[0] != 'n'/*nothing*/)
+            break;
+        lua_pop(L, 1); // pop tostring result
+    }
+    lua_settop(L, 0);
+
+    if (status != 0) // LUA_OK(=0) was added in Lua 5.2
+        handle_lua_error();
+}
+
 void UserInterface::handle_lua_error()
 {
     const char *msg = lua_tostring(L_, -1);
