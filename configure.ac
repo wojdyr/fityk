@@ -67,6 +67,10 @@ fi
 
 AC_LANG_PUSH([C++])
 
+# AC_PROG_CXX doesn't fail if compiler is not found, test it explicitely
+AC_LINK_IFELSE([AC_LANG_PROGRAM([], [])], [],
+               [AC_MSG_ERROR([C++ compiler not found.])])
+
 AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
  [You don't have a <sstream> header. It is a part of standard C++ library.
   Either you have too old compiler, or standard C++ library can't be found.])])
