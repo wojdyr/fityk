@@ -68,12 +68,6 @@ namespace std {
     %extend fityk::ExecuteError
         { const char* __str__() { return $self->what(); } }
     %include "file.i"
-    /* this is needed (I have no clue why) for all_parameters() to work, from:
-     * http://permalink.gmane.org/gmane.comp.programming.swig/16511 */
-    namespace std {
-        specialize_std_vector(realt, PyFloat_Check, PyFloat_AsDouble,
-                                                    PyFloat_FromDouble);
-    }
 
 #elif defined(SWIGLUA)
     %typemap(throws) fityk::ExecuteError {
