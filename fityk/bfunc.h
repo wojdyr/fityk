@@ -196,9 +196,7 @@ class FuncLogNormal : public Function
 class VarArgFunction : public Function
 {
 public:
-    // so far all the va functions have parameters x1,y1,x2,y2,...
-    virtual std::string get_param(int n) const
-            { return (n % 2 == 0 ? "x" : "y") + S(n/2 + 1); }
+    virtual std::string get_param(int n) const;
 protected:
     VarArgFunction(const Settings* settings,
                    const std::string &name,

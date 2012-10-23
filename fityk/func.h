@@ -83,7 +83,8 @@ public:
                                             const char* num_fmt) const;
 
     // VarArgFunction overrides this defintion (that's why value is returned)
-    virtual std::string get_param(int n) const { return tp_->fargs[n]; }
+    virtual std::string get_param(int n) const
+        { return is_index(n, tp_->fargs) ? tp_->fargs[n] : std::string(); }
 
     int get_param_nr(const std::string& param) const;
     virtual realt get_param_value(const std::string& param) const;

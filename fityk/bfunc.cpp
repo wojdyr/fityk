@@ -1003,6 +1003,15 @@ bool FuncLogNormal::get_area(realt* a) const
 
 ///////////////////////////////////////////////////////////////////////
 
+// so far all the va functions have parameters x1,y1,x2,y2,...
+std::string VarArgFunction::get_param(int n) const
+{
+    if (is_index(n, av_))
+        return (n % 2 == 0 ? "x" : "y") + S(n/2 + 1);
+    else
+        return "";
+}
+
 void FuncSpline::more_precomputations()
 {
     q_.resize(nv() / 2);

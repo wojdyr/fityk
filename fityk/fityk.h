@@ -94,6 +94,7 @@ public:
     virtual ~Func() {}
 
     virtual const std::string& get_template_name() const = 0;
+    virtual std::string get_param(int n) const = 0;
     virtual realt get_param_value(const std::string& param) const = 0;
     virtual realt value_at(realt x) const = 0;
 protected:
@@ -225,7 +226,8 @@ public:
     std::vector<Func*> get_components(int dataset, char fz='F');
 
     /// returns a variable used as a parameter of function
-    Var* get_var(const Func *func, const std::string& parameter);
+    Var* get_var(const Func *func, const std::string& parameter)
+                                                         throw(ExecuteError);
 
     /// returns the value of the model for a given dataset at x
     realt get_model_value(realt x, int dataset=DEFAULT_DATASET)

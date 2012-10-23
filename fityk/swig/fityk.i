@@ -61,8 +61,13 @@ namespace std {
     }
 #endif
 
-#if defined(SWIGPYTHON)
+#if defined(SWIGPYTHON) || defined(SWIGLUA)
     %extend fityk::Point { std::string __str__() { return $self->str(); } }
+    %extend fityk::Func { std::string __str__() { return "%"+$self->name; } }
+    %extend fityk::Var { std::string __str__() { return "$"+$self->name; } }
+#endif
+
+#if defined(SWIGPYTHON)
     %extend fityk::SyntaxError
         { const char* __str__() { return $self->what(); } }
     %extend fityk::ExecuteError
@@ -70,7 +75,6 @@ namespace std {
     %include "file.i"
 
 #elif defined(SWIGLUA)
-    %extend fityk::Point { std::string __tostring() { return $self->str(); } }
     %typemap(throws) fityk::ExecuteError {
         lua_pushstring(L,$1.what()); SWIG_fail;
     }

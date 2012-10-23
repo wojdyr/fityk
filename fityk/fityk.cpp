@@ -201,6 +201,7 @@ vector<Func*> Fityk::get_components(int dataset, char fz)
 }
 
 Var* Fityk::get_var(const Func *func, const string& parameter)
+                                                         throw(ExecuteError)
 {
     const Function *f = static_cast<const Function*>(func);
     int param_idx = f->get_param_nr(parameter);
