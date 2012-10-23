@@ -19,17 +19,17 @@
 %{
 #include "stddef.h" // bug workaround, needed for Swig1.3 + GCC4.6
 #include "fityk.h"
-
-/* this is necessary with swig <= 2.0.4 */
-#if LUA_VERSION_NUM == 502
-# define lua_strlen lua_rawlen
-# define luaL_reg luaL_Reg
-#endif
-
 %}
 %include "std_string.i"
 %include "std_vector.i"
 %include "std_except.i"
+
+#ifdef SWIGLUA
+%extend std::vector {
+    int __len(void*) { return self->size(); }
+}
+#endif
+
 namespace std {
     %template(PointVector) vector<fityk::Point>;
     /* temporarily realt is replaced by double as a workaround of SWIG bug.
@@ -70,6 +70,7 @@ namespace std {
     %include "file.i"
 
 #elif defined(SWIGLUA)
+    %extend fityk::Point { std::string __tostring() { return $self->str(); } }
     %typemap(throws) fityk::ExecuteError {
         lua_pushstring(L,$1.what()); SWIG_fail;
     }
