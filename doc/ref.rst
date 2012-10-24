@@ -32,9 +32,9 @@ One-liners can be run with command ``lua``::
     Lua 5.1
     =-> lua print(os.date("Today is %A."))
     Today is Thursday.
-    =-> lua for f in string.gmatch(F:get_info("functions"), "[%w_]+") do print(F:get_info("%"..f)) end
-    %_1 = Constant($_1)
-    %_2 = Cycle($_2, $_3, $_4)
+    =-> lua for n,f in F:all_functions() do print(n, f, f:get_template_name()) end
+    0       %_1     Constant
+    1       %_2     Cycle
 
 (The Lua ``print`` function in fityk is redefined to show the output
 in the GUI instead of writing to ``stdout``).

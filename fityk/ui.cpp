@@ -374,6 +374,33 @@ static int fityk_lua_print(lua_State* L) {
     return 0;
 }
 
+// it may rely on implementation details of Lua
+static int lua_vector_iterator(lua_State* L)
+{
+    assert(lua_isuserdata(L,1)); // in SWIG everything is wrapped as userdata
+    int idx = lua_isnil(L, -1) ? 0 : lua_tonumber(L, -1) + 1;
+
+    // no lua_len() in 5.1, let's call size() directly
+    lua_getfield(L, 1, "size");
+    lua_pushvalue(L, 1); // arg: vector as userdata
+    lua_call(L, 1, 1);   // call vector<>::size(this)
+    int size = lua_tonumber(L, -1);
+
+    if (idx >= size) {
+        lua_settop(L, 0);
+        return 0;
+    }
+
+    lua_settop(L, 1);
+    lua_pushnumber(L, idx); // index, to be returned
+    lua_pushvalue(L, -1);
+    // SWIG-wrapped vector is indexed from 0
+    lua_pushnumber(L, idx);
+    lua_gettable(L, 1);       // value, to be returned
+    lua_remove(L, 1);
+    return 2;
+}
+
 lua_State* UserInterface::get_lua()
 {
     if (L_ != NULL)
@@ -386,6 +413,15 @@ lua_State* UserInterface::get_lua()
     // SWIG-generated luaopen_fityk() leaves two tables on the stack,
     // clear the stack
     lua_settop(L_, 0);
+
+    // make vectors also iterators over elements
+    const char* vectors[] = { "FuncVector", "VarVector", "PointVector",
+                              "RealVector" };
+    for (int i = 0; i < 4; ++i) {
+        SWIG_Lua_get_class_metatable(L_, vectors[i]);
+        SWIG_Lua_add_function(L_, "__call", lua_vector_iterator);
+        lua_pop(L_, 1);
+    }
 
     // define F
     swig_type_info *type_info = SWIG_TypeQuery(L_, "fityk::Fityk *");
