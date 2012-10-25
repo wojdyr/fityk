@@ -283,7 +283,6 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (wxID_PRINT,       FFrame::OnPrint)
     EVT_MENU (ID_COPY_TO_CLIPB, FFrame::OnCopyToClipboard)
     EVT_MENU (ID_PAGE_SETUP,    FFrame::OnPageSetup)
-    EVT_MENU (wxID_PREVIEW,     FFrame::OnPrintPreview)
     EVT_MENU (ID_SAVE_IMAGE,    FFrame::OnSaveAsImage)
     EVT_MENU (ID_SESSION_SET,   FFrame::OnSettings)
     EVT_MENU (ID_SESSION_EI,    FFrame::OnEditInit)
@@ -618,11 +617,9 @@ void FFrame::set_menubar()
                           wxT("output can be included in logfile as comments"));
     session_menu->Append(ID_SESSION_LOG, wxT("Logging"), session_log_menu);
     session_menu->AppendSeparator();
-    session_menu->Append(ID_PAGE_SETUP, wxT("Page Se&tup..."),
-                                        wxT("Page setup"));
-    session_menu->Append(wxID_PREVIEW, wxT("Print Previe&w"));
-    session_menu->Append(wxID_PRINT, wxT("&Print...\tCtrl-P"),
-                         wxT("Print plots"));
+    session_menu->Append(ID_PAGE_SETUP, wxT("Page Se&tup..."), wxT("Page setup"));
+    session_menu->Append(wxID_PRINT, wxT("&Print...\tCtrl-P"), wxT("Print plots"));
+    session_menu->AppendSeparator();
     session_menu->Append(ID_COPY_TO_CLIPB, wxT("&Copy to Clipboard"),
                          wxT("Copy main plot to clipboard."));
     append_mi(session_menu, ID_SAVE_IMAGE, GET_BMP(image16),
@@ -1919,11 +1916,6 @@ void FFrame::OnConfigX (wxCommandEvent& event)
     read_config(filename);
 }
 
-
-void FFrame::OnPrintPreview(wxCommandEvent&)
-{
-    print_mgr_->printPreview();
-}
 
 void FFrame::OnPageSetup(wxCommandEvent&)
 {

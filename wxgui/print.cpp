@@ -195,22 +195,6 @@ bool FPrintout::OnPrintPage(int page)
 
 //===============================================================
 
-class FPreviewFrame : public wxPreviewFrame
-{
-public:
-    FPreviewFrame(wxPrintPreview* preview, wxWindow* parent)
-        : wxPreviewFrame (preview, parent, wxT("Print Preview"),
-                          wxDefaultPosition, wxSize(600, 550)) {}
-    void CreateControlBar() {
-        m_controlBar = new wxPreviewControlBar(m_printPreview,
-                                        wxPREVIEW_PRINT|wxPREVIEW_ZOOM, this);
-        m_controlBar->CreateButtons();
-        m_controlBar->SetZoomControl(110);
-    }
-};
-
-//===============================================================
-
 PrintManager::PrintManager(PlotPane* pane)
     :  plot_pane(pane)
 {
@@ -247,24 +231,6 @@ void PrintManager::read_settings(wxConfigBase *cf)
 #endif
     print_data.SetOrientation(landscape ? wxLANDSCAPE : wxPORTRAIT);
     margin_left = margin_right = margin_top = margin_bottom = 10;
-}
-
-void PrintManager::printPreview()
-{
-    // Pass two printout objects: for preview, and possible printing.
-    wxPrintDialogData print_dialog_data(print_data);
-    wxPrintPreview *preview = new wxPrintPreview (new FPrintout(this),
-                                                  new FPrintout(this),
-                                                  &print_dialog_data);
-    if (!preview->Ok()) {
-        delete preview;
-        wxMessageBox("Preview Failed.", "Previewing", wxICON_ERROR|wxCANCEL);
-        return;
-    }
-    FPreviewFrame *preview_frame = new FPreviewFrame (preview, 0);
-    preview_frame->Centre(wxBOTH);
-    preview_frame->Initialize();
-    preview_frame->Show(true);
 }
 
 void PrintManager::print()

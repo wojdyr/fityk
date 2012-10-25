@@ -120,7 +120,6 @@ public:
     void OnSessionSave(wxCommandEvent&);
     void OnSettings      (wxCommandEvent&);
     void OnEditInit      (wxCommandEvent&);
-    void OnPrintPreview  (wxCommandEvent&);
     void OnPageSetup     (wxCommandEvent&);
     void OnPrint         (wxCommandEvent&);
     void OnCopyToClipboard (wxCommandEvent&);

@@ -22,7 +22,6 @@ public:
     PrintManager(PlotPane* pane);
     ~PrintManager();
     void print();
-    void printPreview();
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
 };
