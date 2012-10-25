@@ -173,6 +173,30 @@ string Function::get_current_assignment(const vector<Variable*> &variables,
     return "%" + name + " = " + tp_->name + "(" + join_vector(vs, ", ") + ")";
 }
 
+void Function::replace_symbols_with_values(string &t, const char* num_fmt) const
+{
+    for (size_t i = 0; i < tp_->fargs.size(); ++i) {
+        const string& symbol = tp_->fargs[i];
+        string value = format1<double, 32>(num_fmt, av_[i]);
+        // like replace_words(t,symbol,value) but adds () in a^n for a<0
+        string::size_type pos = 0;
+        while ((pos=t.find(symbol, pos)) != string::npos) {
+            int k = symbol.size();
+            if ((pos == 0
+                    || !(isalnum(t[pos-1]) || t[pos-1]=='_' || t[pos-1]=='$'))
+               && (pos+k==t.size() || !(isalnum(t[pos+k]) || t[pos+k]=='_'))) {
+                string new_word = value;
+                // rare special case
+                if (pos+k < t.size() && t[pos+k] == '^' && av_[i] < 0)
+                    new_word = "("+value+")";
+                t.replace(pos, k, new_word);
+                pos += new_word.size();
+            }
+            else
+                pos++;
+        }
+    }
+}
 
 string Function::get_current_formula(const string& x, const char* num_fmt) const
 {
@@ -187,10 +211,7 @@ string Function::get_current_formula(const string& x, const char* num_fmt) const
     }
     else {
         t = tp_->rhs;
-        for (size_t i = 0; i < tp_->fargs.size(); ++i) {
-            string value = format1<double, 32>(num_fmt, av_[i]);
-            replace_words(t, tp_->fargs[i], value);
-        }
+        replace_symbols_with_values(t, num_fmt);
     }
 
     replace_words(t, "x", x);

@@ -104,7 +104,10 @@ public:
     // implementation of members of Func
     virtual const std::string& get_template_name() const { return tp_->name; }
     virtual realt value_at(realt x) const { return calculate_value(x); }
+
 protected:
+    void replace_symbols_with_values(std::string &t, const char* num_fmt) const;
+
     IndexedVars used_vars_;
     const Settings* settings_;
     Tplate::Ptr tp_;

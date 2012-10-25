@@ -275,10 +275,7 @@ string CustomFunction::get_current_formula(const string& x,
 {
     Lexer lex(tp_->rhs.c_str());
     string s = Parser(NULL).read_define_rhs_with_custom_func(lex, tp_.get());
-    for (size_t i = 0; i < tp_->fargs.size(); ++i) {
-        string value = format1<double, 32>(num_fmt, av_[i]);
-        replace_words(s, tp_->fargs[i], value);
-    }
+    replace_symbols_with_values(s, num_fmt);
     replace_words(s, "x", x);
     return s;
 }
