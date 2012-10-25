@@ -10,6 +10,9 @@
 class PlotPane;
 class SpinCtrl;
 
+// it can be confusing how the code is split into classes here,
+// but let's leave it as it is
+
 class PrintManager
 {
 public:
@@ -31,8 +34,8 @@ class PageSetupDialog: public wxDialog
 {
 public:
     PageSetupDialog(wxWindow *parent, PrintManager *print_mgr);
-    void OnOk(wxCommandEvent& event);
-protected:
+    void OnApply(wxCommandEvent& event);
+private:
     PrintManager *pm;
     wxRadioBox *orientation_rb, *colors_rb;
     wxCheckBox *plot_aux_cb[2], *plot_borders_cb;

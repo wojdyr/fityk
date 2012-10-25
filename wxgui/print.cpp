@@ -20,7 +20,8 @@ using namespace std;
 //                         PageSetupDialog
 //======================================================================
 BEGIN_EVENT_TABLE(PageSetupDialog, wxDialog)
-    EVT_BUTTON(wxID_OK, PageSetupDialog::OnOk)
+    EVT_BUTTON(wxID_PRINT, PageSetupDialog::OnApply)
+    EVT_BUTTON(wxID_APPLY, PageSetupDialog::OnApply)
 END_EVENT_TABLE()
 
 PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
@@ -84,8 +85,16 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
     boxsizer->Add(plot_borders_cb, 0, wxALL, 5);
     top_sizer->Add(boxsizer, 0, wxALL|wxEXPAND, 5);
     top_sizer->Add (new wxStaticLine(this, -1), 0, wxEXPAND|wxLEFT|wxRIGHT, 5);
-    top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL),
-                   0, wxALL|wxALIGN_CENTER, 5);
+    wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    wxButton *print_btn = new wxButton(this, wxID_PRINT);
+    print_btn->SetToolTip("Apply & Print");
+    button_sizer->Add(print_btn, 0, wxALL, 5);
+    button_sizer->AddStretchSpacer();
+    wxButton *apply_btn = new wxButton(this, wxID_APPLY);
+    apply_btn->SetToolTip("Apply & Close");
+    button_sizer->Add(apply_btn, 0, wxALL, 5);
+    button_sizer->Add(new wxButton(this, wxID_CANCEL), 0, wxTOP|wxRIGHT, 5);
+    top_sizer->Add(button_sizer, 0, wxALL|wxEXPAND, 5);
     SetSizerAndFit(top_sizer);
     bool landscape = pm->print_data.GetOrientation() == wxLANDSCAPE;
     orientation_rb->SetSelection(landscape ? 1 : 0);
@@ -107,7 +116,7 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
     bottom_margin_sc->SetValue(pm->margin_bottom);
 }
 
-void PageSetupDialog::OnOk(wxCommandEvent&)
+void PageSetupDialog::OnApply(wxCommandEvent& event)
 {
     bool landscape = (orientation_rb->GetSelection() == 1);
     pm->print_data.SetOrientation(landscape ? wxLANDSCAPE : wxPORTRAIT);
@@ -120,7 +129,7 @@ void PageSetupDialog::OnOk(wxCommandEvent&)
     pm->margin_top = top_margin_sc->GetValue();
     pm->margin_bottom = bottom_margin_sc->GetValue();
 
-    EndModal(wxID_OK);
+    EndModal(event.GetId());
 }
 
 
@@ -230,7 +239,7 @@ void PrintManager::read_settings(wxConfigBase *cf)
     bool landscape = cfg_read_bool(cf, wxT("/print/landscape"), true);
 #endif
     print_data.SetOrientation(landscape ? wxLANDSCAPE : wxPORTRAIT);
-    margin_left = margin_right = margin_top = margin_bottom = 10;
+    margin_left = margin_right = margin_top = margin_bottom = 20;
 }
 
 void PrintManager::print()

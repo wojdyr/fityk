@@ -1920,7 +1920,9 @@ void FFrame::OnConfigX (wxCommandEvent& event)
 void FFrame::OnPageSetup(wxCommandEvent&)
 {
     PageSetupDialog dlg(NULL, print_mgr_);
-    dlg.ShowModal();
+    int ret = dlg.ShowModal();
+    if (ret == wxID_PRINT)
+        print_mgr_->print();
 }
 
 void FFrame::OnPrint(wxCommandEvent&)
