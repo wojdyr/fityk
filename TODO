@@ -1,3 +1,6 @@
+* optimize calculation of errors (matrix inversion)
+
+* GUI: Re-execute script -> Recent scripts
 
 * NLopt interface
 
@@ -89,7 +92,4 @@
 * fitting: box-constrained parameters (simple-variables)
            the constraints could be automatic for some function parameters,
 	   e.g. "guess PseudoVoigt" could give shape with bounds <0,1>
-
-* GUI: a dialog for setting default directories for file dialogs
-  (the settings are stored in wxoptions config file)
 

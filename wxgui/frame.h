@@ -161,6 +161,7 @@ public:
     void OnShowPrefDialog(wxCommandEvent& ev);
     void OnConfigureStatusBar(wxCommandEvent& event);
     void OnConfigureOutputWin(wxCommandEvent&);
+    void OnConfigureDirectories(wxCommandEvent&);
     void OnSwitchCrosshair(wxCommandEvent& e) {SwitchCrosshair(e.IsChecked());}
     void OnSwitchAntialias(wxCommandEvent& event);
     void OnSwitchFullScreen(wxCommandEvent& event);

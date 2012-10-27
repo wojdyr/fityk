@@ -1,3 +1,9 @@
+User-visible changes in version 1.2.1  (2012-  -  ):
+* added commands '=' and 'exec=' - shorthands 'lua return' and 'lua F:execute'
+* API: default dataset in a few functions changed from @0 to the currently used
+* GUI: new dialog GUI > Configure > Default Directories
+* a few tweaks and fixes related to printing, and other bug fixes
+
 User-visible changes in version 1.2.0  (2012-05-24):
 * added fitting method "mpfit" -- wrapper around MINPACK-1 based MPFIT library
   (http://www.physics.wisc.edu/~craigm/idl/cmpfit.html)

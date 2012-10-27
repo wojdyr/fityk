@@ -16,6 +16,7 @@
 #include <wx/dir.h>
 #include <wx/stdpaths.h>
 #include <wx/clipbrd.h>
+#include <wx/filepicker.h>
 
 #include <algorithm>
 #include <string.h>
@@ -213,6 +214,7 @@ enum {
     ID_G_C_A2                  ,
     ID_G_C_OUTPUT              ,
     ID_G_C_SB                  ,
+    ID_G_C_DIRS                ,
     ID_G_CROSSHAIR             ,
     ID_G_ANTIALIAS             ,
     ID_G_FULLSCRN              ,
@@ -346,6 +348,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU_RANGE (ID_G_C_MAIN, ID_G_C_A2, FFrame::OnShowPrefDialog)
     EVT_MENU (ID_G_C_OUTPUT,    FFrame::OnConfigureOutputWin)
     EVT_MENU (ID_G_C_SB,        FFrame::OnConfigureStatusBar)
+    EVT_MENU (ID_G_C_DIRS,      FFrame::OnConfigureDirectories)
     EVT_MENU (ID_G_CROSSHAIR,   FFrame::OnSwitchCrosshair)
     EVT_MENU (ID_G_ANTIALIAS,   FFrame::OnSwitchAntialias)
     EVT_MENU (ID_G_FULLSCRN,    FFrame::OnSwitchFullScreen)
@@ -779,6 +782,8 @@ void FFrame::set_menubar()
                             wxT("Configure output window"));
     gui_menu_config->Append(ID_G_C_SB, wxT("&Status Bar"),
                             wxT("Configure Status Bar"));
+    gui_menu_config->Append(ID_G_C_DIRS, "&Default Directories",
+                            "Configure output window");
     gui_menu->Append(-1, wxT("Confi&gure"), gui_menu_config);
 
     gui_menu->AppendCheckItem(ID_G_CROSSHAIR, wxT("&Crosshair Cursor"),
@@ -1714,6 +1719,55 @@ void FFrame::OnConfigureStatusBar(wxCommandEvent& event)
 void FFrame::OnConfigureOutputWin(wxCommandEvent&)
 {
     text_pane_->output_win->show_preferences_dialog();
+}
+
+void FFrame::OnConfigureDirectories(wxCommandEvent&)
+{
+    wxDialog dlg(this, -1, "Configure Directories",
+                 wxDefaultPosition, wxDefaultSize,
+                 wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER);
+    wxBoxSizer *top_sizer = new wxBoxSizer(wxVERTICAL);
+    top_sizer->Add(new wxStaticText(&dlg, -1,
+                               "Save as defaults for next sessions:"),
+                   wxSizerFlags().Center().Border());
+    wxFlexGridSizer *gsizer = new wxFlexGridSizer(2, 5, 5);
+    gsizer->AddGrowableCol(1);
+    wxSizerFlags sf = wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL);
+    gsizer->Add(new wxStaticText(&dlg, -1, "Data Directory"), sf);
+    wxDirPickerCtrl *dp = new wxDirPickerCtrl(&dlg, -1, data_dir_,
+                wxDirSelectorPromptStr, wxDefaultPosition, wxDefaultSize,
+                wxDIRP_USE_TEXTCTRL);
+    gsizer->Add(dp, wxSizerFlags().Center().Expand());
+    gsizer->Add(new wxStaticText(&dlg, -1, "Script Directory"), sf);
+    wxDirPickerCtrl *sp = new wxDirPickerCtrl(&dlg, -1, script_dir_,
+                wxDirSelectorPromptStr, wxDefaultPosition, wxDefaultSize,
+                wxDIRP_USE_TEXTCTRL);
+    gsizer->Add(sp, wxSizerFlags().Center().Expand());
+    gsizer->Add(new wxStaticText(&dlg, -1, "Export Directory"), sf);
+    wxDirPickerCtrl *ep = new wxDirPickerCtrl(&dlg, -1, export_dir_,
+                wxDirSelectorPromptStr, wxDefaultPosition, wxDefaultSize,
+                wxDIRP_USE_TEXTCTRL);
+    gsizer->Add(ep, wxSizerFlags().Center().Expand());
+    top_sizer->Add(gsizer, wxSizerFlags().Border().Expand());
+
+    wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);
+    button_sizer->Add(new wxButton(&dlg, wxID_SAVE), wxSizerFlags());
+    button_sizer->Add(new wxButton(&dlg, wxID_CANCEL), wxSizerFlags());
+    top_sizer->Add(button_sizer, wxSizerFlags().Border().Right());
+    dlg.SetAffirmativeId(wxID_SAVE);
+
+    dlg.SetSizerAndFit(top_sizer);
+    dlg.SetSize(wxSize(600, -1));
+    dlg.Center();
+    if (dlg.ShowModal() == wxID_SAVE) {
+        script_dir_ = sp->GetPath();
+        data_dir_ = dp->GetPath();
+        export_dir_ = ep->GetPath();
+        wxConfigBase *config = wxConfig::Get();
+        config->Write("/loadDataDir", data_dir_);
+        config->Write("/exportDir", export_dir_);
+        config->Write("/execScriptDir", script_dir_);
+    }
 }
 
 void FFrame::SwitchCrosshair (bool show)
