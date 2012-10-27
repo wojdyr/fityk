@@ -375,6 +375,7 @@ static int fityk_lua_print(lua_State* L) {
 }
 
 // it may rely on implementation details of Lua
+// SWIG-wrapped vector is indexed from 0. Return (n, vec[n]) starting from n=0.
 static int lua_vector_iterator(lua_State* L)
 {
     assert(lua_isuserdata(L,1)); // in SWIG everything is wrapped as userdata
@@ -393,10 +394,8 @@ static int lua_vector_iterator(lua_State* L)
 
     lua_settop(L, 1);
     lua_pushnumber(L, idx); // index, to be returned
-    lua_pushvalue(L, -1);
-    // SWIG-wrapped vector is indexed from 0
-    lua_pushnumber(L, idx);
-    lua_gettable(L, 1);       // value, to be returned
+    lua_pushvalue(L, -1);   // the same index, to access value
+    lua_gettable(L, 1);     // value, to be returned
     lua_remove(L, 1);
     return 2;
 }
