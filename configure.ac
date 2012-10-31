@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([fityk],[1.2.0])
+AC_INIT([fityk],[1.2.1])
 LIBRARY_VERSION_FLAG="-version-info 4:0:0"
 
 AC_CONFIG_SRCDIR([fityk/voigt.h])
@@ -12,7 +12,7 @@ AM_INIT_AUTOMAKE([1.11 foreign subdir-objects silent-rules -Wall])
 AC_PROG_CC
 AC_PROG_CXX
 AM_PROG_CC_C_O
-LT_INIT([disable-static])
+LT_INIT([disable-static win32-dll])
 
 
 AC_ARG_ENABLE(GUI, AS_HELP_STRING([--disable-GUI], [do not build the GUI]))

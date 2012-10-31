@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-version=1.2.0
+version=1.2.1
 WEB="iris.unipress.waw.pl:www/fityk2/"
 
 MINGW_DIR=mingw-build
@@ -16,7 +16,7 @@ if [ $# -eq 0 ]; then
  echo 0. prepare new version and increase version number 
  echo 1. run samples
  echo "2. cd builds/ && make all"
- echo 3. make tarball, update daily shapshots
+ echo 3. make tarball: make dist-bzip2
  echo 4. compile windows version and make installer
  echo 5. https://build.opensuse.org/project/show?project=home%3Awojdyr
  echo 8. SourceForge release
@@ -50,12 +50,12 @@ if [ $1 -eq 0 ]; then
 
 elif [ $1 -eq 1 ]; then
  echo run samples...
+ make check && ./hello
  cd ./samples
  ../cli/cfityk nacl01.fit
  ../cli/cfityk test_syntax.fit
  ../wxgui/fityk nacl01.fit
  ../wxgui/fityk SiC_Zn.fit
- make && ./hello
 
 
 elif [ $1 -eq 2 ]; then
@@ -64,8 +64,8 @@ elif [ $1 -eq 2 ]; then
 elif [ $1 -eq 3 ]; then
  echo  make tarball
  make dist-bzip2
- cd builds/
- make daily
+ #cd builds/
+ #make daily
 
 elif [ $1 -eq 4 ]; then
  echo Building MS Windows version
