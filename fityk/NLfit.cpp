@@ -6,6 +6,8 @@
 #include "data.h"
 #include "settings.h"
 
+#if HAVE_LIBNLOPT
+
 using namespace std;
 
 namespace fityk {
@@ -109,3 +111,5 @@ void NLfit::autoiter()
 }
 
 } // namespace fityk
+
+#endif //HAVE_LIBNLOPT

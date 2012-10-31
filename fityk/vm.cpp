@@ -187,6 +187,8 @@ bool VMData::has_op(int op) const
     return false;
 }
 
+inline realt as_bool(realt d) { return fabs(d) < 0.5 ? 0 : 1; }
+
 #define STACK_OFFSET_CHANGE(ch) stackPtr+=(ch)
 
 inline
@@ -436,8 +438,8 @@ void run_const_op(const Ftk* F, const std::vector<realt>& numbers,
                                          &Point::sigma);
             break;
         case OP_Pa:
-            *stackPtr = bool(iround(get_var_with_idx(*stackPtr, old_points,
-                                                     &Point::is_active)));
+            *stackPtr = as_bool(get_var_with_idx(*stackPtr, old_points,
+                                                 &Point::is_active));
             break;
         case OP_PX:
             *stackPtr = get_var_with_idx(*stackPtr, new_points, &Point::x);
@@ -450,8 +452,8 @@ void run_const_op(const Ftk* F, const std::vector<realt>& numbers,
                                          &Point::sigma);
             break;
         case OP_PA:
-            *stackPtr = bool(iround(get_var_with_idx(*stackPtr, new_points,
-                                                     &Point::is_active)));
+            *stackPtr = as_bool(get_var_with_idx(*stackPtr, new_points,
+                                                 &Point::is_active));
             break;
 
         // logical; can skip part of VM code !

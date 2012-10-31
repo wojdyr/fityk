@@ -16,7 +16,8 @@
 #include <xylib/xylib.h>
 #include <xylib/cache.h>
 
-using namespace std;
+using std::string;
+using std::vector;
 
 namespace fityk {
 
@@ -219,7 +220,7 @@ int Data::count_blocks(const string& fn,
         shared_ptr<const xylib::DataSet> xyds(
                         xylib::cached_load_file(fn, format, tr_opt(options)));
         return xyds->get_block_count();
-    } catch (const runtime_error& e) {
+    } catch (const std::runtime_error& e) {
         throw ExecuteError(e.what());
     }
 }
@@ -232,7 +233,7 @@ int Data::count_columns(const string& fn,
         shared_ptr<const xylib::DataSet> xyds(
                         xylib::cached_load_file(fn, format, tr_opt(options)));
         return xyds->get_block(first_block)->get_column_count();
-    } catch (const runtime_error& e) {
+    } catch (const std::runtime_error& e) {
         throw ExecuteError(e.what());
     }
 }
@@ -298,7 +299,7 @@ void Data::load_file (const string& fn,
                 block_name += block->get_name();
             }
         }
-    } catch (const runtime_error& e) {
+    } catch (const std::runtime_error& e) {
         throw ExecuteError(e.what());
     }
 
@@ -420,8 +421,8 @@ void Data::find_step()
     min_step = max_step = p_[1].x - p_[0].x;
     for (vector<Point>::iterator i = p_.begin() + 2; i < p_.end(); i++) {
         step = i->x - (i-1)->x;
-        min_step = min (min_step, step);
-        max_step = max (max_step, step);
+        min_step = std::min (min_step, step);
+        max_step = std::max (max_step, step);
     }
     double avg = (max_step + min_step) / 2;
     if ((max_step - min_step) < tiny_relat_diff * fabs(avg))

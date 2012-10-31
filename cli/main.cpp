@@ -14,6 +14,12 @@
 #include <assert.h>
 #ifdef _WIN32
 # include <direct.h> // _getcwd()
+# ifdef _MSC_VER
+#  include <io.h>
+#  define access _access
+#  define X_OK 0
+#  define R_OK 4
+# endif
 #else
 # include <unistd.h>
 # include <signal.h>

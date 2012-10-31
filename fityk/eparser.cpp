@@ -18,7 +18,10 @@
 #include "func.h" // %f(...)
 #include "model.h" // F(...)
 
-using namespace std;
+using std::string;
+using std::vector;
+using std::min;
+using std::max;
 
 namespace {
 
@@ -148,7 +151,7 @@ int get_function_narg(int op)
 
 bool is_function(int op)
 {
-    return (bool) get_function_narg(op);
+    return get_function_narg(op) != 0;
 }
 
 bool is_array_var(int op)

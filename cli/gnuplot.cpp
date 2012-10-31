@@ -6,16 +6,21 @@
 #include "gnuplot.h"
 
 #include <stdlib.h>
-#include <unistd.h>
 #include <sys/types.h>
 #include <signal.h>
 #include <errno.h>
 #include <math.h>
 #include <string>
 #include <algorithm>
+#ifndef _WIN32
+#include <unistd.h>
+#endif
 
 #include "fityk/fityk.h"
-#include <config.h> // HAVE_FINITE
+#if HAVE_CONFIG_H
+#  include <config.h> // HAVE_FINITE
+#endif
+
 
 #define GNUPLOT_PATH "gnuplot"
 
@@ -25,7 +30,7 @@ using fityk::Point;
 extern fityk::Fityk* ftk; // defined in cli/main.cpp
 
 #ifndef HAVE_FINITE
-static int finite(double x) { return a == a; }
+static int finite(double x) { return x == x; }
 #endif
 
 GnuPlot::GnuPlot()

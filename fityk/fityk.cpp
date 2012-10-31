@@ -392,8 +392,9 @@ realt* Fityk::get_covariance_matrix_as_array(int dataset)
         vector<DataAndModel*> dss = get_datasets_(ftk_, dataset);
         vector<realt> c = ftk_->get_fit()->get_covariance_matrix(dss);
         realt* array = (realt*) malloc(c.size() * sizeof(realt));
-        for (size_t i = 0; i != c.size(); ++i)
-            array[i] = c[i];
+        if (array != NULL)
+            for (size_t i = 0; i != c.size(); ++i)
+                array[i] = c[i];
         return array;
     }
     CATCH_EXECUTE_ERROR

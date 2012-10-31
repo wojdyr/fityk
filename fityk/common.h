@@ -25,7 +25,7 @@
 #ifdef _MSC_VER
 #include <boost/math/special_functions/erf.hpp>
 using boost::math::erf;
-using boost::math:erfc;
+using boost::math::erfc;
 inline double trunc(double a) { return a >= 0 ? floor(a) : ceil(a); }
 #define snprintf sprintf_s
 // disable warning about unsafe sprintf

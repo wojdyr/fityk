@@ -248,7 +248,7 @@ class NormalFileOpener : public FileOpener
 {
 public:
     virtual ~NormalFileOpener() { if (f_) fclose(f_); }
-    virtual bool open(const char* fn) { f_ = fopen(fn, "r"); return f_; }
+    virtual bool open(const char* fn) { f_=fopen(fn, "r"); return f_!=NULL; }
     virtual char* read_line() { return reader.next(f_); }
 private:
     FILE *f_;
@@ -258,7 +258,7 @@ class GzipFileOpener : public FileOpener
 {
 public:
     virtual ~GzipFileOpener() { if (f_) gzclose(f_); }
-    virtual bool open(const char* fn) { f_ = gzopen(fn, "rb"); return f_; }
+    virtual bool open(const char* fn) { f_=gzopen(fn, "rb"); return f_!=NULL; }
     virtual char* read_line() { return reader.gz_next(f_); }
 private:
     gzFile f_;
@@ -334,7 +334,7 @@ void UserInterface::exec_lua_output(const string& str)
             luaL_error(L, "cannot covert value to string");
             return;
         }
-        bool r = execute_line(s);
+        Status r = execute_line(s);
         if (r != kStatusOk && F_->get_settings()->on_error[0] != 'n'/*nothing*/)
             break;
         lua_pop(L, 1); // pop tostring result
@@ -379,13 +379,13 @@ static int fityk_lua_print(lua_State* L) {
 static int lua_vector_iterator(lua_State* L)
 {
     assert(lua_isuserdata(L,1)); // in SWIG everything is wrapped as userdata
-    int idx = lua_isnil(L, -1) ? 0 : lua_tonumber(L, -1) + 1;
+    int idx = lua_isnil(L, -1) ? 0 : (int) lua_tonumber(L, -1) + 1;
 
     // no lua_len() in 5.1, let's call size() directly
     lua_getfield(L, 1, "size");
     lua_pushvalue(L, 1); // arg: vector as userdata
     lua_call(L, 1, 1);   // call vector<>::size(this)
-    int size = lua_tonumber(L, -1);
+    int size = (int) lua_tonumber(L, -1);
 
     if (idx >= size) {
         lua_settop(L, 0);
@@ -484,7 +484,7 @@ void UserInterface::exec_script(const string& filename)
             replace_all(s, "_EXECUTED_SCRIPT_DIR_/", dir); // old magic string
             replace_all(s, "_SCRIPT_DIR_/", dir); // new magic string
         }
-        bool r = execute_line(s);
+        Status r = execute_line(s);
         if (r != kStatusOk && F_->get_settings()->on_error[0] != 'n'/*nothing*/)
             break;
         if (user_interrupt) {
@@ -511,7 +511,7 @@ void UserInterface::exec_stream(FILE *fp)
             s.resize(s.size()-1);
             continue;
         }
-        bool r = execute_line(s);
+        Status r = execute_line(s);
         if (r != kStatusOk)
             break;
         s.clear();
@@ -540,7 +540,7 @@ void UserInterface::exec_string_as_script(const char* s)
             }
             if (F_->get_verbosity() >= 0)
                 show_message(kQuoted, "> " + line);
-            bool r = execute_line(line);
+            Status r = execute_line(line);
             if (r != kStatusOk)
                 break;
         }
