@@ -23,7 +23,7 @@ libfityk_la_SOURCES = logic.cpp view.cpp lexer.cpp eparser.cpp cparser.cpp \
 		 GAfit.h LMfit.h guess.h NMfit.h \
 		 model.h fit.h voigt.h numfuncs.h \
 		 swig/fityk_lua.cpp swig/luarun.h \
-		 MPfit.cpp MPfit.h cmpfit/mpfit.c cmpfit/mpfit.h
+		 CMPfit.cpp CMPfit.h cmpfit/mpfit.c cmpfit/mpfit.h
 
 if NLOPT_ENABLED
 libfityk_la_SOURCES += NLfit.cpp NLfit.h

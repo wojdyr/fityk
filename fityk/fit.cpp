@@ -15,7 +15,7 @@
 #include "settings.h"
 #include "var.h"
 #include "LMfit.h"
-#include "MPfit.h"
+#include "CMPfit.h"
 #include "GAfit.h"
 #include "NMfit.h"
 #include "NLfit.h"

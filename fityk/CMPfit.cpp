@@ -1,7 +1,7 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#include "MPfit.h"
+#include "CMPfit.h"
 #include "logic.h"
 #include "data.h"
 
