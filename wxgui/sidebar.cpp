@@ -304,7 +304,7 @@ void SideBar::OnDataButtonRen (wxCommandEvent&)
                          wxT("Rename dataset"),
                          old_title);
     if (!s.IsEmpty() && s != old_title)
-        exec("@" + S(n) + ".title = '" + wx2s(s) + "'");
+        exec("@" + S(n) + ": title = '" + wx2s(s) + "'");
 }
 
 void SideBar::delete_selected_items()
