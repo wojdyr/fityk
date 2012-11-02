@@ -311,7 +311,7 @@ void Data::load_file (const string& fn,
             title_ += ":" + S(idx_x) + ":" + S(idx_y);
     }
 
-    if (x_step_ == 0) {
+    if (x_step_ == 0 || blocks.size() > 1) {
         sort_points();
         find_step();
     }
