@@ -553,7 +553,6 @@ void App::OnConvert(wxCommandEvent&)
                 fprintf(f, "\n");
             }
         } catch (runtime_error const& e) {
-            fclose(f);
             wxMessageBox(e.what(), "Error", wxCANCEL|wxICON_ERROR);
         }
         fclose(f);

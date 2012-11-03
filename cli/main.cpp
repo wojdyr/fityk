@@ -99,7 +99,7 @@ void read_and_execute_input()
     char *line = readline(prompt);
     if (!line)
         throw ExitRequestedException();
-    if (line && *line)
+    if (*line)
         add_history(line);
     string s = line;
     free(line);
