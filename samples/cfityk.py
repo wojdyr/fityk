@@ -69,8 +69,7 @@ class Completer:
 
 
 def main():
-    config_dir = os.path.join(os.path.expanduser("~"),
-                             fityk.cvar.config_dirname)
+    config_dir = os.path.join(os.path.expanduser("~"), fityk.config_dirname())
 
     if readline:
         histfile = os.path.join(config_dir, "history")
@@ -105,8 +104,7 @@ def main():
         return
 
     if not options.no_init:
-        init_file = os.path.join(config_dir,
-                                 fityk.cvar.startup_commands_filename)
+        init_file = os.path.join(config_dir, fityk.startup_commands_filename())
         if os.path.exists(init_file):
             sys.stderr.write(" -- init file: %s --\n" % init_file)
             ui.exec_script(init_file)
