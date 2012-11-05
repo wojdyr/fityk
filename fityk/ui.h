@@ -16,12 +16,12 @@ class Runner;
 
 /// commands, messages and plot refreshing
 /// it has callbacks that can be set by user interface
-class UserInterface : public UiApi
+class FITYK_API UserInterface : public UiApi
 {
 public:
     static const int max_cmd = 4096;
 
-    struct Cmd
+    struct FITYK_API Cmd
     {
         std::string cmd;
         UiApi::Status status;

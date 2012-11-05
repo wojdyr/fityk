@@ -1,6 +1,7 @@
 // This file is part of fityk program. Copyright 2012 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
+#define BUILDING_LIBFITYK
 #include "ui_api.h"
 #include <cstring>
 #include <cstdio>

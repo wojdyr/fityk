@@ -12,7 +12,7 @@ namespace fityk {
 class Ftk;
 
 // settings that can be changed using the set command
-struct Settings
+struct FITYK_API Settings
 {
     // general
     int verbosity;
@@ -53,7 +53,7 @@ struct Settings
 };
 
 /// Wraps struct Settings
-class SettingsMgr
+class FITYK_API SettingsMgr
 {
 public:
     enum ValueType

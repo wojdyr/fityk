@@ -1,10 +1,9 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#include "common.h"
+#define BUILDING_LIBFITYK
 #include "settings.h"
-#include "logic.h"
-#include "fit.h"
+
 #include <ctype.h>
 #include <algorithm>
 #include <stdlib.h>
@@ -14,6 +13,9 @@
 #else
 #include <unistd.h> // chdir()
 #endif
+#include "common.h"
+#include "logic.h"
+#include "fit.h"
 
 using namespace std;
 

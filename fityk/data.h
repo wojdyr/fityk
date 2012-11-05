@@ -8,16 +8,16 @@
 #include <limits.h>
 #include "common.h"
 
-#include "fityk.h" // struct Point
+#include "fityk.h" // struct Point, FITYK_API
 
 namespace fityk {
 
 class Ftk;
 
-std::string get_file_basename(std::string const& path);
+FITYK_API std::string get_file_basename(std::string const& path);
 
 /// dataset
-class Data
+class FITYK_API Data
 {
 public :
     static int count_blocks(const std::string& fn,

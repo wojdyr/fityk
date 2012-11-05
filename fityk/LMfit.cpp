@@ -1,14 +1,17 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#include "common.h"
+#define BUILDING_LIBFITYK
 #include "LMfit.h"
-#include "ui.h"
-#include "settings.h"
-#include "logic.h"
+
 #include <math.h>
 #include <vector>
 #include <algorithm>
+
+#include "common.h"
+#include "ui.h"
+#include "settings.h"
+#include "logic.h"
 
 using namespace std;
 

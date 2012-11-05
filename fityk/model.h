@@ -27,7 +27,7 @@ struct FunctionSum
 ///  This class contains description of curve which we are trying to fit
 ///  to data. This curve is described simply by listing names of functions
 ///  in F and in Z (Z contains x-corrections)
-class Model
+class FITYK_API Model
 {
 public:
     Model(Ftk *F);

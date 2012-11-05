@@ -140,7 +140,7 @@ inline
 std::string vm2str(const VMData& vm) { return vm2str(vm.code(), vm.numbers()); }
 
 
-class ExprCalculator
+class FITYK_API ExprCalculator
 {
 public:
     ExprCalculator(const Ftk* F) : F_(F) {}

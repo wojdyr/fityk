@@ -3,6 +3,7 @@
 
 /// Data expression parser.
 
+#define BUILDING_LIBFITYK
 #include "eparser.h"
 
 #include <cstring>

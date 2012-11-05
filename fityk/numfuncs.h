@@ -33,17 +33,17 @@ struct PointQ
 /// must be run before computing value of cubic spline in point x
 /// results are written in PointQ::q
 /// based on Numerical Recipes www.nr.com
-void prepare_spline_interpolation (std::vector<PointQ> &bb);
+FITYK_API void prepare_spline_interpolation (std::vector<PointQ> &bb);
 
 // instantiated for T = PointQ, PointD
 template<typename T>
 typename std::vector<T>::iterator
 get_interpolation_segment(std::vector<T> &bb,  double x);
 
-double get_spline_interpolation(std::vector<PointQ> &bb, double x);
+FITYK_API double get_spline_interpolation(std::vector<PointQ> &bb, double x);
 
-double get_linear_interpolation(std::vector<PointD> &bb, double x);
-double get_linear_interpolation(std::vector<PointQ> &bb, double x);
+FITYK_API double get_linear_interpolation(std::vector<PointD> &bb, double x);
+FITYK_API double get_linear_interpolation(std::vector<PointQ> &bb, double x);
 
 // random number utilities
 inline double rand_1_1() { return 2.0 * rand() / RAND_MAX - 1.; }
@@ -57,7 +57,7 @@ double rand_cauchy();
 // Simple Polyline Convex Hull Algorithms
 // takes as input a sequence of points (x,y), with increasing x coord (added
 // in push_point()) and returns points of convex hull (get_vertices())
-class SimplePolylineConvex
+class FITYK_API SimplePolylineConvex
 {
 public:
     void push_point(double x, double y) { push_point(PointD(x, y)); }

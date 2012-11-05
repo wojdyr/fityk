@@ -216,7 +216,7 @@ namespace fityk {
 
 /// epsilon is used for comparision of real numbers
 /// defined in settings.cpp; it can be changed in Settings
-extern double epsilon;
+extern FITYK_API double epsilon;
 
 inline bool is_eq(double a, double b) { return fabs(a-b) <= epsilon; }
 inline bool is_neq(double a, double b) { return fabs(a-b) > epsilon; }
@@ -253,8 +253,8 @@ bool is_double (std::string const& s);
 bool is_int (std::string const& s);
 
 /// replace all occurences of old in string s with new_
-void replace_all(std::string &s, std::string const &old,
-                                 std::string const &new_);
+FITYK_API void replace_all(std::string &s, std::string const &old,
+                                           std::string const &new_);
 
 void replace_words(std::string &t, std::string const &old_word,
                                    std::string const &new_word);
@@ -269,7 +269,7 @@ bool match_glob(const char* name, const char* pattern);
 //                           v e c t o r
 
 /// Make (u-l)-element vector, filled by numbers: l, l+1, ..., u-1.
-std::vector<int> range_vector(int l, int u);
+FITYK_API std::vector<int> range_vector(int l, int u);
 
 /// Expression like "i<v.size()", where i is int and v is a std::vector gives:
 /// "warning: comparison between signed and unsigned integer expressions"
@@ -299,7 +299,8 @@ inline std::string get_directory(std::string const& filename)
   TypeName(const TypeName&);               \
   void operator=(const TypeName&)
 
-extern const char* fityk_version_line; /// it is used to put version to script
+/// used to put version to script
+extern FITYK_API const char* fityk_version_line;
 
 extern const std::string help_filename;
 

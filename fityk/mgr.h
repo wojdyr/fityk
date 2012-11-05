@@ -17,7 +17,7 @@ class Model;
 struct FunctionSum;
 
 /// keeps all functions and variables
-class VariableManager
+class FITYK_API VariableManager
 {
 public:
     static bool is_auto(const std::string& name)

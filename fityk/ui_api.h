@@ -6,13 +6,12 @@
 
 #include <string>
 #include <vector>
+#include "fityk.h" //FITYK_API
 
 namespace fityk {
 
-class Fityk;
-
 // this is API needed mostly to implement own user interface to libfityk.
-class UiApi
+class FITYK_API UiApi
 {
 public:
     /// 4 styles are supported by output_message()
@@ -83,14 +82,14 @@ protected:
 /// Helper for readline tab-completion.
 /// Returns completions of the word `text' in the context of line_buffer,
 /// or a single empty string if filename completion is to be used instead.
-std::vector<std::string>
+FITYK_API std::vector<std::string>
 complete_fityk_line(Fityk *F, const char* line_buffer, int start, int end,
                     const char *text);
 
-const char* startup_commands_filename(); // "init"
-const char* config_dirname(); // ".fityk"
+FITYK_API const char* startup_commands_filename(); // "init"
+FITYK_API const char* config_dirname(); // ".fityk"
 /// flag that is set to interrupt fitting (it is checked after each iteration)
-extern volatile bool user_interrupt;
+extern volatile FITYK_API bool user_interrupt;
 
 } // namespace fityk
 #endif // FITYK_UI_API_H_

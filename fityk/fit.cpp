@@ -1,12 +1,14 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
+#define BUILDING_LIBFITYK
+#include "fit.h"
+
 #include <algorithm>
 #include <math.h>
 #include <string.h>
 #include <boost/math/distributions/students_t.hpp>
 
-#include "fit.h"
 #include "logic.h"
 #include "model.h"
 #include "data.h"

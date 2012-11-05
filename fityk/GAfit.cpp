@@ -1,6 +1,9 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
+#define BUILDING_LIBFITYK
+#include "GAfit.h"
+
 #include <stdlib.h>
 #include <time.h>
 #include <algorithm>
@@ -9,7 +12,6 @@
 #include <math.h>
 
 #include "common.h"
-#include "GAfit.h"
 #include "logic.h"
 #include "settings.h"
 #include "numfuncs.h"

@@ -3,6 +3,7 @@
 
 /// Command parser.
 
+#define BUILDING_LIBFITYK
 #include "cparser.h"
 
 #include <string.h>

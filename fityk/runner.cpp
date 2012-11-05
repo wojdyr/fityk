@@ -1,6 +1,7 @@
 // This file is part of fityk program. Copyright 2009 Marcin Wojdyr.
 // Licence: GNU General Public License ver. 2+
 
+#define BUILDING_LIBFITYK
 #include "runner.h"
 
 #include <boost/scoped_ptr.hpp>

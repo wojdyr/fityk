@@ -1,7 +1,15 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
+#define BUILDING_LIBFITYK
 #include "mgr.h"
+
+#include <stdlib.h>
+#include <ctype.h>
+#include <algorithm>
+#include <memory>
+#include <set>
+
 #include "common.h"
 #include "var.h"
 #include "ast.h"
@@ -13,12 +21,6 @@
 #include "logic.h"
 #include "lexer.h"
 #include "eparser.h"
-
-#include <stdlib.h>
-#include <ctype.h>
-#include <algorithm>
-#include <memory>
-#include <set>
 
 using namespace std;
 

@@ -16,7 +16,7 @@ class Ftk;
 class Variable;
 
 ///   interface of fitting method and implementation of common functions
-class Fit
+class FITYK_API Fit
 {
 public:
     const std::string name;
@@ -100,7 +100,7 @@ private:
 };
 
 /// handles parameter history
-class ParameterHistoryMgr
+class FITYK_API ParameterHistoryMgr
 {
 public:
     ParameterHistoryMgr(Ftk *F) : F_(F), param_hist_ptr_(0) {}
@@ -123,7 +123,7 @@ private:
 
 /// gives access to fitting methods, enables swithing between them
 /// also stores parameter history
-class FitMethodsContainer : public ParameterHistoryMgr
+class FITYK_API FitMethodsContainer : public ParameterHistoryMgr
 {
 public:
     static const char* full_method_names[][2];

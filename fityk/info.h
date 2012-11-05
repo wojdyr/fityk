@@ -21,10 +21,11 @@ void command_redirectable(Ftk const* F, int ds,
 
 void command_debug(const Ftk* F, int ds, const Token& key, const Token&rest);
 
-void parse_and_eval_info(Ftk *F, const std::string& s, int dataset,
-                         std::string& result);
-std::string& gnuplotize_formula(std::string& formula);
-void models_as_script(const Ftk* F, std::string& r, bool commented_defines);
+FITYK_API void parse_and_eval_info(Ftk *F, const std::string& s, int dataset,
+                                   std::string& result);
+FITYK_API std::string& gnuplotize_formula(std::string& formula);
+FITYK_API void models_as_script(const Ftk* F, std::string& r,
+                                bool commented_defines);
 
 } // namespace fityk
 #endif // FITYK_INFO_H_

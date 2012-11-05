@@ -1,6 +1,7 @@
 // This file is part of fityk program. Copyright Marcin Wojdyr.
 // Licence: GNU General Public License ver. 2+
 
+#define BUILDING_LIBFITYK
 #include "NLfit.h"
 #include "logic.h"
 #include "data.h"

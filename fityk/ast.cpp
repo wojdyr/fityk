@@ -1,6 +1,9 @@
 // This file is part of fityk program. Copyright (C) 2005 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
+#define BUILDING_LIBFITYK
+#include "ast.h"
+
 #include <boost/math/special_functions/gamma.hpp>
 #include <boost/math/special_functions/digamma.hpp>
 
@@ -12,7 +15,6 @@
 
 #include "common.h"
 #include "ui.h"
-#include "ast.h"
 #include "var.h"
 #include "logic.h"
 #include "numfuncs.h"

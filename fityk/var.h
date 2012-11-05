@@ -61,7 +61,7 @@ private:
 /// -  recalculate() calculates (using run_code_for_variable()) value
 ///    and derivatives for current parameter value
 
-class Variable : public Var
+class FITYK_API Variable : public Var
 {
 public:
     struct ParMult { int p; realt mult; };

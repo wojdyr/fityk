@@ -33,7 +33,7 @@ struct Rect
 /// manages view, i.e. x and y range visible currently to the user
 /// user can set view in `plot' command, using string like "[20:][-100:1000]"
 /// If the visible range is to be fitted to data/model, given datasets are used.
-class View: public Rect
+class FITYK_API View: public Rect
 {
 public:
     static const double relative_x_margin, relative_y_margin;

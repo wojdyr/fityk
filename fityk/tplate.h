@@ -21,7 +21,7 @@ struct OpTree;
 /// template -- function type, like Gaussian(height, center, hwhm) = ...,
 /// which can be used to create %functions by binding $variables to template's
 /// parameters.
-struct Tplate
+struct FITYK_API Tplate
 {
     typedef boost::shared_ptr<const Tplate> Ptr;
     typedef Function* (*create_type)(const Settings*, const std::string&,
@@ -56,7 +56,7 @@ std::vector<VMData*> reorder_args(Tplate::Ptr,
                                   const std::vector<VMData*> &values);
 
 /// template manager
-class TplateMgr
+class FITYK_API TplateMgr
 {
 public:
     TplateMgr() {}

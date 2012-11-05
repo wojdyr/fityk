@@ -2,6 +2,7 @@
 // Licence: GNU General Public License ver. 2+
 /// Built-in function definitions
 
+#define BUILDING_LIBFITYK
 #include "bfunc.h"
 
 #include <boost/math/special_functions/gamma.hpp>

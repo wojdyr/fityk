@@ -2,6 +2,7 @@
 // Licence: GNU General Public License ver. 2+
 /// virtual machine - calculates expressions using by executing bytecode
 
+#define BUILDING_LIBFITYK
 #include "vm.h"
 
 #include <boost/math/special_functions/gamma.hpp>

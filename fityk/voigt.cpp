@@ -4,8 +4,9 @@
 // Translated to C++ with f2c program and modified by M.W.
 // It can be slower than original, I haven't compared the speed.
 
-#include <math.h>
+#define BUILDING_LIBFITYK
 #include "voigt.h"
+#include <math.h>
 
 ///     Calculates the Faddeeva function
 ///     and partial derivatives of the Voigt function for y>=0

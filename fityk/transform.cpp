@@ -2,6 +2,7 @@
 // Licence: GNU General Public License ver. 2+
 /// virtual machine for dataset transformations (@n = ...)
 
+#define BUILDING_LIBFITYK
 #include "transform.h"
 #include "logic.h"
 #include "lexer.h"

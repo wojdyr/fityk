@@ -72,7 +72,7 @@ extern const char* debug_args[];
 
 const char* commandtype2str(CommandType c);
 
-class Parser
+class FITYK_API Parser
 {
 public:
     Parser(const Ftk* F);

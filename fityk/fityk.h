@@ -15,6 +15,22 @@
 # define REALT_LENGTH_MOD ""
 #endif
 
+/* FITYK_API marks classes and functions visible in Windows DLL
+ */
+#if defined(_WIN32) && (defined(LIBFITYK_DLL) || defined(DLL_EXPORT))
+# if defined(BUILDING_LIBFITYK)
+#  define FITYK_API  __declspec(dllexport)
+# else
+#  define FITYK_API  __declspec(dllimport)
+# endif
+#else
+# if __GNUC__-0 >= 4
+#  define FITYK_API __attribute__ ((visibility ("default")))
+# else
+#  define FITYK_API
+# endif
+#endif
+
 #ifdef __cplusplus
 
 #include <cstdio>
@@ -40,24 +56,24 @@ class UiApi;
 struct FitykInternalData;
 
 /// exception thrown at run-time (when executing parsed command)
-struct ExecuteError : public std::runtime_error
+struct FITYK_API ExecuteError : public std::runtime_error
 {
     ExecuteError(const std::string& msg) : runtime_error(msg) {}
 };
 
 /// syntax error exception
-struct SyntaxError : public std::invalid_argument
+struct FITYK_API SyntaxError : public std::invalid_argument
 {
     SyntaxError(const std::string& msg="") : invalid_argument(msg) {}
 };
 
 /// exception thrown to finish the program (on command "quit")
-struct ExitRequestedException : std::exception
+struct FITYK_API ExitRequestedException : std::exception
 {
 };
 
 /// used for variable domain and for plot borders
-struct RealRange
+struct FITYK_API RealRange
 {
     double from, to;
 
@@ -69,7 +85,7 @@ struct RealRange
 
 /// represents $variable
 /// (public API has only a subset of members)
-class Var
+class FITYK_API Var
 {
 public:
     const std::string name;
@@ -87,7 +103,7 @@ protected:
 
 /// represents %function
 /// (public API has only a subset of members)
-class Func
+class FITYK_API Func
 {
 public:
     const std::string name;
@@ -110,7 +126,7 @@ enum {
 };
 
 /// data point
-struct Point
+struct FITYK_API Point
 {
     realt x, y, sigma;
     bool is_active;
@@ -124,7 +140,7 @@ struct Point
 
 
 /// the public API to libfityk
-class Fityk
+class FITYK_API Fityk
 {
 public:
 
@@ -306,32 +322,32 @@ typedef struct
 } Point;
 
 
-Fityk* fityk_create();
-void fityk_delete(Fityk *f);
+FITYK_API Fityk* fityk_create();
+FITYK_API void fityk_delete(Fityk *f);
 /* returns false on ExitRequestedException */
-bool fityk_execute(Fityk *f, const char* command);
-void fityk_load_data(Fityk *f, int dataset,
-                     realt *x, realt *y, realt *sigma, int num,
-                     const char* title);
+FITYK_API bool fityk_execute(Fityk *f, const char* command);
+FITYK_API void fityk_load_data(Fityk *f, int dataset,
+                               realt *x, realt *y, realt *sigma, int num,
+                               const char* title);
 /* returns NULL if no error happened since fityk_clear_last_error() */
-const char* fityk_last_error(const Fityk *f);
-void fityk_clear_last_error(Fityk *f);
+FITYK_API const char* fityk_last_error(const Fityk *f);
+FITYK_API void fityk_clear_last_error(Fityk *f);
 /* caller is responsible to free() returned string */
-char* fityk_get_info(Fityk *f, const char *s, int dataset);
-realt fityk_calculate_expr(Fityk *f, const char* s, int dataset);
-int fityk_get_dataset_count(const Fityk *f);
-int fityk_get_parameter_count(const Fityk* f);
+FITYK_API char* fityk_get_info(Fityk *f, const char *s, int dataset);
+FITYK_API realt fityk_calculate_expr(Fityk *f, const char* s, int dataset);
+FITYK_API int fityk_get_dataset_count(const Fityk *f);
+FITYK_API int fityk_get_parameter_count(const Fityk* f);
 /* get data point, returns NULL if index is out of range */
-const Point* fityk_get_data_point(Fityk *f, int dataset, int index);
-realt fityk_get_model_value(Fityk *f, realt x, int dataset);
-int fityk_get_variable_nr(Fityk *f, const char* name);
-realt fityk_get_wssr(Fityk *f, int dataset);
-realt fityk_get_ssr(Fityk *f, int dataset);
-realt fityk_get_rsquared(Fityk *f, int dataset);
-int fityk_get_dof(Fityk *f, int dataset);
+FITYK_API const Point* fityk_get_data_point(Fityk *f, int dataset, int index);
+FITYK_API realt fityk_get_model_value(Fityk *f, realt x, int dataset);
+FITYK_API int fityk_get_variable_nr(Fityk *f, const char* name);
+FITYK_API realt fityk_get_wssr(Fityk *f, int dataset);
+FITYK_API realt fityk_get_ssr(Fityk *f, int dataset);
+FITYK_API realt fityk_get_rsquared(Fityk *f, int dataset);
+FITYK_API int fityk_get_dof(Fityk *f, int dataset);
 /* returns matrix in array, which caller is responsible to free(); */
 /* length of the array is parameter_count^2                        */
-realt* fityk_get_covariance_matrix(Fityk *f, int dataset);
+FITYK_API realt* fityk_get_covariance_matrix(Fityk *f, int dataset);
 
 #endif /* __cplusplus */
 

@@ -3,7 +3,9 @@
 
 /// Functions to execute commands: info, debug, print.
 
+#define BUILDING_LIBFITYK
 #include "info.h"
+
 #include <string>
 #include <vector>
 #include <ctype.h>

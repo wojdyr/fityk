@@ -1,10 +1,10 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#include "common.h"
+#define BUILDING_LIBFITYK
 #include "numfuncs.h"
-
 #include <algorithm>
+#include "common.h"
 
 using namespace std;
 

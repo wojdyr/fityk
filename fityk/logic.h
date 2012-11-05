@@ -40,7 +40,7 @@ private:
 
 
 /// keeps all functions, variables, parameters, datasets with models and View
-class Ftk
+class FITYK_API Ftk
 {
 public:
     VariableManager mgr;

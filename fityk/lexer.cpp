@@ -3,6 +3,7 @@
 
 /// Lexical analyser. Takes C string and yields tokens.
 
+#define BUILDING_LIBFITYK
 #include "lexer.h"
 
 #include <string.h>

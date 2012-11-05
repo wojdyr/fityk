@@ -1,7 +1,9 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
+#define BUILDING_LIBFITYK
 #include "func.h"
+
 #include "common.h"
 #include "bfunc.h"
 #include "settings.h"

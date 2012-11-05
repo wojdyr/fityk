@@ -15,7 +15,7 @@ class DataAndModel;
 struct Settings;
 
 /// guessing initial parameters of functions
-class Guess
+class FITYK_API Guess
 {
 public:
     static const boost::array<std::string, 3> linear_traits;

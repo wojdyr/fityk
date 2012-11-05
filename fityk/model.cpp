@@ -1,12 +1,15 @@
 // This file is part of fityk program. Copyright (C) Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
+#define BUILDING_LIBFITYK
+#include "model.h"
+
 #include <algorithm>
 #include <string>
 #include <vector>
 #include <ctype.h>
+
 #include "common.h"
-#include "model.h"
 #include "func.h"
 #include "var.h"
 #include "mgr.h"

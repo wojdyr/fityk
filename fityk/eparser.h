@@ -37,7 +37,7 @@ protected:
 /// Expression parser.
 /// Derived from ExpressionParser only because it is handy to keep both
 /// in one class. 
-class ExpressionParser : public ExprCalculator
+class FITYK_API ExpressionParser : public ExprCalculator
 {
 public:
     enum ExpectedType

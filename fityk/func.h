@@ -15,7 +15,7 @@ namespace fityk {
 struct Settings;
 class VariableManager;
 
-class Function : public Func
+class FITYK_API Function : public Func
 {
 public:
     struct Multi

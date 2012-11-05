@@ -17,7 +17,7 @@
 %feature("autodoc", "1");
 
 %{
-#include "stddef.h" // bug workaround, needed for Swig1.3 + GCC4.6
+#define BUILDING_LIBFITYK
 #include "fityk.h"
 %}
 %include "std_string.i"
@@ -144,7 +144,9 @@ namespace std {
             SWIG_exception(SWIG_TypeError,"Expected function.");
     }
 
+    #define FITYK_API // empirical workaround that makes SWIG 2.0.8 work
     %{
+    using fityk::Fityk; // empirical workaround that makes SWIG 2.0.8 work
     #include "ui_api.h"
 
     PyObject *_py_show_message_func = NULL;

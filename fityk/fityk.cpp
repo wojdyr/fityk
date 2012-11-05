@@ -3,10 +3,13 @@
 
 /// implementation of libfityk public API
 
+#define BUILDING_LIBFITYK
+#include "fityk.h"
+
 #include <cassert>
 #include <cctype>
 #include <cstring>
-#include "fityk.h"
+
 #include "common.h"
 #include "ui.h"
 #include "logic.h"
