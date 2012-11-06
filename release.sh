@@ -4,7 +4,6 @@ version=1.2.1
 WEB="iris.unipress.waw.pl:www/fityk2/"
 
 MINGW_DIR=mingw-build
-ALL_WIN_FILES=all_files #inside of $MINGW_DIR
 
 win_setup_filename=$MINGW_DIR/all_files/Output/fityk-$version-setup.exe
 tarball_filename=fityk-$version.tar.bz2
@@ -69,37 +68,35 @@ elif [ $1 -eq 3 ]; then
 
 elif [ $1 -eq 4 ]; then
  echo Building MS Windows version
- SRC_DIR=fityk-$version/
  MDIR=$HOME/local/mingw32
- #BOOST_DIR=$HOME/local/src/boost_1_42_0/
- BOOST_DIR=/usr/local/boost
+ BOOST_DIR=$HOME/local/src/boost_1_50_0
 # rm -rf $MINGW_DIR
 # mkdir -p $MINGW_DIR
  cd $MINGW_DIR
-# tar xjf ../$tarball_filename || exit 1
-# # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
-# #       from Fedora: i686-w64-mingw32
-# $SRC_DIR/configure --host=i686-w64-mingw32 \
+ # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
+ #       from Fedora: i686-w64-mingw32
+# ../configure --host=i686-w64-mingw32 \
 #   CPPFLAGS="-I$BOOST_DIR -I$MDIR/include/" \
-#   CXXFLAGS="-O3" LDFLAGS="-s -L$MDIR/lib" \
+#   CXXFLAGS="-O3" LDFLAGS="-s -fno-keep-inline-dllexport -L$MDIR/lib" \
 #   --without-readline --with-wx-config=$MDIR/bin/wx-config \
 #   --disable-static --enable-shared
 #   #--enable-static --disable-shared
-# make || exit
- mkdir -p $ALL_WIN_FILES/samples $ALL_WIN_FILES/fityk
- cp fityk.iss $SRC_DIR/fityk.url $SRC_DIR/COPYING $SRC_DIR/TODO \
-    $SRC_DIR/NEWS $ALL_WIN_FILES
- cp -r $SRC_DIR/doc/html/ $ALL_WIN_FILES/
- cp $SRC_DIR/samples/*.fit $SRC_DIR/samples/*.dat $SRC_DIR/samples/*.lua \
-    $SRC_DIR/samples/README $ALL_WIN_FILES/samples/
- #cp wxgui/fityk.exe cli/cfityk.exe $ALL_WIN_FILES/fityk/
+
+ make -j2 || exit
+ mkdir -p all_files/samples all_files/fityk
+ cp fityk.iss ../fityk.url ../COPYING ../TODO ../NEWS all_files/
+ cp -r ../doc/html/ all_files/
+ cp ../samples/*.fit ../samples/*.dat ../samples/*.lua \
+    ../samples/README all_files/samples/
+ #cp wxgui/fityk.exe cli/cfityk.exe all_files/fityk/
  cp wxgui/.libs/fityk.exe cli/.libs/cfityk.exe fityk/.libs/libfityk-*.dll \
     $MDIR/bin/libxy-*.dll $MDIR/bin/xyconv.exe $MDIR/bin/lua5*.dll \
-    $ALL_WIN_FILES/fityk/
+    all_files/fityk/
  cp /usr/i686-w64-mingw32/sys-root/mingw/bin/libgcc_s_sjlj-1.dll \
     /usr/i686-w64-mingw32/sys-root/mingw/bin/libstdc++-6.dll \
-    $ALL_WIN_FILES/fityk/
- echo everything is in: `pwd`/$ALL_WIN_FILES
+    /usr/i686-w64-mingw32/sys-root/mingw/bin/zlib1.dll \
+    all_files/fityk/
+ echo everything is in: `pwd`/all_files
  
 
 elif [ $1 -eq 8 ]; then

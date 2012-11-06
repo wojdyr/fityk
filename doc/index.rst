@@ -104,7 +104,9 @@ after the end of subscription.
 
 * `1 month subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918496>`_: $115 (≈ €90)
 
-* `1 year subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918202>`_: $265 (≈ €200)
+* `1 year subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918202>`_: $199 (≈ €150)
+
+* `2 years subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=3146878>`_: $299 (≈ €230)
 
 .. raw:: html
 
@@ -126,7 +128,7 @@ and Linux (Ubuntu PPA_ and RPMs from OBS_).
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 :html:`<a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://fityk.nieto.pl"></a>`
 
-Version 1.2.0 was released on 2012-05-24
+Version 1.2.1 was released on 2012-11-05
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
 New version `notifications <http://fityk-announce.nieto.pl/>`_
 are delivered via email and feeds.

@@ -3,7 +3,7 @@ Prerequisites
 =============
 
 *  C++ compiler (e.g. GCC)
-*  Boost libraries (headers only)
+*  Boost libraries >= 1.35 (headers only)
 *  Lua >= 5.1
 *  zlib library
 *  xylib library - http://xylib.sf.net

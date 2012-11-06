@@ -2,7 +2,7 @@
 
 * GUI: Re-execute script -> Recent scripts
 
-* NLopt interface
+* use optimization algorithms from NLopt library
 
 * FFT data transformation using FFTW library,
   fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re(@3)
@@ -78,10 +78,6 @@
     - research papers: http://dx.doi.org/10.1016/j.chroma.2004.11.073
                        http://dx.doi.org/10.1002/cem.1005
                        http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631518/
-
-* fitting: consider using NLopt for alternative optimization methods
-  (http://ab-initio.mit.edu/wiki/index.php/NLopt) and a library for
-  Genetic Algorithms.
 
 * fitting: in addition to the least squares fit, add so-called robust fit 
   (it is called robust fit in the Numerical Recipes book), i.e. optimize

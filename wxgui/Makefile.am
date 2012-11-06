@@ -63,8 +63,9 @@ powdifpat_CPPFLAGS = $(WX_CPPFLAGS) -DSTANDALONE_POWDIFPAT
 powdifpat_LDADD = libceria.a $(WX_LIBS) -lxy $(powdifpat_res)
 endif
 
+#stylesheet from https://xylib.svn.sourceforge.net/svnroot/xylib/trunk/web.css
 xyconvert.html: xyconvert.rst
-	rst2html --stylesheet-path=$$HOME/xylib/trunk/web.css $< $@
+	rst2html --stylesheet-path=$$HOME/xylib/web.css $< $@
 
 
 ## to find icons not listed here use (in bash):

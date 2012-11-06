@@ -17,8 +17,8 @@ ChangesAssociations=yes
 
 
 [Files]
-Source: src\fityk.exe; DestDir: {app}
-Source: src\cfityk.exe; DestDir: {app}
+Source: fityk\*.exe; DestDir: {app}
+Source: fityk\*.dll; DestDir: {app}
 Source: COPYING; DestDir: {app}
 Source: TODO; DestDir: {app}
 Source: NEWS; DestDir: {app}

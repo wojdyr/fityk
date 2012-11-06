@@ -19,10 +19,11 @@ Installation
 Linux, FreeBSD, etc.
 --------------------
 
-xyconvert is distributed with fityk_, but it requires wxWidgets (wxGTK) >= 2.9,
-so it's not included in any distros yet.
-To compile it, you need to install wxGTK, boost and xylib, download fityk
-source and do ``./configure && cd src/wxgui/ && make xyconvert``.
+xyconvert source is distributed with fityk_. Building fityk will also build
+xyconvert. Binary packages for popular Linux distributions are available
+in `OBS repository`__.
+
+__ http://software.opensuse.org/download?project=home:wojdyr&package=xyconvert
 
 .. _fityk: http://www.unipress.waw.pl/fityk/
 
