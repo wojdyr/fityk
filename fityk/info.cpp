@@ -731,7 +731,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
         realt x = ep.calculate();
         const Model* model = F->get_model(ds);
         vector<realt> symb = model->get_symbolic_derivatives(x);
-        vector<realt> num = model->get_numeric_derivatives(x, 1e-4);
+        vector<realt> num = model->get_numeric_derivatives(x, 1e-8);
         assert (symb.size() == num.size());
         int n = symb.size() - 1;
         r += "F(" + S(x) + ")=" + S(model->value(x));

@@ -21,7 +21,7 @@ libfityk_la_SOURCES = logic.cpp view.cpp lexer.cpp eparser.cpp cparser.cpp \
 		 tplate.h func.h udf.h bfunc.h ast.h \
 		 vm.h transform.h settings.h ui.h \
 		 GAfit.h LMfit.h guess.h NMfit.h \
-		 model.h fit.h voigt.h numfuncs.h \
+		 model.h fit.h voigt.h numfuncs.h gauss-legendre.h \
 		 swig/fityk_lua.cpp swig/luarun.h \
 		 CMPfit.cpp CMPfit.h cmpfit/mpfit.c cmpfit/mpfit.h
 

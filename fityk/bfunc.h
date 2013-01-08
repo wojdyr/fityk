@@ -135,6 +135,34 @@ class FuncPseudoVoigt : public Function
     bool get_area(realt* a) const;
 };
 
+class FuncFCJAsymm : public Function
+{
+    DECLARE_FUNC_OBLIGATORY_METHODS(FCJAsymm, Function)
+    void more_precomputations();
+    bool get_nonzero_range(double level, realt &left, realt &right) const;
+    bool get_center(realt* a) const { *a = av_[1]; return true; }
+    bool get_height(realt* a) const { *a = av_[0]; return true; }
+    bool get_fwhm(realt* a) const { *a = 2 * fabs(av_[2]); return true; }
+    realt dfunc_int(realt angle1, realt angle2) const;
+    realt fcj_psv(realt x, realt location, realt fwhm, realt mixing) const;
+    static const double x100[];
+    static const double w100[];
+    static const double x1024[];
+    static const double w1024[];
+    realt twopsiinfl;
+    realt twopsimin;
+    realt cent_rad;
+    realt radians;
+    realt delta_n_neg[1024];      //same number of points as x1024 and w1024
+    realt delta_n_pos[1024];
+    realt weight_neg[1024];
+    realt weight_pos[1024];
+    realt denom;                 //denominator constant for given parameters
+    realt denom_unscaled;        //denominator for x-axis in radians
+    realt df_ds_factor;          //derivative with respect to denominator
+    realt df_dh_factor;          //derivative with respect to denominator
+};
+
 class FuncVoigt : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(Voigt, Function)

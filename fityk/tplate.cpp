@@ -85,6 +85,7 @@ FACTORY_FUNC(FuncPielaszekCube)
 FACTORY_FUNC(FuncLogNormal)
 FACTORY_FUNC(FuncSpline)
 FACTORY_FUNC(FuncPolyline)
+FACTORY_FUNC(FuncFCJAsymm)
 
 FACTORY_FUNC(CustomFunction)
 FACTORY_FUNC(CompoundFunction)
@@ -179,6 +180,10 @@ void TplateMgr::add_builtin_types(Parser* p)
         "height*((1-shape)*exp(-ln(2)*((x-center)/hwhm)^2)"
                             "+shape/(1+((x-center)/hwhm)^2))",
         /*linear_d=*/false, /*peak_d=*/true, &create_FuncPseudoVoigt);
+
+    add("FCJAsymm","height,center,hwhm,shape,h_l,s_l",",,,0.5,,",
+        "Finger-Cox-Jephcoat asymmetry with PseudoVoight peakshape",
+        false,true,&create_FuncFCJAsymm);
 
     add("Voigt", "height,center,gwidth,shape", ",,hwhm*0.8,0.1",
         "convolution of Gaussian and Lorentzian #",
