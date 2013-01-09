@@ -519,7 +519,6 @@ return 0.5 * (asin((2.0*ctwoth*ctwoth + 2*stwopsi -2)/(abs(2*stwopsi-2)*stwoth))
 void FuncFCJAsymm::more_precomputations()
 {
 denom=0.0;
-realt hfunc_max = 0.0;
 radians = M_PI/180.0;
 cent_rad = av_[1]*radians;
 realt hfunc_neg, hfunc_pos;
@@ -638,7 +637,6 @@ if((av_[4]==0 && av_[5]==0) || cent_rad==M_PI/2) {     // Plain PseudoVoight
 CALCULATE_VALUE_END(av_[0]*M_PI/180 * numer/denom)
 
 CALCULATE_DERIV_BEGIN(FuncFCJAsymm)
-    realt hfunc = 0.0;
     realt fwhm_rad = av_[2]*2*M_PI/180.0;
     realt numer = 0.0;
 realt hfunc_neg,hfunc_pos;  //FCJ hfunc for neg, pos regions of G-L integration
