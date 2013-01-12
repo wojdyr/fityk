@@ -1048,7 +1048,7 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
                 sel = mdlg.GetSelections();
                 paths.clear();
                 for (size_t i = 0; i < sel.size(); ++i)
-                    paths.push_back(s2wx(f + "::::" + S(i)));
+                    paths.push_back(s2wx(f + "::::" + S(sel[i])));
             }
         } catch (const runtime_error& e) {
         } // ignore the exception here, it'll be thrown later
