@@ -12,6 +12,7 @@ AM_INIT_AUTOMAKE([1.11 foreign subdir-objects silent-rules -Wall])
 AC_PROG_CC
 AC_PROG_CXX
 AM_PROG_CC_C_O
+AM_PROG_AR
 LT_INIT([disable-static win32-dll])
 
 
