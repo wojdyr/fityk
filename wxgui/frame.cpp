@@ -177,7 +177,8 @@ enum {
     ID_COPY_TO_CLIPB           ,
     ID_SAVE_IMAGE              ,
     ID_SESSION_INCLUDE         ,
-    ID_SESSION_REINCLUDE       ,
+    ID_SESSION_RECENT          ,
+    ID_SESSION_RECENT_END = ID_SESSION_RECENT+50,
     ID_SESSION_NEW_F           ,
     ID_SESSION_NEW_L           ,
     ID_SESSION_NEW_H           ,
@@ -265,11 +266,12 @@ void append_mi(wxMenu* menu, int id, wxBitmap const& bitmap,
 
 BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_SESSION_INCLUDE, FFrame::OnInclude)
-    EVT_MENU (ID_SESSION_REINCLUDE, FFrame::OnReInclude)
     EVT_MENU (ID_SESSION_NEW_F, FFrame::OnNewFitykScript)
     EVT_MENU (ID_SESSION_NEW_L, FFrame::OnNewLuaScript)
     EVT_MENU (ID_SESSION_NEW_H, FFrame::OnNewHistoryScript)
     EVT_MENU (ID_SCRIPT_EDIT,   FFrame::OnScriptEdit)
+    EVT_MENU_RANGE (ID_SESSION_RECENT+1, ID_SESSION_RECENT_END,
+                    FFrame::OnRecentScript)
 #ifdef __WXMAC__
     EVT_MENU (ID_SESSION_NEWWIN, FFrame::OnNewWindow)
 #endif
@@ -491,29 +493,38 @@ void FFrame::write_recent_data_files()
 
 void FFrame::add_recent_data_file(string const& filename)
 {
-    int const count = data_menu_recent->GetMenuItemCount();
-    wxMenuItemList const& mlist = data_menu_recent->GetMenuItems();
+    add_recent_file(filename, data_menu_recent_, recent_data_files_,
+                    ID_D_RECENT);
+}
+
+void FFrame::add_recent_file(string const& filename, wxMenu* menu_recent,
+                             std::list<wxFileName> &recent_files,
+                             int base_id)
+{
+    int const count = menu_recent->GetMenuItemCount();
+    wxMenuItemList const& mlist = menu_recent->GetMenuItems();
     wxFileName const fn = wxFileName(s2wx(filename));
-    recent_data_files_.remove(fn);
-    recent_data_files_.push_front(fn);
+    recent_files.remove(fn);
+    recent_files.push_front(fn);
     int id_new = 0;
-	for (wxMenuItemList::compatibility_iterator i = mlist.GetFirst(); i;
+    for (wxMenuItemList::compatibility_iterator i = mlist.GetFirst(); i;
                                                             i = i->GetNext())
         if (i->GetData()->GetHelp() == fn.GetFullPath()) {
             id_new = i->GetData()->GetId();
-            data_menu_recent->Delete(i->GetData());
+            menu_recent->Delete(i->GetData());
             break;
         }
     if (id_new == 0) {
-        if (count >= 15) {
+        if (count < 15) {
+            id_new = base_id + count + 1;
+        }
+        else {
             wxMenuItem *item = mlist.GetLast()->GetData();
             id_new = item->GetId();
-            data_menu_recent->Delete(item);
+            menu_recent->Delete(item);
         }
-        else
-            id_new = ID_D_RECENT+count+1;
     }
-    data_menu_recent->Prepend(id_new, fn.GetFullName(), fn.GetFullPath());
+    menu_recent->Prepend(id_new, fn.GetFullName(), fn.GetFullPath());
 }
 
 void FFrame::read_all_settings(wxConfigBase *cf)
@@ -581,15 +592,22 @@ void FFrame::save_settings(wxConfigBase *cf) const
     //cf->Write (wxT("BotWinHeight"), bottom_window->GetClientSize().GetHeight());
 }
 
+wxMenu* FFrame::add_recent_menu(const list<wxFileName>& files, int id)
+{
+    wxMenu *menu = new wxMenu;
+    int n = 1;
+    for (list<wxFileName>::const_iterator i = files.begin();
+            i != files.end() && n < 16; i++, n++)
+        menu->Append(id + n, i->GetFullName(), i->GetFullPath());
+    return menu;
+}
+
 void FFrame::set_menubar()
 {
     wxMenu* session_menu = new wxMenu;
     append_mi(session_menu, ID_SESSION_INCLUDE, GET_BMP(runmacro16),
               wxT("&Execute Script\tCtrl-X"),
               wxT("Execute commands from a file"));
-    session_menu->Append (ID_SESSION_REINCLUDE, wxT("R&e-Execute script"),
-             wxT("Reset & execute commands from the file included last time"));
-    session_menu->Enable (ID_SESSION_REINCLUDE, false);
     wxMenu *session_new_script_menu = new wxMenu;
     session_new_script_menu->Append(ID_SESSION_NEW_F, "&Blank Fityk Script");
     session_new_script_menu->Append(ID_SESSION_NEW_L, "&Blank Lua Script");
@@ -597,6 +615,10 @@ void FFrame::set_menubar()
     session_menu->Append(-1, "&New Script", session_new_script_menu);
     append_mi(session_menu, ID_SCRIPT_EDIT, GET_BMP(editor16),
               wxT("E&dit Script"), wxT("Show script editor"));
+    session_menu_recent_ = add_recent_menu(recent_script_files_,
+                                           ID_SESSION_RECENT);
+    session_menu->Append(ID_SESSION_RECENT, "&Recent Scripts",
+                         session_menu_recent_);
 #ifdef __WXMAC__
     session_menu->Append (ID_SESSION_NEWWIN, "New Window",
                           "Open new window (new process)");
@@ -643,13 +665,8 @@ void FFrame::set_menubar()
     append_mi(data_menu, ID_D_XLOAD, GET_BMP(fileopen16),
               wxT("&Load File\tCtrl-M"),
               wxT("Load data from file, with some options"));
-    this->data_menu_recent = new wxMenu;
-    int rf_counter = 1;
-    for (list<wxFileName>::const_iterator i = recent_data_files_.begin();
-         i != recent_data_files_.end() && rf_counter < 16; i++, rf_counter++)
-        data_menu_recent->Append(ID_D_RECENT + rf_counter,
-                                 i->GetFullName(), i->GetFullPath());
-    data_menu->Append(ID_D_RECENT, wxT("&Recent Files"), data_menu_recent);
+    data_menu_recent_ = add_recent_menu(recent_data_files_, ID_D_RECENT);
+    data_menu->Append(ID_D_RECENT, "&Recent Files", data_menu_recent_);
     append_mi(data_menu, ID_D_REVERT, GET_BMP(revert16), wxT("Re&vert"),
               wxT("Reload data from file(s)"));
     data_menu->AppendSeparator();
@@ -1423,16 +1440,23 @@ void FFrame::OnInclude (wxCommandEvent&)
                       script_dir_, "", fityk_lua_wildcards,
                       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
-        exec("exec '" + wx2s(fdlg.GetPath()) + "'");
-        last_include_path_ = wx2s(fdlg.GetPath());
-        GetMenuBar()->Enable(ID_SESSION_REINCLUDE, true);
+        string path = wx2s(fdlg.GetPath());
+        exec("exec '" + path + "'");
+        add_recent_file(path, session_menu_recent_, recent_script_files_,
+                        ID_SESSION_RECENT);
+        //last_include_path_ = path;
+        //GetMenuBar()->Enable(ID_SESSION_RECENT, true);
     }
     script_dir_ = fdlg.GetDirectory();
 }
 
-void FFrame::OnReInclude (wxCommandEvent&)
+void FFrame::OnRecentScript(wxCommandEvent& event)
 {
-    exec("reset; exec '" + last_include_path_ + "'");
+    //exec("reset; exec '" + last_include_path_ + "'");
+    string s = wx2s(GetMenuBar()->GetHelpString(event.GetId()));
+    exec("exec '" + s + "'");
+    add_recent_file(s, session_menu_recent_, recent_script_files_,
+                    ID_SESSION_RECENT);
 }
 
 void FFrame::OnNewFitykScript(wxCommandEvent&)
@@ -1484,7 +1508,7 @@ void FFrame::OnSessionLoad(wxCommandEvent&)
         get_main_plot()->bgm()->clear_background();
         exec("reset; exec '" + wx2s(fdlg.GetPath()) + "'");
         //last_include_path_ = wx2s(fdlg.GetPath());
-        //GetMenuBar()->Enable(ID_SESSION_REINCLUDE, true);
+        //GetMenuBar()->Enable(ID_SESSION_RECENT, true);
     }
     script_dir_ = fdlg.GetDirectory();
 }

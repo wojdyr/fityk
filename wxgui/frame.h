@@ -106,7 +106,7 @@ public:
     void OnLogWithOutput (wxCommandEvent& event);
     void OnSaveHistory   (wxCommandEvent& event);
     void OnInclude      (wxCommandEvent& event);
-    void OnReInclude    (wxCommandEvent& event);
+    void OnRecentScript (wxCommandEvent& event);
     void OnNewFitykScript(wxCommandEvent&);
     void OnNewLuaScript(wxCommandEvent&);
     void OnNewHistoryScript(wxCommandEvent&);
@@ -224,15 +224,19 @@ private:
     int peak_type_nr_;
     std::vector<std::string> peak_types_;
     PrintManager* print_mgr_;
-    std::string last_include_path_;
+    std::list<wxFileName> recent_script_files_;
     std::list<wxFileName> recent_data_files_;
-    wxMenu *data_menu_recent, *data_ft_menu_, *func_type_menu_;
+    wxMenu *data_menu_recent_, *session_menu_recent_,
+           *data_ft_menu_, *func_type_menu_;
     wxString script_dir_, data_dir_, export_dir_;
     bool antialias_;
 
     void place_plot_and_io_windows(wxWindow *parent);
     void create_io_panel(wxWindow *parent);
     void set_menubar();
+    wxMenu* add_recent_menu(const std::list<wxFileName>& files, int id);
+    void add_recent_file(std::string const& filename, wxMenu* menu_recent,
+                         std::list<wxFileName> &recent_files, int base_id);
     void update_peak_type_list();
     void read_recent_data_files();
     void write_recent_data_files();
