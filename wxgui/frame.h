@@ -238,8 +238,6 @@ private:
     void add_recent_file(std::string const& filename, wxMenu* menu_recent,
                          std::list<wxFileName> &recent_files, int base_id);
     void update_peak_type_list();
-    void read_recent_data_files();
-    void write_recent_data_files();
     void change_mouse_mode(MouseModeEnum mode);
     void export_as_info(const std::string& info, const char* caption,
                         const char* ext, const char* wildcards);

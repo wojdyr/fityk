@@ -379,6 +379,38 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
 END_EVENT_TABLE()
 
 
+void read_recent_files(list<wxFileName> &recent_files,
+                       const wxString& config_group)
+{
+    recent_files.clear();
+    wxConfigBase *c = wxConfig::Get();
+    if (c && c->HasGroup(config_group)) {
+        for (int i = 0; i < 20; i++) {
+            wxString key = wxString::Format("%s/%i", config_group, i);
+            if (c->HasEntry(key))
+                recent_files.push_back(wxFileName(c->Read(key, wxT(""))));
+        }
+    }
+}
+
+void save_recent_files(list<wxFileName> &recent_files,
+                       const wxString& config_group)
+{
+    wxConfigBase *c = wxConfig::Get();
+    if (!c)
+        return;
+    if (c->HasGroup(config_group))
+        c->DeleteGroup(config_group);
+    int counter = 0;
+    for (list<wxFileName>::const_iterator i = recent_files.begin();
+         i != recent_files.end() && counter < 9;
+         ++i, ++counter) {
+        wxString key = config_group + wxT("/") + s2wx(S(counter));
+        c->Write(key, i->GetFullPath());
+    }
+}
+
+
     // Define my frame constructor
 FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
                  const long style)
@@ -409,7 +441,8 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     v_splitter_->Initialize(main_pane_);
     sizer->Add(v_splitter_, 1, wxEXPAND, 0);
 
-    read_recent_data_files();
+    read_recent_files(recent_data_files_, "/RecentDataFiles");
+    read_recent_files(recent_script_files_, "/RecentScriptFiles");
     set_menubar();
 
     toolbar_ = new FToolBar(this, -1);
@@ -434,7 +467,8 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 
 FFrame::~FFrame()
 {
-    write_recent_data_files();
+    save_recent_files(recent_data_files_, "/RecentDataFiles");
+    save_recent_files(recent_script_files_, "/RecentScriptFiles");
     wxConfig::Get()->Write(wxT("/DefaultFunctionType"), peak_type_nr_);
     delete print_mgr_;
 #ifdef __WXMAC__
@@ -459,36 +493,6 @@ void FFrame::update_peak_type_list()
         peak_type_nr_ = 0;
     if (toolbar_)
         toolbar_->update_peak_type(peak_type_nr_, &peak_types_);
-}
-
-void FFrame::read_recent_data_files()
-{
-    recent_data_files_.clear();
-    wxConfigBase *c = wxConfig::Get();
-    if (c && c->HasGroup(wxT("/RecentDataFiles"))) {
-        for (int i = 0; i < 20; i++) {
-            wxString key = wxString::Format(wxT("/RecentDataFiles/%i"), i);
-            if (c->HasEntry(key))
-                recent_data_files_.push_back(wxFileName(c->Read(key, wxT(""))));
-        }
-    }
-}
-
-void FFrame::write_recent_data_files()
-{
-    wxConfigBase *c = wxConfig::Get();
-    if (!c)
-        return;
-    wxString group(wxT("/RecentDataFiles"));
-    if (c->HasGroup(group))
-        c->DeleteGroup(group);
-    int counter = 0;
-    for (list<wxFileName>::const_iterator i = recent_data_files_.begin();
-         i != recent_data_files_.end() && counter < 9;
-         i++, counter++) {
-        wxString key = group + wxT("/") + s2wx(S(counter));
-        c->Write(key, i->GetFullPath());
-    }
 }
 
 void FFrame::add_recent_data_file(string const& filename)
