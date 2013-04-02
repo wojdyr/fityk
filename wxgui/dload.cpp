@@ -108,7 +108,7 @@ void DLoadDlg::exec_command(bool replace)
     browser_->filectrl->GetPaths(paths);
     for (size_t i = 0; i < paths.GetCount(); ++i) {
         string filename = wx2s(paths[i]);
-        exec("@" + (replace ? S(data_idx_) : S("+")) +
+        exec(cmd + "@" + (replace ? S(data_idx_) : S("+")) +
                   " < '" + filename + cols + "'");
         if (browser_->title_tc->IsEnabled()) {
             wxString t = browser_->title_tc->GetValue().Trim();
