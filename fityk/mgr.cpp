@@ -87,13 +87,9 @@ string VariableManager::get_or_make_variable(const VMData* vd)
 Variable* make_compound_variable(const string &name, VMData* vd,
                                  const vector<Variable*>& all_variables)
 {
+    //printf("make_compound_variable: %s\n", vm2str(*vd).c_str());
     if (vd->has_op(OP_X))
         throw ExecuteError("variable can't depend on x.");
-
-    vector<string> symbols(all_variables.size());
-    for (size_t i = 0; i != all_variables.size(); ++i)
-        symbols[i] = all_variables[i]->name;
-    //printf("make_compound_variable: %s\n", vm2str(*vd).c_str());
 
     // re-index variables
     vector<string> used_vars;
@@ -556,7 +552,6 @@ void VariableManager::substitute_func_param(const string &name,
     if (nr == -1)
         throw ExecuteError("undefined function: %" + name);
     Function* k = functions_[nr];
-    string new_param;
     int v_idx = vd->single_symbol() ? vd->code()[1]
                                     : make_variable(next_var_name(), vd);
     k->set_param_name(k->get_param_nr(param), variables_[v_idx]->name);

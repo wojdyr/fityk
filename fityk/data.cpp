@@ -77,12 +77,12 @@ void Data::post_load()
     if (!has_sigma_) {
         string dds = F_->get_settings()->default_sigma;
         if (dds == "sqrt") {
-            for (vector<Point>::iterator i = p_.begin(); i < p_.end(); i++)
+            for (vector<Point>::iterator i = p_.begin(); i < p_.end(); ++i)
                 i->sigma = i->y > 1. ? sqrt (i->y) : 1.;
             inf += " No explicit std. dev. Set as sqrt(y)";
         }
         else if (dds == "one") {
-            for (vector<Point>::iterator i = p_.begin(); i < p_.end(); i++)
+            for (vector<Point>::iterator i = p_.begin(); i < p_.end(); ++i)
                 i->sigma = 1.;
             inf += " No explicit std. dev. Set as equal 1.";
         }
@@ -383,7 +383,7 @@ string Data::range_as_string() const
     double left =  old_p->x;
     string s = "[" + S (left) + " : ";
     for (vector<int>::const_iterator i = active_.begin() + 1;
-                                                    i != active_.end(); i++) {
+                                                    i != active_.end(); ++i) {
         if (p_.begin() + *i != old_p + 1) {
             double right = old_p->x;
             left = p_[*i].x;
@@ -420,7 +420,7 @@ void Data::find_step()
 
     double min_step, max_step, step;
     min_step = max_step = p_[1].x - p_[0].x;
-    for (vector<Point>::iterator i = p_.begin() + 2; i < p_.end(); i++) {
+    for (vector<Point>::iterator i = p_.begin() + 2; i < p_.end(); ++i) {
         step = i->x - (i-1)->x;
         min_step = std::min (min_step, step);
         max_step = std::max (max_step, step);

@@ -30,7 +30,7 @@ public:
     void initialize(const DataAndModel* dm, int lb, int rb, int ignore_idx);
 
     /// returns values corresponding to linear_traits
-    boost::array<double,3> estimate_linear_parameters();
+    boost::array<double,3> estimate_linear_parameters() const;
     /// returns values corresponding to peak_traits
     boost::array<double,4> estimate_peak_parameters();
 
@@ -38,7 +38,7 @@ private:
     Settings const* settings_;
     std::vector<realt> xx_, yy_, sigma_;
 
-    double find_hwhm(int pos, double *area);
+    double find_hwhm(int pos, double *area) const;
 };
 
 } // namespace fityk

@@ -51,7 +51,7 @@ void Guess::initialize(const DataAndModel* dm, int lb, int rb, int ignore_idx)
 }
 
 
-double Guess::find_hwhm(int pos, double* area)
+double Guess::find_hwhm(int pos, double* area) const
 {
     const double hm = 0.5 * yy_[pos];
     const int n = 3;
@@ -136,7 +136,7 @@ array<double,4> Guess::estimate_peak_parameters()
     return r;
 }
 
-array<double,3> Guess::estimate_linear_parameters()
+array<double,3> Guess::estimate_linear_parameters() const
 {
     double sx = 0, sy = 0, sxx = 0, /*syy = 0,*/ sxy = 0;
     int n = yy_.size();

@@ -32,7 +32,7 @@ get_interpolation_segment(vector<T> &bb,  double x)
         if (x <= (pos+1)->x)
             return pos;
         // try again
-        pos++;
+        ++pos;
         if (pos->x <= x && (pos+1 == bb.end() || x <= (pos+1)->x))
             return pos;
     }

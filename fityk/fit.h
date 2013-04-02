@@ -50,7 +50,7 @@ public:
     void reverse_matrix (std::vector<realt>&A, int n);
     // pretty-print matrix m x n stored in vec. `mname' is name/comment.
     std::string print_matrix(const std::vector<realt>& vec,
-                             int m, int n, const char *mname);
+                             int m, int n, const char *mname) const;
     realt compute_r_squared(const std::vector<realt> &A,
                            const std::vector<DataAndModel*>& dms);
     bool is_param_used(int n) const { return par_usage_[n]; }
@@ -67,7 +67,7 @@ protected:
 
     virtual void init() = 0; // called before autoiter()
     virtual void autoiter() = 0;
-    bool common_termination_criteria(int iter, bool all=true);
+    bool common_termination_criteria(int iter, bool all=true) const;
     void compute_derivatives(const std::vector<realt> &A,
                           const std::vector<DataAndModel*>& dms,
                           std::vector<realt>& alpha, std::vector<realt>& beta);

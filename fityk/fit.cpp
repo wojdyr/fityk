@@ -363,7 +363,7 @@ realt Fit::compute_derivatives_nl_for(const DataAndModel* dm, double *grad)
 }
 
 string Fit::print_matrix(const vector<realt>& vec, int m, int n,
-                         const char *mname)
+                         const char *mname) const
     //m rows, n columns
 {
     if (F_->get_verbosity() <= 0)  //optimization (?)
@@ -523,7 +523,7 @@ void Fit::update_parameters(const vector<DataAndModel*>& dms)
 }
 
 /// checks termination criteria common for all fitting methods
-bool Fit::common_termination_criteria(int iter, bool all)
+bool Fit::common_termination_criteria(int iter, bool all) const
 {
     bool stop = false;
     if (fityk::user_interrupt) {

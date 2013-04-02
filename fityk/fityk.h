@@ -300,6 +300,9 @@ private:
     bool throws_;
     std::string last_error_;
     FitykInternalData *p_;
+    // disallow copy and assign
+    Fityk(const Fityk&);
+    void operator=(const Fityk&);
 };
 
 } // namespace fityk

@@ -130,6 +130,7 @@ private:
             throw ExecuteError("No such dataset: @" + S(n));
     }
 
+    DISALLOW_COPY_AND_ASSIGN(Ftk);
 };
 
 } // namespace fityk
