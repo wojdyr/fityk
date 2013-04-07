@@ -146,6 +146,9 @@ void PlotPane::draw_vertical_lines(int X1, int X2, FPlot* skip)
 
 wxBitmap PlotPane::prepare_bitmap_for_export(int W, int H, bool include_aux)
 {
+    // bitmap depth is given explicitely - which is also a workaround for
+    // http://trac.wxwidgets.org/ticket/13328
+    const int depth = 32;
     int my = get_plot()->get_bitmap().GetSize().y;
     int th = H;
     int ah[2] = { 0, 0 };
@@ -156,7 +159,7 @@ wxBitmap PlotPane::prepare_bitmap_for_export(int W, int H, bool include_aux)
             th += 5 + ah[i];
         }
 
-    wxBitmap bmp(W, th);
+    wxBitmap bmp(W, th, depth);
     wxMemoryDC memory_dc(bmp);
     MainPlot *plot = get_plot();
     MouseModeEnum old_mode = plot->get_mouse_mode();
@@ -165,14 +168,14 @@ wxBitmap PlotPane::prepare_bitmap_for_export(int W, int H, bool include_aux)
     // and changing the mode would prevent drawing the baseline.
     if (plot->get_mouse_mode() != mmd_bg)
         plot->set_mode(mmd_readonly);
-    memory_dc.DrawBitmap(plot->draw_on_bitmap(W, H), 0, 0);
+    memory_dc.DrawBitmap(plot->draw_on_bitmap(W, H, depth), 0, 0);
     plot->set_mode(old_mode);
 
     int y = H + 5;
     for (int i = 0; i != 2; ++i)
         if (include_aux && aux_visible(i)) {
             AuxPlot *aplot = get_aux_plot(i);
-            memory_dc.DrawBitmap(aplot->draw_on_bitmap(W, ah[i]), 0, y);
+            memory_dc.DrawBitmap(aplot->draw_on_bitmap(W, ah[i], depth), 0, y);
             y += ah[i] + 5;
         }
     return bmp;

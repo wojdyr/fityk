@@ -2080,11 +2080,7 @@ void FFrame::OnSaveAsImage(wxCommandEvent&)
 {
     wxFileDialog fdlg(this, wxT("Save main plot as image"),
                       export_dir_, wxT(""),
-// Because of a bug in wxMSW 2.9 (http://trac.wxwidgets.org/ticket/13328),
-// we can't export png on this platform.
-#ifndef __WXMSW__
                       wxT("PNG image (*.png)|*.png;*.PNG|")
-#endif
                       wxT("Windows Bitmap (*.bmp)|*.bmp;*.BMP"),
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     wxSize size = get_main_plot()->get_bitmap().GetSize();

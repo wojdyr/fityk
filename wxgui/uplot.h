@@ -36,8 +36,8 @@ public:
     void blit(wxDC& dc);
     /// wraps dc in wxGCDC (if needed) and calls draw()
     void gc_draw(wxMemoryDC &dc);
-    /// create bitmap of size (w,h) and draw plot on it
-    wxBitmap draw_on_bitmap(int w, int h);
+    /// create bitmap w x h with given depth (-1 = screen) and draw plot on it
+    wxBitmap draw_on_bitmap(int w, int h, int depth=-1);
     /// plotting function called to refresh buffer
     virtual void draw(wxDC &dc, bool monochrome=false) = 0;
     /// get bitmap buffer

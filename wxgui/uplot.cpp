@@ -38,15 +38,22 @@ void BufferedPanel::gc_draw(wxMemoryDC& dc)
 {
     if (antialias() && support_antialiasing_) {
         wxGCDC gdc(dc);
+#ifdef __WXMSW__
+        // this is necessary only for PNG output on Windows,
+        // together with explicit 32-bit bitmap depth in
+        // PlotPane::prepare_bitmap_for_export()
+        gdc.SetBackground(wxBrush(bg_color_));
+        gdc.Clear();
+#endif
         draw(gdc);
     }
     else
         draw(dc);
 }
 
-wxBitmap BufferedPanel::draw_on_bitmap(int w, int h)
+wxBitmap BufferedPanel::draw_on_bitmap(int w, int h, int depth)
 {
-    wxBitmap bmp = wxBitmap(w, h);
+    wxBitmap bmp = wxBitmap(w, h, depth);
     memory_dc_.SelectObject(bmp);
     memory_dc_.SetBackground(wxBrush(bg_color_));
     memory_dc_.Clear();
