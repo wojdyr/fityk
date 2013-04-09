@@ -71,12 +71,18 @@ Configuration Options
 
 ./configure --help shows all the options.
 
+On some systems Lua headers are in non-default location (say, in
+/usr/include/lua5.2), and the Lua library has a suffix (say, liblua5.2.so
+instead of liblua.so). In such case the suffix and the header directory
+need to be specified:
+
+./configure --with-lua-suffix=5.2 CPPFLAGS=-I/usr/include/lua5.2
+
 To build python bindings, use --enable-python option.
 
 To build perl bindings, install perl-ExtUtils-Embed and do "make perl"
 in fityk/ subdirectory. swig/Fityk.pm and swig/perl/Fityk.so can be installed
 manually. Try test: samples/hello.pl.
-
 
 For debugging you may use:
 ./configure CXXFLAGS="-g -O0 -fno-inline -W -Wall" \
