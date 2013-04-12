@@ -90,9 +90,8 @@ developed in the future,
 
 |ico-osx| Mac OS X (10.4 or later): :download:`-osx.zip`  $
 
-|ico-tux| Linux: `deb packages </subscribers>`_ (i386 and x64).
-:smallfont:`Tested only on Ubuntu 10.10.
-Email me if you need a package for another distro.`
+|ico-tux| Linux: binary `RPM and deb packages </subscribers>`_
+:smallfont:`for about 10 distros (incl. Ubuntu, Fedora, Suse), 32- and 64-bit.`
 
 .. raw:: html
 
