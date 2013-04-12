@@ -15,6 +15,8 @@ class DataAndModel;
 class Ftk;
 class Variable;
 
+int count_points(const std::vector<DataAndModel*>& dms);
+
 ///   interface of fitting method and implementation of common functions
 class FITYK_API Fit
 {

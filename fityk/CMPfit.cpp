@@ -136,78 +136,96 @@ void zero_init_result(mp_result *result)
     result->xerror = NULL;
 }
 
+// final_a either has the same size as parameters or is NULL
+int MPfit::run_mpfit(const vector<DataAndModel*>& dms,
+                     const vector<realt>& parameters,
+                     const vector<bool>& par_usage,
+                     double *final_a)
+{
+    assert(par_usage.size() == parameters.size());
+
+    double *a = final_a ? final_a : new double[parameters.size()];
+    for (size_t i = 0; i != parameters.size(); ++i)
+        a[i] = parameters[i];
+
+    mp_par *pars = allocate_and_init_mp_par(par_usage_);
+
+    // dms cannot be easily passed to the calculate_for_mpfit() callback
+    // in a different way than through member variable (dmdm_).
+    int status;
+    if (&dms != &dmdm_) {
+        vector<DataAndModel*> saved = dms;
+        dmdm_.swap(saved);
+        status = mpfit(calculate_for_mpfit, count_points(dms),
+                       parameters.size(), a, pars, &mp_conf_, this, &result_);
+        dmdm_.swap(saved);
+    }
+    else
+        status = mpfit(calculate_for_mpfit, count_points(dms),
+                       parameters.size(), a, pars, &mp_conf_, this, &result_);
+    soft_assert(status == result_.status);
+    delete [] pars;
+    if (final_a == NULL)
+        delete [] a;
+    return status;
+}
 
 void MPfit::autoiter()
 {
     start_iter_ = iter_nr_;
     wssr_before_ = compute_wssr(a_orig_, dmdm_);
 
-    int m = 0;
-    v_foreach (DataAndModel*, i, dmdm_)
-        m += (*i)->data()->get_n();
-
     mp_conf_.maxiter = max_iterations_;
     mp_conf_.maxfev = F_->get_settings()->max_wssr_evaluations;
-
     //mp_conf_.ftol = F_->get_settings()->lm_stop_rel_change;
 
-    double *perror = new double[na_];
-    double *a = new double[na_];
-    mp_par *pars = allocate_and_init_mp_par(par_usage_);
-
-    for (int i = 0; i < na_; ++i)
-        a[i] = a_orig_[i];
-
     zero_init_result(&result_);
-    result_.xerror = perror;
 
-    int status = mpfit(calculate_for_mpfit, m, na_, a, pars, &mp_conf_, this,
-                       &result_);
+    double *a = new double[na_];
+    int status = run_mpfit(dmdm_, a_orig_, par_usage_, a);
     //printf("%d :: %d\n", iter_nr_, result_.niter);
     //soft_assert(iter_nr_ + 1 == result_.niter);
     //soft_assert(result_.nfev + 1 == evaluations_);
-    soft_assert(status == result_.status);
     F_->msg("mpfit status: " + S(mpstatus_to_string(status)));
     post_fit(vector<realt>(a, a+na_), result_.bestnorm);
-    delete [] pars;
     delete [] a;
-    delete [] perror;
 }
 
-// pre: update_parameters(), dmdm_ set
+// pre: update_parameters()
 // returns array of size na_ that needs to be delete[]'d
 double* MPfit::get_errors(const vector<DataAndModel*>& dms)
 {
-    int m = 0;
-    v_foreach (DataAndModel*, i, dms)
-        m += (*i)->data()->get_n();
+    double *perror = new double[na_];
+    for (int i = 0; i < na_; ++i)
+        perror[i] = 0.;
 
     mp_conf_.maxiter = 0;
-
-    double *perror = new double[na_];
-    double *a = new double[na_];
-    mp_par *pars = allocate_and_init_mp_par(par_usage_);
-
-    for (int i = 0; i < na_; ++i) {
-        a[i] = F_->mgr.parameters()[i];
-        perror[i] = 0.;
-    }
 
     zero_init_result(&result_);
     result_.xerror = perror;
 
-    // dms cannot be easily passed to the calculate_for_mpfit() callback
-    // in a different way than through member variable (dmdm_).
-    vector<DataAndModel*> saved = dms;
-    dmdm_.swap(saved);
-    int status = mpfit(calculate_for_mpfit, m, na_, a, pars, &mp_conf_, this,
-                       &result_);
-    dmdm_.swap(saved);
-
+    int status = run_mpfit(dms, F_->mgr.parameters(), par_usage_);
     soft_assert(status == MP_MAXITER);
-    delete [] pars;
-    delete [] a;
+
     return perror;
 }
+
+// pre: update_parameters()
+// returns array of size na_*na_ that needs to be delete[]'d
+double* MPfit::get_covar(const vector<DataAndModel*>& dms)
+{
+    double *covar = new double[na_*na_];
+
+    mp_conf_.maxiter = 0;
+
+    zero_init_result(&result_);
+    result_.covar = covar;
+
+    int status = run_mpfit(dms, F_->mgr.parameters(), par_usage_);
+    soft_assert(status == MP_MAXITER);
+
+    return covar;
+}
+
 
 } // namespace fityk

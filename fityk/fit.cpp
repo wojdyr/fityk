@@ -26,6 +26,14 @@ using namespace std;
 
 namespace fityk {
 
+int count_points(const vector<DataAndModel*>& dms)
+{
+    int n = 0;
+    v_foreach (DataAndModel*, i, dms)
+        n += (*i)->data()->get_n();
+    return n;
+}
+
 Fit::Fit(Ftk *F, const string& m)
     : name(m), F_(F),
       evaluations_(0), iter_nr_(0), na_(0), last_refresh_time_(0)
@@ -36,11 +44,8 @@ Fit::Fit(Ftk *F, const string& m)
 int Fit::get_dof(const vector<DataAndModel*>& dms)
 {
     update_parameters(dms);
-    int dof = 0;
-    v_foreach (DataAndModel*, i, dms)
-        dof += (*i)->data()->get_n();
-    dof -= count(par_usage_.begin(), par_usage_.end(), true);
-    return dof;
+    int used_parameters = count(par_usage_.begin(), par_usage_.end(), true);
+    return count_points(dms) - used_parameters;
 }
 
 string Fit::get_goodness_info(const vector<DataAndModel*>& dms)
@@ -59,40 +64,49 @@ string Fit::get_goodness_info(const vector<DataAndModel*>& dms)
 
 vector<realt> Fit::get_covariance_matrix(const vector<DataAndModel*>& dms)
 {
-    const vector<realt> &pp = F_->mgr.parameters();
     update_parameters(dms);
+    vector<realt> alpha(na_*na_, 0.);
 
-    vector<realt> alpha(na_*na_), beta(na_);
-    compute_derivatives(pp, dms, alpha, beta);
-
-    // To avoid singular matrix, put fake values corresponding to unused
-    // parameters.
-    for (int i = 0; i < na_; ++i)
-        if (!par_usage_[i]) {
-            alpha[i*na_ + i] = 1.;
-        }
-    // We may have unused parameters with par_usage_[] set true,
-    // e.g. SplitGaussian with center < min(active x) will have hwhm1 unused.
-    // If i'th column/row in alpha are only zeros, we must
-    // do something about it -- standard error is undefined
-    vector<int> undef;
-    for (int i = 0; i < na_; ++i) {
-        bool has_nonzero = false;
-        for (int j = 0; j < na_; j++)
-            if (alpha[na_*i+j] != 0.) {
-                has_nonzero = true;
-                break;
-            }
-        if (!has_nonzero) {
-            undef.push_back(i);
-            alpha[i*na_ + i] = 1.;
-        }
+    // temporarily there are two ways of calculating errors, just for testing
+    MPfit* mpfit = dynamic_cast<MPfit*>(this);
+    if (mpfit) {
+        double *covar = mpfit->get_covar(dms);
+        alpha.assign(covar, covar + alpha.size());
+        delete [] covar;
     }
+    else {
+        vector<realt> beta(na_);
+        compute_derivatives(F_->mgr.parameters(), dms, alpha, beta);
 
-    reverse_matrix(alpha, na_);
+        // To avoid singular matrix, put fake values corresponding to unused
+        // parameters.
+        for (int i = 0; i < na_; ++i)
+            if (!par_usage_[i]) {
+                alpha[i*na_ + i] = 1.;
+            }
+        // We may have unused parameters with par_usage_[] set true,
+        // e.g. SplitGaussian with center < min(active x)  has hwhm1 unused.
+        // If i'th column/row in alpha are only zeros, we must
+        // do something about it -- standard error is undefined
+        vector<int> undef;
+        for (int i = 0; i < na_; ++i) {
+            bool has_nonzero = false;
+            for (int j = 0; j < na_; j++)
+                if (alpha[na_*i+j] != 0.) {
+                    has_nonzero = true;
+                    break;
+                }
+            if (!has_nonzero) {
+                undef.push_back(i);
+                alpha[i*na_ + i] = 1.;
+            }
+        }
 
-    v_foreach (int, i, undef)
-        alpha[(*i)*na_ + (*i)] = 0.;
+        reverse_matrix(alpha, na_);
+
+        v_foreach (int, i, undef)
+            alpha[(*i)*na_ + (*i)] = 0.;
+    }
 
     return alpha;
 }
@@ -485,9 +499,7 @@ void Fit::fit(int max_iter, const vector<DataAndModel*>& dms)
 
     // print stats
     int nu = count(par_usage_.begin(), par_usage_.end(), true);
-    int np = 0;
-    v_foreach (DataAndModel*, i, dms)
-        np += (*i)->data()->get_n();
+    int np = count_points(dms);
     F_->msg ("Fitting " + S(nu) + " (of " + S(na_) + ") parameters to "
             + S(np) + " points ...");
 
@@ -519,6 +531,7 @@ void Fit::continue_fit(int max_iter)
     autoiter();
 }
 
+// sets na_ and par_usage_ based on F_->mgr and dms
 void Fit::update_parameters(const vector<DataAndModel*>& dms)
 {
     if (F_->mgr.parameters().empty())

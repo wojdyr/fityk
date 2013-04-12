@@ -26,10 +26,16 @@ public:
     int on_iteration();
     // testing now
     double* get_errors(const std::vector<DataAndModel*>& dms);
+    double* get_covar(const  std::vector<DataAndModel*>& dms);
 private:
     mp_config_struct mp_conf_;
     mp_result result_;
     int start_iter_;
+
+    int run_mpfit(const std::vector<DataAndModel*>& dms,
+                  const std::vector<realt>& parameters,
+                  const std::vector<bool>& par_usage,
+                  double *final_a=NULL);
 };
 
 } // namespace fityk
