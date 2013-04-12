@@ -102,11 +102,23 @@ vector<realt> Fit::get_standard_errors(const vector<DataAndModel*>& dms)
     const vector<realt> &pp = F_->mgr.parameters();
     realt wssr = do_compute_wssr(pp, dms, true);
     int dof = get_dof(dms);
-    vector<realt> alpha = get_covariance_matrix(dms);
-    // `na_' was set by functions above
+    // `na_' was set by get_dof() above, from update_parameters()
     vector<realt> errors(na_);
-    for (int i = 0; i < na_; ++i)
-        errors[i] = sqrt(wssr / dof * alpha[i*na_ + i]);
+
+    // temporarily there are two ways of calculating errors, just for testing
+    MPfit* mpfit = dynamic_cast<MPfit*>(this);
+    if (mpfit) {
+        double *perror = mpfit->get_errors(dms);
+        for (int i = 0; i < na_; ++i)
+            errors[i] = sqrt(wssr / dof) * perror[i];
+        delete [] perror;
+    }
+    else {
+        vector<realt> alpha = get_covariance_matrix(dms);
+        // `na_' was set by functions above
+        for (int i = 0; i < na_; ++i)
+            errors[i] = sqrt(wssr / dof * alpha[i*na_ + i]);
+    }
     return errors;
 }
 
@@ -116,8 +128,16 @@ vector<realt> Fit::get_confidence_limits(const vector<DataAndModel*>& dms,
     vector<realt> v = get_standard_errors(dms);
     int dof = get_dof(dms);
     double level = 1. - level_percent / 100.;
+#if 1
+    // for unknown reasons this crashes when the program is run under valgrind
+    // (Boost 1.50, Valgrind 3.8.1, Fedora 18) with message:
+    // terminate called after throwing an instance of 'boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<std::overflow_error> >'
+    //   what():  Error in function boost::math::erfc_inv<e>(e, e): Overflow Error
     boost::math::students_t dist(dof);
     double t = boost::math::quantile(boost::math::complement(dist, level/2));
+#else
+    double t = 0;
+#endif
     vm_foreach (realt, i, v)
         *i *= t;
     return v;

@@ -99,27 +99,13 @@ const char* mpstatus_to_string(int n)
     }
 }
 
-void MPfit::autoiter()
+static
+mp_par* allocate_and_init_mp_par(const std::vector<bool>& par_usage)
 {
-    start_iter_ = iter_nr_;
-    wssr_before_ = compute_wssr(a_orig_, dmdm_);
-
-    int m = 0;
-    v_foreach (DataAndModel*, i, dmdm_)
-        m += (*i)->data()->get_n();
-
-    mp_conf_.maxiter = max_iterations_;
-    mp_conf_.maxfev = F_->get_settings()->max_wssr_evaluations;
-
-    //mp_conf_.ftol = F_->get_settings()->lm_stop_rel_change;
-
-    double *perror = new double[na_];
-    double *a = new double[na_];
-    mp_par *pars = new mp_par[na_];
-    for (int i = 0; i < na_; ++i) {
-        a[i] = a_orig_[i];
+    mp_par *pars = new mp_par[par_usage.size()];
+    for (size_t i = 0; i < par_usage.size(); ++i) {
         mp_par& p = pars[i];
-        p.fixed = 0;
+        p.fixed = !par_usage[i];
         p.limited[0] = 0; // no lower limit
         p.limited[1] = 0; // no upper limit
         p.limits[0] = 0.;
@@ -137,12 +123,42 @@ void MPfit::autoiter()
         p.deriv_reltol = 0.;
         p.deriv_abstol = 0.;
     }
+    return pars;
+}
 
-    // zero result_
-    result_.bestnorm = result_.orignorm = 0.;
-    result_.niter = result_.nfev = result_.status = 0;
-    result_.npar = result_.nfree = result_.npegged = result_.nfunc = 0;
-    result_.resid = result_.covar = NULL;
+static
+void zero_init_result(mp_result *result)
+{
+    result->bestnorm = result->orignorm = 0.;
+    result->niter = result->nfev = result->status = 0;
+    result->npar = result->nfree = result->npegged = result->nfunc = 0;
+    result->resid = result->covar = NULL;
+    result->xerror = NULL;
+}
+
+
+void MPfit::autoiter()
+{
+    start_iter_ = iter_nr_;
+    wssr_before_ = compute_wssr(a_orig_, dmdm_);
+
+    int m = 0;
+    v_foreach (DataAndModel*, i, dmdm_)
+        m += (*i)->data()->get_n();
+
+    mp_conf_.maxiter = max_iterations_;
+    mp_conf_.maxfev = F_->get_settings()->max_wssr_evaluations;
+
+    //mp_conf_.ftol = F_->get_settings()->lm_stop_rel_change;
+
+    double *perror = new double[na_];
+    double *a = new double[na_];
+    mp_par *pars = allocate_and_init_mp_par(par_usage_);
+
+    for (int i = 0; i < na_; ++i)
+        a[i] = a_orig_[i];
+
+    zero_init_result(&result_);
     result_.xerror = perror;
 
     int status = mpfit(calculate_for_mpfit, m, na_, a, pars, &mp_conf_, this,
@@ -156,6 +172,42 @@ void MPfit::autoiter()
     delete [] pars;
     delete [] a;
     delete [] perror;
+}
+
+// pre: update_parameters(), dmdm_ set
+// returns array of size na_ that needs to be delete[]'d
+double* MPfit::get_errors(const vector<DataAndModel*>& dms)
+{
+    int m = 0;
+    v_foreach (DataAndModel*, i, dms)
+        m += (*i)->data()->get_n();
+
+    mp_conf_.maxiter = 0;
+
+    double *perror = new double[na_];
+    double *a = new double[na_];
+    mp_par *pars = allocate_and_init_mp_par(par_usage_);
+
+    for (int i = 0; i < na_; ++i) {
+        a[i] = F_->mgr.parameters()[i];
+        perror[i] = 0.;
+    }
+
+    zero_init_result(&result_);
+    result_.xerror = perror;
+
+    // dms cannot be easily passed to the calculate_for_mpfit() callback
+    // in a different way than through member variable (dmdm_).
+    vector<DataAndModel*> saved = dms;
+    dmdm_.swap(saved);
+    int status = mpfit(calculate_for_mpfit, m, na_, a, pars, &mp_conf_, this,
+                       &result_);
+    dmdm_.swap(saved);
+
+    soft_assert(status == MP_MAXITER);
+    delete [] pars;
+    delete [] a;
+    return perror;
 }
 
 } // namespace fityk

@@ -24,6 +24,8 @@ public:
     int calculate(int m, int npar, double *par, double *deviates,
                   double **derivs);
     int on_iteration();
+    // testing now
+    double* get_errors(const std::vector<DataAndModel*>& dms);
 private:
     mp_config_struct mp_conf_;
     mp_result result_;
