@@ -24,15 +24,13 @@ class NLfit : public Fit
 public:
     NLfit(Ftk* F, const char* name, nlopt_algorithm algorithm);
     ~NLfit();
-    virtual void init(); // called before do_iteration()/autoiter()
-    void autoiter();
+    virtual double run_method(std::vector<realt>* best_a);
 
     // implementation (must be public to be called inside callback function)
     double calculate(int n, const double* par, double* grad);
 private:
     nlopt_algorithm algorithm_;
     nlopt_opt opt_;
-    int start_iter_;
 };
 
 } // namespace fityk

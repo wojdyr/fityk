@@ -13,7 +13,6 @@ struct Individual
 {
     std::vector<realt> g;
     realt raw_score, phase_2_score, reversed_score, norm_score;
-    int generation;
     Individual (int n) : g(n), raw_score(0) {}
     Individual () : g(), raw_score(0) {}
 };
@@ -24,8 +23,7 @@ class GAfit : public Fit
 public:
     GAfit(Ftk* F, const char* name);
     ~GAfit();
-    virtual void init(); // called before autoiter()
-    void autoiter();
+    virtual double run_method(std::vector<realt>* best_a);
 private:
     int popsize;
     int elitism; // = 0, 1, ... popsize
@@ -77,7 +75,7 @@ private:
     std::vector<int>::iterator SRS_and_DS_common (std::vector<int>& next);
     bool termination_criteria_and_print_info (int iter);
     void print_post_fit_info (realt wssr_before);
-    void autoplot_in_autoiter();
+    void autoplot_in_run();
     void compute_wssr_for_ind (std::vector<Individual>::iterator ind);
 };
 

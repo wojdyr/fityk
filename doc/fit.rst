@@ -70,16 +70,14 @@ Fitting Related Commands
 
 To fit model to data, use command
 
-fit [+] [number-of-iterations] [@n ...]
+fit [max-wssr-evaluations] [@n ...]
 
-The plus sign (+) prevents initialization of the fitting method.
-It is used to continue the previous fitting where it left off
-(if the previous fitting was stopped before it converged).
+All non-linear fitting methods are iterative and evaluate the model many times,
+with different parameter sets, until one of the stopping criteria is met.
 
-All non-linear fitting methods are iterative.
-*number-of-iterations* is the maximum number of iterations.
-There are also other stopping criteria, so the number of executed
-iterations can be smaller.
+*max-wssr-evaluations* is such a criterium.
+It is described below together with other stopping criteria.
+``fit 200`` is a shorthand for ``with max_wssr_evaluations=200 fit``.
 
 Like with all commands, the generic dataset specification (``@n: fit``)
 can be used, but in special cases the datasets can be given at the end
@@ -94,12 +92,10 @@ The fitting method can be set using the set command::
 where method is one of: ``levenberg_marquardt``, ``mpfit``,
 ``nelder_mead_simplex``, ``genetic_algorithms``.
 
-All non-linear fitting methods are iterative, and there are three common
-stopping criteria:
+There are three common stopping criteria:
 
-- the number of iterations; it can be specified after the ``fit`` command.
-
-- the number of evaluations of the objective function (WSSR); set
+- the maximum number of evaluations of the objective function (WSSR)
+  and its derivatives; can be specified either after the ``fit`` command or
   using the option :option:`max_wssr_evaluations` (0=unlimited).
 
 - and the processor time, in seconds
@@ -110,8 +106,8 @@ There are also other criteria, different for each method.
 On Unix, fitting can be interrupted by sending the ``INT`` signal to the
 program. This is usually done by pressing Ctrl-C in the terminal.
 
-Setting ``set fit_replot = 1`` will plot a model after every iteration,
-to visualize progress.
+Setting ``set fit_replot = 1`` updates the plot periodically during fitting,
+to visualize the progress.
 
 ``info fit`` shows measures of goodness-of-fit, including :math:`\chi^2`,
 reduced :math:`\chi^2` and R-squared:

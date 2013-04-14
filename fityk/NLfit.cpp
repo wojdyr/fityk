@@ -34,18 +34,13 @@ double calculate_for_nlopt(unsigned n, const double* x,
 }
 
 
-void NLfit::init()
-{
-}
-
-
 double NLfit::calculate(int n, const double* par, double* grad)
 {
     assert(n == na_);
     vector<realt> A(par, par+na_);
     if (F_->get_verbosity() >= 1)
         output_tried_parameters(A);
-    bool stop = common_termination_criteria(iter_nr_-start_iter_);
+    bool stop = common_termination_criteria();
     if (stop)
         nlopt_force_stop(opt_);
 
@@ -54,12 +49,8 @@ double NLfit::calculate(int n, const double* par, double* grad)
         wssr = compute_wssr(A, dmdm_);
     else
         wssr = compute_derivatives_nl(A, dmdm_, grad);
-    ++iter_nr_;
-    if (F_->get_verbosity() >= 1) {
-        realt rel_diff = (wssr - wssr_before_) / wssr_before_;
-        F_->ui()->mesg("... #" + S(iter_nr_) + ":  WSSR=" + S(wssr) +
-                       format1<double, 32>("  (%+g%%)", rel_diff * 100));
-    }
+    if (F_->get_verbosity() >= 1)
+        F_->ui()->mesg(iteration_info(wssr));
     return wssr;
 }
 
@@ -82,7 +73,7 @@ const char* nlresult_to_string(nlopt_result r)
     return NULL;
 }
 
-void NLfit::autoiter()
+double NLfit::run_method(vector<realt>* best_a)
 {
     if (opt_ != NULL && na_ != (int) nlopt_get_dimension(opt_)) {
         nlopt_destroy(opt_);
@@ -94,12 +85,9 @@ void NLfit::autoiter()
         nlopt_set_min_objective(opt_, calculate_for_nlopt, this);
     }
 
-    start_iter_ = iter_nr_;
-    wssr_before_ = compute_wssr(a_orig_, dmdm_);
-
     // this is also handled in Fit::common_termination_criteria()
     nlopt_set_maxtime(opt_, F_->get_settings()->max_fitting_time);
-    nlopt_set_maxeval(opt_, F_->get_settings()->max_wssr_evaluations);
+    nlopt_set_maxeval(opt_, max_eval());
 
     double opt_f;
     double *a = new double[na_];
@@ -107,8 +95,9 @@ void NLfit::autoiter()
         a[i] = a_orig_[i];
     nlopt_result r = nlopt_optimize(opt_, a, &opt_f);
     F_->msg("NLopt says: " + S(nlresult_to_string(r)));
-    post_fit(vector<realt>(a, a+na_), opt_f);
+    best_a->assign(a, a+na_);
     delete [] a;
+    return opt_f;
 }
 
 } // namespace fityk

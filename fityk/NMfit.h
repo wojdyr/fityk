@@ -27,8 +27,7 @@ class NMfit : public Fit
 {
 public:
     NMfit(Ftk* F, const char* name) : Fit(F, name) {}
-    virtual void init(); // called before autoiter()
-    void autoiter();
+    virtual double run_method(std::vector<realt>* best_a);
 private:
     int iteration;
     std::vector<Vertex> vertices;
@@ -36,6 +35,7 @@ private:
     std::vector<realt> coord_sum;
     realt volume_factor;
 
+    void init();
     void find_best_worst();
     void change_simplex();
     realt try_new_worst(realt f);

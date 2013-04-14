@@ -74,7 +74,7 @@ GAfit::GAfit(Ftk* F, const char* name)
 
 GAfit::~GAfit() {}
 
-void GAfit::init()
+double GAfit::run_method(std::vector<realt>* best_a)
 {
     pop = &pop1;
     opop = &pop2;
@@ -89,35 +89,30 @@ void GAfit::init()
             best = i;
     }
     best_indiv = *best;
-}
 
-void GAfit::autoiter()
-{
-    wssr_before_ = compute_wssr(a_orig_, dmdm_);
-    F_->msg ("WSSR before starting GA: " + S(wssr_before_));
     assert (pop && opop);
     if (elitism >= popsize) {
         F_->ui()->warn("hmm, now elitism >= popsize, setting elitism = 1");
         elitism = 1;
     }
     for (int iter = 0; !termination_criteria_and_print_info(iter); iter++) {
-        autoplot_in_autoiter();
-        ++iter_nr_;
+        autoplot_in_run();
         pre_selection();
         crossover();
         mutation();
         post_selection();
     }
-    post_fit (best_indiv.g, best_indiv.raw_score);
+
+    *best_a = best_indiv.g;
+    return best_indiv.raw_score;
 }
 
 void GAfit::compute_wssr_for_ind (vector<Individual>::iterator ind)
 {
     ind->raw_score = compute_wssr(ind->g, dmdm_);
-    ind->generation = iter_nr_;
 }
 
-void GAfit::autoplot_in_autoiter()
+void GAfit::autoplot_in_run()
 {
     const Individual& indiv = is_index(autoplot_indiv_nr, *pop)
                                     ? (*pop)[autoplot_indiv_nr] : best_indiv;
@@ -432,7 +427,7 @@ realt GAfit::max_in_window ()
         return -1;
 }
 
-bool GAfit::termination_criteria_and_print_info (int iter)
+bool GAfit::termination_criteria_and_print_info(int iter)
 {
     static int no_progress_iters = 0;
     realt sum = 0;
@@ -450,14 +445,12 @@ bool GAfit::termination_criteria_and_print_info (int iter)
     }
     realt avg = sum / pop->size();
     realt sq_sum = 0;
-    realt generations_sum = 0;
     for (vector<Individual>::iterator i = pop->begin(); i != pop->end(); ++i) {
         realt d = i->raw_score - avg;
         sq_sum += d * d;
-        generations_sum += i->generation;
     }
     realt std_dev = sq_sum > 0 ? sqrt (sq_sum / pop->size()) : 0;
-    F_->msg("Population #" + S(iter_nr_) + ": best " + S(min)
+    F_->msg("Population #" + S(iter) + ": best " + S(min)
                 + ", avg " + S(avg) + ", worst " + S(tmp_max)
                 + ", std dev. " + S(std_dev));
     if (min < best_indiv.raw_score) {
@@ -470,7 +463,7 @@ bool GAfit::termination_criteria_and_print_info (int iter)
     //checking stop conditions
     bool stop = false;
 
-    if (common_termination_criteria(iter))
+    if (common_termination_criteria())
         stop = true;
     if (std_dev < std_dev_stop * avg) {
         F_->msg("Standard deviation of results is small enough to stop");

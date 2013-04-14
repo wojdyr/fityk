@@ -16,16 +16,15 @@ class LMfit : public Fit
 {
 public:
     LMfit(Ftk* F, const char* name) : Fit(F, name) {}
-    virtual void init(); // called before do_iteration()/autoiter()
-    void autoiter();
+    virtual double run_method(std::vector<realt>* best_a);
 private:
-    std::vector<realt> alpha, alpha_;            // matrices
-    std::vector<realt> beta, beta_;   // and vectors
-    std::vector<realt> a;    // parameters table
-    realt chi2, chi2_;
-    double lambda;
+    std::vector<realt> alpha_; // matrix
+    std::vector<realt> beta_;  // and vector
 
-    bool do_iteration();
+    // working arrays in do_iteration()
+    std::vector<realt> temp_alpha_, temp_beta_;
+
+    void prepare_next_parameters(double lambda, const std::vector<realt> &a);
 };
 
 } // namespace fityk

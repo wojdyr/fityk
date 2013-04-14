@@ -193,7 +193,6 @@ The kCmd* names in the comments correspond to constants in the code.
        : "!" RestOfLine |
        : "=" RestOfLine
    fit: [Number] [Dataset*] |
-      : "+" Number |
       : "undo" |
       : "redo" |
       : "history" Number |

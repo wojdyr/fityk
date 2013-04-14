@@ -42,7 +42,6 @@ void NMfit::init()
     find_best_worst();
     compute_coord_sum();
     volume_factor = 1.;
-    //return best->wssr;
 }
 
 void NMfit::find_best_worst()
@@ -68,18 +67,17 @@ void NMfit::find_best_worst()
     }
 }
 
-void NMfit::autoiter()
+double NMfit::run_method(vector<realt>* best_a)
 {
+    init();
     realt convergence = F_->get_settings()->nm_convergence;
-    wssr_before_ = compute_wssr(a_orig_, dmdm_);
-    F_->msg("WSSR before starting simplex fit: " + S(wssr_before_));
     for (int iter = 0; !termination_criteria(iter, convergence); ++iter) {
-        ++iter_nr_;
         change_simplex();
         find_best_worst();
         iteration_plot(best->a, best->wssr);
     }
-    post_fit (best->a, best->wssr);
+    *best_a = best->a;
+    return best->wssr;
 }
 
 void NMfit::change_simplex()
@@ -138,7 +136,7 @@ void NMfit::compute_coord_sum()
 bool NMfit::termination_criteria(int iter, realt convergence)
 {
     if (F_->get_verbosity() >= 1)
-        F_->ui()->mesg("#" + S(iter_nr_) + " (ev:" + S(evaluations_) + "):"
+        F_->ui()->mesg("#" + S(iter) + " (ev:" + S(evaluations_) + "):"
                        " best:" + S(best->wssr) +
                        " worst:" + S(worst->wssr) + ", " + S(s_worst->wssr) +
                        " [V * |" + S(volume_factor) + "|]");
@@ -156,7 +154,7 @@ bool NMfit::termination_criteria(int iter, realt convergence)
     F_->msg (s);
 *DEBUG - END*/
     //checking stop conditions
-    if (common_termination_criteria(iter))
+    if (common_termination_criteria())
         stop = true;
     if (is_zero(worst->wssr)) {
         F_->msg ("All vertices have WSSR < epsilon=" + S(epsilon));

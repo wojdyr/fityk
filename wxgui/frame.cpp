@@ -1311,7 +1311,7 @@ void FFrame::OnFOneOfMethods (wxCommandEvent& event)
 
 void FFrame::OnFRun (wxCommandEvent&)
 {
-    FitRunDlg dlg(this, -1, true);
+    FitRunDlg dlg(this, -1);
     if (dlg.ShowModal() == wxID_OK) {
         string cmd = dlg.get_cmd();
         exec(cmd);

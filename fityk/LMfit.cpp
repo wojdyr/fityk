@@ -12,6 +12,7 @@
 #include "ui.h"
 #include "settings.h"
 #include "logic.h"
+#include "numfuncs.h"
 
 using namespace std;
 
@@ -19,50 +20,42 @@ namespace fityk {
 
 // note: WSSR is also called chi2
 
-void LMfit::init()
+double LMfit::run_method(std::vector<realt>* best_a)
 {
-    alpha.resize(na_*na_);
+    const realt stop_rel = F_->get_settings()->lm_stop_rel_change;
+    const realt max_lambda = F_->get_settings()->lm_max_lambda;
+
+    double lambda = F_->get_settings()->lm_lambda_start;
     alpha_.resize(na_*na_);
-    beta.resize(na_);
     beta_.resize(na_);
-    lambda = F_->get_settings()->lm_lambda_start;
-    a = a_orig_;
+    *best_a = a_orig_;
 
-    if (F_->get_verbosity() >= 1)
-        F_->ui()->mesg(print_matrix (a, 1, na_, "Initial A"));
-    //no need to optimise it (and compute chi2 and derivatives together)
-    chi2 = compute_wssr(a, dmdm_);
-    compute_derivatives(a, dmdm_, alpha, beta);
-}
-
-void LMfit::autoiter()
-{
-    wssr_before_ = chi2;
-    realt prev_chi2 = chi2;
-    const SettingsMgr *sm = F_->settings_mgr();
-    if (F_->get_verbosity() >= 1) {
-        F_->ui()->mesg("\t === Levenberg-Marquardt method ===");
-        F_->ui()->mesg("Initial values:  lambda=" + S(lambda) +
-                       "  WSSR=" + sm->format_double(chi2));
-        F_->ui()->mesg("Max. number of iterations: " + max_iterations_);
+    if (F_->get_verbosity() >= 2) {
+        F_->ui()->mesg(format_matrix(a_orig_, 1, na_, "Initial A"));
+        F_->ui()->mesg("Starting with lambda=" + S(lambda));
+        if (stop_rel > 0)
+            F_->ui()->mesg("Will stop when relative change of WSSR is "
+                           "twice in row below " + S(stop_rel * 100.) + "%");
     }
-    realt stop_rel = F_->get_settings()->lm_stop_rel_change;
-    realt max_lambda = F_->get_settings()->lm_max_lambda;
-    if (stop_rel > 0 && F_->get_verbosity() >= 1)
-        F_->ui()->mesg("Will stop when relative change of WSSR is "
-                       "twice in row below " + S (stop_rel * 100.) + "%");
+
+    realt chi2 = initial_wssr_;
+    compute_derivatives(a_orig_, dmdm_, alpha_, beta_);
+
     int small_change_counter = 0;
-    for (int iter = 0; !common_termination_criteria(iter); iter++) {
-        bool better_fit = do_iteration();
-        if (better_fit) {
-            realt d = prev_chi2 - chi2;
-            if (F_->get_verbosity() >= 1)
-                F_->ui()->mesg("#" + S(iter_nr_) + ":"
-                               "  WSSR=" + sm->format_double(chi2) +
-                               "  lambda=" + S(lambda) + "  d(WSSR)=" + S(-d) +
-                               "  (" + S (d / prev_chi2 * 100) + "%)");
-            // another termination criterium: negligible change of chi2
-            if (d / prev_chi2 < stop_rel || chi2 == 0) {
+    for (int iter = 0; !common_termination_criteria(); iter++) {
+        prepare_next_parameters(lambda, *best_a); // -> temp_beta_
+        double new_chi2 = compute_wssr(temp_beta_, dmdm_);
+        if (F_->get_verbosity() >= 1)
+            F_->ui()->mesg(iteration_info(new_chi2) +
+                           format1<double,32>("  lambda=%.5g", lambda) +
+                           format1<double,32>("  iter #%d", iter));
+        if (new_chi2 < chi2) {
+            realt rel_change = (chi2 - new_chi2) / chi2;
+            chi2 = new_chi2;
+            *best_a = temp_beta_;
+
+            // termination criterium: negligible change of chi2
+            if (rel_change < stop_rel || chi2 == 0) {
                 small_change_counter++;
                 if (small_change_counter >= 2 || chi2 == 0) {
                     F_->msg("... converged.");
@@ -71,70 +64,49 @@ void LMfit::autoiter()
             }
             else
                 small_change_counter = 0;
-            prev_chi2 = chi2;
+
+            compute_derivatives(*best_a, dmdm_, alpha_, beta_);
+            lambda /= F_->get_settings()->lm_lambda_down_factor;
         }
-        else { // no better fit
-            if (F_->get_verbosity() >= 1)
-                F_->ui()->mesg("#" + S(iter_nr_) + ":"
-                               " (WSSR=" + sm->format_double(chi2_) + ")"
-                               "  lambda=" + S(lambda));
-            if (lambda > max_lambda) { // another termination criterium
+
+        else { // worse fitting
+            // termination criterium: large lambda
+            if (lambda > max_lambda) {
                 F_->msg("In L-M method: lambda=" + S(lambda) + " > "
                         + S(max_lambda) + ", stopped.");
                 break;
             }
+            lambda *= F_->get_settings()->lm_lambda_up_factor;
         }
-        iteration_plot(a, chi2);
+
+        iteration_plot(*best_a, chi2);
     }
-    post_fit (a, chi2);
+    return chi2;
 }
 
-bool LMfit::do_iteration()
-    //pre: init() callled
+
+// puts result into temp_beta_
+void LMfit::prepare_next_parameters(double lambda, const vector<realt> &a)
 {
-    if (na_ < 1)
-        throw ExecuteError("No parameters to fit.");
-    iter_nr_++;
-    alpha_ = alpha;
+    temp_alpha_ = alpha_;
     for (int j = 0; j < na_; j++)
-        alpha_[na_ * j + j] *= (1.0 + lambda);
-    beta_ = beta;
-    if (F_->get_verbosity() > 1) { // level: debug
-        F_->ui()->mesg(print_matrix (beta_, 1, na_, "beta"));
-        F_->ui()->mesg(print_matrix (alpha_, na_, na_, "alpha'"));
+        temp_alpha_[na_ * j + j] *= (1.0 + lambda);
+    temp_beta_ = beta_;
+
+    if (F_->get_verbosity() > 2) { // level: debug
+        F_->ui()->mesg(format_matrix(temp_beta_, 1, na_, "beta"));
+        F_->ui()->mesg(format_matrix(temp_alpha_, na_, na_, "alpha'"));
     }
 
-    // Matrix solution (Ax=b)  alpha_ * da == beta_
-    Jordan (alpha_, beta_, na_);
-
-    // da is in beta_
-    if (F_->get_verbosity() >= 1) { // level: verbose
-        vector<realt> rel(na_);
-        for (int q = 0; q < na_; q++)
-            rel[q] = beta_[q] / a[q] * 100;
-        if (F_->get_verbosity() >= 1)
-            F_->ui()->mesg(print_matrix (rel, 1, na_, "delta(A)/A[%]"));
-    }
+    // Matrix solution (Ax=b)  temp_alpha_ * da == temp_beta_
+    jordan_solve(temp_alpha_, temp_beta_, na_);
 
     for (int i = 0; i < na_; i++)
-        beta_[i] = a[i] + beta_[i];   // and now there is new a[] in beta_[]
+        // put new a[] into temp_beta_[]
+        temp_beta_[i] = a[i] + temp_beta_[i];
 
-    if (F_->get_verbosity() >= 1)
-        output_tried_parameters(beta_);
-
-    // compute chi2_
-    chi2_ = compute_wssr(beta_, dmdm_);
-    if (chi2_ < chi2) { // better fitting
-        chi2 = chi2_;
-        a = beta_;
-        compute_derivatives(a, dmdm_, alpha, beta);
-        lambda /= F_->get_settings()->lm_lambda_down_factor;
-        return true;
-    }
-    else { // worse fitting
-        lambda *= F_->get_settings()->lm_lambda_up_factor;
-        return false;
-    }
+    if (F_->get_verbosity() >= 2)
+        output_tried_parameters(temp_beta_);
 }
 
 } // namespace fityk

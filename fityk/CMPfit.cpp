@@ -10,23 +10,6 @@ using namespace std;
 
 namespace fityk {
 
-void MPfit::init()
-{
-    // 0 value means default
-    mp_conf_.ftol = 0.;
-    mp_conf_.xtol = 0.;
-    mp_conf_.gtol = 0.;
-    mp_conf_.epsfcn = 0.;
-    mp_conf_.stepfactor = 0.;
-    mp_conf_.covtol = 0.;
-    mp_conf_.maxiter = 0;
-    mp_conf_.maxfev = 0;
-    mp_conf_.nprint = 0;
-    mp_conf_.douserscale = 0;
-    mp_conf_.nofinitecheck = 0;
-    mp_conf_.iterproc = NULL;
-}
-
 int calculate_for_mpfit(int m, int npar, double *par, double *deviates,
                         double **derivs, void *mpfit)
 {
@@ -43,8 +26,7 @@ void on_mpfit_iteration(void *mpfit)
 
 int MPfit::on_iteration()
 {
-    // max. iterations/evaluations number is handled in proper place by mpfit
-    return (int) common_termination_criteria(iter_nr_-start_iter_, false);
+    return (int) common_termination_criteria();
 }
 
 int MPfit::calculate(int /*m*/, int npar, double *par, double *deviates,
@@ -60,10 +42,8 @@ int MPfit::calculate(int /*m*/, int npar, double *par, double *deviates,
     //printf("wssr=%g, p0=%g, p1=%g\n", compute_wssr(A, dmdm_), par[0], par[1]);
     if (!derivs)
         compute_deviates(A, deviates);
-    else {
-        ++iter_nr_;
+    else
         compute_derivatives_mp(A, dmdm_, derivs, deviates);
-    }
     return 0;
 }
 
@@ -88,7 +68,7 @@ const char* mpstatus_to_string(int n)
         case MP_OK_PAR: return "Convergence in parameter value";
         case MP_OK_BOTH: return "Convergence in chi2 and parameter value";
         case MP_OK_DIR: return "Convergence in orthogonality";
-        case MP_MAXITER: return "Maximum number of iterations reached";
+        case MP_MAXITER: return "Maximum number of evaluations reached";
         case MP_FTOL: return "ftol is too small; no further improvement";
         case MP_XTOL: return "xtol is too small; no further improvement";
         case MP_GTOL: return "gtol is too small; no further improvement";
@@ -136,19 +116,38 @@ void zero_init_result(mp_result *result)
     result->xerror = NULL;
 }
 
+static
+void zero_init_config(mp_config_struct* mp_conf)
+{
+    // 0 value means default
+    mp_conf->ftol = 0.;
+    mp_conf->xtol = 0.;
+    mp_conf->gtol = 0.;
+    mp_conf->epsfcn = 0.;
+    mp_conf->stepfactor = 0.;
+    mp_conf->covtol = 0.;
+    mp_conf->maxiter = 0;
+    mp_conf->maxfev = 0;
+    mp_conf->nprint = 0;
+    mp_conf->douserscale = 0;
+    mp_conf->nofinitecheck = 0;
+    mp_conf->iterproc = NULL;
+}
+
+
 // final_a either has the same size as parameters or is NULL
 int MPfit::run_mpfit(const vector<DataAndModel*>& dms,
                      const vector<realt>& parameters,
-                     const vector<bool>& par_usage,
+                     const vector<bool>& param_usage,
                      double *final_a)
 {
-    assert(par_usage.size() == parameters.size());
+    assert(param_usage.size() == parameters.size());
 
     double *a = final_a ? final_a : new double[parameters.size()];
     for (size_t i = 0; i != parameters.size(); ++i)
         a[i] = parameters[i];
 
-    mp_par *pars = allocate_and_init_mp_par(par_usage_);
+    mp_par *pars = allocate_and_init_mp_par(param_usage);
 
     // dms cannot be easily passed to the calculate_for_mpfit() callback
     // in a different way than through member variable (dmdm_).
@@ -170,25 +169,22 @@ int MPfit::run_mpfit(const vector<DataAndModel*>& dms,
     return status;
 }
 
-void MPfit::autoiter()
+double MPfit::run_method(vector<realt>* best_a)
 {
-    start_iter_ = iter_nr_;
-    wssr_before_ = compute_wssr(a_orig_, dmdm_);
-
-    mp_conf_.maxiter = max_iterations_;
-    mp_conf_.maxfev = F_->get_settings()->max_wssr_evaluations;
+    zero_init_config(&mp_conf_);
+    mp_conf_.maxiter = -1;
+    mp_conf_.maxfev = max_eval() - 1; // MPFIT has 1 evaluation extra
     //mp_conf_.ftol = F_->get_settings()->lm_stop_rel_change;
 
     zero_init_result(&result_);
 
     double *a = new double[na_];
-    int status = run_mpfit(dmdm_, a_orig_, par_usage_, a);
-    //printf("%d :: %d\n", iter_nr_, result_.niter);
-    //soft_assert(iter_nr_ + 1 == result_.niter);
+    int status = run_mpfit(dmdm_, a_orig_, par_usage(), a);
     //soft_assert(result_.nfev + 1 == evaluations_);
     F_->msg("mpfit status: " + S(mpstatus_to_string(status)));
-    post_fit(vector<realt>(a, a+na_), result_.bestnorm);
+    best_a->assign(a, a+na_);
     delete [] a;
+    return result_.bestnorm;
 }
 
 // pre: update_parameters()
@@ -199,12 +195,13 @@ double* MPfit::get_errors(const vector<DataAndModel*>& dms)
     for (int i = 0; i < na_; ++i)
         perror[i] = 0.;
 
-    mp_conf_.maxiter = 0;
+    zero_init_config(&mp_conf_);
+    mp_conf_.maxiter = 0; // redundant, just to remember
 
     zero_init_result(&result_);
     result_.xerror = perror;
 
-    int status = run_mpfit(dms, F_->mgr.parameters(), par_usage_);
+    int status = run_mpfit(dms, F_->mgr.parameters(), par_usage());
     soft_assert(status == MP_MAXITER);
 
     return perror;
@@ -216,12 +213,13 @@ double* MPfit::get_covar(const vector<DataAndModel*>& dms)
 {
     double *covar = new double[na_*na_];
 
-    mp_conf_.maxiter = 0;
+    zero_init_config(&mp_conf_);
+    mp_conf_.maxiter = 0; // redundant, just to remember
 
     zero_init_result(&result_);
     result_.covar = covar;
 
-    int status = run_mpfit(dms, F_->mgr.parameters(), par_usage_);
+    int status = run_mpfit(dms, F_->mgr.parameters(), par_usage());
     soft_assert(status == MP_MAXITER);
 
     return covar;

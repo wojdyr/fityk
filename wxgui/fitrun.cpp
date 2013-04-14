@@ -18,7 +18,7 @@ BEGIN_EVENT_TABLE(FitRunDlg, wxDialog)
     EVT_RADIOBOX (-1, FitRunDlg::OnChangeDsOrMethod)
 END_EVENT_TABLE()
 
-FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
+FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id)
     : wxDialog(parent, id, wxT("fit functions to data"),
                wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE|wxRESIZE_BORDER)
@@ -77,10 +77,6 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
     max_sizer->Add(nomaxeval_st, 0, wxALIGN_CENTER_VERTICAL, 0);
     top_sizer->Add(max_sizer, 0);
 
-    initialize_cb = new wxCheckBox(this, -1, wxT("initialize method"));
-    initialize_cb->SetValue(initialize);
-    top_sizer->Add(initialize_cb, 0, wxALL, 5);
-
     autoplot_cb = new wxCheckBox(this, -1,
                                  wxT("refresh plot after each iteration"));
     autoplot_cb->SetValue(ftk->get_settings()->fit_replot);
@@ -91,22 +87,7 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id, bool initialize)
     top_sizer->Add(CreateButtonSizer(wxOK|wxCANCEL),
                    0, wxALL|wxALIGN_CENTER, 5);
     SetSizerAndFit(top_sizer);
-    update_allow_continue();
     update_unlimited();
-}
-
-void FitRunDlg::update_allow_continue()
-{
-    initialize_cb->SetValue(true);
-    int m_sel = method_c->GetSelection();
-    fityk::Fit const* f = ftk->get_fit_container()->get_method(m_sel);
-    bool only_selected = (data_rb->GetSelection() == 0);
-    vector<DataAndModel*> dms = only_selected ? frame->get_selected_dms()
-                                              : ftk->get_dms();
-    // no point in trying to continue fit for separate fits ("@*: fit")
-    bool can_continue = (!separately_cb->GetValue() || dms.size() == 1) &&
-                        f->get_last_dm() == dms && f->can_continue();
-    initialize_cb->Enable(can_continue);
 }
 
 void FitRunDlg::update_unlimited()
@@ -132,21 +113,18 @@ string FitRunDlg::get_cmd() const
         cmd += string(cmd.empty() ? "with" : ",")
                 + " max_wssr_evaluations=" + S(max_eval) + " ";
 
-    bool ini = initialize_cb->GetValue();
-    cmd +=  ini ? "fit" : "fit +";
+    cmd += "fit";
 
     int max_iter = maxiter_sc->GetValue();
     if (max_iter > 0)
         cmd += " " + S(max_iter);
 
-    if (ini) {
-        bool only_selected = (data_rb->GetSelection() == 0);
-        string ds = only_selected ? frame->get_datasets() : "@*: ";
-        if (separately_cb->GetValue())
-            cmd = ds + cmd; // e.g. @*: fit
-        else
-            cmd += " " + ds.substr(0, ds.size() - 2); // e.g. fit @*
-    }
+    bool only_selected = (data_rb->GetSelection() == 0);
+    string ds = only_selected ? frame->get_datasets() : "@*: ";
+    if (separately_cb->GetValue())
+        cmd = ds + cmd; // e.g. @*: fit
+    else
+        cmd += " " + ds.substr(0, ds.size() - 2); // e.g. fit @*
     return cmd;
 }
 

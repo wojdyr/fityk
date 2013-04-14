@@ -46,13 +46,13 @@ to save some typing::
     Today is Thursday.
 
 Similarly, ``=`` after ``execute`` also interprets the rest of line
-as Lua expressions, but this time the results are not printed,
-they are executed as fityk commands::
+as Lua expressions, but this time the resulting string is executed
+as a fitting command::
 
     =-> = string.format("fit %d", math.random(10,20))
     fit 17
     =-> exec= string.format("fit %d", math.random(10,20))
-    (runs from 10 to 20 iterations of fitting)
+    # fit with the limit from 10 to 20 evaluations (just an example)
 
 The Lua interpreter in Fityk has defined global object ``F`` which
 enables interaction with the program::
@@ -173,11 +173,11 @@ For example::
     info set fitting_method  # show the current fitting method
     set fitting_method = nelder_mead_simplex # change the method
     # change the method only for this one fit command
-    with fitting_method = levenberg_marquardt fit 10
+    with fitting_method = levenberg_marquardt fit
     # and now the default method is back Nelder-Mead
 
     # multiple comma-separated options can be given
-    with fitting_method=levenberg_marquardt, verbosity=quiet fit 10
+    with fitting_method=levenberg_marquardt, verbosity=quiet fit
 
 The list of available options:
 

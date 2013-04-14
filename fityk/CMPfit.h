@@ -17,8 +17,7 @@ class MPfit : public Fit
 {
 public:
     MPfit(Ftk* F, const char* name) : Fit(F, name) {}
-    virtual void init(); // called before do_iteration()/autoiter()
-    void autoiter();
+    virtual double run_method(std::vector<realt>* best_a);
 
     // implementation (must be public to be called inside callback function)
     int calculate(int m, int npar, double *par, double *deviates,
@@ -30,11 +29,10 @@ public:
 private:
     mp_config_struct mp_conf_;
     mp_result result_;
-    int start_iter_;
 
     int run_mpfit(const std::vector<DataAndModel*>& dms,
                   const std::vector<realt>& parameters,
-                  const std::vector<bool>& par_usage,
+                  const std::vector<bool>& param_usage,
                   double *final_a=NULL);
 };
 

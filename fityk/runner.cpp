@@ -173,11 +173,6 @@ void Runner::command_fit(const vector<Token>& args, int ds)
         F_->get_fit()->fit(n_steps, dms);
         F_->outdated_plot();
     }
-    else if (args[0].type == kTokenPlus) {
-        int n_steps = args.size() > 1 ? iround(args[1].value.d) : -1;
-        F_->get_fit()->continue_fit(n_steps);
-        F_->outdated_plot();
-    }
     else if (args[0].as_string() == "undo") {
         F_->get_fit_container()->load_param_history(-1, true);
         F_->outdated_plot();

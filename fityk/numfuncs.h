@@ -53,6 +53,12 @@ inline bool rand_bool() { return rand() < RAND_MAX / 2; }
 double rand_gauss();
 double rand_cauchy();
 
+// very simple matrix utils
+void jordan_solve(std::vector<realt>& A, std::vector<realt>& b, int n);
+void reverse_matrix(std::vector<realt>&A, int n);
+// format (for printing) matrix m x n stored in vec. `mname' is name/comment.
+std::string format_matrix(const std::vector<realt>& vec,
+                          int m, int n, const char *mname);
 
 // Simple Polyline Convex Hull Algorithms
 // takes as input a sequence of points (x,y), with increasing x coord (added

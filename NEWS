@@ -1,3 +1,11 @@
+User-visible changes in version 1.2.2  (2013-04-  ):
+* simplified fitting (so that using external libraries is easier):
+  - removed stopping criterium based on iterations. The max. number of
+    WSSR evaluations can be used instead.
+  - removed fit continuation (fit +N)
+* covariance matrix and standard errors are calculated using MPFIT library
+* GUI: added menu Session > Recent Scripts
+
 User-visible changes in version 1.2.1  (2012-11-05):
 * added commands '=' and 'exec=' - shorthands 'lua return' and 'lua F:execute'
 * API: default dataset in a few functions changed from @0 to the currently used

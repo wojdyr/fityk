@@ -146,9 +146,9 @@ void FitInfoDlg::update_left_tc()
     const vector<realt> &pp = ftk->mgr.parameters();
     fityk::Fit *fit = ftk->get_fit();
     int dof = fit->get_dof(dms);
-    double wssr = fit->do_compute_wssr(pp, dms, true);
+    double wssr = fit->compute_wssr(pp, dms, true);
     wssr_over_dof = wssr / dof;
-    double ssr = fit->do_compute_wssr(pp, dms, false);
+    double ssr = fit->compute_wssr(pp, dms, false);
     double r2 = fit->compute_r_squared(pp, dms);
     int points = 0;
     for (vector<DataAndModel*>::const_iterator i = dms.begin();

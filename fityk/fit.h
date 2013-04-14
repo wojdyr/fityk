@@ -26,8 +26,6 @@ public:
     Fit(Ftk *F, const std::string& m);
     virtual ~Fit() {};
     void fit(int max_iter, const std::vector<DataAndModel*>& dms);
-    void continue_fit(int max_iter);
-    bool can_continue() const;
     std::string get_goodness_info(const std::vector<DataAndModel*>& dms);
     int get_dof(const std::vector<DataAndModel*>& dms);
     std::string get_cov_info(const std::vector<DataAndModel*>& dms);
@@ -43,33 +41,28 @@ public:
     static int compute_deviates_for_data(const DataAndModel* dm,
                                          double *deviates);
     // called from GUI
-    realt do_compute_wssr(const std::vector<realt> &A,
-                         const std::vector<DataAndModel*>& dms,
-                         bool weigthed);
+    realt compute_wssr(const std::vector<realt> &A,
+                       const std::vector<DataAndModel*>& dms,
+                       bool weigthed=true);
     static realt compute_r_squared_for_data(const DataAndModel* dm,
                                            realt* sum_err, realt* sum_tot);
-    void Jordan(std::vector<realt>& A, std::vector<realt>& b, int n);
-    void reverse_matrix (std::vector<realt>&A, int n);
-    // pretty-print matrix m x n stored in vec. `mname' is name/comment.
-    std::string print_matrix(const std::vector<realt>& vec,
-                             int m, int n, const char *mname) const;
     realt compute_r_squared(const std::vector<realt> &A,
                            const std::vector<DataAndModel*>& dms);
     bool is_param_used(int n) const { return par_usage_[n]; }
 protected:
     Ftk *F_;
     std::vector<DataAndModel*> dmdm_;
-    int evaluations_;
-    int max_iterations_; //it is set before calling autoiter()
-    int iter_nr_;
-    realt wssr_before_;
+    int evaluations_; // zeroed in fit() initialization, ++'ed in other places
+    realt initial_wssr_; // set (only) at the beginning of fit()
     std::vector<realt> a_orig_;
-    std::vector<bool> par_usage_;
-    int na_; ///number of fitted parameters
+    int na_; ///number of fitted parameters, equal to par_usage_.size()
+    // getters, see the comments below for the variables
+    int max_eval() const { return max_eval_; }
+    const std::vector<bool>& par_usage() const { return par_usage_; }
 
-    virtual void init() = 0; // called before autoiter()
-    virtual void autoiter() = 0;
-    bool common_termination_criteria(int iter, bool all=true) const;
+    virtual double run_method(std::vector<realt>* best_a) = 0;
+    std::string iteration_info(realt wssr); // changes best_shown_wssr_
+    bool common_termination_criteria() const;
     void compute_derivatives(const std::vector<realt> &A,
                           const std::vector<DataAndModel*>& dms,
                           std::vector<realt>& alpha, std::vector<realt>& beta);
@@ -79,26 +72,26 @@ protected:
     realt compute_derivatives_nl(const std::vector<realt> &A,
                                  const std::vector<DataAndModel*>& dms,
                                  double *grad);
-    realt compute_wssr(const std::vector<realt> &A,
-                    const std::vector<DataAndModel*>& dms, bool weigthed=true)
-        { ++evaluations_; return do_compute_wssr(A, dms, weigthed); }
     int compute_deviates(const std::vector<realt> &A, double *deviates);
-    bool post_fit(const std::vector<realt>& aa, realt chi2);
     realt draw_a_from_distribution(int nr, char distribution = 'u',
                                    realt mult = 1.);
     void iteration_plot(const std::vector<realt> &A, realt wssr);
     void output_tried_parameters(const std::vector<realt>& a);
 private:
+    int max_eval_; // it is set before calling run_method()
     time_t last_refresh_time_;
     clock_t start_time_;
+    std::vector<bool> par_usage_;
+    realt best_shown_wssr_; // for iteration_info()
 
+    double elapsed() const; // CPU time elapsed since the start of fit()
     void compute_derivatives_for(const DataAndModel *dm,
                                  std::vector<realt>& alpha,
                                  std::vector<realt>& beta);
     int compute_derivatives_mp_for(const DataAndModel* dm, int offset,
                                    double **derivs, double *deviates);
     realt compute_derivatives_nl_for(const DataAndModel* dm, double *grad);
-    void update_parameters(const std::vector<DataAndModel*>& dms);
+    void update_par_usage(const std::vector<DataAndModel*>& dms);
 };
 
 /// handles parameter history

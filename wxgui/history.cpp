@@ -115,7 +115,7 @@ void SumHistoryDlg::compute_all_wssr()
     for (int i = 0; i != fmc->get_param_history_size(); ++i) {
         vector<realt> const& item = fmc->get_item(i);
         if (item.size() == orig.size()) {
-            double wssr = ftk->get_fit()->do_compute_wssr(item, dms, true);
+            double wssr = ftk->get_fit()->compute_wssr(item, dms, true);
             lc->SetItem(i, 2, wxString::Format(wxT("%g"), wssr));
         }
     }

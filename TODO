@@ -1,6 +1,6 @@
-* optimize calculation of errors (matrix inversion)
+* use @90; delete @90; ...; Error: No such dataset: @90
 
-* GUI: Re-execute script -> Recent scripts
+* make MPFIT default
 
 * use optimization algorithms from NLopt library
 
