@@ -130,7 +130,10 @@ AS_IF([test "x$enable_GUI" != "xno"], [
 
 AS_IF([test "x$enable_CLI" != "xno"], [
     if test "x$with_readline" != "xno" ; then
+        ORIG_LIBS="$LIBS"
         AX_LIB_READLINE
+        LIBS=$ORIG_LIBS
+        READLINE_LIBS="$ax_cv_lib_readline"
         # readline < 4.2 doesn't have rl_completion_matches() function
         # some libreadline-compatibile libraries (like libedit) may also
         # not have it. We don't support them.
@@ -198,6 +201,7 @@ AX_PKG_SWIG(1.3.17, [], [])
 AC_SUBST(LIBRARY_VERSION_FLAG)
 AC_SUBST(LUA_INCLUDE)
 AC_SUBST(LUA_LIB)
+AC_SUBST(READLINE_LIBS)
 
 AC_DEFINE_UNQUOTED(CONFIGURE_BUILD, "$ac_cv_build", [ac_cv_build])
 AC_DEFINE_UNQUOTED(CONFIGURE_ARGS, "$ac_configure_args", [ac_configure_args])
