@@ -46,7 +46,6 @@ public :
     //                   const std::string& op);
     void set_points(const std::vector<Point>& p);
     void clear();
-    //void add_point(Point const& pt) { p_.push_back(pt); }; //don't use it
     void add_one_point(realt x, realt y, realt sigma);
     realt get_x(int n) const { return p_[active_[n]].x; }
     realt get_y(int n) const { return p_[active_[n]].y; }

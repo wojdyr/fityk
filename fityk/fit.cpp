@@ -638,6 +638,15 @@ FitMethodsContainer::~FitMethodsContainer()
     purge_all_elements(methods_);
 }
 
+Fit* FitMethodsContainer::get_method(const string& name) const
+{
+    v_foreach(Fit*, i, methods_)
+        if ((*i)->name == name)
+            return *i;
+    throw ExecuteError("fitting method `" + name + "' not available.");
+    return NULL; // avoid compiler warning
+}
+
 realt FitMethodsContainer::get_standard_error(const Variable* var) const
 {
     if (!var->is_simple())

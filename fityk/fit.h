@@ -124,8 +124,7 @@ public:
     static const char* full_method_names[][2];
     FitMethodsContainer(Ftk *F_);
     ~FitMethodsContainer();
-    Fit* get_method(int n) const
-                    { assert(n >= 0 && n<size(methods_)); return methods_[n]; }
+    Fit* get_method(const std::string& name) const;
     const std::vector<Fit*>& methods() const { return methods_; }
     realt get_standard_error(const Variable* var) const;
     void outdated_error_cache() { dirty_error_cache_ = true; }

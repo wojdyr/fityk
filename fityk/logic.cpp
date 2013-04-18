@@ -115,11 +115,7 @@ void Ftk::remove_dm(int d)
 Fit* Ftk::get_fit() const
 {
     string method_name = get_settings()->fitting_method;
-    v_foreach(Fit*, i, get_fit_container()->methods())
-        if ((*i)->name == method_name)
-            return *i;
-    throw ExecuteError("fitting method `" + method_name + "' not available.");
-    return NULL;
+    return get_fit_container()->get_method(method_name);
 }
 
 namespace {
