@@ -202,7 +202,7 @@ double* MPfit::get_errors(const vector<DataAndModel*>& dms)
     result_.xerror = perror;
 
     int status = run_mpfit(dms, F_->mgr.parameters(), par_usage());
-    soft_assert(status == MP_MAXITER);
+    soft_assert(status == MP_MAXITER || status == MP_OK_DIR);
 
     return perror;
 }
