@@ -16,6 +16,10 @@
 extern "C" {
 #include <lua.h> // LUA_RELEASE
 }
+// <config.h> is included from common.h
+#if HAVE_LIBNLOPT
+# include <nlopt.h>
+#endif
 
 #include "logic.h"
 #include "func.h"
@@ -104,6 +108,11 @@ namespace {
 
 string info_compiler()
 {
+#if HAVE_LIBNLOPT
+    int nl_ver[3];
+    nlopt_version(&nl_ver[0], &nl_ver[1], &nl_ver[2]);
+#endif
+
     return
         "Build system type: "
 #ifdef CONFIGURE_BUILD
@@ -133,11 +142,15 @@ string info_compiler()
 #endif
 
         "\nCompilation date: " __DATE__
-        "\nBoost version: " + S(BOOST_VERSION / 100000)
-                      + "." + S(BOOST_VERSION / 100 % 1000)
-                      + "." + S(BOOST_VERSION % 100)
-        + "\nxylib version: " + xylib_get_version()
+        "\nWith libraries: "
+        "\nBoost " + S(BOOST_VERSION / 100000)
+                   + "." + S(BOOST_VERSION / 100 % 1000)
+                   + "." + S(BOOST_VERSION % 100)
+        + "\nxylib " + xylib_get_version()
         + "\n" LUA_RELEASE
+#if HAVE_LIBNLOPT
+        + "\nNLopt " + S(nl_ver[0]) + "." + S(nl_ver[1]) + "." + S(nl_ver[2])
+#endif
         ;
 }
 
