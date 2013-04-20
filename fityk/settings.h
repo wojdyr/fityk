@@ -43,8 +43,12 @@ struct FITYK_API Settings
     double lm_lambda_start;
     double lm_lambda_up_factor;
     double lm_lambda_down_factor;
-    double lm_stop_rel_change;
     double lm_max_lambda;
+    double lm_stop_rel_change;
+    // fitting - MPFIT & NLopt
+    double ftol_rel;
+    double xtol_rel;
+    //double mpfit_gtol;
     // fitting - NM
     double nm_convergence;
     bool nm_move_all;

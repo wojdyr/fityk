@@ -573,7 +573,7 @@ string Fit::iteration_info(realt wssr)
 
 //-------------------------------------------------------------------
 
-// this list should be kept sync with to FitMethodsContainer ctor.
+// keep sync with to FitMethodsContainer ctor and full_method_names
 const char* fit_method_enum[] = {
     "levenberg_marquardt", // LMfit.cpp
     "mpfit",               // MPfit.cpp
@@ -588,6 +588,8 @@ const char* fit_method_enum[] = {
     "nlopt_bobyqa",        // NLfit.cpp
     "nlopt_nm",            // NLfit.cpp
     "nlopt_sbplx",         // NLfit.cpp
+    "nlopt_crs2",          // NLfit.cpp
+    "nlopt_praxis",        // NLfit.cpp
 #endif
     NULL
 };
@@ -610,6 +612,8 @@ FitMethodsContainer::FitMethodsContainer(Ftk *F_)
     methods_.push_back(new NLfit(F_, fit_method_enum[9], NLOPT_LN_BOBYQA));
     methods_.push_back(new NLfit(F_, fit_method_enum[10], NLOPT_LN_NELDERMEAD));
     methods_.push_back(new NLfit(F_, fit_method_enum[11], NLOPT_LN_SBPLX));
+    methods_.push_back(new NLfit(F_, fit_method_enum[12], NLOPT_GN_CRS2_LM));
+    methods_.push_back(new NLfit(F_, fit_method_enum[13], NLOPT_LN_PRAXIS));
 #endif
 }
 
@@ -629,6 +633,8 @@ const char* FitMethodsContainer::full_method_names[][2] =
     { "BOBYQA (from NLopt)",     "Bound Optimization BY Quadratic Approx." },
     { "Nelder-Mead (from NLopt)","Nelder-Mead Simplex" },
     { "Sbplx (from NLopt)",      "(based on Subplex)" },
+    { "CRS2 (from NLopt)",       "Controlled Random Search" },
+    { "PRAXIS (from NLopt)",     "principal-axis method" },
 #endif
     { NULL, NULL }
 };

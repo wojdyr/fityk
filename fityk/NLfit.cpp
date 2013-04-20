@@ -13,9 +13,6 @@ using namespace std;
 
 namespace fityk {
 
-// int major, minor, bugfix;
-// nlopt_version(&major, &minor, &bugfix);
-
 NLfit::NLfit(Ftk* F, const char* name, nlopt_algorithm algorithm)
     : Fit(F, name), algorithm_(algorithm), opt_(NULL)
 {
@@ -37,7 +34,7 @@ double calculate_for_nlopt(unsigned n, const double* x,
 double NLfit::calculate(int n, const double* par, double* grad)
 {
     assert(n == na_);
-    vector<realt> A(par, par+na_);
+    vector<realt> A(par, par+n);
     if (F_->get_verbosity() >= 1)
         output_tried_parameters(A);
     bool stop = common_termination_criteria();
@@ -87,7 +84,9 @@ double NLfit::run_method(vector<realt>* best_a)
 
     // this is also handled in Fit::common_termination_criteria()
     nlopt_set_maxtime(opt_, F_->get_settings()->max_fitting_time);
-    nlopt_set_maxeval(opt_, max_eval());
+    nlopt_set_maxeval(opt_, max_eval() - 1); // save 1 eval for final calc.
+    nlopt_set_ftol_rel(opt_, F_->get_settings()->ftol_rel);
+    nlopt_set_xtol_rel(opt_, F_->get_settings()->xtol_rel);
 
     double opt_f;
     double *a = new double[na_];

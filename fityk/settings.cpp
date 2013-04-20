@@ -13,7 +13,10 @@
 #else
 #include <unistd.h> // chdir()
 #endif
-#include "common.h"
+// <config.h> is included from common.h from settings.h
+#if HAVE_LIBNLOPT
+# include <nlopt.h>
+#endif
 #include "logic.h"
 #include "fit.h"
 
@@ -85,8 +88,11 @@ static const Option options[] = {
     OPT(lm_lambda_start, kDouble, 0.001, NULL),
     OPT(lm_lambda_up_factor, kDouble, 10, NULL),
     OPT(lm_lambda_down_factor, kDouble, 10, NULL),
-    OPT(lm_stop_rel_change, kDouble, 1e-4, NULL),
     OPT(lm_max_lambda, kDouble, 1e+15, NULL),
+    OPT(lm_stop_rel_change, kDouble, 1e-7, NULL),
+    OPT(ftol_rel, kDouble, 0, NULL),
+    OPT(xtol_rel, kDouble, 0, NULL),
+    //OPT(mpfit_gtol, kDouble, 1e-10, NULL),
 
     OPT(nm_convergence, kDouble, 0.0001, NULL),
     OPT(nm_move_all, kBool, false, NULL),
@@ -295,6 +301,9 @@ void SettingsMgr::do_srand()
     int seed = m_.pseudo_random_seed == 0 ? (int) time(NULL)
                                           : m_.pseudo_random_seed;
     srand(seed);
+#if HAVE_LIBNLOPT
+    nlopt_srand(seed);
+#endif
 }
 
 } // namespace fityk

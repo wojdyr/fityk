@@ -1,8 +1,25 @@
+* document ?tol_rel options and review fit.rst
+* tests - fitting (NIST), function (PsVoigt as builtin, compound and custom),...
+          set_throws()/last_error()
+* API docs (Lua), void set_option(str, str), str get_option(str)
+* info cov/errors - do not specify dataset
 * use @90; delete @90; ...; Error: No such dataset: @90
+
+* fitting: box-constrained parameters (simple-variables)
+           the constraints could be automatic for some function parameters,
+	   e.g. "guess PseudoVoigt" could give shape with bounds <0,1>
+
 
 * make MPFIT default
 
 * use optimization algorithms from NLopt library
+
+* plot histogram of residuals:
+  http://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm
+
+----  1.3.0
+
+* Use more exact Voigt approximation from Faddeeva Package (by SGJ)
 
 * FFT data transformation using FFTW library,
   fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re(@3)
@@ -46,9 +63,6 @@
 
 * GUI: a simple (for the user) way to interrupt fitting. Requires two threads.
 
-* plot histogram of resiudals:
-  http://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm
-
 * confidence bands
 
 * data smoothing (Savitzky-Golay and/or other methods)
@@ -66,9 +80,6 @@
       - calculating limits, width, area, etc. for UDF
       - ?? use LLVM for faster calculation of user-defined functions
 
-* Use a better approximation of Voigt function than the one used now.
-  There are dozens of papers on Voigt calculation, mostly in JQSRT.
-
 * info dpeak [range]: show parameters of selected data range assuming that
   this range contains a peak: area, center, FWHM, max, peak-area, backgr-area
   (like in the Xview program)
@@ -84,8 +95,4 @@
   assuming the error distribution is other then Gaussian, eg. Lorenzian...;
   there is also a literature about so called 'maximum-likelihood method'
   in which the exact Poisson error distribution is handled.
-
-* fitting: box-constrained parameters (simple-variables)
-           the constraints could be automatic for some function parameters,
-	   e.g. "guess PseudoVoigt" could give shape with bounds <0,1>
 

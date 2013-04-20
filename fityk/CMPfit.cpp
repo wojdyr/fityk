@@ -174,7 +174,9 @@ double MPfit::run_method(vector<realt>* best_a)
     zero_init_config(&mp_conf_);
     mp_conf_.maxiter = -1;
     mp_conf_.maxfev = max_eval() - 1; // MPFIT has 1 evaluation extra
-    //mp_conf_.ftol = F_->get_settings()->lm_stop_rel_change;
+    mp_conf_.ftol = F_->get_settings()->ftol_rel;
+    mp_conf_.xtol = F_->get_settings()->xtol_rel;
+    //mp_conf_.gtol = F_->get_settings()->mpfit_gtol;
 
     zero_init_result(&result_);
 
