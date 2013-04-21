@@ -363,20 +363,21 @@ int Fit::compute_derivatives_mp_for(const DataAndModel* dm, int offset,
 }
 
 // similar to compute_derivatives(), but adjusted for NLopt interface
-realt Fit::compute_derivatives_nl(const vector<realt> &A,
-                                  const vector<DataAndModel*>& dms,
-                                  double *grad)
+realt Fit::compute_wssr_gradient(const vector<realt> &A,
+                                 const vector<DataAndModel*>& dms,
+                                 double *grad)
 {
+    assert(size(A) == na_);
     ++evaluations_;
     F_->mgr.use_external_parameters(A);
     realt wssr = 0.;
     fill(grad, grad+na_, 0.0);
     v_foreach (DataAndModel*, i, dms)
-        wssr += compute_derivatives_nl_for(*i, grad);
+        wssr += compute_wssr_gradient_for(*i, grad);
     return wssr;
 }
 
-realt Fit::compute_derivatives_nl_for(const DataAndModel* dm, double *grad)
+realt Fit::compute_wssr_gradient_for(const DataAndModel* dm, double *grad)
 {
     realt wssr = 0;
     const Data* data = dm->data();

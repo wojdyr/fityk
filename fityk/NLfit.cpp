@@ -45,7 +45,7 @@ double NLfit::calculate(int n, const double* par, double* grad)
     if (!grad || stop)
         wssr = compute_wssr(A, dmdm_);
     else
-        wssr = compute_derivatives_nl(A, dmdm_, grad);
+        wssr = compute_wssr_gradient(A, dmdm_, grad);
     if (F_->get_verbosity() >= 1)
         F_->ui()->mesg(iteration_info(wssr));
     return wssr;

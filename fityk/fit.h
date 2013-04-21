@@ -44,6 +44,12 @@ public:
     realt compute_wssr(const std::vector<realt> &A,
                        const std::vector<DataAndModel*>& dms,
                        bool weigthed=true);
+    // calculate objective function and its gradient (derivatives),
+    // called from NLopt and "info debug grad"
+    // pre: update_par_usage()
+    realt compute_wssr_gradient(const std::vector<realt> &A,
+                                const std::vector<DataAndModel*>& dms,
+                                double *grad);
     static realt compute_r_squared_for_data(const DataAndModel* dm,
                                            realt* sum_err, realt* sum_tot);
     realt compute_r_squared(const std::vector<realt> &A,
@@ -69,9 +75,6 @@ protected:
     void compute_derivatives_mp(const std::vector<realt> &A,
                                 const std::vector<DataAndModel*>& dms,
                                 double **derivs, double *deviates);
-    realt compute_derivatives_nl(const std::vector<realt> &A,
-                                 const std::vector<DataAndModel*>& dms,
-                                 double *grad);
     int compute_deviates(const std::vector<realt> &A, double *deviates);
     realt draw_a_from_distribution(int nr, char distribution = 'u',
                                    realt mult = 1.);
@@ -85,13 +88,15 @@ private:
     realt best_shown_wssr_; // for iteration_info()
 
     double elapsed() const; // CPU time elapsed since the start of fit()
+    void update_par_usage(const std::vector<DataAndModel*>& dms);
+
+    // compute_*_for() does the same as compute_*() but for one dataset
     void compute_derivatives_for(const DataAndModel *dm,
                                  std::vector<realt>& alpha,
                                  std::vector<realt>& beta);
     int compute_derivatives_mp_for(const DataAndModel* dm, int offset,
                                    double **derivs, double *deviates);
-    realt compute_derivatives_nl_for(const DataAndModel* dm, double *grad);
-    void update_par_usage(const std::vector<DataAndModel*>& dms);
+    realt compute_wssr_gradient_for(const DataAndModel* dm, double *grad);
 };
 
 /// handles parameter history

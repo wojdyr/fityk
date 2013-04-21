@@ -28,6 +28,12 @@ dist_mimepkg_DATA = fityk.xml
 cli_cfityk_SOURCES = cli/gnuplot.cpp cli/main.cpp cli/gnuplot.h
 cli_cfityk_LDADD = fityk/libfityk.la $(READLINE_LIBS)
 
+# ---  tests/ ---
+TESTS = tests/gradient
+tests_gradient_SOURCES = tests/gradient.cpp
+tests_gradient_LDADD = fityk/libfityk.la
+check_PROGRAMS = $(TESTS)
+
 # --- samples/ ---
 
 samplesdir = $(pkgdatadir)/samples
@@ -42,7 +48,7 @@ dist_samples_DATA = samples/nacl01.fit samples/nacl01.dat \
 		    samples/cfityk.py \
 		    samples/README
 
-check_PROGRAMS = samples/hello samples/helloc
+check_PROGRAMS += samples/hello samples/helloc
 samples_hello_SOURCES = samples/hello.cc
 samples_hello_CPPFLAGS = -I$(srcdir)
 samples_hello_LDADD = fityk/libfityk.la
