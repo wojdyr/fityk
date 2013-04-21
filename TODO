@@ -1,7 +1,6 @@
 * document ?tol_rel options and review fit.rst
-* tests - fitting (NIST), function (PsVoigt as builtin, compound and custom),...
-          set_throws()/last_error()
-* API docs (Lua), void set_option(str, str), str get_option(str)
+* tests - function (PsVoigt as builtin, compound and custom),...
+* API docs (Lua), void set_option(str, str), str get_option(str), _as_number
 * info cov/errors - do not specify dataset
 * use @90; delete @90; ...; Error: No such dataset: @90
 
@@ -9,14 +8,13 @@
            the constraints could be automatic for some function parameters,
 	   e.g. "guess PseudoVoigt" could give shape with bounds <0,1>
 
-
 * make MPFIT default
 
-* use optimization algorithms from NLopt library
+* GUI: use optimization algorithms from NLopt library
 
 ----  1.3.0
 
-* plot histogram of residuals:
+* GUI: plot histogram of residuals:
   http://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm
 
 * Use more exact Voigt approximation from Faddeeva Package (by SGJ)

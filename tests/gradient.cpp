@@ -1,5 +1,6 @@
 
 #include <stdio.h>
+#include <boost/scoped_ptr.hpp>
 #include "fityk/logic.h"
 #include "fityk/data.h"
 #include "fityk/fit.h"
@@ -41,7 +42,7 @@ static double boxbetts_f(const double *a, double *grad)
 
 static double boxbetts_in_fityk(const double *a, double *grad)
 {
-    Ftk* ftk = new Ftk;
+    boost::scoped_ptr<Ftk> ftk(new Ftk);
     ftk->settings_mgr()->set_as_number("verbosity", -1);
     for (int i = 1; i <= 10; ++i)
         ftk->get_data(0)->add_one_point(i, 0, 1);
@@ -49,10 +50,9 @@ static double boxbetts_in_fityk(const double *a, double *grad)
             "exp(-0.1*a0*x) - exp(-0.1*a1*x) - a2 * (exp(-0.1*x) - exp(-x))");
     ftk->ui()->raw_execute_line("F = BoxBetts(~0.9, ~11.8, ~1.08)");
 
-    Fit* fit = ftk->get_fit();
-    fit->get_dof(ftk->get_dms()); // to invoke update_par_usage()
+    ftk->get_fit()->get_dof(ftk->get_dms()); // to invoke update_par_usage()
     vector<realt> avec(a, a+3);
-    return fit->compute_wssr_gradient(avec, ftk->get_dms(), grad);
+    return ftk->get_fit()->compute_wssr_gradient(avec, ftk->get_dms(), grad);
 }
 
 
@@ -71,6 +71,20 @@ int test_gradient()
 }
 //int main() { return test_gradient(); }
 
+
+TEST_CASE("set-throws", "test Fityk::set_throws()") {
+    boost::scoped_ptr<Fityk> fik(new Fityk);
+    REQUIRE(fik->get_throws() == true);
+    REQUIRE_THROWS_AS(fik->execute("hi"), SyntaxError);
+    REQUIRE_THROWS_AS(fik->execute("fit"), ExecuteError);
+    fik->set_throws(false);
+    REQUIRE_NOTHROW(fik->execute("hi"));
+    fik->execute("hi");
+    REQUIRE(fik->last_error() != "");
+    REQUIRE(fik->last_error().substr(0,12) == "SyntaxError:");
+    fik->clear_last_error();
+    REQUIRE(fik->last_error() == "");
+}
 
 TEST_CASE("gradient", "test Fit::compute_wssr_gradient()") {
     const double a[3] = { 0.9, 11.8, 1.08 };
