@@ -33,6 +33,7 @@ TESTS = tests/gradient
 tests_gradient_SOURCES = tests/gradient.cpp
 tests_gradient_LDADD = fityk/libfityk.la
 check_PROGRAMS = $(TESTS)
+noinst_SCRIPTS = tests/test_syntax.fit
 
 # --- samples/ ---
 
@@ -41,7 +42,6 @@ dist_samples_DATA = samples/nacl01.fit samples/nacl01.dat \
 		    samples/SiC_Zn.fit samples/SiC_Zn.dat  \
 		    samples/enso.fit samples/enso.dat \
 		    samples/read-shockley.fit \
-		    samples/test_syntax.fit \
 		    samples/hello.c samples/hello.cc \
 		    samples/hello.py samples/hello.lua samples/hello.pl \
 		    samples/hello.rb samples/hello.java \

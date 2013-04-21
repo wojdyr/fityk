@@ -48,11 +48,13 @@ if [ $1 -eq 0 ]; then
 
 
 elif [ $1 -eq 1 ]; then
- echo run samples...
- make check && ./hello
- cd ./samples
+ echo run tests and samples...
+ make check || exit
+ ./hello
+ cd ./tests
+ ../cli/cfityk test_syntax.fit || exit
+ cd ../samples
  ../cli/cfityk nacl01.fit
- ../cli/cfityk test_syntax.fit
  ../wxgui/fityk nacl01.fit
  ../wxgui/fityk SiC_Zn.fit
 
