@@ -185,7 +185,7 @@ int MPfit::run_mpfit(const vector<DataAndModel*>& dms,
 double MPfit::run_method(vector<realt>* best_a)
 {
     zero_init_config(&mp_conf_);
-    mp_conf_.maxiter = -1;
+    mp_conf_.maxiter = -2; // can't use 0 or 1 here (0=default, -1=MP_NO_ITER)
     mp_conf_.maxfev = max_eval() - 1; // MPFIT has 1 evaluation extra
     mp_conf_.ftol = F_->get_settings()->ftol_rel;
     mp_conf_.xtol = F_->get_settings()->xtol_rel;
@@ -211,7 +211,7 @@ double* MPfit::get_errors(const vector<DataAndModel*>& dms)
         perror[i] = 0.;
 
     zero_init_config(&mp_conf_);
-    mp_conf_.maxiter = 0; // redundant, just to remember
+    mp_conf_.maxiter = MP_NO_ITER;
 
     zero_init_result(&result_);
     result_.xerror = perror;
@@ -229,7 +229,7 @@ double* MPfit::get_covar(const vector<DataAndModel*>& dms)
     double *covar = new double[na_*na_];
 
     zero_init_config(&mp_conf_);
-    mp_conf_.maxiter = 0; // redundant, just to remember
+    mp_conf_.maxiter = MP_NO_ITER;
 
     zero_init_result(&result_);
     result_.covar = covar;

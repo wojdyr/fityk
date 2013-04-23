@@ -13,7 +13,7 @@
 
 /* Header file defining constants, data structures and functions of
    mpfit library 
-   $Id: mpfit.h,v 1.14 2010/11/13 08:15:07 craigm Exp $
+   $Id: mpfit.h,v 1.15 2013/04/09 17:55:32 craigm Exp $
 */
 
 #ifndef MPFIT_H
@@ -74,12 +74,13 @@ struct mp_config_struct {
   double epsfcn;  /* Finite derivative step size               Default: MP_MACHEP0 */
   double stepfactor; /* Initial step bound                     Default: 100.0 */
   double covtol;  /* Range tolerance for covariance calculation Default: 1e-14 */
-  int maxiter;    /* Maximum number of iterations.  If maxiter == 0,
+  int maxiter;    /* Maximum number of iterations.  If maxiter == MP_NO_ITER,
                      then basic error checking is done, and parameter
                      errors/covariances are estimated based on input
                      parameter values, but no fitting iterations are done. 
 		     Default: 200
 		  */
+#define MP_NO_ITER (-1) /* No iterations, just checking */
   int maxfev;     /* Maximum number of function evaluations, or 0 for no limit
 		     Default: 0 (no limit) */
   int nprint;     /* Default: 1 */
