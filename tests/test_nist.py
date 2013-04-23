@@ -8,6 +8,7 @@ import unittest
 import fityk
 
 DATA_URL_BASE = "http://www.itl.nist.gov/div898/strd/nls/data/LINKS/DATA/"
+CACHE_DIR = os.path.join(os.path.dirname(__file__), "strd_data")
 VERBOSE = 1 # 0, 1, 2 or 3
 
 class NistParameter:
@@ -35,14 +36,16 @@ class NistReferenceData:
 
 def open_nist_data(name):
     name_ext = name + ".dat"
-    data_dir = os.path.join(os.path.dirname(sys.argv[0]), "strd_data")
-    local_file = os.path.join(data_dir, name_ext)
+    local_file = os.path.join(CACHE_DIR, name_ext)
     if os.path.exists(local_file):
-        f = open(local_file)
+        text = open(local_file).read()
     else:
         sys.stderr.write("Local data copy not found. Trying itl.nist.gov...\n")
-        f = urllib2.urlopen(DATA_URL_BASE + name_ext)
-    return f.read()
+        text = urllib2.urlopen(DATA_URL_BASE + name_ext).read()
+        if not os.path.isdir(CACHE_DIR):
+            os.mkdir(CACHE_DIR)
+        open(local_file, "wb").write(text)
+    return text
 
 
 def read_reference_data(name):
