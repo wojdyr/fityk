@@ -10,6 +10,10 @@ using namespace std;
 
 namespace fityk {
 
+#ifndef NDEBUG
+bool debug_deriv_in_mpfit=false;
+#endif
+
 int calculate_for_mpfit(int m, int npar, double *par, double *deviates,
                         double **derivs, void *mpfit)
 {
@@ -148,6 +152,15 @@ int MPfit::run_mpfit(const vector<DataAndModel*>& dms,
         a[i] = parameters[i];
 
     mp_par *pars = allocate_and_init_mp_par(param_usage);
+
+#ifndef NDEBUG
+    if (debug_deriv_in_mpfit)
+        for (size_t i = 0; i < param_usage.size(); ++i) {
+            // don't use side=2 (two-side) because of bug in CMPFIT
+            pars[i].side = 1;
+            pars[i].deriv_debug = 1;
+        }
+#endif
 
     // dms cannot be easily passed to the calculate_for_mpfit() callback
     // in a different way than through member variable (dmdm_).

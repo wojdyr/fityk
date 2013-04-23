@@ -44,8 +44,7 @@ public:
     realt compute_wssr(const std::vector<realt> &A,
                        const std::vector<DataAndModel*>& dms,
                        bool weigthed=true);
-    // calculate objective function and its gradient (derivatives),
-    // called from NLopt and "info debug grad"
+    // calculate objective function and its gradient (derivatives)
     // pre: update_par_usage()
     realt compute_wssr_gradient(const std::vector<realt> &A,
                                 const std::vector<DataAndModel*>& dms,

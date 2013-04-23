@@ -1,12 +1,14 @@
 * document ?tol_rel options and review fit.rst
 * tests - function (PsVoigt as builtin, compound and custom),...
+          guess Linear
 * API docs (Lua), void set_option(str, str), str get_option(str), _as_number
 * info cov/errors - do not specify dataset
 * use @90; delete @90; ...; Error: No such dataset: @90
 
 * fitting: box-constrained parameters (simple-variables)
-           the constraints could be automatic for some function parameters,
-	   e.g. "guess PseudoVoigt" could give shape with bounds <0,1>
+  use domain; allow domain with one boundary, e.g. [0:];
+  syntax for domain in deault parameters (...shape=~0.5 [0:1],...),
+  adjust definitions of Voigt, PseudoVoigt, Pearson7
 
 * make MPFIT default
 

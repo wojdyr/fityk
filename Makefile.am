@@ -32,8 +32,10 @@ cli_cfityk_LDADD = fityk/libfityk.la $(READLINE_LIBS)
 TESTS = tests/gradient
 tests_gradient_SOURCES = tests/gradient.cpp
 tests_gradient_LDADD = fityk/libfityk.la
-check_PROGRAMS = $(TESTS)
-noinst_SCRIPTS = tests/test_syntax.fit
+check_PROGRAMS = $(TESTS) tests/mpfit_deriv
+tests_mpfit_deriv_SOURCES = tests/mpfit_deriv.cpp
+tests_mpfit_deriv_LDADD = fityk/libfityk.la
+noinst_SCRIPTS = tests/test_syntax.fit tests/test_nist.py
 
 # --- samples/ ---
 
