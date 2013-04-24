@@ -7,30 +7,28 @@ Getting Started
 Graphical Interface
 ===================
 
-The GUI window of fityk consists of (from the top): menu bar, toolbar,
-main plot, helper (residual) plot, output window, input field, status bar
-and of sidebar at the right-hand side.
-
-The input field with the output window provide a console-like interface
-to the program. The output windows shows also commands corresponding to
-operations performed using the GUI (menu, dialogs, etc.).
-
-The main plot can display data points, model that is to be fitted to the
-data and component functions of the model. Use the pop-up menu (click
-right button on the plot) to configure it. Some properties of the plot
-(e.g. colors of data points) can be changed using the sidebar.
-
-One of the most useful things which can be displayed by the helper
-plot is the difference between the data and the model (it is also controlled
-by a pop-up menu). Hopefully, a quick look at this menu and a minute or
-two's worth of experiments will show the potential of this plot.
-
-Configuration of the GUI (visible windows, colors, etc.) can be saved
-using :menuselection:`GUI --> Save current config`.
+That's how the :abbr:`GUI (Graphical User Interface)` looks like:
 
 .. image:: img/fityk-with-tooltip.png
    :align: center
    :scale: 50
+
+The input field with the output window provide a console-like interface
+to the program. All important operation performed using the GUI
+are translated to textual commands and displayed in the output windows.
+
+The main plot can display data points, model that is to be fitted to the
+data and component functions of the model. Use the pop-up menu (click
+right button on the plot) to configure it. Some properties of the plot
+(e.g. colors of data points) can be changed from the sidebar.
+
+The helper plot below can show various statistics.
+The default one one is the difference between the data and the model.
+The plot can be configured from a pop-up menu.
+If you do not find it useful you may hide it (:menuselection:`GUI --> Show`).
+
+Configuration of the GUI (visible windows, colors, etc.) can be saved
+using :menuselection:`GUI --> Save current config`.
 
 On the **main plot**, the meaning of the left and right mouse button depends
 on current :dfn:`mode`.

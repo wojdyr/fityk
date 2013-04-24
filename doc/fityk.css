@@ -244,6 +244,10 @@ tt.descname, tt.descclassname, tt.xref {
     border: 0;
 }
 
+tt.descname {
+    font-size: 0.97em;
+}
+
 hr {
     border: 1px solid #abc;
     margin: 2em;

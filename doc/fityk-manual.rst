@@ -14,5 +14,6 @@ Fityk |version| - User's Manual
    data
    model
    fit
+   script
    ref
 
