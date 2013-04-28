@@ -327,19 +327,6 @@ void Data::load_file (const string& fn,
     post_load();
 }
 
-/*
-double Data::get_y_at (double x) const
-{
-    int n = get_upper_bound_ac (x);
-    if (n > size(active_) || n <= 0)
-        return 0;
-    double y1 = get_y (n - 1);
-    double y2 = get_y (n);
-    double x1 = get_x (n - 1);
-    double x2 = get_x (n);
-    return y1 + (y2 - y1) * (x - x1) / (x2 - x1);
-}
-*/
 
 // std::is_sorted() is added C++0x
 template <typename T>

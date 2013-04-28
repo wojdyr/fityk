@@ -72,7 +72,6 @@ public :
     void update_active_for_one_point(int idx);
     void append_point() { size_t n = p_.size(); p_.resize(n+1);
                                                 active_.push_back(n); }
-    //double get_y_at (double x) const;
     // return points at x (if any) or (usually) after it.
     std::vector<Point>::const_iterator get_point_at(double x) const;
     double get_x_min() const;
