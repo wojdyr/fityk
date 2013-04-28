@@ -9,7 +9,7 @@
 body {
     font-family: 'Lucida Grande', 'Lucida Sans Unicode', 'Geneva',
                  'Verdana', sans-serif !important;
-    font-size: 78.09% !important;
+    font-size: 81.0% !important;
     line-height: 150%;
     text-align: center;
     background-color: #BFD1D4;
@@ -318,7 +318,7 @@ div.admonition pre, div.warning pre {
 div.admonition p.admonition-title,
 div.warning p.admonition-title {
     margin: 0;
-    padding: 0.1em 0 0.1em 0.5em;
+    padding: 0.1em 0 0 0.5em;
     color: white;
     border-bottom: 1px solid #86989B;
     font-weight: bold;
@@ -422,10 +422,11 @@ img.icon { vertical-align: text-bottom; }
 
 div.admonition-in-the-gui
 {
-    border: 1px solid #999999;
-    background-color: #CCCCCC;
+    border: 1px solid #AAAAAA;
+    background-color: #DDDDDD;
     font-family: "myriad-pro-1","myriad-pro-2",HelveticaNeue,Helvetica,Arial,
                  sans-serif;
+    font-size: 0.98em;
 }
 
 div.admonition-in-the-gui div.highlight
@@ -434,9 +435,9 @@ div.admonition-in-the-gui div.highlight
 div.admonition-in-the-gui p.admonition-title {
     color: #f8f8f8;
     padding-left: 36px;
-    border-bottom: 1px solid #999999;
+    border-bottom: 1px solid #AAAAAA;
     font-weight: bold;
-    background: #AAAAAA url('mouse16.png') no-repeat 10px;
+    background: #BBBBBB url('mouse16.png') no-repeat 10px;
 }
 
 .guilabel, .menuselection {
