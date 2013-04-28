@@ -97,8 +97,7 @@ void Function::calculate_value(const vector<realt> &x, vector<realt> &y) const
 {
     realt left, right;
     double cut_level = settings_->function_cutoff;
-    bool r = get_nonzero_range(cut_level, left, right);
-    if (r) {
+    if (cut_level != 0. && get_nonzero_range(cut_level, left, right)) {
         int first = lower_bound(x.begin(), x.end(), left) - x.begin();
         int last = upper_bound(x.begin(), x.end(), right) - x.begin();
         this->calculate_value_in_range(x, y, first, last);
@@ -122,8 +121,7 @@ void Function::calculate_value_deriv(const vector<realt> &x,
 {
     realt left, right;
     double cut_level = settings_->function_cutoff;
-    bool r = get_nonzero_range(cut_level, left, right);
-    if (r) {
+    if (cut_level != 0. && get_nonzero_range(cut_level, left, right)) {
         int first = lower_bound(x.begin(), x.end(), left) - x.begin();
         int last = upper_bound(x.begin(), x.end(), right) - x.begin();
         this->calculate_value_deriv_in_range(x, y, dy_da, in_dx, first, last);
