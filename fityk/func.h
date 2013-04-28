@@ -63,6 +63,7 @@ public:
     virtual bool get_nonzero_range(double /*level*/,
                       realt& /*left*/, realt& /*right*/) const { return false; }
 
+    virtual bool is_symmetric() const { return false; }
     virtual bool get_center(realt* a) const;
     virtual bool get_height(realt* /*a*/) const { return false; }
     virtual bool get_fwhm(realt* /*a*/) const { return false; }

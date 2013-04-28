@@ -32,6 +32,7 @@ public:
                                         int first, int last) const;
     std::string get_current_formula(const std::string& x,
                                     const char *num_fmt) const;
+    bool is_symmetric() const;
     bool get_center(realt* a) const;
     bool get_height(realt* a) const;
     bool get_fwhm(realt* a) const;
@@ -97,7 +98,7 @@ public:
                   Tplate::Ptr tp,
                   const std::vector<std::string> &vars);
     ~SplitFunction();
-    virtual void init();
+    void init();
 
 
     void more_precomputations();
@@ -111,10 +112,10 @@ public:
                                         int first, int last) const;
     std::string get_current_formula(const std::string& x,
                                     const char *num_fmt) const;
-    virtual bool get_center(realt* a) const;
-    virtual bool get_height(realt* a) const;
-    virtual bool get_fwhm(realt*) const { return false; }
-    virtual bool get_area(realt*) const { return false; }
+    bool get_center(realt* a) const;
+    bool get_height(realt* a) const;
+    bool get_fwhm(realt*) const;
+    bool get_area(realt*) const;
     bool get_nonzero_range(double level, realt& left, realt& right) const;
     void update_var_indices(const std::vector<Variable*>& variables);
 

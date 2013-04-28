@@ -119,6 +119,17 @@ string CompoundFunction::get_current_formula(const string& x,
     return t;
 }
 
+bool CompoundFunction::is_symmetric() const
+{
+    realt ctr;
+    if (!get_center(&ctr))
+        return false;
+    v_foreach (Function*, i, intern_functions_)
+        if (!(*i)->is_symmetric())
+            return false;
+    return true;
+}
+
 bool CompoundFunction::get_center(realt* a) const
 {
     if (Function::get_center(a))
@@ -381,6 +392,39 @@ bool SplitFunction::get_center(realt* a) const
     realt c2;
     return left_->get_center(a) && right_->get_center(&c2) && is_eq(*a, c2);
 }
+
+bool SplitFunction::get_fwhm(realt* a) const
+{
+    realt c1, c2;
+    realt xsplit = intern_variables_.back()->get_value();
+    bool two_halves = left_->is_symmetric() && right_->is_symmetric() &&
+                      left_->get_center(&c1) && is_eq(c1, xsplit) &&
+                      right_->get_center(&c2) && is_eq(c2, xsplit);
+    realt fwhm1, fwhm2;
+    if (two_halves && left_->get_fwhm(&fwhm1) && right_->get_fwhm(&fwhm2)) {
+        *a = (fwhm1 + fwhm2) / 2.;
+        return true;
+    }
+    else
+        return false;
+}
+
+bool SplitFunction::get_area(realt* a) const
+{
+    realt c1, c2;
+    realt xsplit = intern_variables_.back()->get_value();
+    bool two_halves = left_->is_symmetric() && right_->is_symmetric() &&
+                      left_->get_center(&c1) && is_eq(c1, xsplit) &&
+                      right_->get_center(&c2) && is_eq(c2, xsplit);
+    realt area1, area2;
+    if (two_halves && left_->get_area(&area1) && right_->get_area(&area2)) {
+        *a = (area1 + area2) / 2.;
+        return true;
+    }
+    else
+        return false;
+}
+
 
 bool SplitFunction::get_nonzero_range(double level,
                                       realt& left, realt& right) const

@@ -71,6 +71,7 @@ class FuncGaussian : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(Gaussian, Function)
     void more_precomputations();
     bool get_nonzero_range(double level, realt &left, realt &right) const;
+    bool is_symmetric() const { return true; }
     bool get_center(realt* a) const { *a = av_[1]; return true; }
     bool get_height(realt* a) const { *a = av_[0]; return true; }
     bool get_fwhm(realt* a) const { *a = 2 * fabs(av_[2]); return true; }
@@ -94,6 +95,7 @@ class FuncLorentzian : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(Lorentzian, Function)
     void more_precomputations();
     bool get_nonzero_range(double level, realt &left, realt &right) const;
+    bool is_symmetric() const { return true; }
     bool get_center(realt* a) const { *a = av_[1]; return true; }
     bool get_height(realt* a) const { *a = av_[0]; return true; }
     bool get_fwhm(realt* a) const { *a = 2 * fabs(av_[2]); return true; }
@@ -106,6 +108,7 @@ class FuncPearson7 : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(Pearson7, Function)
     void more_precomputations();
     bool get_nonzero_range(double level, realt &left, realt &right) const;
+    bool is_symmetric() const { return true; }
     bool get_center(realt* a) const { *a = av_[1]; return true; }
     bool get_height(realt* a) const { *a = av_[0]; return true; }
     bool get_fwhm(realt* a) const { *a = 2 * fabs(av_[2]); return true; }
@@ -129,6 +132,7 @@ class FuncPseudoVoigt : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(PseudoVoigt, Function)
     void more_precomputations();
     bool get_nonzero_range(double level, realt &left, realt &right) const;
+    bool is_symmetric() const { return true; }
     bool get_center(realt* a) const { *a = av_[1]; return true; }
     bool get_height(realt* a) const { *a = av_[0]; return true; }
     bool get_fwhm(realt* a) const { *a = 2 * fabs(av_[2]); return true; }
@@ -168,6 +172,7 @@ class FuncVoigt : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(Voigt, Function)
     void more_precomputations();
     bool get_nonzero_range(double level, realt &left, realt &right) const;
+    bool is_symmetric() const { return true; }
     bool get_center(realt* a) const { *a = av_[1]; return true; }
     bool get_height(realt* a) const { *a = av_[0]; return true; }
     bool get_fwhm(realt* a) const;
@@ -181,6 +186,7 @@ class FuncVoigtA : public Function
     DECLARE_FUNC_OBLIGATORY_METHODS(VoigtA, Function)
     void more_precomputations();
     bool get_nonzero_range(double level, realt &left, realt &right) const;
+    bool is_symmetric() const { return true; }
     bool get_center(realt* a) const { *a = av_[1]; return true; }
     bool get_height(realt* a) const;
     bool get_fwhm(realt* a) const;
