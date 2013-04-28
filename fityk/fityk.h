@@ -260,7 +260,7 @@ public:
     int get_variable_nr(std::string const& name)  throw(ExecuteError);
 
     /// get coordinates of rectangle set by the plot command
-    /// side is one of L(eft), R(right), T(op), B(ottom)
+    /// side is one of L(eft), R(ight), T(op), B(ottom)
     double get_view_boundary(char side);
 
     // @}
