@@ -186,6 +186,18 @@ public:
 
     // @}
 
+    /// @name settings
+    // @{
+    void set_option_as_string(const std::string& opt, const std::string& val)
+                                                         throw(ExecuteError);
+    void set_option_as_number(const std::string& opt, double val)
+                                                         throw(ExecuteError);
+    std::string get_option_as_string(const std::string& opt) const
+                                                         throw(ExecuteError);
+    double get_option_as_number(const std::string& opt) const
+                                                         throw(ExecuteError);
+    // @}
+
     /// @name input/output
     // @{
 

@@ -1,8 +1,6 @@
 * document ?tol_rel options and review fit.rst
 * tests - function (PsVoigt as builtin, compound and custom),...
           guess Linear
-* API docs (Lua), void set_option(str, str), str get_option(str), _as_number
-* info cov/errors - do not specify dataset
 * use @90; delete @90; ...; Error: No such dataset: @90
 
 * fitting: box-constrained parameters (simple-variables)
@@ -15,6 +13,8 @@
 * GUI: use optimization algorithms from NLopt library
 
 ----  1.3.0
+
+* info cov/errors - do not specify dataset
 
 * GUI: plot histogram of residuals:
   http://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm

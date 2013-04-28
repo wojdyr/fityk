@@ -72,6 +72,19 @@ int test_gradient()
 //int main() { return test_gradient(); }
 
 
+TEST_CASE("gradient", "test Fit::compute_wssr_gradient()") {
+    const double a[3] = { 0.9, 11.8, 1.08 };
+    double grad[3], grad_again[3];
+    double ssr = boxbetts_f(a, grad);
+    double ssr_again = boxbetts_in_fityk(a, grad_again);
+    REQUIRE(ssr == Approx(ssr_again));
+    REQUIRE(grad[0] == Approx(grad_again[0]));
+    REQUIRE(grad[1] == Approx(grad_again[1]));
+    REQUIRE(grad[2] == Approx(grad_again[2]));
+}
+
+//----------- + some unrelated random tests
+
 TEST_CASE("set-throws", "test Fityk::set_throws()") {
     boost::scoped_ptr<Fityk> fik(new Fityk);
     REQUIRE(fik->get_throws() == true);
@@ -86,14 +99,32 @@ TEST_CASE("set-throws", "test Fityk::set_throws()") {
     REQUIRE(fik->last_error() == "");
 }
 
-TEST_CASE("gradient", "test Fit::compute_wssr_gradient()") {
-    const double a[3] = { 0.9, 11.8, 1.08 };
-    double grad[3], grad_again[3];
-    double ssr = boxbetts_f(a, grad);
-    double ssr_again = boxbetts_in_fityk(a, grad_again);
-    REQUIRE(ssr == Approx(ssr_again));
-    REQUIRE(grad[0] == Approx(grad_again[0]));
-    REQUIRE(grad[1] == Approx(grad_again[1]));
-    REQUIRE(grad[2] == Approx(grad_again[2]));
+
+TEST_CASE("set-get-option", "test Fityk::?et_option_as_*()") {
+    boost::scoped_ptr<Fityk> fik(new Fityk);
+
+    REQUIRE(fik->get_option_as_string("numeric_format") == "%g"); // string
+    REQUIRE(fik->get_option_as_string("on_error") == "stop"); // enum
+    REQUIRE(fik->get_option_as_number("verbosity") == 0.); // integer
+    REQUIRE(fik->get_option_as_number("fit_replot") == 0.); // bool
+    REQUIRE(fik->get_option_as_number("epsilon") == 1e-12); // double
+
+    // no such option
+    REQUIRE_THROWS_AS(fik->get_option_as_string("hi"), ExecuteError);
+    // non-numeric option
+    REQUIRE_THROWS_AS(fik->get_option_as_number("on_error"), ExecuteError);
+    REQUIRE_THROWS_AS(fik->get_option_as_number("cwd"), ExecuteError);
+
+    fik->set_option_as_string("numeric_format", "%.8E");
+    fik->set_option_as_string("on_error", "nothing");
+    fik->set_option_as_number("verbosity", -1);
+    fik->set_option_as_number("fit_replot", 1);
+    fik->set_option_as_number("epsilon", 1e-10);
+
+    REQUIRE(fik->get_option_as_string("numeric_format") == "%.8E"); // string
+    REQUIRE(fik->get_option_as_string("on_error") == "nothing"); // enum
+    REQUIRE(fik->get_option_as_number("verbosity") == -1); // integer
+    REQUIRE(fik->get_option_as_number("fit_replot") == 1.); // bool
+    REQUIRE(fik->get_option_as_number("epsilon") == 1e-10); // double
 }
 

@@ -202,7 +202,8 @@ def try_method(method):
 
 
 if __name__ == '__main__':
-    try_method("nlopt_bobyqa")
+    try_method("mpfit")
+    #try_method("nlopt_bobyqa")
 # "nlopt_bobyqa", "nlopt_nm", "nlopt_sbplx",
 # "nlopt_cobyla", # doesn't work?
 # "nlopt_lbfgs", "nlopt_mma", "nlopt_slsqp", "nlopt_var2",

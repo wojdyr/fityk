@@ -87,7 +87,9 @@ public:
     // getters
     const Settings& m() const { return m_; }
     /// get value of option as string
-    std::string get_as_string(const std::string& k) const;
+    std::string get_as_string(const std::string& k, bool quote_str=true) const;
+    /// get value of option as number
+    double get_as_number(const std::string& k) const;
     /// get kEnum index
     int get_enum_index(const std::string& k) const;
 

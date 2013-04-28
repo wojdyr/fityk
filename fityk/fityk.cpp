@@ -18,6 +18,7 @@
 #include "fit.h"
 #include "func.h"
 #include "info.h"
+#include "settings.h"
 
 using namespace std;
 
@@ -313,6 +314,28 @@ void Fityk::redir_messages(FILE *stream)
             ftk_->ui()->connect_show_message(p_->old_message_callback);
     }
     message_sink_ = stream;
+}
+
+void Fityk::set_option_as_string(const string& opt, const string& val)
+                                                            throw(ExecuteError)
+{
+    ftk_->settings_mgr()->set_as_string(opt, val);
+}
+
+void Fityk::set_option_as_number(const string& opt, double val)
+                                                            throw(ExecuteError)
+{
+    ftk_->settings_mgr()->set_as_number(opt, val);
+}
+
+string Fityk::get_option_as_string(const string& opt) const  throw(ExecuteError)
+{
+    return ftk_->settings_mgr()->get_as_string(opt, /*quote_str=*/false);
+}
+
+double Fityk::get_option_as_number(const string& opt) const  throw(ExecuteError)
+{
+    return ftk_->settings_mgr()->get_as_number(opt);
 }
 
 void Fityk::out(string const& s) const

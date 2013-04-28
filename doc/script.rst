@@ -173,7 +173,22 @@ Input / output
 Settings
 --------
 
-TODO
+.. method:: Fityk.set_option_as_string(opt, val)
+
+   Set option *opt* to value *val*.
+   Equivalent of fityk command ``set opt=val``.
+
+.. method:: Fityk.set_option_as_number(opt, val)
+
+   Set option *opt* to numeric value *val*.
+
+.. method:: Fityk.get_option_as_string(opt)
+
+   Returns value of *opt* (string).
+
+.. method:: Fityk.get_option_as_number(opt)
+
+   Returns value of *opt* (real number).
 
 
 Data

@@ -144,12 +144,12 @@ SettingsMgr::SettingsMgr(Ftk const* F)
 void SettingsMgr::set_long_double_format(const string& double_fmt)
 {
     long_double_format_ = double_fmt;
-    size_t pos = double_fmt.find_last_of("aAeEfFgG");;
+    size_t pos = double_fmt.find_last_of("aAeEfFgG");
     if (pos != string::npos && double_fmt[pos] != 'L')
         long_double_format_.insert(pos, "L");
 }
 
-string SettingsMgr::get_as_string(string const& k) const
+string SettingsMgr::get_as_string(string const& k, bool quote_str) const
 {
     const Option& opt = find_option(k);
     if (opt.vtype == kInt)
@@ -158,12 +158,27 @@ string SettingsMgr::get_as_string(string const& k) const
         return S(m_.*opt.val.d.ptr);
     else if (opt.vtype == kBool)
         return m_.*opt.val.b.ptr ? "1" : "0";
-    else if (opt.vtype == kString)
-        return "'" + S(m_.*opt.val.s.ptr) + "'";
+    else if (opt.vtype == kString) {
+        string v = m_.*opt.val.s.ptr;
+        return quote_str ? "'" + v + "'" : v;
+    }
     else if (opt.vtype == kEnum)
         return S(m_.*opt.val.e.ptr);
     assert(0);
     return "";
+}
+
+double SettingsMgr::get_as_number(string const& k) const
+{
+    const Option& opt = find_option(k);
+    if (opt.vtype == kInt)
+        return double(m_.*opt.val.i.ptr);
+    else if (opt.vtype == kDouble)
+        return m_.*opt.val.d.ptr;
+    else if (opt.vtype == kBool)
+        return double(m_.*opt.val.b.ptr);
+    throw ExecuteError("Not a number: option " +  k);
+    return 0; // avoid compiler warning
 }
 
 int SettingsMgr::get_enum_index(string const& k) const
