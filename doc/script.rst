@@ -157,7 +157,17 @@ Input / output
 
 .. method:: Fityk.input(prompt)
 
+    Query user. In the CLI user is asked for input in the command line,
+    and in the GUI in a pop-up box. As a special case,
+    if the prompt contains string "[y/n]" the GUI shows Yes/No buttons
+    instead of text entry.
+
+    Example: TODO
+
 .. method:: Fityk.out(s)
+
+    Print string in the output area. The ``print()`` function in built-in Lua
+    is redefined to do the same.
 
 
 Settings
@@ -166,12 +176,56 @@ Settings
 TODO
 
 
-Changing data
--------------
+Data
+----
 
-.. method:: Fityk.load_data(d, xx, yy, sigmas, title)
+.. method:: Fityk.load_data(d, xx, yy, sigmas [, title])
+
+    Load data to @*d* slot. *xx* and *yy* must be numeric arrays
+    of the same size, *sigmas* must either be empty or have the same size.
+    *title* is an optional data title (string).
 
 .. method:: Fityk.add_point(x, y, sigma [, d])
+
+    Add one data point ((*x*, *y*) with std. dev. set to *sigma*)
+    to an existing dataset *d*.
+    If *d* is not specified, the default dataset is used.
+
+    Example: ``F:add_point(30, 7.5, 1)``.
+
+.. method:: Fityk.get_dataset_count()
+
+   Returns number of datasets (n >= 1).
+
+.. method:: Fityk.get_default_dataset()
+
+   Returns default dataset. Default dataset is set by the "use @n" command.
+
+.. method:: Fityk.get_data([d])
+
+   Returns points for dataset *d*.
+
+   * in C++ -- returns vector<Point>
+   * in Lua -- userdata with array-like methods, indexed from 0.
+
+   Each point has 4 properties:
+   ``x``, ``y``, ``sigma`` (real numbers) and ``is_active`` (bool).
+
+   Example::
+
+       points = F:get_data()
+       for i = 0, #points-1 do
+           p = points[i]
+           if p.is_active then
+               print(i, p.x, p.y, p.sigma)
+           end
+       end
+
+       1       4.24    1.06    1
+       2       6.73    1.39    1
+       3       8.8     1.61    1
+       ...
+
 
 
 General Info
@@ -179,40 +233,105 @@ General Info
 
 .. method:: Fityk.get_info(s [, d])
 
+    Returns output of the fityk ``info`` command as a string.
+    If *d* is not specified, the default dataset is used (the dataset
+    is relevant for few arguments of the ``info`` command).
+
+    Example: ``F:get_info("history")`` -- returns a multiline string
+    containing all fityk commands issued in this session.
+
 .. method:: Fityk.calculate_expr(s, [, d])
+
+    Returns output of the fityk ``print`` command as a number.
+    If *d* is not specified, the default dataset is used.
+
+    Example: ``F:calculate_expr("argmax(y)", 0)``.
 
 .. method:: Fityk.get_view_boundary(side)
 
+    Get coordinates of the plotted rectangle,
+    which is set by the ``plot`` command.
+    Return numeric value corresponding to given *side*, which should be
+    a letter ``L``\ (eft), ``R``\ (ight), ``T``\ (op) or ``B``\ (ottom).
 
-Data info
----------
-
-.. method:: Fityk.get_dataset_count()
-
-.. method:: Fityk.get_default_dataset()
-
-.. method:: Fityk.get_data([d])
 
 Model info
 ----------
 
 .. method:: Fityk.get_parameter_count()
 
+    Returns number of simple-variables (parameters that can be fitted)
+
 .. method:: Fityk.all_parameters()
+
+    Returns array of simple-variables.
+
+    * in C++ -- vector<double>
+    * in Lua -- userdata with array-like methods, indexed from 0.
 
 .. method:: Fityk.all_variables()
 
+    Returns array of all defined variables.
+
+    * in C++ -- vector<Var*>
+    * in Lua -- userdata with array-like methods, indexed from 0.
+
+   Example::
+
+       variables = F:all_variables()
+       for i = 0, #variables-1 do
+           v = variables[i]
+           print(i, v.name, v:get_value(), v.domain.from, v.domain.to,
+                 v:get_nr(), v:is_simple())
+       end
+
+   ``Var.is_simple()`` returns true for simple-variables.
+
+   ``Var.get_nr()`` returns position of the variable in the array
+   of parameters (Fityk.all_parameters()), or -1 for compound variables.
+
+
 .. method:: Fityk.all_functions()
+
+    Returns array of functions.
+
+    * in C++ -- vector<Func*>
+    * in Lua -- userdata with array-like methods, indexed from 0.
+
+    Example::
+
+      f = F:all_functions()[0] -- first functions
+      print(f.name, f:get_template_name())          -- _1        Gaussian
+      print(f:get_param(0), f:get_param(1))         -- height  center
+      print("center:", f:get_param_value("center")) -- center: 24.72235945525
+      print("f(25)=", f:value_at(25))               -- f(25)=  4386.95533969
+
 
 .. method:: Fityk.get_components(d [, fz])
 
+    Returns %functions used in dataset *d*. If *fz* is ``Z``, returns
+    zero-shift functions.
+
 .. method:: Fityk.get_var(func, parameter)
+
+    Returns variable used as given *parameter* of function *func*.
+    Words function, variable and parameter have too many meanings,
+    but an example should clarify::
+
+      func = F:get_components(1)[3] -- get 4th (index 3) function in @1
+      print(func)                   -- <Func %_6>
+      v = F:get_var(func, "hwhm")
+      print(v, v:get_value())       -- <Var $_21>       0.1406587
 
 .. method:: Fityk.get_model_value(x [, d])
 
-.. method:: Fityk.get_model_vector(xx [, d])
+    Returns the value of the model for dataset ``@``\ *d* at *x*.
 
 .. method:: Fityk.get_variable_nr(name)
+
+    Returns position of the variable in parameter array (the same
+    number as returned by ``Var.get_nr()``). This number can be used
+    for example to connect rows of covariance matrix to variables.
 
 
 Fit statistics
@@ -220,13 +339,23 @@ Fit statistics
 
 .. method:: Fityk.get_wssr([d])
 
+    Returns WSSR (weighted sum of squared residuals).
+
 .. method:: Fityk.get_ssr([d])
+
+    Returns SSR (sum of squared residuals).
 
 .. method:: Fityk.get_rsquared([d])
 
+    Returns R-squared.
+
 .. method:: Fityk.get_dof([d])
 
+    Returns the number of degrees of freedom (#points - #parameters).
+
 .. method:: Fityk.get_covariance_matrix([d])
+
+    Returns covariance matrix.
 
 
 Examples
