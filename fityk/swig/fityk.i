@@ -63,8 +63,10 @@ namespace std {
 
 #if defined(SWIGPYTHON) || defined(SWIGLUA)
     %extend fityk::Point { std::string __str__() { return $self->str(); } }
-    %extend fityk::Func { std::string __str__() { return "%"+$self->name; } }
-    %extend fityk::Var { std::string __str__() { return "$"+$self->name; } }
+    %extend fityk::Func { std::string __str__()
+                                  { return "<Func %"+$self->name + ">"; } }
+    %extend fityk::Var { std::string __str__()
+                                  { return "<Var $" + $self->name + ">"; } }
 #endif
 
 #if defined(SWIGPYTHON)
