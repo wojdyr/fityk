@@ -36,7 +36,7 @@ pygments_style = "trac"
 html_theme = "sphinxdoc"
 html_sidebars = {'index': [],
                  'screens': [],
-                 '**': ['globaltoc.html', 'sourcelink.html', 'searchbox.html']}
+                 '**': ['globaltoc.html', 'editlink.html', 'searchbox.html']}
 html_title = 'Fityk %s manual' % version
 html_short_title = 'Manual'
 html_favicon = 'fityk.ico'
