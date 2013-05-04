@@ -1,7 +1,5 @@
 * document ?tol_rel options and review fit.rst
 * tests - function (PsVoigt as builtin, compound and custom),...
-          guess Linear
-* use @90; delete @90; ...; Error: No such dataset: @90
 
 * fitting: box-constrained parameters (simple-variables)
   use domain; allow domain with one boundary, e.g. [0:];
