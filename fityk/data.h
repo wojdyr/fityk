@@ -6,6 +6,7 @@
 #include <string>
 #include <vector>
 #include <limits.h>
+#include <utility>
 #include "common.h"
 
 #include "fityk.h" // struct Point, FITYK_API
@@ -56,9 +57,8 @@ public :
     bool has_any_info() const { return !is_empty() || !get_title().empty(); }
     double get_x_step() const { return x_step_; } /// 0.0 if not fixed
     void after_transform(); // update x_step_, active_
-    std::string range_as_string () const;
-    int get_lower_bound_ac (double x) const;
-    int get_upper_bound_ac (double x) const;
+    std::string range_as_string() const;
+    std::pair<int,int> get_index_range(const RealRange& range) const;
     const std::string& get_title() const { return title_; }
     void set_title(const std::string& title) { title_ = title; }
     const std::string& get_filename() const { return filename_; }

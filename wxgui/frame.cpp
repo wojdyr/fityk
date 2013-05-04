@@ -2495,10 +2495,9 @@ void FToolBar::on_addpeak_hover()
     try {
         fityk::Guess g(ftk->get_settings());
         const DataAndModel* dm = ftk->get_dm(frame->get_focused_data_index());
-        int len = dm->data()->get_n();
-        if (len == 0)
+        if (dm->data()->get_n() == 0)
             return;
-        g.initialize(dm, 0, len, -1);
+        g.set_data(dm, RealRange(), -1);
         if (frame->peak_type_nr_ >= (int) ftk->get_tpm()->tpvec().size())
             return;
         if (ftk->get_tpm()->tpvec()[frame->peak_type_nr_]->peak_d) {

@@ -264,10 +264,8 @@ void info_guess(const Ftk* F, int ds, const RealRange& range, string& result)
     if (range.from >= range.to)
         result += "invalid range";
     else {
-        int lb = F->get_data(ds)->get_lower_bound_ac(range.from);
-        int rb = F->get_data(ds)->get_upper_bound_ac(range.to);
         Guess g(F->get_settings());
-        g.initialize(F->get_dm(ds), lb, rb, -1);
+        g.set_data(F->get_dm(ds), range, -1);
         boost::array<double,4> peak_v = g.estimate_peak_parameters();
         for (int i = 0; i != 4; ++i)
             result += (i != 0 ? ", " : "")

@@ -195,8 +195,6 @@ void Runner::command_fit(const vector<Token>& args, int ds)
 void Runner::command_guess(const vector<Token>& args, int ds)
 {
     DataAndModel* dm = F_->get_dm(ds);
-    Data const* data = dm->data();
-
     string name; // optional function name
     int ignore_idx = -1;
     if (args[0].type == kTokenFuncname) {
@@ -229,10 +227,8 @@ void Runner::command_guess(const vector<Token>& args, int ds)
         throw ExecuteError("invalid range");
 
     // initialize guess
-    int lb = data->get_lower_bound_ac(range.from);
-    int rb = data->get_upper_bound_ac(range.to);
     Guess g(F_->get_settings());
-    g.initialize(dm, lb, rb, ignore_idx);
+    g.set_data(dm, range, ignore_idx);
 
     // guess
     vector<string> gkeys;

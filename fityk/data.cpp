@@ -168,9 +168,12 @@ void Data::load_data_sum(const vector<const Data*>& dd, const string& op)
 void Data::add_one_point(realt x, realt y, realt sigma)
 {
     Point pt(x, y, sigma);
-    vector<Point>::iterator a = upper_bound(p_.begin(), p_.end(), pt);
-    int idx = a - p_.begin();
-    p_.insert(a, pt);
+    vector<Point>::iterator pi = upper_bound(p_.begin(), p_.end(), pt);
+    int idx = pi - p_.begin();
+    p_.insert(pi, pt);
+    vector<int>::iterator ai = lower_bound(active_.begin(), active_.end(), idx);
+    for (vector<int>::iterator i = ai; i != active_.end(); ++i)
+        *i += 1;
     active_.insert(upper_bound(active_.begin(), active_.end(), idx), idx);
     // (fast) x_step_ update
     if (p_.size() < 2)
@@ -424,18 +427,14 @@ void Data::sort_points()
     sort(p_.begin(), p_.end());
 }
 
-int Data::get_lower_bound_ac(double x) const
+std::pair<int,int> Data::get_index_range(const RealRange& range) const
 {
     //pre: p_.x is sorted, active_ is sorted
-    int pit = lower_bound(p_.begin(), p_.end(), Point(x,0)) - p_.begin();
-    return lower_bound(active_.begin(), active_.end(), pit) - active_.begin();
-}
-
-int Data::get_upper_bound_ac(double x) const
-{
-    //pre: p_.x is sorted, active_ is sorted
-    int pit = upper_bound(p_.begin(), p_.end(), Point(x,0)) - p_.begin();
-    return upper_bound(active_.begin(), active_.end(), pit) - active_.begin();
+    int p1 = lower_bound(p_.begin(), p_.end(), Point(range.from,0)) - p_.begin();
+    int p2 = upper_bound(p_.begin(), p_.end(), Point(range.to,0)) - p_.begin();
+    int a1 = lower_bound(active_.begin(), active_.end(), p1) - active_.begin();
+    int a2 = upper_bound(active_.begin(), active_.end(), p2) - active_.begin();
+    return std::make_pair(a1, a2);
 }
 
 vector<Point>::const_iterator Data::get_point_at(double x) const

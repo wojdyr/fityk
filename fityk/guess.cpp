@@ -25,29 +25,27 @@ const array<string, 3> Guess::linear_traits =
 const array<string, 4> Guess::peak_traits =
                                     {{ "center", "height", "hwhm", "area" }};
 
-Guess::Guess(Settings const *settings) : settings_(settings)
+void Guess::set_data(const DataAndModel* dm, const RealRange& range,
+                     int ignore_idx)
 {
-}
-
-void Guess::initialize(const DataAndModel* dm, int lb, int rb, int ignore_idx)
-{
-    int len = rb - lb;
+    pair<int,int> point_indexes = dm->data()->get_index_range(range);
+    int len = point_indexes.second - point_indexes.first;
     assert(len >= 0);
     if (len == 0)
         throw ExecuteError("guess: empty range");
     xx_.resize(len);
     for (int j = 0; j != len; ++j)
-        xx_[j] = dm->data()->get_x(lb+j);
+        xx_[j] = dm->data()->get_x(point_indexes.first + j);
     if (settings_->guess_uses_weights) {
         sigma_.resize(len);
         for (int j = 0; j != len; ++j)
-            sigma_[j] = dm->data()->get_sigma(lb+j);
+            sigma_[j] = dm->data()->get_sigma(point_indexes.first + j);
     }
     yy_.clear(); // just in case
     yy_.resize(len, 0.);
     dm->model()->compute_model(xx_, yy_, ignore_idx);
     for (int j = 0; j != len; ++j)
-        yy_[j] = dm->data()->get_y(lb+j) - yy_[j];
+        yy_[j] = dm->data()->get_y(point_indexes.first + j) - yy_[j];
 }
 
 
@@ -105,7 +103,7 @@ double Guess::find_hwhm(int pos, double* area) const
 
 // outputs vector with: center, height, hwhm, area
 // returns values corresponding to peak_traits
-array<double,4> Guess::estimate_peak_parameters()
+array<double,4> Guess::estimate_peak_parameters() const
 {
     // find the highest point, which must be higher than the previous point
     // and not lower than the next one (-> it cannot be the first/last point)
