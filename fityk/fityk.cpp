@@ -194,6 +194,16 @@ vector<Func*> Fityk::all_functions() const
     return vector<Func*>(functions.begin(), functions.end());
 }
 
+const Func* Fityk::get_function(const std::string& name) const
+{
+    if (name.empty())
+        return NULL;
+    int n = ftk_->mgr.find_function_nr(name[0] == '%' ? name.substr(1) : name);
+    if (n == -1)
+        return NULL;
+    return ftk_->mgr.functions()[n];
+}
+
 vector<Func*> Fityk::get_components(int dataset, char fz)
 {
     const vector<int>& indexes = ftk_->get_model(dataset)->get_fz(fz).idx;

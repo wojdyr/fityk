@@ -321,6 +321,15 @@ Model info
       print("center:", f:get_param_value("center")) -- center: 24.72235945525
       print("f(25)=", f:value_at(25))               -- f(25)=  4386.95533969
 
+.. method:: Fityk.get_function(name)
+
+    Return the function with given *name*, or NULL if there is no such
+    function.
+
+    Example::
+
+      f = F:get_function("_1")
+      print("f(25)=", f:value_at(25))               -- f(25)=  4386.95533969
 
 .. method:: Fityk.get_components(d [, fz])
 

@@ -250,6 +250,9 @@ public:
     /// returns all %functions
     std::vector<Func*> all_functions() const;
 
+    /// returns function with given name ("%" in the name is optional)
+    const Func* get_function(const std::string& name) const;
+
     /// returns %functions used in dataset
     std::vector<Func*> get_components(int dataset, char fz='F');
 
