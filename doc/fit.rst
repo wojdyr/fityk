@@ -8,7 +8,7 @@ Curve Fitting
 Nonlinear Optimization
 ----------------------
 
-This is the core. We have a set of observations (data points), to which
+This is the core. We have a set of observations (data points) to which
 we want to fit a *model* that depends on adjustable parameters.
 Let me quote `Numerical Recipes <http://www.nrbook.com/a/bookcpdf.php>`_,
 chapter 15.0, page 656):
@@ -50,91 +50,13 @@ Weights are based on standard deviations, :math:`w_i=1/\sigma_i^2`.
 You can learn why squares of residuals are minimized e.g. from
 chapter 15.1 of *Numerical Recipes*.
 
-So we are looking for a global minimum of :math:`\chi^2`.
-This field of numerical research (looking for a minimum or maximum)
-is usually called optimization; it is non-linear and global optimization.
-Fityk implements three very different optimization methods.
-All are well-known and described in many standard textbooks.
+The most popular method for curve-fitting is Levenberg-Marquardt.
+Fityk can also use a few general-purpose optimization methods.
+These methods are slower, some of them are orders of magnitude slower.
+Sometimes alternative methods find global minimum when the L-M algorithm
+is stuck in a local minimum, but in majority of cases the default L-M method
+is superior.
 
-The standard deviations of the best-fit parameters are given by the square
-root of the corresponding diagonal elements of the covariance matrix.
-The covariance matrix is based on standard deviations of data points.
-Formulae can be found e.g. in
-`GSL Manual <http://www.gnu.org/software/gsl/manual/>`_,
-chapter *Least-Squares Fitting. Fitting Overview* (weighted data version).
-
-.. _fitting_cmd:
-
-Fitting Related Commands
-------------------------
-
-To fit model to data, use command
-
-fit [max-wssr-evaluations] [@n ...]
-
-All non-linear fitting methods are iterative and evaluate the model many times,
-with different parameter sets, until one of the stopping criteria is met.
-
-*max-wssr-evaluations* is such a criterium.
-It is described below together with other stopping criteria.
-``fit 200`` is a shorthand for ``with max_wssr_evaluations=200 fit``.
-
-Like with all commands, the generic dataset specification (``@n: fit``)
-can be used, but in special cases the datasets can be given at the end
-of the command. The difference is that
-``fit @*`` fits all datasets simultaneously, while
-``@*: fit`` fits all datasets one by one, separately.
-
-The fitting method can be set using the set command::
-
-  set fitting_method = method
-
-where method is one of: ``levenberg_marquardt``, ``mpfit``,
-``nelder_mead_simplex``, ``genetic_algorithms``.
-
-There are three common stopping criteria:
-
-- the maximum number of evaluations of the objective function (WSSR)
-  and its derivatives; can be specified either after the ``fit`` command or
-  using the option :option:`max_wssr_evaluations` (0=unlimited).
-
-- and the processor time, in seconds
-  (:option:`max_fitting_time`,  0=unlimited).
-
-There are also other criteria, different for each method.
-
-On Unix, fitting can be interrupted by sending the ``INT`` signal to the
-program. This is usually done by pressing Ctrl-C in the terminal.
-
-Setting ``set fit_replot = 1`` updates the plot periodically during fitting,
-to visualize the progress.
-
-``info fit`` shows measures of goodness-of-fit, including :math:`\chi^2`,
-reduced :math:`\chi^2` and R-squared:
-
-.. math::
-   R^2 \equiv 1 - {{\sum_i (y_i - f_i)^2} \over {\sum_i (y_i-\bar{y})^2}}
-
-Values of all parameters are stored before and after fitting (if they
-change). This enables simple undo/redo functionality.
-If in the meantime some functions or variables where added or removed,
-the program can still load the old parameters, but the result can be
-unexpected. The following history-related commands are provided:
-
-fit undo
-    move back to the previous parameters (undo fitting).
-
-fit redo
-    move forward in the parameter history
-
-info fit_history
-    show number of items in the history
-
-fit history *n*
-    load the *n*-th set of parameters from history
-
-fit clear_history
-    clear the history
 
 Uncertainty of Parameters
 -------------------------
@@ -154,8 +76,7 @@ From the book J. Wolberg, *Data Analysis Using the Method of Least Squares: Extr
 Note that :math:`\sigma_{a_k}` is a square root of the value above.
 In this formula *n-p*, the number of (active) data points minus the number
 of independent parameters, is equal to the number of degrees of freedom.
-*S* is another symbol for :math:`\chi^2` (the latter symbol is used e.g. in
-*Numerical Recipes*).
+*S* is another symbol for :math:`\chi^2`.
 
 Terms of the *C* matrix are given as (p. 47 in the same book):
 
@@ -188,14 +109,68 @@ __ http://www.graphpad.com/manuals/prism4/RegressionBook.pdf
    reported standard error and confidence intervals won’t be helpful.
 
 
-In Fityk:
+.. _fitting_cmd:
 
-* ``info errors`` shows values of :math:`\sigma_{a_k}`.
-* ``info confidence 95`` shows confidence limits for confidence level 95%
+Fitting Related Commands
+------------------------
+
+To fit model to data, use command::
+
+    fit [max-eval] [@n ...]
+
+Specifying *max-eval* is equivalent to setting
+the :option:`max_wssr_evaluations` option, for example
+``fit 200`` is a shorthand for ``with max_wssr_evaluations=200 fit``.
+
+Like with all commands, the generic dataset specification (``@n: fit``)
+can be used, but in special cases the datasets can be given at the end
+of the command. The difference is that
+``fit @*`` fits all datasets simultaneously, while
+``@*: fit`` fits all datasets one by one, separately.
+
+The fitting method can be set using the set command::
+
+  set fitting_method = method
+
+where method is one of: ``levenberg_marquardt``, ``mpfit``,
+``nelder_mead_simplex``, ``genetic_algorithms``,
+``nlopt_nm``, ``nlopt_lbfgs``, ``nlopt_var2``, ``nlopt_praxis``,
+``nlopt_bobyqa``, ``nlopt_sbplx``.
+
+All non-linear fitting methods are iterative and evaluate the model many times,
+with different parameter sets, until one of the stopping criteria is met.
+There are three common criteria:
+
+- the maximum number of evaluations of the objective function (WSSR),
+  (option :option:`max_wssr_evaluations`, 0=unlimited).
+  Sometimes evaluations of WSSR and its derivatives is counted as 2.
+
+- limit on processor time, in seconds
+  (option :option:`max_fitting_time`,  0=unlimited).
+
+- (Unix only) receiving the ``INT`` signal
+  which can be sent by pressing Ctrl-C in the terminal.
+
+and method-specific criteria, which generally stop
+when no further progress is expected.
+
+Setting ``set fit_replot = 1`` updates the plot periodically during fitting,
+to visualize the progress.
+
+``info fit`` shows measures of goodness-of-fit, including :math:`\chi^2`,
+reduced :math:`\chi^2` and R-squared:
+
+.. math::
+   R^2 \equiv 1 - {{\sum_i (y_i - f_i)^2} \over {\sum_i (y_i-\bar{y})^2}}
+
+Parameter uncertainties and related values can be shown using:
+
+* ``info errors`` -- values of :math:`\sigma_{a_k}`.
+* ``info confidence 95`` -- confidence limits for confidence level 95%
   (any level can be choosen)
-* ``info cov`` shows the matrix *C*:sup:`--1`.
-* Individual symmetric errors of simple-variables can be accessed as
-  ``$variable.error`` or e.g. ``%func.height.error``.
+* ``info cov`` -- the *C*:sup:`--1` matrix.
+* ``print $variable.error`` -- symmetric error of specified simple-variable,
+  ``print %func.height.error`` also works.
 
 .. admonition:: In the GUI
 
@@ -209,6 +184,22 @@ In Fityk:
     deviations of *y*'s are set accurately. This formula is derived
     in *Numerical Recipes*.
  
+Finally, the user can *undo* and *redo* fitting:
+
+* ``fit undo`` -- restore previous parameter values,
+
+* ``fit redo`` -- move forward in the parameter history,
+
+* ``info fit_history`` -- show number of items in the fitting history,
+
+* ``fit history n`` -- load the *n*-th set of parameters from history
+
+* ``fit clear_history`` -- clear the history
+
+Parameters are saved before and after fitting.
+Only changes to parameter values can be undone, other operations
+(like adding or removing variables) cannot.
+
 .. _levmar:
 
 Levenberg-Marquardt
@@ -224,35 +215,39 @@ to 0, the method is equivalent to the inverse-Hessian method.
 When |lambda| increases, the shift vector is rotated toward the direction
 of steepest descent and the length of the shift vector decreases. (The
 shift vector is a vector that is added to the parameter vector.) If a
-better fit is found on iteration, |lambda| is decreased -- it is divided by
-the value of :option:`lm_lambda_down_factor` option (default: 10).
-Otherwise, |lambda| is multiplied by the value of
-:option:`lm_lambda_up_factor` (default: 10).
-The initial |lambda| value is equal to
-:option:`lm_lambda_start` (default: 0.0001).
+better fit is found on iteration, |lambda| is decreased.
 
-The Marquardt method has two stopping criteria other than the common
-criteria.
+Two implementation of this method are available: one from the MPFIT_ library,
+based on the old good MINPACK_ code (default method since ver. 1.3.0),
+and a custom implementation (default method in earlier fityk versions).
 
-- If it happens twice in sequence, that the relative
-  change of the value of the objective function (WSSR) is smaller than
-  the value of the :option:`lm_stop_rel_change` option, the
-  fit is considered to have converged and is stopped.
-
-- If |lambda| is greater than the value of the :option:`lm_max_lambda`
-  option (default: 10^15), usually when due to limited numerical precision
-  WSSR is no longer changing, the fitting is also stopped.
-
-.. |lambda| replace:: *λ*
-
-Since version 1.1.2 it is possible to use another implementations of
-the Levenberg-Marquardt method, from MPFIT_ library.
 To switch between the two implementation use command::
 
    set fitting_method = mpfit               # switch to MPFIT
-   set fitting_method = levenberg_marquardt # switch back to default one
+   set fitting_method = levenberg_marquardt # switch to fityk implem. of L-M
 
 .. _MPFIT: http://www.physics.wisc.edu/~craigm/idl/cmpfit.html
+.. _MINPACK: http://en.wikipedia.org/wiki/MINPACK
+
+
+The following stopping criteria are available for *mpfit*:
+
+- the relative change of WSSR is smaller than the value of
+  the :option:`ftol_rel` option (default: 10^-10),
+
+- the relative change of parameters is smaller than the value of
+  the :option:`xtol_rel` option (default: 10^-10),
+
+and for *levenberg_marquardt*:
+
+- the relative change of WSSR is smaller than the value of
+  the :option:`lm_stop_rel_change` option twice in row,
+
+- |lambda| is greater than the value of the :option:`lm_max_lambda`
+  option (default: 10^15), which normally means WSSR is not changing
+  due to limited numerical precision.
+
+.. |lambda| replace:: *λ*
 
 .. _nelder:
 
@@ -312,8 +307,32 @@ parameter to be either the greatest or smallest value in the domain of
 the parameter -- one of the two bounds of the domain (assuming that
 :option:`nm_move_factor` is equal 1).
 
-Genetic Algorithms
-------------------
+NLopt
+-----
 
-\[TODO]
+A few methods from the NLopt_ library are available:
+
+- ``nlopt_nm`` -- Nelder-Mead method, similar to the one described above,
+
+- ``nlopt_lbfgs`` -- low-storage BFGS,
+
+- ``nlopt_var2`` -- shifted limited-memory variable-metric,
+
+- ``nlopt_praxis`` -- PRAXIS (PRincipal AXIS),
+
+- ``nlopt_bobyqa`` -- BOBYQA,
+
+- ``nlopt_sbplx`` -- Sbplx (based on Subplex),
+
+.. _NLopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
+
+All NLopt methods have the same stopping criteria (in addition to the
+common criteria):
+
+- an optimization step changes the WSSR value by less than the value of
+  the :option:`ftol_rel` option (default: 10^-10) multiplied by the WSSR,
+
+- an optimization step changes every parameter by less than the value of
+  the :option:`xtol_rel` option (default: 10^-10)
+  multiplied by the absolute value of the parameter.
 
