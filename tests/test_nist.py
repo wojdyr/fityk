@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+# run tests with: python -m unittest discover
+
 import os
 import sys
 import re

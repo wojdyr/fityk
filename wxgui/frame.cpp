@@ -108,7 +108,7 @@
 #include "img/powdifpat16.xpm"
 
 using namespace std;
-using fityk::FitMethodsContainer;
+using fityk::FitManager;
 FFrame *frame = NULL;
 fityk::Ftk *ftk = NULL;
 
@@ -165,7 +165,7 @@ enum {
     ID_F_HISTORY               ,
     ID_T_PD                    ,
     ID_F_M                     ,
-    ID_F_M_END = ID_F_M+10     ,
+    ID_F_M_END = ID_F_M+50     ,
     ID_SESSION_LOG             ,
     ID_LOG_START               ,
     ID_LOG_STOP                ,
@@ -718,10 +718,10 @@ void FFrame::set_menubar()
 
     wxMenu* fit_menu = new wxMenu;
     wxMenu* fit_method_menu = new wxMenu;
-    for (int i = 0; FitMethodsContainer::full_method_names[i][0] != NULL; ++i)
+    for (int i = 0; FitManager::method_list[i][0] != NULL; ++i)
         fit_method_menu->AppendRadioItem(ID_F_M+i,
-                    wxString("&")+FitMethodsContainer::full_method_names[i][0],
-                    FitMethodsContainer::full_method_names[i][1]);
+                                wxString("&") + FitManager::method_list[i][1],
+                                FitManager::method_list[i][2]);
     fit_menu->Append (ID_F_METHOD, wxT("&Method"), fit_method_menu, wxT(""));
     fit_menu->AppendSeparator();
     append_mi(fit_menu, ID_F_RUN, GET_BMP(run16), wxT("&Run...\tCtrl-R"),
@@ -1288,17 +1288,17 @@ void FFrame::OnMenuFitRunUpdate(wxUpdateUIEvent& event)
 
 void FFrame::OnMenuFitUndoUpdate(wxUpdateUIEvent& event)
 {
-    event.Enable(ftk->get_fit_container()->can_undo());
+    event.Enable(ftk->fit_manager()->can_undo());
 }
 
 void FFrame::OnMenuFitRedoUpdate(wxUpdateUIEvent& event)
 {
-    event.Enable(ftk->get_fit_container()->has_param_history_rel_item(1));
+    event.Enable(ftk->fit_manager()->has_param_history_rel_item(1));
 }
 
 void FFrame::OnMenuFitHistoryUpdate(wxUpdateUIEvent& event)
 {
-    event.Enable(ftk->get_fit_container()->get_param_history_size() != 0);
+    event.Enable(ftk->fit_manager()->get_param_history_size() != 0);
 }
 
 void FFrame::OnFOneOfMethods (wxCommandEvent& event)
@@ -2174,7 +2174,7 @@ void FFrame::update_toolbar()
     BgManager* bgm = get_main_plot()->bgm();
     toolbar_->ToggleTool(ID_T_STRIP, bgm->has_fn() && bgm->stripped());
     toolbar_->EnableTool(ID_T_RUN, !ftk->mgr.parameters().empty());
-    toolbar_->EnableTool(ID_T_UNDO, ftk->get_fit_container()->can_undo());
+    toolbar_->EnableTool(ID_T_UNDO, ftk->fit_manager()->can_undo());
     toolbar_->EnableTool(ID_T_PZ, zoom_hist_.pos() > 0);
 }
 

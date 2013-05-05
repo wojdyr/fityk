@@ -58,6 +58,9 @@ static const char* default_sigma_enum[] =
 static const char* nm_distribution_enum[] =
 { "bound", "uniform", "gauss", "lorentz", NULL };
 
+// note: omitted elements are set to 0
+static const char* fit_method_enum[20] = { NULL };
+
 #define OPT(name, type, ini, allowed) \
 { #name, SettingsMgr::type, OptVal(&Settings::name, ini), allowed }
 
@@ -78,7 +81,7 @@ static const Option options[] = {
     OPT(width_correction, kDouble, 1., NULL),
     OPT(guess_uses_weights, kBool, true, NULL),
 
-    OPT(fitting_method, kEnum, fit_method_enum[0], fit_method_enum),
+    OPT(fitting_method, kEnum, FitManager::method_list[0][0], fit_method_enum),
     OPT(max_wssr_evaluations, kInt, 1000, NULL),
     OPT(max_fitting_time, kDouble, 0., NULL),
     OPT(refresh_period, kInt, 4, NULL),
@@ -124,6 +127,8 @@ void change_current_working_dir(const char* path)
 SettingsMgr::SettingsMgr(Ftk const* F)
     : F_(F)
 {
+    for (int i = 0; FitManager::method_list[i][0]; ++i)
+        fit_method_enum[i] = FitManager::method_list[i][0];
     size_t len = sizeof(options) / sizeof(options[0]);
     for (size_t i = 0; i != len; ++i) {
         const Option& opt = options[i];

@@ -440,7 +440,7 @@ void Fit::fit(int max_eval, const vector<DataAndModel*>& dms)
     update_par_usage(dms);
     dmdm_ = dms;
     a_orig_ = F_->mgr.parameters();
-    F_->get_fit_container()->push_param_history(a_orig_);
+    F_->fit_manager()->push_param_history(a_orig_);
     evaluations_ = 0;
     fityk::user_interrupt = false;
     max_eval_ = (max_eval > 0 ? max_eval
@@ -463,7 +463,7 @@ void Fit::fit(int max_eval, const vector<DataAndModel*>& dms)
     F_->msg(name + ": " + S(evaluations_) + " evaluations, "
             + format1<double,16>("%.2f", elapsed()) + " s. of CPU time.");
     if (wssr < initial_wssr_) {
-        F_->get_fit_container()->push_param_history(best_a);
+        F_->fit_manager()->push_param_history(best_a);
         F_->mgr.put_new_parameters(best_a);
         double percent_change = (wssr - initial_wssr_) / initial_wssr_ * 100.;
         F_->msg("WSSR: " + sm->format_double(wssr) +
@@ -574,78 +574,62 @@ string Fit::iteration_info(realt wssr)
 
 //-------------------------------------------------------------------
 
-// keep sync with to FitMethodsContainer ctor and full_method_names
-const char* fit_method_enum[] = {
-    "levenberg_marquardt", // LMfit.cpp
-    "mpfit",               // MPfit.cpp
-    "nelder_mead_simplex", // NMfit.cpp
-    "genetic_algorithms",  // GAfit.cpp
+// keep sync with to FitManager ctor
+const char* FitManager::method_list[][3] =
+{
+ { "mpfit", "Lev-Mar (from MPFIT)", "Levenberg-Marquardt" },
+ { "levenberg_marquardt", "Lev-Mar (custom)", "Levenberg-Marquardt" },
 #if HAVE_LIBNLOPT
-    "nlopt_mma",           // NLfit.cpp
-    "nlopt_slsqp",         // NLfit.cpp
-    "nlopt_lbfgs",         // NLfit.cpp
-    "nlopt_var2",          // NLfit.cpp
-    "nlopt_cobyla",        // NLfit.cpp
-    "nlopt_bobyqa",        // NLfit.cpp
-    "nlopt_nm",            // NLfit.cpp
-    "nlopt_sbplx",         // NLfit.cpp
-    "nlopt_crs2",          // NLfit.cpp
-    "nlopt_praxis",        // NLfit.cpp
+ { "nlopt_nm", "Nelder-Mead (from NLopt)","Nelder-Mead Simplex" },
+ { "nlopt_lbfgs", "BFGS (from NLopt)", "L-BFGS" },
+ { "nlopt_var2", "VAR2 (from NLopt)",
+                               "shifted limited-memory variable-metric" },
+ { "nlopt_praxis", "PRAXIS (from NLopt)", "principal-axis method" },
+ { "nlopt_bobyqa", "BOBYQA (from NLopt)",
+                               "Bound Optimization BY Quadratic Approx." },
+ { "nlopt_sbplx", "Sbplx (from NLopt)", "(based on Subplex)" },
+ //{ "nlopt_crs2", "CRS2 (from NLopt)", "Controlled Random Search" },
+ //{ "nlopt_slsqp", "SLSQP (from NLopt)", "sequential quadratic programming" },
+ //{ "nlopt_mma", "MMA (from NLopt)", "Method of Moving Asymptotes" },
+ //{ "nlopt_cobyla", "COBYLA (from NLopt)",
+ //                            "Constrained Optimization BY Linear Approx." },
 #endif
-    NULL
+ { "nelder_mead_simplex", "Nelder-Mead Simplex", "(custom implementation)" },
+ { "genetic_algorithms", "Genetic Algorithm", "(not really maintained)" },
+ { NULL, NULL }
 };
 
-FitMethodsContainer::FitMethodsContainer(Ftk *F_)
+
+FitManager::FitManager(Ftk *F_)
     : ParameterHistoryMgr(F_), dirty_error_cache_(true)
 
 {
-    // these methods correspond to fit_method_enum[]
-    methods_.push_back(new LMfit(F_, fit_method_enum[0]));
-    methods_.push_back(new MPfit(F_, fit_method_enum[1]));
-    methods_.push_back(new NMfit(F_, fit_method_enum[2]));
-    methods_.push_back(new GAfit(F_, fit_method_enum[3]));
+    // these methods correspond to method_list[]
+    methods_.push_back(new MPfit(F_, method_list[0][0]));
+    methods_.push_back(new LMfit(F_, method_list[1][0]));
 #if HAVE_LIBNLOPT
-    methods_.push_back(new NLfit(F_, fit_method_enum[4], NLOPT_LD_MMA));
-    methods_.push_back(new NLfit(F_, fit_method_enum[5], NLOPT_LD_SLSQP));
-    methods_.push_back(new NLfit(F_, fit_method_enum[6], NLOPT_LD_LBFGS));
-    methods_.push_back(new NLfit(F_, fit_method_enum[7], NLOPT_LD_VAR2));
-    methods_.push_back(new NLfit(F_, fit_method_enum[8], NLOPT_LN_COBYLA));
-    methods_.push_back(new NLfit(F_, fit_method_enum[9], NLOPT_LN_BOBYQA));
-    methods_.push_back(new NLfit(F_, fit_method_enum[10], NLOPT_LN_NELDERMEAD));
-    methods_.push_back(new NLfit(F_, fit_method_enum[11], NLOPT_LN_SBPLX));
-    methods_.push_back(new NLfit(F_, fit_method_enum[12], NLOPT_GN_CRS2_LM));
-    methods_.push_back(new NLfit(F_, fit_method_enum[13], NLOPT_LN_PRAXIS));
+    methods_.push_back(new NLfit(F_, method_list[2][0], NLOPT_LN_NELDERMEAD));
+    methods_.push_back(new NLfit(F_, method_list[3][0], NLOPT_LD_LBFGS));
+    methods_.push_back(new NLfit(F_, method_list[4][0], NLOPT_LD_VAR2));
+    methods_.push_back(new NLfit(F_, method_list[5][0], NLOPT_LN_PRAXIS));
+    methods_.push_back(new NLfit(F_, method_list[6][0], NLOPT_LN_BOBYQA));
+    methods_.push_back(new NLfit(F_, method_list[7][0], NLOPT_LN_SBPLX));
+    //methods_.push_back(new NLfit(F_, method_list[8][0], NLOPT_LD_MMA));
+    //methods_.push_back(new NLfit(F_, method_list[9][0], NLOPT_LD_SLSQP));
+    //methods_.push_back(new NLfit(F_, method_list[10][0], NLOPT_LN_COBYLA));
+    //methods_.push_back(new NLfit(F_, method_list[11][0], NLOPT_GN_CRS2_LM));
 #endif
+    methods_.push_back(new NMfit(F_, method_list[8][0]));
+    methods_.push_back(new GAfit(F_, method_list[9][0]));
 }
 
 
-const char* FitMethodsContainer::full_method_names[][2] =
-{
-    { "Levenberg-Marquardt",     "gradient based method" },
-    { "MPFIT (another Lev-Mar)", "alternative Lev-Mar implementation" },
-    { "Nelder-Mead Simplex",     "slow but simple and reliable method" },
-    { "Genetic Algorithm",       "not really maintained" },
-#if HAVE_LIBNLOPT
-    { "MMA (from NLopt)",        "Method of Moving Asymptotes" },
-    { "SLSQP (from NLopt)",      "sequential quadratic programming" },
-    { "BFGS (from NLopt)",       "L-BFGS" },
-    { "VAR2 (from NLopt)",       "shifted limited-memory variable-metric" },
-    { "COBYLA (from NLopt)",     "Constrained Optimization BY Linear Approx." },
-    { "BOBYQA (from NLopt)",     "Bound Optimization BY Quadratic Approx." },
-    { "Nelder-Mead (from NLopt)","Nelder-Mead Simplex" },
-    { "Sbplx (from NLopt)",      "(based on Subplex)" },
-    { "CRS2 (from NLopt)",       "Controlled Random Search" },
-    { "PRAXIS (from NLopt)",     "principal-axis method" },
-#endif
-    { NULL, NULL }
-};
-
-FitMethodsContainer::~FitMethodsContainer()
+FitManager::~FitManager()
 {
     purge_all_elements(methods_);
 }
 
-Fit* FitMethodsContainer::get_method(const string& name) const
+Fit* FitManager::get_method(const string& name) const
 {
     v_foreach(Fit*, i, methods_)
         if ((*i)->name == name)
@@ -654,7 +638,7 @@ Fit* FitMethodsContainer::get_method(const string& name) const
     return NULL; // avoid compiler warning
 }
 
-realt FitMethodsContainer::get_standard_error(const Variable* var) const
+realt FitManager::get_standard_error(const Variable* var) const
 {
     if (!var->is_simple())
         return -1.; // value signaling unknown standard error

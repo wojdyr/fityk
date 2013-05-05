@@ -174,19 +174,19 @@ void Runner::command_fit(const vector<Token>& args, int ds)
         F_->outdated_plot();
     }
     else if (args[0].as_string() == "undo") {
-        F_->get_fit_container()->load_param_history(-1, true);
+        F_->fit_manager()->load_param_history(-1, true);
         F_->outdated_plot();
     }
     else if (args[0].as_string() == "redo") {
-        F_->get_fit_container()->load_param_history(+1, true);
+        F_->fit_manager()->load_param_history(+1, true);
         F_->outdated_plot();
     }
     else if (args[0].as_string() == "clear_history") {
-        F_->get_fit_container()->clear_param_history();
+        F_->fit_manager()->clear_param_history();
     }
     else if (args[0].as_string() == "history") {
         int n = iround(args[1].value.d);
-        F_->get_fit_container()->load_param_history(n, false);
+        F_->fit_manager()->load_param_history(n, false);
         F_->outdated_plot();
     }
 }

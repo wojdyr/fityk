@@ -59,8 +59,8 @@ Ftk::~Ftk()
 // initializations common for ctor and reset()
 void Ftk::initialize()
 {
-    fit_container_ = new FitMethodsContainer(this);
-    // Settings ctor is using FitMethodsContainer
+    fit_manager_ = new FitManager(this);
+    // Settings ctor is using FitManager
     settings_mgr_ = new SettingsMgr(this);
     tplate_mgr_ = new TplateMgr;
     tplate_mgr_->add_builtin_types(ui_->parser());
@@ -77,7 +77,7 @@ void Ftk::destroy()
     ui_->close_lua();
     purge_all_elements(dms_);
     mgr.do_reset();
-    delete fit_container_;
+    delete fit_manager_;
     delete settings_mgr_;
     delete tplate_mgr_;
 }
@@ -115,7 +115,7 @@ void Ftk::remove_dm(int d)
 Fit* Ftk::get_fit() const
 {
     string method_name = get_settings()->fitting_method;
-    return get_fit_container()->get_method(method_name);
+    return fit_manager()->get_method(method_name);
 }
 
 namespace {
@@ -249,7 +249,7 @@ void Ftk::import_dataset(int slot, string const& filename,
 void Ftk::outdated_plot()
 {
     dirty_plot_ = true;
-    fit_container_->outdated_error_cache();
+    fit_manager_->outdated_error_cache();
 }
 
 bool Ftk::are_independent(std::vector<DataAndModel*> dms) const

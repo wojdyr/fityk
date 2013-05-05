@@ -10,7 +10,7 @@
 #include "fityk/logic.h"
 
 using namespace std;
-using fityk::FitMethodsContainer;
+using fityk::FitManager;
 
 BEGIN_EVENT_TABLE(FitRunDlg, wxDialog)
     EVT_SPINCTRL (-1, FitRunDlg::OnSpinEvent)
@@ -51,8 +51,8 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id)
     method_sizer->Add(new wxStaticText(this, -1, wxT("method:")),
                       0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     wxArrayString m_choices;
-    for (int i = 0; FitMethodsContainer::full_method_names[i][0] != NULL; ++i)
-        m_choices.Add(FitMethodsContainer::full_method_names[i][0]);
+    for (int i = 0; FitManager::method_list[i][0] != NULL; ++i)
+        m_choices.Add(FitManager::method_list[i][1]);
     method_c = new wxChoice(this, -1, wxDefaultPosition, wxDefaultSize,
                             m_choices);
     int method_nr = ftk->settings_mgr()->get_enum_index("fitting_method");

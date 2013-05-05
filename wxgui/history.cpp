@@ -9,7 +9,7 @@
 #include "fityk/fit.h"
 
 using namespace std;
-using fityk::FitMethodsContainer;
+using fityk::FitManager;
 
 enum {
     ID_SHIST_LC             = 26100,
@@ -49,7 +49,7 @@ SumHistoryDlg::SumHistoryDlg (wxWindow* parent, wxWindowID id)
     wxBoxSizer *buttons_sizer = new wxBoxSizer(wxHORIZONTAL);
     wxButton *clear_btn = new wxButton(this, wxID_CLEAR, wxT("Clear History"));
     buttons_sizer->Add(clear_btn, 0, wxALL, 5);
-    clear_btn->Enable(ftk->get_fit_container()->get_param_history_size() != 0);
+    clear_btn->Enable(ftk->fit_manager()->get_param_history_size() != 0);
     //compute_wssr_button = new wxButton (this, ID_SHIST_CWSSR,
     //                                    wxT("Compute WSSRs"));
     //buttons_sizer->Add (compute_wssr_button, 0, wxALL, 5);
@@ -68,7 +68,7 @@ SumHistoryDlg::SumHistoryDlg (wxWindow* parent, wxWindowID id)
     SetSizer (top_sizer);
     top_sizer->SetSizeHints (this);
 
-    int index = ftk->get_fit_container()->get_active_nr();
+    int index = ftk->fit_manager()->get_active_nr();
     lc->Select(index, true);
     lc->Focus(index);
     lc->SetFocus();
@@ -87,10 +87,10 @@ void SumHistoryDlg::initialize_lc()
     for (int i = 0; i < 4; i++)
         lc->InsertColumn(3 + i, wxString::Format(wxT("par. %i"), view[i]));
 
-    FitMethodsContainer const* fmc = ftk->get_fit_container();
-    for (int pos = 0; pos != fmc->get_param_history_size(); ++pos) {
+    FitManager const* fm = ftk->fit_manager();
+    for (int pos = 0; pos != fm->get_param_history_size(); ++pos) {
         // add item to lc
-        const vector<realt>& item = fmc->get_item(pos);
+        const vector<realt>& item = fm->get_item(pos);
         lc->InsertItem(pos, wxString::Format(wxT("  %i  "), pos));
         lc->SetItem(pos, 1, wxString::Format(wxT("%i"), (int) item.size()));
         lc->SetItem(pos, 2, wxT("      ?      "));
@@ -108,12 +108,12 @@ void SumHistoryDlg::compute_all_wssr()
 {
     if (wssr_done)
         return;
-    FitMethodsContainer const* fmc = ftk->get_fit_container();
+    FitManager const* fm = ftk->fit_manager();
     const vector<realt> orig = ftk->mgr.parameters();
     vector<DataAndModel*> dms = frame->get_selected_dms();
 
-    for (int i = 0; i != fmc->get_param_history_size(); ++i) {
-        vector<realt> const& item = fmc->get_item(i);
+    for (int i = 0; i != fm->get_param_history_size(); ++i) {
+        vector<realt> const& item = fm->get_item(i);
         if (item.size() == orig.size()) {
             double wssr = ftk->get_fit()->compute_wssr(item, dms, true);
             lc->SetItem(i, 2, wxString::Format(wxT("%g"), wssr));
@@ -141,7 +141,7 @@ void SumHistoryDlg::OnFocusedItem(wxListEvent& event)
     if (!IsShown())
         return;
     int n = event.GetIndex();
-    if (n >= 0 && n != ftk->get_fit_container()->get_active_nr())
+    if (n >= 0 && n != ftk->fit_manager()->get_active_nr())
         exec("fit history " + S(n));
 }
 
@@ -158,9 +158,9 @@ void SumHistoryDlg::OnViewSpinCtrlUpdate (wxSpinEvent& event)
     li.SetText(wxString::Format(wxT("par. %i"), n));
     lc->SetColumn(3 + v, li);
     //update data in wxListCtrl
-    FitMethodsContainer const* fmc = ftk->get_fit_container();
-    for (int i = 0; i != fmc->get_param_history_size(); ++i) {
-        vector<realt> const& item = fmc->get_item(i);
+    FitManager const* fm = ftk->fit_manager();
+    for (int i = 0; i != fm->get_param_history_size(); ++i) {
+        vector<realt> const& item = fm->get_item(i);
         wxString s = n < (int) item.size() ? s2wx(S(item[n])) : wxString();
         lc->SetItem(i, 3 + v, s);
     }

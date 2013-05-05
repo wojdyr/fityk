@@ -72,8 +72,7 @@ F += %pe
 %ble = copy(%pe)
 dele %pe
 F += Pearson7(~2000, ~75, ~0.6, ~2)
-@0: fit 2
-fit+ 15
+@0: fit 12
 @*: with fitting_method=nelder_mead_simplex fit 10
 with fitting_method=genetic_algorithms fit 10
 %fun = copy(%_1)

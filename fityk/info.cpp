@@ -372,7 +372,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         else if (word == "view")
             result += F->view.str();
         else if (word == "fit_history")
-            result += F->get_fit_container()->param_history_info();
+            result += F->fit_manager()->param_history_info();
         else if (word == "filename") {
             result += F->get_data(ds)->get_filename();
         }

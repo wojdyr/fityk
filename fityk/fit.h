@@ -122,12 +122,12 @@ private:
 
 /// gives access to fitting methods, enables swithing between them
 /// also stores parameter history
-class FITYK_API FitMethodsContainer : public ParameterHistoryMgr
+class FITYK_API FitManager : public ParameterHistoryMgr
 {
 public:
-    static const char* full_method_names[][2];
-    FitMethodsContainer(Ftk *F_);
-    ~FitMethodsContainer();
+    static const char* method_list[][3];
+    FitManager(Ftk *F_);
+    ~FitManager();
     Fit* get_method(const std::string& name) const;
     const std::vector<Fit*>& methods() const { return methods_; }
     realt get_standard_error(const Variable* var) const;
@@ -138,10 +138,8 @@ private:
     mutable std::vector<realt> errors_cache_;
     bool dirty_error_cache_;
 
-    DISALLOW_COPY_AND_ASSIGN(FitMethodsContainer);
+    DISALLOW_COPY_AND_ASSIGN(FitManager);
 };
-
-extern const char* fit_method_enum[]; // used in settings.cpp
 
 } // namespace fityk
 #endif

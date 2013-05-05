@@ -402,7 +402,7 @@ void ExpressionParser::put_variable_sth(Lexer& lex, const string& name,
     if (lex.peek_token().type == kTokenDot) {
         lex.get_token(); // discard '.'
         lex.get_expected_token("error"); // discard "error"
-        double e = F_->get_fit_container()->get_standard_error(v);
+        double e = F_->fit_manager()->get_standard_error(v);
         if (e == -1.)
             lex.throw_syntax_error("unknown error of $" + v->name
                                   + "; it is not simple variable");

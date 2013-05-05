@@ -16,7 +16,7 @@ namespace fityk {
 
 class Ftk;
 class UserInterface;
-class FitMethodsContainer;
+class FitManager;
 class Fit;
 class Model;
 class TplateMgr;
@@ -79,9 +79,8 @@ public:
     const UserInterface* ui() const { return ui_; }
     UserInterface* ui() { return ui_; }
 
-    const FitMethodsContainer* get_fit_container() const
-        { return fit_container_; }
-    FitMethodsContainer* get_fit_container() { return fit_container_; }
+    const FitManager* fit_manager() const { return fit_manager_; }
+    FitManager* fit_manager() { return fit_manager_; }
     Fit* get_fit() const;
 
     const TplateMgr* get_tpm() const { return tplate_mgr_; }
@@ -116,7 +115,7 @@ private:
     std::vector<DataAndModel*> dms_;
     SettingsMgr* settings_mgr_;
     UserInterface* ui_;
-    FitMethodsContainer* fit_container_;
+    FitManager* fit_manager_;
     TplateMgr* tplate_mgr_;
     bool dirty_plot_;
 
