@@ -296,7 +296,7 @@ Model info
        variables = F:all_variables()
        for i = 0, #variables-1 do
            v = variables[i]
-           print(i, v.name, v:get_value(), v.domain.from, v.domain.to,
+           print(i, v.name, v:get_value(), v.domain.lo, v.domain.hi,
                  v:get_nr(), v:is_simple())
        end
 

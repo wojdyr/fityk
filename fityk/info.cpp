@@ -159,9 +159,9 @@ string get_variable_info(const Ftk* F, const Variable* v)
     string s = "$" + v->name + " = " + v->get_formula(F->mgr.parameters()) +
                 " = " + F->settings_mgr()->format_double(v->get_value());
     const RealRange& d = v->domain;
-    if (!d.from_inf() || !d.to_inf())
-        s += "  [" + (d.from_inf() ? S("") : S(d.from)) + " : "
-             + (d.to_inf() ? S("") : S(d.to)) + "]";
+    if (!d.lo_inf() || !d.hi_inf())
+        s += "  [" + (d.lo_inf() ? S("") : S(d.lo)) + " : "
+                   + (d.hi_inf() ? S("") : S(d.hi)) + "]";
     if (VariableManager::is_auto(v->name))
         s += "  [auto]";
     return s;
@@ -261,7 +261,7 @@ void info_history(const Ftk* F, const Token& t1, const Token& t2,
 
 void info_guess(const Ftk* F, int ds, const RealRange& range, string& result)
 {
-    if (range.from >= range.to)
+    if (range.lo >= range.hi)
         result += "invalid range";
     else {
         Guess g(F->get_settings());

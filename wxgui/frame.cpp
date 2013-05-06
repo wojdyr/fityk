@@ -1888,17 +1888,18 @@ static
 string format_range(const RealRange& r)
 {
     string s = "[";
-    if (!r.from_inf())
-        s += eS(r.from) + ":";
-    if (!r.to_inf())
-        s += eS(r.to);
+    if (!r.lo_inf())
+        s += eS(r.lo);
+    s += ":";
+    if (!r.hi_inf())
+        s += eS(r.hi);
     return s + "]";
 }
 
 void FFrame::change_zoom(const RealRange& h, const RealRange& v)
 {
     string cmd = "plot " + format_range(h) + " " + format_range(v);
-    if (h.from_inf() || h.to_inf() || v.from_inf() || v.to_inf())
+    if (h.lo_inf() || h.hi_inf() || v.lo_inf() || v.hi_inf())
         cmd += sidebar_->get_sel_datasets_as_string();
     exec(cmd);
     zoom_hist_.push(ftk->view.str());

@@ -562,16 +562,15 @@ void VariableManager::substitute_func_param(const string &name,
 realt VariableManager::variation_of_a(int n, realt variat) const
 {
     assert (0 <= n && n < size(parameters()));
-    const RealRange& dom = get_variable(n)->domain;
-    if (dom.from_inf() || dom.to_inf()) {
-        double ctr = get_variable(n)->get_value();
-        double sigma = ctr * F_->get_settings()->domain_percent / 100.;
-        return ctr + sigma * variat;
-    }
-    else {
-        // return lower bound for variat=-1 and upper bound for variat=1
-        return dom.from + 0.5 * (variat + 1) * (dom.to - dom.from);
-    }
+    const Variable* v = get_variable(n);
+    double lo = v->domain.lo, hi = v->domain.hi;
+    double percent = F_->get_settings()->domain_percent;
+    if (v->domain.lo_inf())
+        lo = v->get_value() * (1 - 0.01 * percent);
+    if (v->domain.hi_inf())
+        hi = v->get_value() * (1 + 0.01 * percent);
+    // return lower bound for variat=-1 and upper bound for variat=1
+    return lo + 0.5 * (variat + 1) * (hi - lo);
 }
 
 string VariableManager::next_var_name()

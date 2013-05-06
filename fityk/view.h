@@ -21,13 +21,13 @@ struct Rect
     RealRange hor, ver;
 
     Rect(double l, double r, double b, double t)
-        { hor.from = l; hor.to = r; ver.from = b; ver.to = t; }
-    double left() const { return hor.from; }
-    double right() const { return hor.to; }
-    double bottom() const { return ver.from; }
-    double top() const { return ver.to; }
-    double width() const { return hor.to - hor.from; }
-    double height() const { return ver.to - ver.from; }
+        { hor.lo = l; hor.hi = r; ver.lo = b; ver.hi = t; }
+    double left() const { return hor.lo; }
+    double right() const { return hor.hi; }
+    double bottom() const { return ver.lo; }
+    double top() const { return ver.hi; }
+    double width() const { return hor.hi - hor.lo; }
+    double height() const { return ver.hi - ver.lo; }
 };
 
 /// manages view, i.e. x and y range visible currently to the user

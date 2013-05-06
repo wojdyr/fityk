@@ -430,8 +430,8 @@ void Data::sort_points()
 std::pair<int,int> Data::get_index_range(const RealRange& range) const
 {
     //pre: p_.x is sorted, active_ is sorted
-    int p1 = lower_bound(p_.begin(), p_.end(), Point(range.from,0)) - p_.begin();
-    int p2 = upper_bound(p_.begin(), p_.end(), Point(range.to,0)) - p_.begin();
+    int p1 = lower_bound(p_.begin(), p_.end(), Point(range.lo,0)) - p_.begin();
+    int p2 = upper_bound(p_.begin(), p_.end(), Point(range.hi,0)) - p_.begin();
     int a1 = lower_bound(active_.begin(), active_.end(), p1) - active_.begin();
     int a2 = upper_bound(active_.begin(), active_.end(), p2) - active_.begin();
     return std::make_pair(a1, a2);

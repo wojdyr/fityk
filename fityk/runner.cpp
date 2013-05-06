@@ -28,9 +28,9 @@ RealRange args2range(const Token& t1, const Token& t2)
 {
     RealRange range;
     if (t1.type == kTokenExpr)
-        range.from = t1.value.d;
+        range.lo = t1.value.d;
     if (t2.type == kTokenExpr)
-        range.to = t2.value.d;
+        range.hi = t2.value.d;
     return range;
 }
 
@@ -223,7 +223,7 @@ void Runner::command_guess(const vector<Token>& args, int ds)
 
     // range
     RealRange range = args2range(*(args.end()-2), *(args.end()-1));
-    if (range.from >= range.to)
+    if (range.lo >= range.hi)
         throw ExecuteError("invalid range");
 
     // initialize guess

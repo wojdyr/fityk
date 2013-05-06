@@ -75,12 +75,12 @@ struct FITYK_API ExitRequestedException : std::exception
 /// used for variable domain and for plot borders
 struct FITYK_API RealRange
 {
-    double from, to;
+    double lo, hi;
 
-    RealRange() : from(-DBL_MAX), to(DBL_MAX) {}
-    RealRange(double from_, double to_) : from(from_), to(to_) {}
-    bool from_inf() const { return from == -DBL_MAX; }
-    bool to_inf() const { return to == DBL_MAX; }
+    RealRange() : lo(-DBL_MAX), hi(DBL_MAX) {}
+    RealRange(double low, double high) : lo(low), hi(high) {}
+    bool lo_inf() const { return lo == -DBL_MAX; }
+    bool hi_inf() const { return hi == DBL_MAX; }
 };
 
 /// represents $variable
