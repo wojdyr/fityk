@@ -78,7 +78,7 @@ void Function::do_precomputations(const vector<Variable*> &variables)
     multi_.clear();
     for (int i = 0; i < used_vars_.get_count(); ++i) {
         const Variable *v = variables[used_vars_.get_idx(i)];
-        av_[i] = v->get_value();
+        av_[i] = v->value();
         v_foreach (Variable::ParMult, j, v->recursive_derivatives())
             multi_.push_back(Multi(i, *j));
     }

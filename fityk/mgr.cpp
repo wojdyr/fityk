@@ -124,8 +124,9 @@ int VariableManager::make_variable(const string &name, VMData* vd)
         // avoid changing order of parameters in case of "$var = ~1.23"
         int old_pos = find_variable_nr(name);
         if (old_pos != -1 && variables_[old_pos]->is_simple()) {
-            int nr = variables_[old_pos]->get_nr();
-            parameters_[nr] = val; // variable at old_pos will be deleted soon
+            int gpos = variables_[old_pos]->gpos();
+            // variable at old_pos will be deleted soon
+            parameters_[gpos] = val;
             return old_pos;
         }
 
@@ -224,7 +225,7 @@ void VariableManager::remove_unreferred()
     for (int i = size(parameters_)-1; i >= 0; --i) {
         bool del=true;
         for (int j = 0; j < size(variables_); ++j)
-            if (variables_[j]->get_nr() == i) {
+            if (variables_[j]->gpos() == i) {
                 del=false;
                 break;
             }
@@ -270,10 +271,10 @@ string VariableManager::assign_variable_copy(const Variable* orig,
     string name = name_var_copy(orig);
     Variable *var;
     if (orig->is_simple()) {
-        realt val = orig->get_value();
+        realt val = orig->value();
         parameters_.push_back(val);
-        int nr = parameters_.size() - 1;
-        var = new Variable(name, nr);
+        int gpos = parameters_.size() - 1;
+        var = new Variable(name, gpos);
     }
     else {
         vector<string> vars;
@@ -420,25 +421,15 @@ const Variable* VariableManager::find_variable(const string &name) const
     return variables_[n];
 }
 
-int VariableManager::find_nr_var_handling_param(int p) const
+int VariableManager::gpos_to_vpos(int gpos) const
 {
-    assert(p >= 0 && p < size(parameters_));
+    assert(gpos >= 0 && gpos < size(parameters_));
     for (size_t i = 0; i < variables_.size(); ++i)
-        if (variables_[i]->get_nr() == p)
+        if (variables_[i]->gpos() == gpos)
             return i;
     assert(0);
     return 0;
 }
-
-/*
-int VariableManager::find_parameter_variable(int par) const
-{
-    for (int i = 0; i < size(variables_); ++i)
-        if (variables_[i]->get_nr() == par)
-            return i;
-    return -1;
-}
-*/
 
 void VariableManager::use_parameters()
 {
@@ -566,9 +557,9 @@ realt VariableManager::variation_of_a(int n, realt variat) const
     double lo = v->domain.lo, hi = v->domain.hi;
     double percent = F_->get_settings()->domain_percent;
     if (v->domain.lo_inf())
-        lo = v->get_value() * (1 - 0.01 * percent);
+        lo = v->value() * (1 - 0.01 * percent);
     if (v->domain.hi_inf())
-        hi = v->get_value() * (1 + 0.01 * percent);
+        hi = v->value() * (1 + 0.01 * percent);
     // return lower bound for variat=-1 and upper bound for variat=1
     return lo + 0.5 * (variat + 1) * (hi - lo);
 }

@@ -101,10 +101,10 @@ string Fit::get_cov_info(const vector<DataAndModel*>& dms)
     s += "\nCovariance matrix\n    ";
     for (int i = 0; i < na_; ++i)
         if (par_usage_[i])
-            s += "\t$" + F_->mgr.find_variable_handling_param(i)->name;
+            s += "\t$" + F_->mgr.gpos_to_var(i)->name;
     for (int i = 0; i < na_; ++i) {
         if (par_usage_[i]) {
-            s += "\n$" + F_->mgr.find_variable_handling_param(i)->name;
+            s += "\n$" + F_->mgr.gpos_to_var(i)->name;
             for (int j = 0; j < na_; ++j) {
                 if (par_usage_[j])
                     s += "\t" + sm->format_double(alpha[na_*i + j]);
@@ -334,11 +334,11 @@ realt Fit::compute_wssr_gradient_for(const DataAndModel* dm, double *grad)
     return wssr;
 }
 
-realt Fit::draw_a_from_distribution (int nr, char distribution, realt mult)
+realt Fit::draw_a_from_distribution(int gpos, char distribution, realt mult)
 {
-    assert (nr >= 0 && nr < na_);
-    if (!par_usage_[nr])
-        return a_orig_[nr];
+    assert (gpos >= 0 && gpos < na_);
+    if (!par_usage_[gpos])
+        return a_orig_[gpos];
     realt dv = 0;
     switch (distribution) {
         case 'g':
@@ -354,7 +354,7 @@ realt Fit::draw_a_from_distribution (int nr, char distribution, realt mult)
             dv = rand_1_1();
             break;
     }
-    return F_->mgr.variation_of_a(nr, dv * mult);
+    return F_->mgr.variation_of_a(gpos, dv * mult);
 }
 
 class ComputeUI
@@ -427,7 +427,7 @@ void Fit::update_par_usage(const vector<DataAndModel*>& dms)
 
     par_usage_ = vector<bool>(na_, false);
     for (int idx = 0; idx < na_; ++idx) {
-        int var_idx = F_->mgr.find_nr_var_handling_param(idx);
+        int var_idx = F_->mgr.gpos_to_vpos(idx);
         v_foreach (DataAndModel*, i, dms) {
             if ((*i)->model()->is_dependent_on_var(var_idx)) {
                 par_usage_[idx] = true;
@@ -582,7 +582,7 @@ double FitManager::get_standard_error(const Variable* var) const
             || errors_cache_.size() != F_->mgr.parameters().size()) {
         errors_cache_ = F_->get_fit()->get_standard_errors(F_->get_dms());
     }
-    return errors_cache_[var->get_nr()];
+    return errors_cache_[var->gpos()];
 }
 
 /// loads vector of parameters from the history

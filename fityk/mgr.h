@@ -39,16 +39,12 @@ public:
 
     void delete_variables(const std::vector<std::string> &name);
 
-    ///returns -1 if not found or idx in variables if found
+    /// returns -1 if not found or idx in variables if found
     int find_variable_nr(const std::string &name) const;
     const Variable* find_variable(const std::string &name) const;
-    int find_nr_var_handling_param(int p) const;
-    const Variable* find_variable_handling_param(int p) const
-                { return variables_[find_nr_var_handling_param(p)]; }
-
-    /// search for "simple" variable which handles parameter par
-    /// returns -1 if not found or idx in variables if found
-    //int find_parameter_variable(int par) const;
+    int gpos_to_vpos(int gpos) const;
+    const Variable* gpos_to_var(int gpos) const
+                                    { return variables_[gpos_to_vpos(gpos)]; }
 
     /// remove unreffered variables and parameters
     void remove_unreferred();
@@ -56,6 +52,7 @@ public:
     void auto_remove_functions();
     bool is_function_referred(int n) const;
 
+    // returns the global array of parameters
     const std::vector<realt>& parameters() const { return parameters_; }
     const std::vector<Variable*>& variables() const { return variables_; }
     const Variable* get_variable(int n) const { return variables_[n]; }

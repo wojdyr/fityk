@@ -152,9 +152,9 @@ void BgManager::define_bg_func()
                 const fityk::Variable *vy =
                     ftk->mgr.find_variable(f->used_vars().get_name(2*i+1));
                 if (!VariableManager::is_auto(vx->name) || !vx->is_constant() ||
-                        S(vx->get_value()) != S(bg_[i].x) ||
+                        S(vx->value()) != S(bg_[i].x) ||
                     !VariableManager::is_auto(vy->name) || !vy->is_constant() ||
-                        S(vy->get_value()) != S(bg_[i].y)) {
+                        S(vy->value()) != S(bg_[i].y)) {
                     the_same = false;
                     break;
                 }

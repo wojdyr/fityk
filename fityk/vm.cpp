@@ -723,7 +723,7 @@ realt run_code_for_variable(const VMData& vm,
         if (*i == OP_SYMBOL) {
             STACK_OFFSET_CHANGE(+1);
             ++i; // skip the next one
-            *stackPtr = variables[*i]->get_value();
+            *stackPtr = variables[*i]->value();
         }
         else if (*i == OP_PUT_DERIV) {
             ++i;

@@ -636,7 +636,7 @@ void SideBar::update_var_list()
         string refs = S(var_frefs[i]) + "+" + S(var_vrefs[i]) + " / "
                       + S(v->used_vars().get_count());
         var_data.push_back(refs); //refs
-        var_data.push_back(S(v->get_value())); //value
+        var_data.push_back(S(v->value())); //value
         var_data.push_back(v->get_formula(ftk->mgr.parameters()));  //formula
     }
     v->list->populate(var_data);
@@ -1111,11 +1111,11 @@ void SideBar::update_param_panel()
         wxString label = s2wx(pp_func->get_param(i));
         if (var->is_simple() || var->is_constant()) {
             bool locked = var->is_constant();
-            param_panel->set_normal_parameter(i, label, var->get_value(),
+            param_panel->set_normal_parameter(i, label, var->value(),
                                               locked, s2wx("$"+var->name));
         }
         else
-            param_panel->set_disabled_parameter(i, label, var->get_value(),
+            param_panel->set_disabled_parameter(i, label, var->value(),
                                                 s2wx("$"+var->name));
     }
 

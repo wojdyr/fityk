@@ -52,13 +52,13 @@ int IndexedVars::get_max_idx() const
 ////////////////////////////////////////////////////////////////////////////
 
 // ctor for simple variables and mirror variables
-Variable::Variable(string const &name_, int nr)
-    : Var(name_, nr), original_(NULL)
+Variable::Variable(string const &name_, int gpos)
+    : Var(name_, gpos), original_(NULL)
 {
     assert(!name_.empty());
-    if (nr_ != -2) {
+    if (gpos_ != -2) {
         ParMult pm;
-        pm.p = nr_;
+        pm.p = gpos_;
         pm.mult = 1;
         recursive_derivatives_.push_back(pm);
     }
@@ -81,7 +81,7 @@ Variable::~Variable()
 void Variable::set_var_idx(vector<Variable*> const& variables)
 {
     used_vars_.update_indices(variables);
-    if (nr_ == -1) {
+    if (gpos_ == -1) {
         /// (re-)create bytecode, required after update_indices()
         assert(used_vars_.indices().size() + 1 == op_trees_.size());
         vm_.clear_data();
@@ -98,25 +98,25 @@ void Variable::set_var_idx(vector<Variable*> const& variables)
 
 string Variable::get_formula(vector<realt> const &parameters) const
 {
-    assert(nr_ >= -1);
+    assert(gpos_ >= -1);
     vector<string> vn;
     v_foreach (string, i, used_vars_.names())
         vn.push_back("$" + *i);
     const char* num_format = "%.12g";
     OpTreeFormat fmt = { num_format, &vn };
-    return nr_ == -1 ? get_op_trees().back()->str(fmt)
-                    : "~" + eS(parameters[nr_]);
+    return gpos_ == -1 ? get_op_trees().back()->str(fmt)
+                    : "~" + eS(parameters[gpos_]);
 }
 
 void Variable::recalculate(vector<Variable*> const &variables,
                            vector<realt> const &parameters)
 {
-    if (nr_ >= 0) {
-        assert (nr_ < (int) parameters.size());
-        value_ = parameters[nr_];
+    if (gpos_ >= 0) {
+        assert (gpos_ < (int) parameters.size());
+        value_ = parameters[gpos_];
         assert(derivatives_.empty());
     }
-    else if (nr_ == -1) {
+    else if (gpos_ == -1) {
         value_ = run_code_for_variable(vm_, variables, derivatives_);
         recursive_derivatives_.clear();
         for (int i = 0; i < size(derivatives_); ++i) {
@@ -127,7 +127,7 @@ void Variable::recalculate(vector<Variable*> const &variables,
             }
         }
     }
-    else if (nr_ == -2) {
+    else if (gpos_ == -2) {
         if (original_) {
             value_ = original_->value_;
             recursive_derivatives_ = original_->recursive_derivatives_;
@@ -139,8 +139,8 @@ void Variable::recalculate(vector<Variable*> const &variables,
 
 void Variable::erased_parameter(int k)
 {
-    if (nr_ != -1 && nr_ > k)
-            --nr_;
+    if (gpos_ != -1 && gpos_ > k)
+            --gpos_;
     for (vector<ParMult>::iterator i = recursive_derivatives_.begin();
                                         i != recursive_derivatives_.end(); ++i)
         if (i->p > k)
@@ -149,7 +149,7 @@ void Variable::erased_parameter(int k)
 
 bool Variable::is_constant() const
 {
-    return nr_ == -1 && op_trees_.back()->op == 0;
+    return gpos_ == -1 && op_trees_.back()->op == 0;
 }
 
 } // namespace fityk

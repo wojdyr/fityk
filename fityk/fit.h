@@ -75,7 +75,7 @@ protected:
                                 const std::vector<DataAndModel*>& dms,
                                 double **derivs, double *deviates);
     int compute_deviates(const std::vector<realt> &A, double *deviates);
-    realt draw_a_from_distribution(int nr, char distribution = 'u',
+    realt draw_a_from_distribution(int gpos, char distribution = 'u',
                                    realt mult = 1.);
     void iteration_plot(const std::vector<realt> &A, realt wssr);
     void output_tried_parameters(const std::vector<realt>& a);

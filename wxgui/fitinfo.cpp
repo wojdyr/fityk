@@ -211,7 +211,7 @@ void FitInfoDlg::update_right_tc()
         }
         for (int i = 0; i < na; ++i) {
             if (fit->is_param_used(i)) {
-                const Variable *var = ftk->mgr.find_variable_handling_param(i);
+                const Variable *var = ftk->mgr.gpos_to_var(i);
                 vector<string> in = ftk->mgr.get_variable_references(var->name);
                 wxString name = wxT("$") + s2wx(var->name);
                 if (in.size() == 1 && in[0][0] == '%')
@@ -242,12 +242,12 @@ void FitInfoDlg::update_right_tc()
         }
         for (int i = 0; i < na; ++i)
             if (fit->is_param_used(i)) {
-                string name = ftk->mgr.find_variable_handling_param(i)->name;
+                string name = ftk->mgr.gpos_to_var(i)->name;
                 s += wxString::Format("%10s", s2wx("$"+name).c_str());
             }
         for (int i = 0; i < na; ++i) {
             if (fit->is_param_used(i)) {
-                string name = ftk->mgr.find_variable_handling_param(i)->name;
+                string name = ftk->mgr.gpos_to_var(i)->name;
                 s += wxString::Format("\n%10s", s2wx("$"+name).c_str());
                 for (int j = 0; j < na; ++j) {
                     if (fit->is_param_used(j)) {

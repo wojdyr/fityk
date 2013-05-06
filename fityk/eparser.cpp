@@ -416,7 +416,7 @@ void ExpressionParser::put_variable_sth(Lexer& lex, const string& name,
             expected_ = kOperator;
         }
         else
-            put_number(v->get_value());
+            put_number(v->value());
     }
 }
 

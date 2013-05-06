@@ -91,13 +91,13 @@ public:
     const std::string name;
     RealRange domain;
 
-    realt get_value() const { return value_; };
-    int get_nr() const { return nr_; };
-    bool is_simple() const { return nr_ != -1; }
+    realt value() const { return value_; };
+    int gpos() const { return gpos_; };
+    bool is_simple() const { return gpos_ != -1; }
 
 protected:
-    Var(const std::string &name_, int nr) : name(name_), nr_(nr) {}
-    int nr_; /// see description of this class in var.h
+    Var(const std::string &name_, int gpos) : name(name_), gpos_(gpos) {}
+    int gpos_; /// see description of this class in var.h
     realt value_;
 };
 
@@ -111,6 +111,7 @@ public:
 
     virtual const std::string& get_template_name() const = 0;
     virtual std::string get_param(int n) const = 0;
+    virtual const std::string& var_name(const std::string& param) const = 0;
     virtual realt get_param_value(const std::string& param) const = 0;
     virtual realt value_at(realt x) const = 0;
 protected:
@@ -241,11 +242,14 @@ public:
     /// returns number of simple-variables (parameters that can be fitted)
     int get_parameter_count() const;
 
-    /// returns vector of simple-variables (parameters that can be fitted)
+    /// returns global array of parameters (values of simple-variables)
     const std::vector<realt>& all_parameters() const;
 
     /// returns all $variables
     std::vector<Var*> all_variables() const;
+
+    /// returns variable $name
+    const Var* get_variable(std::string const& name)  throw(ExecuteError);
 
     /// returns all %functions
     std::vector<Func*> all_functions() const;
@@ -256,10 +260,6 @@ public:
     /// returns %functions used in dataset
     std::vector<Func*> get_components(int dataset, char fz='F');
 
-    /// returns a variable used as a parameter of function
-    Var* get_var(const Func *func, const std::string& parameter)
-                                                         throw(ExecuteError);
-
     /// returns the value of the model for a given dataset at x
     realt get_model_value(realt x, int dataset=DEFAULT_DATASET)
                                                          throw(ExecuteError);
@@ -268,11 +268,6 @@ public:
     std::vector<realt>
     get_model_vector(std::vector<realt> const& x, int dataset=DEFAULT_DATASET)
                                                          throw(ExecuteError);
-
-    /// \brief returns the index of parameter hold by the variable
-    /// (the same index as in get_covariance_matrix(),
-    /// -1 for a compound-variable)
-    int get_variable_nr(std::string const& name)  throw(ExecuteError);
 
     /// get coordinates of rectangle set by the plot command
     /// side is one of L(eft), R(ight), T(op), B(ottom)
@@ -295,9 +290,7 @@ public:
     /// get number of degrees-of-freedom for given dataset or for all datasets
     int get_dof(int dataset=ALL_DATASETS)  throw(ExecuteError);
 
-    /// \brief get covariance matrix (for given dataset or for all datasets)
-    /// get_variable_nr() can be used to connect variables with parameter
-    /// positions
+    /// get covariance matrix (for given dataset or for all datasets)
     std::vector<std::vector<realt> >
     get_covariance_matrix(int dataset=ALL_DATASETS)  throw(ExecuteError);
     // @}
@@ -358,7 +351,6 @@ FITYK_API int fityk_get_parameter_count(const Fityk* f);
 /* get data point, returns NULL if index is out of range */
 FITYK_API const Point* fityk_get_data_point(Fityk *f, int dataset, int index);
 FITYK_API realt fityk_get_model_value(Fityk *f, realt x, int dataset);
-FITYK_API int fityk_get_variable_nr(Fityk *f, const char* name);
 FITYK_API realt fityk_get_wssr(Fityk *f, int dataset);
 FITYK_API realt fityk_get_ssr(Fityk *f, int dataset);
 FITYK_API realt fityk_get_rsquared(Fityk *f, int dataset);

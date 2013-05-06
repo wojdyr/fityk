@@ -1370,10 +1370,10 @@ void freeze_functions_in_range(double x1, double x2, bool freeze)
             const Variable* var =
                 ftk->mgr.get_variable((*i)->used_vars().get_idx(j));
             if (freeze && var->is_simple()) {
-                cmd += "$" + var->name + "=" + eS(var->get_value()) + "; ";
+                cmd += "$" + var->name + "=" + eS(var->value()) + "; ";
             }
             else if (!freeze && var->is_constant()) {
-                cmd += "$" + var->name + "=~" + eS(var->get_value()) + "; ";
+                cmd += "$" + var->name + "=~" + eS(var->value()) + "; ";
             }
         }
     }

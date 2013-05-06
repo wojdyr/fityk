@@ -1584,7 +1584,7 @@ void var2lockctrl(const string& varname, LockableRealCtrl* ctrl, double mult=1.)
     if (k == -1)
         return;
     const fityk::Variable* v = ftk->mgr.get_variable(k);
-    ctrl->set_value(v->get_value() * mult);
+    ctrl->set_value(v->value() * mult);
     ctrl->set_lock(v->is_constant());
 }
 

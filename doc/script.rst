@@ -296,14 +296,18 @@ Model info
        variables = F:all_variables()
        for i = 0, #variables-1 do
            v = variables[i]
-           print(i, v.name, v:get_value(), v.domain.lo, v.domain.hi,
-                 v:get_nr(), v:is_simple())
+           print(i, v.name, v:value(), v.domain.lo, v.domain.hi,
+                 v:gpos(), v:is_simple())
        end
 
    ``Var.is_simple()`` returns true for simple-variables.
 
-   ``Var.get_nr()`` returns position of the variable in the array
+   ``Var.gpos()`` returns position of the variable in the global array
    of parameters (Fityk.all_parameters()), or -1 for compound variables.
+
+.. method:: Fityk.get_variable(name)
+
+    Returns variable *$name*.
 
 
 .. method:: Fityk.all_functions()
@@ -318,6 +322,7 @@ Model info
       f = F:all_functions()[0] -- first functions
       print(f.name, f:get_template_name())          -- _1        Gaussian
       print(f:get_param(0), f:get_param(1))         -- height  center
+      print("$" .. f:var_name("height"))            -- $_4
       print("center:", f:get_param_value("center")) -- center: 24.72235945525
       print("f(25)=", f:value_at(25))               -- f(25)=  4386.95533969
 
@@ -336,26 +341,18 @@ Model info
     Returns %functions used in dataset *d*. If *fz* is ``Z``, returns
     zero-shift functions.
 
-.. method:: Fityk.get_var(func, parameter)
-
-    Returns variable used as given *parameter* of function *func*.
-    Words function, variable and parameter have too many meanings,
-    but an example should clarify::
+    Example::
 
       func = F:get_components(1)[3] -- get 4th (index 3) function in @1
       print(func)                   -- <Func %_6>
-      v = F:get_var(func, "hwhm")
-      print(v, v:get_value())       -- <Var $_21>       0.1406587
+      vname = func:var_name("hwhm")
+      print(vname)                  -- _21
+      v = get_variable(vname)
+      print(v, v:value())           -- <Var $_21>       0.1406587
 
 .. method:: Fityk.get_model_value(x [, d])
 
     Returns the value of the model for dataset ``@``\ *d* at *x*.
-
-.. method:: Fityk.get_variable_nr(name)
-
-    Returns position of the variable in parameter array (the same
-    number as returned by ``Var.get_nr()``). This number can be used
-    for example to connect rows of covariance matrix to variables.
 
 
 Fit statistics

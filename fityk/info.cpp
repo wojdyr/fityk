@@ -157,7 +157,7 @@ string info_compiler()
 string get_variable_info(const Ftk* F, const Variable* v)
 {
     string s = "$" + v->name + " = " + v->get_formula(F->mgr.parameters()) +
-                " = " + F->settings_mgr()->format_double(v->get_value());
+                " = " + F->settings_mgr()->format_double(v->value());
     const RealRange& d = v->domain;
     if (!d.lo_inf() || !d.hi_inf())
         s += "  [" + (d.lo_inf() ? S("") : S(d.lo)) + " : "
@@ -338,7 +338,7 @@ string format_error_info(const Ftk* F, const vector<double>& errors)
     for (size_t i = 0; i != errors.size(); ++i) {
         if (fit->is_param_used(i)) {
             double err = errors[i];
-            s += "\n$" + F->mgr.find_variable_handling_param(i)->name
+            s += "\n$" + F->mgr.gpos_to_var(i)->name
                 + " = " + sm->format_double(pp[i])
                 + " +- " + (err == 0. ? string("??") : sm->format_double(err));
         }
@@ -708,7 +708,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
             r += "$" + var->name + ": ";
             v_foreach (Variable::ParMult, i, var->recursive_derivatives())
                 r += "p" + S(i->p) + "=$"
-                    + F->mgr.find_variable_handling_param(i->p)->name
+                    + F->mgr.gpos_to_var(i->p)->name
                     + " *" + S(i->mult) + "    ";
             r += "\n";
         }
@@ -748,7 +748,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
         r += "F(" + S(x) + ")=" + S(model->value(x));
         for (int i = 0; i < n; ++i) {
             if (is_neq(symb[i], 0) || is_neq(num[i], 0))
-                r += "\ndF / d$" + F->mgr.find_variable_handling_param(i)->name
+                r += "\ndF / d$" + F->mgr.gpos_to_var(i)->name
                     + " = (symb.) " + S(symb[i]) + " = (num.) " + S(num[i]);
         }
         r += "\ndF / dx = (symb.) " + S(symb[n]) + " = (num.) " + S(num[n]);

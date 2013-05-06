@@ -353,7 +353,7 @@ void SplitFunction::calculate_value_in_range(const vector<realt> &xx,
                                              vector<realt> &yy,
                                              int first, int last) const
 {
-    realt xsplit = intern_variables_.back()->get_value();
+    realt xsplit = intern_variables_.back()->value();
     int t = lower_bound(xx.begin(), xx.end(), xsplit) - xx.begin();
     left_->calculate_value_in_range(xx, yy, first, t);
     right_->calculate_value_in_range(xx, yy, t, last);
@@ -365,7 +365,7 @@ void SplitFunction::calculate_value_deriv_in_range(const vector<realt> &xx,
                                                    bool in_dx,
                                                    int first, int last) const
 {
-    realt xsplit = intern_variables_.back()->get_value();
+    realt xsplit = intern_variables_.back()->value();
     int t = lower_bound(xx.begin(), xx.end(), xsplit) - xx.begin();
     left_-> calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, first, t);
     right_-> calculate_value_deriv_in_range(xx, yy, dy_da, in_dx, t, last);
@@ -374,7 +374,7 @@ void SplitFunction::calculate_value_deriv_in_range(const vector<realt> &xx,
 string SplitFunction::get_current_formula(const string& x,
                                           const char* num_fmt) const
 {
-    realt xsplit = intern_variables_.back()->get_value();
+    realt xsplit = intern_variables_.back()->value();
     return "x < " + S(xsplit) + " ? " + left_->get_current_formula(x, num_fmt)
                               + " : " + right_->get_current_formula(x, num_fmt);
 }
@@ -396,7 +396,7 @@ bool SplitFunction::get_center(realt* a) const
 bool SplitFunction::get_fwhm(realt* a) const
 {
     realt c1, c2;
-    realt xsplit = intern_variables_.back()->get_value();
+    realt xsplit = intern_variables_.back()->value();
     bool two_halves = left_->is_symmetric() && right_->is_symmetric() &&
                       left_->get_center(&c1) && is_eq(c1, xsplit) &&
                       right_->get_center(&c2) && is_eq(c2, xsplit);
@@ -412,7 +412,7 @@ bool SplitFunction::get_fwhm(realt* a) const
 bool SplitFunction::get_area(realt* a) const
 {
     realt c1, c2;
-    realt xsplit = intern_variables_.back()->get_value();
+    realt xsplit = intern_variables_.back()->value();
     bool two_halves = left_->is_symmetric() && right_->is_symmetric() &&
                       left_->get_center(&c1) && is_eq(c1, xsplit) &&
                       right_->get_center(&c2) && is_eq(c2, xsplit);

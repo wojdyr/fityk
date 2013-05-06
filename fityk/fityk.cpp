@@ -214,15 +214,6 @@ vector<Func*> Fityk::get_components(int dataset, char fz)
     return ret;
 }
 
-Var* Fityk::get_var(const Func *func, const string& parameter)
-                                                         throw(ExecuteError)
-{
-    const Function *f = static_cast<const Function*>(func);
-    int param_idx = f->get_param_nr(parameter);
-    int var_idx = f->used_vars().get_idx(param_idx);
-    return ftk_->mgr.variables()[var_idx];
-}
-
 realt Fityk::get_model_value(realt x, int dataset)  throw(ExecuteError)
 {
     try {
@@ -244,13 +235,13 @@ vector<realt> Fityk::get_model_vector(vector<realt> const& x, int dataset)
     return yy;
 }
 
-int Fityk::get_variable_nr(string const& name)  throw(ExecuteError)
+const Var* Fityk::get_variable(string const& name)  throw(ExecuteError)
 {
     try {
-        if (name.empty())
-            throw ExecuteError("get_variable_nr() called with empty name");
         string vname;
-        if (name[0] == '$')
+        if (name.empty())
+            throw ExecuteError("get_variable() called with empty name");
+        else if (name[0] == '$')
             vname = string(name, 1);
         else if (name[0] == '%' && name.find('.') < name.size() - 1) {
             string::size_type pos = name.find('.');
@@ -260,10 +251,10 @@ int Fityk::get_variable_nr(string const& name)  throw(ExecuteError)
         }
         else
             vname = name;
-        return ftk_->mgr.find_variable(vname)->get_nr();
+        return ftk_->mgr.find_variable(vname);
     }
     CATCH_EXECUTE_ERROR
-    return -1;
+    return NULL; // avoid compiler warning
 }
 
 double Fityk::get_view_boundary(char side)
@@ -528,11 +519,6 @@ const Point* fityk_get_data_point(Fityk *f, int dataset, int index)
 realt fityk_get_model_value(Fityk *f, realt x, int dataset)
 {
     return f->get_model_value(x, dataset);
-}
-
-int fityk_get_variable_nr(Fityk *f, const char* name)
-{
-    return f->get_variable_nr(name);
 }
 
 realt fityk_get_wssr(Fityk *f, int dataset) { return f->get_wssr(dataset); }
