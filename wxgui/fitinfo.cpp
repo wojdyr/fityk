@@ -180,7 +180,7 @@ void FitInfoDlg::update_right_tc()
     int na = pp.size();
     wxString s;
     if (choice <= 5) {
-        vector<realt> errors;
+        vector<double> errors;
         if (choice == 0 || choice == 1) {
             try {
                 errors = fit->get_standard_errors(dms);
@@ -189,7 +189,7 @@ void FitInfoDlg::update_right_tc()
                 errors.resize(na, 0.);
             }
             if (choice == 1)
-                vm_foreach (realt, i, errors)
+                vm_foreach (double, i, errors)
                     *i *= 1. / sqrt(wssr_over_dof);
         }
         else {
@@ -233,7 +233,7 @@ void FitInfoDlg::update_right_tc()
     }
     else {
         s = wxT("          ");
-        vector<realt> alpha;
+        vector<double> alpha;
         try {
             alpha = fit->get_covariance_matrix(dms);
         }

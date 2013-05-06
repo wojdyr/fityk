@@ -158,7 +158,7 @@ realt Model::approx_max(realt x_min, realt x_max) const
 }
 
 
-string Model::get_peak_parameters(const vector<realt>& errors) const
+string Model::get_peak_parameters(const vector<double>& errors) const
 {
     string s;
     const SettingsMgr *sm = F_->settings_mgr();
@@ -190,7 +190,7 @@ string Model::get_peak_parameters(const vector<realt>& errors) const
                 const Variable* var =
                     mgr.get_variable(p->used_vars().get_idx(j));
                 if (var->is_simple()) {
-                    realt err = errors[var->get_nr()];
+                    double err = errors[var->get_nr()];
                     s += " +/- " + sm->format_double(err);
                 }
                 else

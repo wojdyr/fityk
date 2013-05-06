@@ -96,6 +96,8 @@ def run(data_name, fit_method, easy=True):
         tolerance = { "wssr": 1e-10, "param": 4e-7, "err": 5e-3 }
     else:
         tolerance = { "wssr": 1e-7, "param": 1e-4 }
+        if fit_method == "nelder_mead_simplex":
+            tolerance["err"] = 5e-5
     #if fit_method in ("mpfit", "levenberg_marquardt"):
     if VERBOSE > 0:
         print "Testing %s (start%s) on %-10s" % (fit_method, easy+1, data_name),
@@ -156,13 +158,13 @@ def run(data_name, fit_method, easy=True):
         val_diff = (calc_value - par.value) / par.value
         param_ok = (abs(val_diff) < tolerance["param"])
         err_ok = True
-        if uses_gradient:
+        if "err" in tolerance:
             calc_err = ftk.calculate_expr("$" + v.name + ".error")
             err_diff = (calc_err - par.stddev) / par.stddev
             err_ok = (abs(err_diff) < tolerance["err"])
         if VERBOSE > 2 or (VERBOSE == 2 and (not param_ok or not err_ok)):
             print fmt % (par.name, calc_value, par.value, val_diff)
-            if uses_gradient:
+            if "err" in tolerance:
                 print fmt % ("+/-", calc_err, par.stddev, err_diff)
         ok = (ok and param_ok and err_ok)
     if VERBOSE == 1:

@@ -345,7 +345,7 @@ FITYK_API void fityk_delete(Fityk *f);
 /* returns false on ExitRequestedException */
 FITYK_API bool fityk_execute(Fityk *f, const char* command);
 FITYK_API void fityk_load_data(Fityk *f, int dataset,
-                               realt *x, realt *y, realt *sigma, int num,
+                               double *x, double *y, double *sigma, int num,
                                const char* title);
 /* returns NULL if no error happened since fityk_clear_last_error() */
 FITYK_API const char* fityk_last_error(const Fityk *f);

@@ -109,4 +109,64 @@ void LMfit::prepare_next_parameters(double lambda, const vector<realt> &a)
         output_tried_parameters(temp_beta_);
 }
 
+
+vector<double> LMfit::get_covariance_matrix(const vector<DataAndModel*>& dms)
+{
+    update_par_usage(dms);
+    vector<realt> alpha(na_*na_, 0.);
+
+    vector<realt> beta(na_);
+    compute_derivatives(F_->mgr.parameters(), dms, alpha, beta);
+
+    // To avoid singular matrix, put fake values corresponding to unused
+    // parameters.
+    for (int i = 0; i < na_; ++i)
+        if (!par_usage()[i]) {
+            alpha[i*na_ + i] = 1.;
+        }
+    // We may have unused parameters with par_usage_[] set true,
+    // e.g. SplitGaussian with center < min(active x)  has hwhm1 unused.
+    // If i'th column/row in alpha are only zeros, we must
+    // do something about it -- standard error is undefined
+    vector<int> undef;
+    for (int i = 0; i < na_; ++i) {
+        bool has_nonzero = false;
+        for (int j = 0; j < na_; j++)
+            if (alpha[na_*i+j] != 0.) {
+                has_nonzero = true;
+                break;
+            }
+        if (!has_nonzero) {
+            undef.push_back(i);
+            alpha[i*na_ + i] = 1.;
+        }
+    }
+
+    reverse_matrix(alpha, na_);
+
+    v_foreach (int, i, undef)
+        alpha[(*i)*na_ + (*i)] = 0.;
+
+#if USE_LONG_DOUBLE
+    return vector<double>(alpha.begin(), alpha.end());
+#else
+    return alpha;
+#endif
+}
+
+vector<double> LMfit::get_standard_errors(const vector<DataAndModel*>& dms)
+{
+    const vector<realt> &pp = F_->mgr.parameters();
+    realt wssr = compute_wssr(pp, dms, true);
+    int dof = get_dof(dms);
+    // `na_' was set by get_dof() above, from update_par_usage()
+    vector<double> errors(na_);
+    vector<double> alpha = get_covariance_matrix(dms);
+    // `na_' was set by functions above
+    for (int i = 0; i < na_; ++i)
+        errors[i] = sqrt(wssr / dof * alpha[i*na_ + i]);
+    return errors;
+}
+
+
 } // namespace fityk

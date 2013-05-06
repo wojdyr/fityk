@@ -29,11 +29,11 @@ public:
     std::string get_goodness_info(const std::vector<DataAndModel*>& dms);
     int get_dof(const std::vector<DataAndModel*>& dms);
     std::string get_cov_info(const std::vector<DataAndModel*>& dms);
-    std::vector<realt>
+    virtual std::vector<double>
         get_covariance_matrix(const std::vector<DataAndModel*>& dms);
-    std::vector<realt>
+    virtual std::vector<double>
         get_standard_errors(const std::vector<DataAndModel*>& dms);
-    std::vector<realt>
+    std::vector<double>
         get_confidence_limits(const std::vector<DataAndModel*>& dms,
                               double level_percent);
     const std::vector<DataAndModel*>& get_last_dm() const { return dmdm_; }
@@ -79,6 +79,7 @@ protected:
                                    realt mult = 1.);
     void iteration_plot(const std::vector<realt> &A, realt wssr);
     void output_tried_parameters(const std::vector<realt>& a);
+    void update_par_usage(const std::vector<DataAndModel*>& dms);
 private:
     int max_eval_; // it is set before calling run_method()
     time_t last_refresh_time_;
@@ -87,7 +88,6 @@ private:
     realt best_shown_wssr_; // for iteration_info()
 
     double elapsed() const; // CPU time elapsed since the start of fit()
-    void update_par_usage(const std::vector<DataAndModel*>& dms);
 
     // compute_*_for() does the same as compute_*() but for one dataset
     void compute_derivatives_for(const DataAndModel *dm,
@@ -130,12 +130,12 @@ public:
     ~FitManager();
     Fit* get_method(const std::string& name) const;
     const std::vector<Fit*>& methods() const { return methods_; }
-    realt get_standard_error(const Variable* var) const;
+    double get_standard_error(const Variable* var) const;
     void outdated_error_cache() { dirty_error_cache_ = true; }
 
 private:
     std::vector<Fit*> methods_;
-    mutable std::vector<realt> errors_cache_;
+    mutable std::vector<double> errors_cache_;
     bool dirty_error_cache_;
 
     DISALLOW_COPY_AND_ASSIGN(FitManager);

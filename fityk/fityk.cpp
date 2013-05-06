@@ -409,7 +409,7 @@ vector<vector<realt> > Fityk::get_covariance_matrix(int dataset)
 {
     try {
         vector<DataAndModel*> dss = get_datasets_(ftk_, dataset);
-        vector<realt> c = ftk_->get_fit()->get_covariance_matrix(dss);
+        vector<double> c = ftk_->get_fit()->get_covariance_matrix(dss);
         //reshape
         size_t na = ftk_->mgr.parameters().size();
         assert(c.size() == na * na);
@@ -426,7 +426,7 @@ realt* Fityk::get_covariance_matrix_as_array(int dataset)
 {
     try {
         vector<DataAndModel*> dss = get_datasets_(ftk_, dataset);
-        vector<realt> c = ftk_->get_fit()->get_covariance_matrix(dss);
+        vector<double> c = ftk_->get_fit()->get_covariance_matrix(dss);
         realt* array = (realt*) malloc(c.size() * sizeof(realt));
         if (array != NULL)
             for (size_t i = 0; i != c.size(); ++i)
@@ -474,7 +474,7 @@ bool fityk_execute(Fityk *f, const char* command)
 }
 
 void fityk_load_data(Fityk *f, int dataset,
-                     realt *x, realt *y, realt *sigma, int num,
+                     double *x, double *y, double *sigma, int num,
                      const char* title)
 {
     f->load_data(dataset, vector<realt>(x, x+num), vector<realt>(y, y+num),

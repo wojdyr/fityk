@@ -62,84 +62,20 @@ string Fit::get_goodness_info(const vector<DataAndModel*>& dms)
            + "  R2=" + sm->format_double(compute_r_squared(pp, dms));
 }
 
-vector<realt> Fit::get_covariance_matrix(const vector<DataAndModel*>& dms)
+vector<double> Fit::get_covariance_matrix(const vector<DataAndModel*>& dms)
 {
-    update_par_usage(dms);
-    vector<realt> alpha(na_*na_, 0.);
-
-    // temporarily there are two ways of calculating errors, just for testing
-    MPfit* mpfit = dynamic_cast<MPfit*>(this);
-    if (mpfit) {
-        double *covar = mpfit->get_covar(dms);
-        alpha.assign(covar, covar + alpha.size());
-        delete [] covar;
-    }
-    else {
-        vector<realt> beta(na_);
-        compute_derivatives(F_->mgr.parameters(), dms, alpha, beta);
-
-        // To avoid singular matrix, put fake values corresponding to unused
-        // parameters.
-        for (int i = 0; i < na_; ++i)
-            if (!par_usage_[i]) {
-                alpha[i*na_ + i] = 1.;
-            }
-        // We may have unused parameters with par_usage_[] set true,
-        // e.g. SplitGaussian with center < min(active x)  has hwhm1 unused.
-        // If i'th column/row in alpha are only zeros, we must
-        // do something about it -- standard error is undefined
-        vector<int> undef;
-        for (int i = 0; i < na_; ++i) {
-            bool has_nonzero = false;
-            for (int j = 0; j < na_; j++)
-                if (alpha[na_*i+j] != 0.) {
-                    has_nonzero = true;
-                    break;
-                }
-            if (!has_nonzero) {
-                undef.push_back(i);
-                alpha[i*na_ + i] = 1.;
-            }
-        }
-
-        reverse_matrix(alpha, na_);
-
-        v_foreach (int, i, undef)
-            alpha[(*i)*na_ + (*i)] = 0.;
-    }
-
-    return alpha;
+    return MPfit(F_, "").get_covariance_matrix(dms);
 }
 
-vector<realt> Fit::get_standard_errors(const vector<DataAndModel*>& dms)
+vector<double> Fit::get_standard_errors(const vector<DataAndModel*>& dms)
 {
-    const vector<realt> &pp = F_->mgr.parameters();
-    realt wssr = compute_wssr(pp, dms, true);
-    int dof = get_dof(dms);
-    // `na_' was set by get_dof() above, from update_par_usage()
-    vector<realt> errors(na_);
-
-    // temporarily there are two ways of calculating errors, just for testing
-    MPfit* mpfit = dynamic_cast<MPfit*>(this);
-    if (mpfit) {
-        double *perror = mpfit->get_errors(dms);
-        for (int i = 0; i < na_; ++i)
-            errors[i] = sqrt(wssr / dof) * perror[i];
-        delete [] perror;
-    }
-    else {
-        vector<realt> alpha = get_covariance_matrix(dms);
-        // `na_' was set by functions above
-        for (int i = 0; i < na_; ++i)
-            errors[i] = sqrt(wssr / dof * alpha[i*na_ + i]);
-    }
-    return errors;
+    return MPfit(F_, "").get_standard_errors(dms);
 }
 
-vector<realt> Fit::get_confidence_limits(const vector<DataAndModel*>& dms,
-                                         double level_percent)
+vector<double> Fit::get_confidence_limits(const vector<DataAndModel*>& dms,
+                                          double level_percent)
 {
-    vector<realt> v = get_standard_errors(dms);
+    vector<double> v = get_standard_errors(dms);
     int dof = get_dof(dms);
     double level = 1. - level_percent / 100.;
 #if 1
@@ -152,7 +88,7 @@ vector<realt> Fit::get_confidence_limits(const vector<DataAndModel*>& dms,
 #else
     double t = 0;
 #endif
-    vm_foreach (realt, i, v)
+    vm_foreach (double, i, v)
         *i *= t;
     return v;
 }
@@ -161,7 +97,7 @@ string Fit::get_cov_info(const vector<DataAndModel*>& dms)
 {
     string s;
     const SettingsMgr *sm = F_->settings_mgr();
-    vector<realt> alpha = get_covariance_matrix(dms);
+    vector<double> alpha = get_covariance_matrix(dms);
     s += "\nCovariance matrix\n    ";
     for (int i = 0; i < na_; ++i)
         if (par_usage_[i])
@@ -619,8 +555,8 @@ FitManager::FitManager(Ftk *F_)
     //methods_.push_back(new NLfit(F_, method_list[10][0], NLOPT_LN_COBYLA));
     //methods_.push_back(new NLfit(F_, method_list[11][0], NLOPT_GN_CRS2_LM));
 #endif
-    methods_.push_back(new NMfit(F_, method_list[8][0]));
-    methods_.push_back(new GAfit(F_, method_list[9][0]));
+    methods_.push_back(new NMfit(F_, method_list[methods_.size()][0]));
+    methods_.push_back(new GAfit(F_, method_list[methods_.size()][0]));
 }
 
 
@@ -638,7 +574,7 @@ Fit* FitManager::get_method(const string& name) const
     return NULL; // avoid compiler warning
 }
 
-realt FitManager::get_standard_error(const Variable* var) const
+double FitManager::get_standard_error(const Variable* var) const
 {
     if (!var->is_simple())
         return -1.; // value signaling unknown standard error

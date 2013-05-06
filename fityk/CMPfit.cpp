@@ -202,43 +202,37 @@ double MPfit::run_method(vector<realt>* best_a)
     return result_.bestnorm;
 }
 
-// pre: update_parameters()
-// returns array of size na_ that needs to be delete[]'d
-double* MPfit::get_errors(const vector<DataAndModel*>& dms)
+vector<double> MPfit::get_covariance_matrix(const vector<DataAndModel*>& dms)
 {
-    double *perror = new double[na_];
-    for (int i = 0; i < na_; ++i)
-        perror[i] = 0.;
+    update_par_usage(dms);
+    vector<double> alpha(na_*na_, 0.);
+    init_config(&mp_conf_);
+    mp_conf_.maxiter = MP_NO_ITER;
+    zero_init_result(&result_);
+    result_.covar = &alpha[0]; // that's legal, vectors use contiguous storage
+    int status = run_mpfit(dms, F_->mgr.parameters(), par_usage());
+    soft_assert(status == MP_MAXITER);
+    return alpha;
+}
+
+vector<double> MPfit::get_standard_errors(const vector<DataAndModel*>& dms)
+{
+    double wssr = compute_wssr(F_->mgr.parameters(), dms, true);
+    double err_factor = sqrt(wssr / get_dof(dms));
+    // `na_' was set by get_dof() above, from update_par_usage()
+    vector<double> errors(na_, 0.);
 
     init_config(&mp_conf_);
     mp_conf_.maxiter = MP_NO_ITER;
-
     zero_init_result(&result_);
-    result_.xerror = perror;
+    result_.xerror = &errors[0]; // that's legal
 
     int status = run_mpfit(dms, F_->mgr.parameters(), par_usage());
     soft_assert(status == MP_MAXITER || status == MP_OK_DIR);
 
-    return perror;
+    for (int i = 0; i < na_; ++i)
+        errors[i] *= err_factor;
+    return errors;
 }
-
-// pre: update_parameters()
-// returns array of size na_*na_ that needs to be delete[]'d
-double* MPfit::get_covar(const vector<DataAndModel*>& dms)
-{
-    double *covar = new double[na_*na_];
-
-    init_config(&mp_conf_);
-    mp_conf_.maxiter = MP_NO_ITER;
-
-    zero_init_result(&result_);
-    result_.covar = covar;
-
-    int status = run_mpfit(dms, F_->mgr.parameters(), par_usage());
-    soft_assert(status == MP_MAXITER);
-
-    return covar;
-}
-
 
 } // namespace fityk

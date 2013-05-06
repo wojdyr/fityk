@@ -17,6 +17,14 @@ class LMfit : public Fit
 public:
     LMfit(Ftk* F, const char* name) : Fit(F, name) {}
     virtual double run_method(std::vector<realt>* best_a);
+
+    // the same methods that were used for all methods up to ver. 1.2.1
+    // (just for backward compatibility)
+    virtual std::vector<double>
+        get_covariance_matrix(const std::vector<DataAndModel*>& dms);
+    virtual std::vector<double>
+        get_standard_errors(const std::vector<DataAndModel*>& dms);
+
 private:
     std::vector<realt> alpha_; // matrix
     std::vector<realt> beta_;  // and vector

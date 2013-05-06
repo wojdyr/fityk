@@ -328,7 +328,7 @@ void save_state(const Ftk* F, string& r)
 }
 
 static
-string format_error_info(const Ftk* F, const vector<realt>& errors)
+string format_error_info(const Ftk* F, const vector<double>& errors)
 {
     string s;
     const SettingsMgr *sm = F->settings_mgr();
@@ -337,7 +337,7 @@ string format_error_info(const Ftk* F, const vector<realt>& errors)
     const Fit* fit = F->get_fit();
     for (size_t i = 0; i != errors.size(); ++i) {
         if (fit->is_param_used(i)) {
-            realt err = errors[i];
+            double err = errors[i];
             s += "\n$" + F->mgr.find_variable_handling_param(i)->name
                 + " = " + sm->format_double(pp[i])
                 + " +- " + (err == 0. ? string("??") : sm->format_double(err));
@@ -407,14 +407,14 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             save_state(F, result);
         }
         else if (word == "peaks") {
-            vector<realt> no_errors; // empty vec -> no errors
+            vector<double> no_errors; // empty vec -> no errors
             result += F->get_model(ds)->get_peak_parameters(no_errors);
         }
         else if (word == "peaks_err") {
             //FIXME: assumes the dataset was fitted separately
             DataAndModel* dm = const_cast<DataAndModel*>(F->get_dm(ds));
             vector<DataAndModel*> dms(1, dm);
-            vector<realt> errors = F->get_fit()->get_standard_errors(dms);
+            vector<double> errors = F->get_fit()->get_standard_errors(dms);
             result += F->get_model(ds)->get_peak_parameters(errors);
         }
         else if (word == "history_summary")
@@ -475,12 +475,12 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
                 result += F->get_fit()->get_goodness_info(v);
             else if (word == "errors") {
                 result += "Standard errors:";
-                vector<realt> errors = F->get_fit()->get_standard_errors(v);
+                vector<double> errors = F->get_fit()->get_standard_errors(v);
                 result += format_error_info(F, errors);
             }
             else if (word == "confidence") {
                 result += S(level) + "% confidence intervals:";
-                vector<realt> limits =
+                vector<double> limits =
                     F->get_fit()->get_confidence_limits(v, level);
                 result += format_error_info(F, limits);
             }

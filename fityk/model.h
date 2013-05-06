@@ -51,7 +51,7 @@ public:
 
     std::string get_formula(bool simplify, const char *num_fmt,
                             bool extra_breaks) const;
-    std::string get_peak_parameters(const std::vector<realt>& errors) const;
+    std::string get_peak_parameters(const std::vector<double>& errors) const;
     std::vector<realt> get_symbolic_derivatives(realt x) const;
     std::vector<realt> get_numeric_derivatives(realt x, realt numerical_h)const;
     realt zero_shift(realt x) const;
