@@ -81,6 +81,7 @@ struct FITYK_API RealRange
     RealRange(double low, double high) : lo(low), hi(high) {}
     bool lo_inf() const { return lo == -DBL_MAX; }
     bool hi_inf() const { return hi == DBL_MAX; }
+    std::string str() const;
 };
 
 /// represents $variable

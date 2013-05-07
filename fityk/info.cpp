@@ -157,11 +157,8 @@ string info_compiler()
 string get_variable_info(const Ftk* F, const Variable* v)
 {
     string s = "$" + v->name + " = " + v->get_formula(F->mgr.parameters()) +
-                " = " + F->settings_mgr()->format_double(v->value());
-    const RealRange& d = v->domain;
-    if (!d.lo_inf() || !d.hi_inf())
-        s += "  [" + (d.lo_inf() ? S("") : S(d.lo)) + " : "
-                   + (d.hi_inf() ? S("") : S(d.hi)) + "]";
+                " = " + F->settings_mgr()->format_double(v->value()) +
+                v->domain.str();
     if (VariableManager::is_auto(v->name))
         s += "  [auto]";
     return s;

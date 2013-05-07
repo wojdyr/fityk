@@ -87,6 +87,15 @@ int hd(Ftk* ftk, int dataset)
 namespace fityk
 {
 
+string RealRange::str() const
+{
+    string s;
+    if (!lo_inf() || !hi_inf())
+        s = " [" + (lo_inf() ? string() : eS(lo)) + ":"
+                 + (hi_inf() ? string() : eS(hi)) + "]";
+    return s;
+}
+
 Point::Point() : x(0), y(0), sigma(1), is_active(true) {}
 Point::Point(realt x_, realt y_) : x(x_), y(y_), sigma(1), is_active(true) {}
 Point::Point(realt x_, realt y_, realt sigma_) : x(x_), y(y_), sigma(sigma_),

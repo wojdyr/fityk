@@ -1887,18 +1887,12 @@ void FFrame::OnPreviousZoom(wxCommandEvent& event)
 static
 string format_range(const RealRange& r)
 {
-    string s = "[";
-    if (!r.lo_inf())
-        s += eS(r.lo);
-    s += ":";
-    if (!r.hi_inf())
-        s += eS(r.hi);
-    return s + "]";
+    return r.lo_inf() && r.hi_inf() ? string(" [:]") : r.str();
 }
 
 void FFrame::change_zoom(const RealRange& h, const RealRange& v)
 {
-    string cmd = "plot " + format_range(h) + " " + format_range(v);
+    string cmd = "plot" + format_range(h) + format_range(v);
     if (h.lo_inf() || h.hi_inf() || v.lo_inf() || v.hi_inf())
         cmd += sidebar_->get_sel_datasets_as_string();
     exec(cmd);
