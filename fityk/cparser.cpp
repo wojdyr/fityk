@@ -170,7 +170,7 @@ Token Parser::read_define_arg(Lexer& lex, const vector<string>& allowed_names,
     return t;
 }
 
-// '.' | ( '[' [Number] ':' [Number] ']' )
+// [ '[' [Number] ':' [Number] ']' ]
 // appends two tokens (kTokenExpr/kTokenNop) to args
 void Parser::parse_real_range(Lexer& lex, vector<Token>& args)
 {
@@ -958,7 +958,8 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
         cmd.args.push_back(token);
         lex.get_token(); // discard '='
         cmd.args.push_back(read_var(lex));
-        parse_real_range(lex, cmd.args); // domain
+        if (lex.peek_token().type == kTokenLSquare)
+            parse_real_range(lex, cmd.args); // domain
     }
     // %func=...
     else if (token.type == kTokenFuncname &&

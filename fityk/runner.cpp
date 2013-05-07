@@ -439,14 +439,15 @@ void Runner::command_assign_all(const vector<Token>& args, int ds)
 
 void Runner::command_name_var(const vector<Token>& args)
 {
-    assert(args.size() == 4);
+    assert(args.size() == 2 || args.size() == 4);
     assert(args[0].type == kTokenVarname);
     string name = Lexer::get_string(args[0]);
     VMData* vd = get_vm_from_token(args[1]);
-    RealRange domain = args2range(args[2], args[3]);
     int pos = F_->mgr.make_variable(name, vd);
-    //F_->mgr.get_variable(pos)->domain = domain;
-    F_->mgr.set_domain(pos, domain);
+    if (args.size() == 4) {
+        RealRange domain = args2range(args[2], args[3]);
+        F_->mgr.set_domain(pos, domain);
+    }
     F_->mgr.use_parameters();
     F_->outdated_plot(); // TODO: only for replacing old variable
 }
