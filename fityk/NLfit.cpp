@@ -93,13 +93,13 @@ double NLfit::run_method(vector<realt>* best_a)
     double *ub = new double[na_];
     for (int i = 0; i < na_; ++i) {
         const RealRange& d = F_->mgr.get_variable(i)->domain;
-        lb[i] = d.lo_inf() ? -HUGE_VAL : d.lo;
-        ub[i] = d.hi_inf() ? +HUGE_VAL : d.hi;
+        lb[i] = d.lo;
+        ub[i] = d.hi;
     }
     nlopt_set_lower_bounds(opt_, lb);
     nlopt_set_upper_bounds(opt_, ub);
-    delete lb;
-    delete ub;
+    delete [] lb;
+    delete [] ub;
 
     double opt_f;
     double *a = new double[na_];

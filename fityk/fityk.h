@@ -34,7 +34,7 @@
 #ifdef __cplusplus
 
 #include <cstdio>
-#include <cfloat> // DBL_MAX
+#include <cmath>
 #include <string>
 #include <vector>
 #include <stdexcept>
@@ -77,10 +77,10 @@ struct FITYK_API RealRange
 {
     double lo, hi;
 
-    RealRange() : lo(-DBL_MAX), hi(DBL_MAX) {}
+    RealRange() : lo(-HUGE_VAL), hi(HUGE_VAL) {}
     RealRange(double low, double high) : lo(low), hi(high) {}
-    bool lo_inf() const { return lo == -DBL_MAX; }
-    bool hi_inf() const { return hi == DBL_MAX; }
+    bool lo_inf() const { return lo == -HUGE_VAL; }
+    bool hi_inf() const { return hi == HUGE_VAL; }
     std::string str() const;
 };
 
