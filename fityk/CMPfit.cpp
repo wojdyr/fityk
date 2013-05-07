@@ -5,13 +5,14 @@
 #include "CMPfit.h"
 #include "logic.h"
 #include "data.h"
+#include "var.h"
 
 using namespace std;
 
 namespace fityk {
 
 #ifndef NDEBUG
-bool debug_deriv_in_mpfit=false;
+bool debug_deriv_in_mpfit=false; // changed only for tests
 #endif
 
 int calculate_for_mpfit(int m, int npar, double *par, double *deviates,
@@ -153,9 +154,21 @@ int MPfit::run_mpfit(const vector<DataAndModel*>& dms,
 
     mp_par *pars = allocate_and_init_mp_par(param_usage);
 
+    for (size_t i = 0; i < parameters.size(); ++i) {
+        const Var* var = F_->mgr.gpos_to_var(i);
+        if (!var->domain.lo_inf()) {
+            pars[i].limited[0] = 1;
+            pars[i].limits[0] = var->domain.lo;
+        }
+        if (!var->domain.hi_inf()) {
+            pars[i].limited[1] = 1;
+            pars[i].limits[1] = var->domain.hi;
+        }
+    }
+
 #ifndef NDEBUG
     if (debug_deriv_in_mpfit)
-        for (size_t i = 0; i < param_usage.size(); ++i) {
+        for (size_t i = 0; i < parameters.size(); ++i) {
             // don't use side=2 (two-side) because of bug in CMPFIT
             pars[i].side = 1;
             pars[i].deriv_debug = 1;
