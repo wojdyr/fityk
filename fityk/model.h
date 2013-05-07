@@ -11,7 +11,7 @@
 
 namespace fityk {
 
-class VariableManager;
+class ModelManager;
 class Ftk;
 
 struct FunctionSum
@@ -73,7 +73,7 @@ public:
 
 private:
     const Ftk* F_;
-    VariableManager &mgr;
+    ModelManager &mgr_;
     FunctionSum ff_, zz_;
 
     DISALLOW_COPY_AND_ASSIGN(Model);

@@ -21,26 +21,26 @@ using namespace std;
 namespace fityk {
 
 Model::Model(Ftk *F)
-    : F_(F), mgr(F->mgr)
+    : F_(F), mgr_(F->mgr)
 {
-    mgr.register_model(this);
+    mgr_.register_model(this);
 }
 
 Model::~Model()
 {
-    mgr.unregister_model(this);
+    mgr_.unregister_model(this);
 }
 
 
 /// checks if this model depends on the variable with index idx
 bool Model::is_dependent_on_var(int idx) const
 {
-    const vector<Variable*>& vv = mgr.variables();
+    const vector<Variable*>& vv = mgr_.variables();
     v_foreach (int, i, ff_.idx)
-        if (mgr.get_function(*i)->used_vars().depends_on(idx, vv))
+        if (mgr_.get_function(*i)->used_vars().depends_on(idx, vv))
             return true;
     v_foreach (int, i, zz_.idx)
-        if (mgr.get_function(*i)->used_vars().depends_on(idx, vv))
+        if (mgr_.get_function(*i)->used_vars().depends_on(idx, vv))
             return true;
     return false;
 }
@@ -50,7 +50,7 @@ realt Model::value(realt x) const
     x += zero_shift(x);
     realt y = 0;
     v_foreach (int, i, ff_.idx)
-        y += mgr.get_function(*i)->calculate_value(x);
+        y += mgr_.get_function(*i)->calculate_value(x);
     return y;
 }
 
@@ -58,7 +58,7 @@ realt Model::zero_shift(realt x) const
 {
     realt z = 0;
     v_foreach (int, i, zz_.idx)
-        z += mgr.get_function(*i)->calculate_value(x);
+        z += mgr_.get_function(*i)->calculate_value(x);
     return z;
 }
 
@@ -67,11 +67,11 @@ void Model::compute_model(vector<realt> &x, vector<realt> &y,
 {
     // add x-correction to x
     v_foreach (int, i, zz_.idx)
-        mgr.get_function(*i)->calculate_value(x, x);
+        mgr_.get_function(*i)->calculate_value(x, x);
     // add y-value to y
     v_foreach (int, i, ff_.idx)
         if (*i != ignore_func)
-            mgr.get_function(*i)->calculate_value(x, y);
+            mgr_.get_function(*i)->calculate_value(x, y);
 }
 
 // returns y values in y, x is changed in place to x+Z,
@@ -90,18 +90,18 @@ void Model::compute_model_with_derivs(vector<realt> &x, vector<realt> &y,
 
     // add x-correction to x
     v_foreach (int, i, zz_.idx)
-        mgr.get_function(*i)->calculate_value(x, x);
+        mgr_.get_function(*i)->calculate_value(x, x);
 
     // calculate value and derivatives
     v_foreach (int, i, ff_.idx)
-        mgr.get_function(*i)->calculate_value_deriv(x, y, dy_da, false);
+        mgr_.get_function(*i)->calculate_value_deriv(x, y, dy_da, false);
     v_foreach (int, i, zz_.idx)
-        mgr.get_function(*i)->calculate_value_deriv(x, y, dy_da, true);
+        mgr_.get_function(*i)->calculate_value_deriv(x, y, dy_da, true);
 }
 
 vector<realt> Model::get_symbolic_derivatives(realt x) const
 {
-    int n = mgr.parameters().size();
+    int n = mgr_.parameters().size();
     vector<realt> dy_da(n+1); // last item is dy/dx
     vector<realt> xx(1, x);
     vector<realt> yy(1);
@@ -111,7 +111,7 @@ vector<realt> Model::get_symbolic_derivatives(realt x) const
 
 vector<realt> Model::get_numeric_derivatives(realt x, realt numerical_h) const
 {
-    vector<realt> av_numder = mgr.parameters();
+    vector<realt> av_numder = mgr_.parameters();
     int n = av_numder.size();
     vector<realt> dy_da(n+1);
     const double small_number = 1e-10; //it only prevents h==0
@@ -119,15 +119,15 @@ vector<realt> Model::get_numeric_derivatives(realt x, realt numerical_h) const
         realt acopy = av_numder[k];
         realt h = max(fabs(acopy), small_number) * numerical_h;
         av_numder[k] -= h;
-        mgr.use_external_parameters(av_numder);
+        mgr_.use_external_parameters(av_numder);
         realt y_aless = value(x);
         av_numder[k] = acopy + h;
-        mgr.use_external_parameters(av_numder);
+        mgr_.use_external_parameters(av_numder);
         realt y_amore = value(x);
         dy_da[k] = (y_amore - y_aless) / (2 * h);
         av_numder[k] = acopy;
     }
-    mgr.use_parameters();
+    mgr_.use_parameters();
     realt h = max(fabs(x), small_number) * numerical_h;
     dy_da[n] = (value(x+h) - value(x-h)) / (2 * h);
     return dy_da;
@@ -135,13 +135,13 @@ vector<realt> Model::get_numeric_derivatives(realt x, realt numerical_h) const
 
 realt Model::approx_max(realt x_min, realt x_max) const
 {
-    mgr.use_parameters();
+    mgr_.use_parameters();
     realt x = x_min;
     realt y_max = value(x);
     vector<realt> xx;
     v_foreach (int, i, ff_.idx) {
         realt ctr;
-        if (mgr.get_function(*i)->get_center(&ctr)
+        if (mgr_.get_function(*i)->get_center(&ctr)
                 && x_min < ctr && ctr < x_max)
             xx.push_back(ctr);
     }
@@ -164,7 +164,7 @@ string Model::get_peak_parameters(const vector<double>& errors) const
     const SettingsMgr *sm = F_->settings_mgr();
     s += "# PeakType\tCenter\tHeight\tArea\tFWHM\tparameters...\n";
     v_foreach (int, i, ff_.idx) {
-        const Function* p = mgr.get_function(*i);
+        const Function* p = mgr_.get_function(*i);
         s += "%" + p->name + "  " + p->tp()->name;
         realt a;
         if (p->get_center(&a))
@@ -188,7 +188,7 @@ string Model::get_peak_parameters(const vector<double>& errors) const
             s += " " + sm->format_double(p->av()[j]);
             if (!errors.empty()) {
                 const Variable* var =
-                    mgr.get_variable(p->used_vars().get_idx(j));
+                    mgr_.get_variable(p->used_vars().get_idx(j));
                 if (var->is_simple()) {
                     double err = errors[var->gpos()];
                     s += " +/- " + sm->format_double(err);
@@ -210,7 +210,7 @@ string Model::get_formula(bool simplify, const char* num_fmt,
         return "0";
     string shift;
     v_foreach (int, i, zz_.idx) {
-        string expr = mgr.get_function(*i)->get_current_formula("x", num_fmt);
+        string expr = mgr_.get_function(*i)->get_current_formula("x", num_fmt);
         shift += "+" + (simplify ? simplify_formula(expr, num_fmt) : expr);
     }
     string x = "x";
@@ -218,7 +218,7 @@ string Model::get_formula(bool simplify, const char* num_fmt,
         x = "(x" + shift + ")";
     string formula;
     v_foreach (int, i, ff_.idx) {
-        string expr = mgr.get_function(*i)->get_current_formula(x, num_fmt);
+        string expr = mgr_.get_function(*i)->get_current_formula(x, num_fmt);
         if (i != ff_.idx.begin())
             formula += (extra_breaks ? " +\n" : " + ");
         formula += (simplify ? simplify_formula(expr, num_fmt) : expr);
@@ -242,7 +242,7 @@ realt Model::numarea(realt x1, realt x2, int nsteps) const
     x2 += zero_shift(x2);
     realt a = 0;
     v_foreach (int, i, ff_.idx)
-        a += mgr.get_function(*i)->numarea(x1, x2, nsteps);
+        a += mgr_.get_function(*i)->numarea(x1, x2, nsteps);
     return a;
 }
 

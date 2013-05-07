@@ -26,27 +26,27 @@ using namespace std;
 
 namespace fityk {
 
-VariableManager::VariableManager(const Ftk* F)
+ModelManager::ModelManager(const Ftk* F)
     : F_(F),
       var_autoname_counter_(0),
       func_autoname_counter_(0)
 {
 }
 
-VariableManager::~VariableManager()
+ModelManager::~ModelManager()
 {
     purge_all_elements(functions_);
     purge_all_elements(variables_);
 }
 
-void VariableManager::unregister_model(const Model *s)
+void ModelManager::unregister_model(const Model *s)
 {
     vector<Model*>::iterator k = find(models_.begin(), models_.end(), s);
     assert (k != models_.end());
     models_.erase(k);
 }
 
-void VariableManager::sort_variables()
+void ModelManager::sort_variables()
 {
     for (vector<Variable*>::iterator i = variables_.begin();
             i != variables_.end(); ++i)
@@ -69,7 +69,7 @@ void VariableManager::sort_variables()
 /// takes expression string and:
 ///  if the string refers to existing variable -- returns its name
 ///  otherwise -- creates a new variable and returns its name
-string VariableManager::get_or_make_variable(const VMData* vd)
+string ModelManager::get_or_make_variable(const VMData* vd)
 {
     int ret;
     if (vd->index != -1) {
@@ -112,7 +112,7 @@ Variable* make_compound_variable(const string &name, VMData* vd,
     return new Variable(name, used_vars, op_trees);
 }
 
-int VariableManager::make_variable(const string &name, VMData* vd)
+int ModelManager::make_variable(const string &name, VMData* vd)
 {
     Variable *var;
     assert(!name.empty());
@@ -161,7 +161,7 @@ int VariableManager::make_variable(const string &name, VMData* vd)
     return add_variable(var);
 }
 
-bool VariableManager::is_variable_referred(int i, string *first_referrer)
+bool ModelManager::is_variable_referred(int i, string *first_referrer)
 {
     // A variable can be referred only by variables with larger index.
     for (int j = i+1; j < size(variables_); ++j) {
@@ -183,7 +183,7 @@ bool VariableManager::is_variable_referred(int i, string *first_referrer)
 }
 
 vector<string>
-VariableManager::get_variable_references(const string &name) const
+ModelManager::get_variable_references(const string &name) const
 {
     int idx = find_variable_nr(name);
     vector<string> refs;
@@ -198,7 +198,7 @@ VariableManager::get_variable_references(const string &name) const
 }
 
 // set indices corresponding to variable names in all functions and variables
-void VariableManager::reindex_all()
+void ModelManager::reindex_all()
 {
     for (vector<Variable*>::iterator i = variables_.begin();
             i != variables_.end(); ++i)
@@ -209,7 +209,7 @@ void VariableManager::reindex_all()
     }
 }
 
-void VariableManager::remove_unreferred()
+void ModelManager::remove_unreferred()
 {
     // remove auto-delete marked variables, which are not referred by others
     for (int i = variables_.size()-1; i >= 0; --i)
@@ -243,7 +243,7 @@ void VariableManager::remove_unreferred()
 }
 
 /// puts Variable into `variables_' vector, checking dependencies
-int VariableManager::add_variable(Variable* new_var)
+int ModelManager::add_variable(Variable* new_var)
 {
     auto_ptr<Variable> var(new_var);
     var->set_var_idx(variables_);
@@ -265,7 +265,7 @@ int VariableManager::add_variable(Variable* new_var)
     return pos;
 }
 
-string VariableManager::assign_variable_copy(const Variable* orig,
+string ModelManager::assign_variable_copy(const Variable* orig,
                                              const map<int,string>& varmap)
 {
     string name = name_var_copy(orig);
@@ -293,7 +293,7 @@ string VariableManager::assign_variable_copy(const Variable* orig,
 }
 
 // names can contains '*' wildcards
-void VariableManager::delete_variables(const vector<string> &names)
+void ModelManager::delete_variables(const vector<string> &names)
 {
     if (names.empty())
         return;
@@ -334,7 +334,7 @@ void VariableManager::delete_variables(const vector<string> &names)
     remove_unreferred();
 }
 
-void VariableManager::delete_funcs(const vector<string>& names)
+void ModelManager::delete_funcs(const vector<string>& names)
 {
     if (names.empty())
         return;
@@ -365,7 +365,7 @@ void VariableManager::delete_funcs(const vector<string>& names)
     update_indices_in_models();
 }
 
-bool VariableManager::is_function_referred(int n) const
+bool ModelManager::is_function_referred(int n) const
 {
     v_foreach (Model*, i, models_) {
         if (contains_element((*i)->get_ff().idx, n)
@@ -376,7 +376,7 @@ bool VariableManager::is_function_referred(int n) const
 }
 
 // post: call update_indices_in_models()
-void VariableManager::auto_remove_functions()
+void ModelManager::auto_remove_functions()
 {
     int func_size = functions_.size();
     for (int i = func_size - 1; i >= 0; --i)
@@ -389,7 +389,7 @@ void VariableManager::auto_remove_functions()
     }
 }
 
-int VariableManager::find_function_nr(const string &name) const
+int ModelManager::find_function_nr(const string &name) const
 {
     for (int i = 0; i < size(functions_); ++i)
         if (functions_[i]->name == name)
@@ -397,7 +397,7 @@ int VariableManager::find_function_nr(const string &name) const
     return -1;
 }
 
-const Function* VariableManager::find_function(const string &name) const
+const Function* ModelManager::find_function(const string &name) const
 {
     int n = find_function_nr(name);
     if (n == -1)
@@ -405,7 +405,7 @@ const Function* VariableManager::find_function(const string &name) const
     return functions_[n];
 }
 
-int VariableManager::find_variable_nr(const string &name) const
+int ModelManager::find_variable_nr(const string &name) const
 {
     for (int i = 0; i < size(variables_); ++i)
         if (variables_[i]->name == name)
@@ -413,7 +413,7 @@ int VariableManager::find_variable_nr(const string &name) const
     return -1;
 }
 
-const Variable* VariableManager::find_variable(const string &name) const
+const Variable* ModelManager::find_variable(const string &name) const
 {
     int n = find_variable_nr(name);
     if (n == -1)
@@ -421,7 +421,7 @@ const Variable* VariableManager::find_variable(const string &name) const
     return variables_[n];
 }
 
-int VariableManager::gpos_to_vpos(int gpos) const
+int ModelManager::gpos_to_vpos(int gpos) const
 {
     assert(gpos >= 0 && gpos < size(parameters_));
     for (size_t i = 0; i < variables_.size(); ++i)
@@ -431,12 +431,12 @@ int VariableManager::gpos_to_vpos(int gpos) const
     return 0;
 }
 
-void VariableManager::use_parameters()
+void ModelManager::use_parameters()
 {
     use_external_parameters(parameters_);
 }
 
-void VariableManager::use_external_parameters(const vector<realt> &ext_param)
+void ModelManager::use_external_parameters(const vector<realt> &ext_param)
 {
     vm_foreach (Variable*, i, variables_)
         (*i)->recalculate(variables_, ext_param);
@@ -444,19 +444,19 @@ void VariableManager::use_external_parameters(const vector<realt> &ext_param)
         (*i)->do_precomputations(variables_);
 }
 
-void VariableManager::put_new_parameters(const vector<realt> &aa)
+void ModelManager::put_new_parameters(const vector<realt> &aa)
 {
     for (size_t i = 0; i < min(aa.size(), parameters_.size()); ++i)
         parameters_[i] = aa[i];
     use_parameters();
 }
 
-void VariableManager::set_domain(int n, const RealRange& domain)
+void ModelManager::set_domain(int n, const RealRange& domain)
 {
     variables_[n]->domain = domain;
 }
 
-int VariableManager::assign_func(const string &name, Tplate::Ptr tp,
+int ModelManager::assign_func(const string &name, Tplate::Ptr tp,
                                  vector<VMData*> &args)
 {
     assert(tp);
@@ -471,7 +471,7 @@ int VariableManager::assign_func(const string &name, Tplate::Ptr tp,
     return add_func(func);
 }
 
-int VariableManager::assign_func_copy(const string &name, const string &orig)
+int ModelManager::assign_func_copy(const string &name, const string &orig)
 {
     assert(!name.empty());
     const Function* of = find_function(orig);
@@ -495,7 +495,7 @@ int VariableManager::assign_func_copy(const string &name, const string &orig)
     return add_func(func);
 }
 
-int VariableManager::add_func(Function* func)
+int ModelManager::add_func(Function* func)
 {
     func->update_var_indices(variables_);
     // if there is already function with the same name -- replace
@@ -514,7 +514,7 @@ int VariableManager::add_func(Function* func)
     return nr;
 }
 
-string VariableManager::name_var_copy(const Variable* v)
+string ModelManager::name_var_copy(const Variable* v)
 {
     if (v->name[0] == '_')
         return next_var_name();
@@ -535,7 +535,7 @@ string VariableManager::name_var_copy(const Variable* v)
     }
 }
 
-void VariableManager::substitute_func_param(const string &name,
+void ModelManager::substitute_func_param(const string &name,
                                             const string &param,
                                             VMData* vd)
 {
@@ -550,7 +550,7 @@ void VariableManager::substitute_func_param(const string &name,
     remove_unreferred();
 }
 
-realt VariableManager::variation_of_a(int n, realt variat) const
+realt ModelManager::variation_of_a(int n, realt variat) const
 {
     assert (0 <= n && n < size(parameters()));
     const Variable* v = get_variable(n);
@@ -564,7 +564,7 @@ realt VariableManager::variation_of_a(int n, realt variat) const
     return lo + 0.5 * (variat + 1) * (hi - lo);
 }
 
-string VariableManager::next_var_name()
+string ModelManager::next_var_name()
 {
     while (1) {
         string t = "_" + S(++var_autoname_counter_);
@@ -573,7 +573,7 @@ string VariableManager::next_var_name()
     }
 }
 
-string VariableManager::next_func_name()
+string ModelManager::next_func_name()
 {
     while (1) {
         string t = "_" + S(++func_autoname_counter_);
@@ -582,7 +582,7 @@ string VariableManager::next_func_name()
     }
 }
 
-void VariableManager::do_reset()
+void ModelManager::do_reset()
 {
     purge_all_elements(functions_);
     purge_all_elements(variables_);
@@ -593,7 +593,7 @@ void VariableManager::do_reset()
     update_indices_in_models();
 }
 
-void VariableManager::update_indices(FunctionSum& sum)
+void ModelManager::update_indices(FunctionSum& sum)
 {
     sum.idx.clear();
     size_t i = 0;
@@ -608,7 +608,7 @@ void VariableManager::update_indices(FunctionSum& sum)
     }
 }
 
-void VariableManager::update_indices_in_models()
+void ModelManager::update_indices_in_models()
 {
     for (vector<Model*>::iterator i = models_.begin(); i != models_.end(); ++i){
         update_indices((*i)->get_ff());

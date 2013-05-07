@@ -43,7 +43,7 @@ private:
 class FITYK_API Ftk
 {
 public:
-    VariableManager mgr;
+    ModelManager mgr;
     View view;
     /// used for randomly drawing parameter values, in fitting methods like GA
     double default_relative_domain_width;

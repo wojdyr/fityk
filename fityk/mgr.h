@@ -17,14 +17,14 @@ class Model;
 struct FunctionSum;
 
 /// keeps all functions and variables
-class FITYK_API VariableManager
+class FITYK_API ModelManager
 {
 public:
     static bool is_auto(const std::string& name)
         { return !name.empty() && name[0] == '_'; }
 
-    VariableManager(const Ftk* F);
-    ~VariableManager();
+    ModelManager(const Ftk* F);
+    ~ModelManager();
     void register_model(Model *m) { models_.push_back(m); }
     void unregister_model(const Model *m);
 

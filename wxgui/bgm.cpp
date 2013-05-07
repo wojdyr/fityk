@@ -16,7 +16,7 @@
 using namespace std;
 using fityk::PointQ;
 using fityk::PointD;
-using fityk::VariableManager;
+using fityk::ModelManager;
 
 BgManager::BgManager(const Scale& x_scale)
     : x_scale_(x_scale), spline_(true), data_idx_(-1)
@@ -151,9 +151,9 @@ void BgManager::define_bg_func()
                     ftk->mgr.find_variable(f->used_vars().get_name(2*i));
                 const fityk::Variable *vy =
                     ftk->mgr.find_variable(f->used_vars().get_name(2*i+1));
-                if (!VariableManager::is_auto(vx->name) || !vx->is_constant() ||
+                if (!ModelManager::is_auto(vx->name) || !vx->is_constant() ||
                         S(vx->value()) != S(bg_[i].x) ||
-                    !VariableManager::is_auto(vy->name) || !vy->is_constant() ||
+                    !ModelManager::is_auto(vy->name) || !vy->is_constant() ||
                         S(vy->value()) != S(bg_[i].y)) {
                     the_same = false;
                     break;

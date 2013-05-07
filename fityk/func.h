@@ -13,7 +13,6 @@
 namespace fityk {
 
 struct Settings;
-class VariableManager;
 
 class FITYK_API Function : public Func
 {

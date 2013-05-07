@@ -83,8 +83,8 @@ void models_as_script(const Ftk* F, string& r, bool commented_defines)
             r += "\n# define " + formula;
     }
     r += "\n\n# ------------  variables and functions  ------------";
-    // The script must not trigger VariableManager::remove_unreferred()
-    // or VariableManager::auto_remove_functions() until all references
+    // The script must not trigger ModelManager::remove_unreferred()
+    // or ModelManager::auto_remove_functions() until all references
     // are reproduced.
     v_foreach (Variable*, i, F->mgr.variables())
         r += "\n$" + (*i)->name +" = "+ (*i)->get_formula(F->mgr.parameters());
@@ -159,7 +159,7 @@ string get_variable_info(const Ftk* F, const Variable* v)
     string s = "$" + v->name + " = " + v->get_formula(F->mgr.parameters()) +
                 " = " + F->settings_mgr()->format_double(v->value()) +
                 v->domain.str();
-    if (VariableManager::is_auto(v->name))
+    if (ModelManager::is_auto(v->name))
         s += "  [auto]";
     return s;
 }
