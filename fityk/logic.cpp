@@ -40,9 +40,7 @@ bool DataAndModel::has_any_info() const
 
 
 Ftk::Ftk()
-    : mgr(this),
-      view(this),
-      default_relative_domain_width(0.1)
+    : mgr(this), view(this)
 {
     // reading numbers won't work with decimal points different than '.'
     setlocale(LC_NUMERIC, "C");
