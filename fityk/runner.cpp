@@ -504,7 +504,7 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
     //       ("copy" ($func | Dataset ("F"|"Z") (Expr|Nop)))
     //      )+
     int lhs_ds = (args[0].type == kTokenDataset ? args[0].value.i : ds);
-    FunctionSum& sum = F_->get_model(lhs_ds)->get_fz(*args[1].str);
+    FunctionSum& sum = F_->get_mutable_model(lhs_ds)->get_fz(*args[1].str);
     bool removed_functions = false;
     if (args[2].type == kTokenAssign && !sum.names.empty()) {
         sum.names.clear();

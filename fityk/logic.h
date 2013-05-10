@@ -64,7 +64,7 @@ public:
     Data *get_data(int n) { return get_dm(n)->data(); }
 
     const Model* get_model(int n) const { return get_dm(n)->model(); }
-    Model *get_model(int n)   { return get_dm(n)->model(); }
+    Model *get_mutable_model(int n)   { return get_dm(n)->model(); }
 
     int default_dm() const { return default_dm_; }
     void set_default_dm(int n) { check_dm_number(n); default_dm_ = n; }
