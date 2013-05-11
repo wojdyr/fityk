@@ -34,6 +34,8 @@ public:
     /// Redraw the plot.
     void draw_plot(RepaintMode mode);
 
+    void mark_plot_dirty() { dirty_plot_ = true; }
+
     /// Calls the show_message(), logs the message to file if logging is on,
     /// handles option on_error=exit.
     void output_message(Style style, const std::string& s) const;
@@ -43,6 +45,7 @@ public:
 
     /// Send implicitely requested message
     void mesg(std::string const &s) const { output_message(kNormal, s); }
+
 
     /// Excute commands from file, i.e. run a script (.fit).
     void exec_fityk_script(const std::string& filename);
@@ -84,6 +87,7 @@ private:
     std::vector<Cmd> cmds_;
     Parser *parser_;
     Runner *runner_;
+    bool dirty_plot_;
 
     /// show message to user
     void show_message(Style style, const std::string& s) const

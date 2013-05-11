@@ -109,12 +109,6 @@ public:
     /// to mark cache of parameter errors as outdated.
     void outdated_plot();
 
-    /// called after replotting 
-    void updated_plot() { dirty_plot_ = false; }
-
-    /// returns true if the plot should be replotted
-    bool is_plot_outdated() const { return dirty_plot_; }
-
     // check if given models share common parameters
     bool are_independent(std::vector<DataAndModel*> dms) const;
 
@@ -127,7 +121,6 @@ private:
     FitManager* fit_manager_;
     TplateMgr* tplate_mgr_;
     LuaBridge* lua_bridge_;
-    bool dirty_plot_;
 
     void initialize();
     void destroy();

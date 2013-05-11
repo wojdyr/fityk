@@ -65,7 +65,7 @@ void Ftk::initialize()
     tplate_mgr_ = new TplateMgr;
     tplate_mgr_->add_builtin_types(ui_->parser());
     view = View(this);
-    dirty_plot_ = true;
+    ui_->mark_plot_dirty();
     append_dm();
     default_dm_ = 0;
     settings_mgr()->do_srand();
@@ -248,7 +248,7 @@ void Ftk::import_dataset(int slot, string const& filename,
 
 void Ftk::outdated_plot()
 {
-    dirty_plot_ = true;
+    ui_->mark_plot_dirty();
     fit_manager_->outdated_error_cache();
 }
 

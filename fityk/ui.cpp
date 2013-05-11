@@ -189,7 +189,7 @@ UiApi::Status UserInterface::execute_line(const string& str)
         status = UiApi::kStatusExecuteError;
     }
 
-    if (F_->is_plot_outdated() && F_->get_settings()->autoplot)
+    if (dirty_plot_ && F_->get_settings()->autoplot)
         draw_plot(UiApi::kRepaint);
 
     return status;
@@ -360,7 +360,7 @@ void UserInterface::draw_plot(RepaintMode mode)
 {
     if (draw_plot_callback_)
         (*draw_plot_callback_)(mode);
-    F_->updated_plot();
+    dirty_plot_ = false;
 }
 
 
