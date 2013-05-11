@@ -153,13 +153,13 @@ def run(data_name, fit_method, easy=True):
         print fmt % ("SSR", ssr, ref.ssr, ssr_diff)
     our_func = ftk.all_functions()[0]
     for par in ref.parameters:
-        v = ftk.get_var(our_func, par.name)
-        calc_value = v.get_value()
+        calc_value = our_func.get_param_value(par.name)
         val_diff = (calc_value - par.value) / par.value
         param_ok = (abs(val_diff) < tolerance["param"])
         err_ok = True
         if "err" in tolerance:
-            calc_err = ftk.calculate_expr("$" + v.name + ".error")
+            vname = our_func.var_name(par.name)
+            calc_err = ftk.calculate_expr("$%s.error" % vname)
             err_diff = (calc_err - par.stddev) / par.stddev
             err_ok = (abs(err_diff) < tolerance["err"])
         if VERBOSE > 2 or (VERBOSE == 2 and (not param_ok or not err_ok)):
