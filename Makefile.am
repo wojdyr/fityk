@@ -62,6 +62,10 @@ samples_helloc_SOURCES = samples/hello.c
 samples_helloc_CPPFLAGS = -I$(srcdir)
 samples_helloc_LDADD = fityk/libfityk.la
 
+check-scripts:
+	cli/cfityk -q ../tests/test_syntax.fit
+	PYTHONPATH=fityk/swig/.libs:$(srcdir)/fityk/swig/ \
+	   python -m unittest discover -s $(srcdir)/tests/
 
 # --- doc/ ---
 
