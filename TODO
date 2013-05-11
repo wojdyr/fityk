@@ -1,3 +1,4 @@
+* dirty_plot_ -> UserInterface
 * fitting: box-constrained parameters (simple-variables)
   use domain; allow domain with one boundary, e.g. [0:];
   syntax for domain in deault parameters (...shape=~0.5 [0:1],...),

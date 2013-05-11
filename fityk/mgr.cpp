@@ -26,8 +26,8 @@ using namespace std;
 
 namespace fityk {
 
-ModelManager::ModelManager(const Ftk* F)
-    : F_(F),
+ModelManager::ModelManager(const BasicContext* ctx)
+    : ctx_(ctx),
       var_autoname_counter_(0),
       func_autoname_counter_(0)
 {
@@ -466,7 +466,7 @@ int ModelManager::assign_func(const string &name, Tplate::Ptr tp,
                                         : make_variable(next_var_name(), *j);
         varnames.push_back(variables_[idx]->name);
     }
-    Function *func = (*tp->create)(F_->get_settings(), name, tp, varnames);
+    Function *func = (*tp->create)(ctx_->get_settings(), name, tp, varnames);
     func->init();
     return add_func(func);
 }
@@ -490,7 +490,7 @@ int ModelManager::assign_func_copy(const string &name, const string &orig)
     }
 
     Tplate::Ptr tp = of->tp();
-    Function* func = (*tp->create)(F_->get_settings(), name, tp, varnames);
+    Function* func = (*tp->create)(ctx_->get_settings(), name, tp, varnames);
     func->init();
     return add_func(func);
 }
@@ -504,12 +504,12 @@ int ModelManager::add_func(Function* func)
         delete functions_[nr];
         functions_[nr] = func;
         remove_unreferred();
-        F_->msg("%" + func->name + " replaced.");
+        ctx_->msg("%" + func->name + " replaced.");
     }
     else {
         nr = functions_.size();
         functions_.push_back(func);
-        F_->msg("%" + func->name + " created.");
+        ctx_->msg("%" + func->name + " created.");
     }
     return nr;
 }
@@ -555,7 +555,7 @@ realt ModelManager::variation_of_a(int n, realt variat) const
     assert (0 <= n && n < size(parameters()));
     const Variable* v = get_variable(n);
     double lo = v->domain.lo, hi = v->domain.hi;
-    double percent = F_->get_settings()->domain_percent;
+    double percent = ctx_->get_settings()->domain_percent;
     if (v->domain.lo_inf())
         lo = v->value() * (1 - 0.01 * percent);
     if (v->domain.hi_inf())

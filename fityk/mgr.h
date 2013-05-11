@@ -12,7 +12,7 @@ namespace fityk {
 
 class Variable;
 class Function;
-class Ftk;
+class BasicContext;
 class Model;
 struct FunctionSum;
 
@@ -23,7 +23,7 @@ public:
     static bool is_auto(const std::string& name)
         { return !name.empty() && name[0] == '_'; }
 
-    ModelManager(const Ftk* F);
+    ModelManager(const BasicContext* ctx);
     ~ModelManager();
     void register_model(Model *m) { models_.push_back(m); }
     void unregister_model(const Model *m);
@@ -90,7 +90,7 @@ public:
 
 
 private:
-    const Ftk* F_;
+    const BasicContext* ctx_;
     std::vector<Model*> models_;
     std::vector<realt> parameters_;
     /// sorted, a doesn't depend on b if idx(a)>idx(b)

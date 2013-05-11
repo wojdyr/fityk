@@ -20,8 +20,8 @@ using namespace std;
 
 namespace fityk {
 
-Model::Model(Ftk *F)
-    : F_(F), mgr_(F->mgr)
+Model::Model(BasicContext *ctx, ModelManager &mgr)
+    : ctx_(ctx), mgr_(mgr)
 {
     mgr_.register_model(this);
 }
@@ -161,7 +161,7 @@ realt Model::approx_max(realt x_min, realt x_max) const
 string Model::get_peak_parameters(const vector<double>& errors) const
 {
     string s;
-    const SettingsMgr *sm = F_->settings_mgr();
+    const SettingsMgr *sm = ctx_->settings_mgr();
     s += "# PeakType\tCenter\tHeight\tArea\tFWHM\tparameters...\n";
     v_foreach (int, i, ff_.idx) {
         const Function* p = mgr_.get_function(*i);

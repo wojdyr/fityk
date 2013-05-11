@@ -12,7 +12,7 @@
 namespace fityk {
 
 class ModelManager;
-class Ftk;
+class BasicContext;
 
 struct FunctionSum
 {
@@ -30,7 +30,7 @@ struct FunctionSum
 class FITYK_API Model
 {
 public:
-    Model(Ftk *F);
+    Model(BasicContext *ctx, ModelManager &mgr);
     ~Model();
 
     /// calculate model (single point)
@@ -72,7 +72,7 @@ public:
 
 
 private:
-    const Ftk* F_;
+    const BasicContext* ctx_;
     ModelManager &mgr_;
     FunctionSum ff_, zz_;
 

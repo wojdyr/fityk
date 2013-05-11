@@ -442,6 +442,11 @@ UiApi* Fityk::get_ui_api()
     return ftk_->ui();
 }
 
+void Fityk::process_cmd_line_arg(const string& arg)
+{
+    ftk_->process_cmd_line_arg(arg);
+}
+
 } //namespace fityk
 
 

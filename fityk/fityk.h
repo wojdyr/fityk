@@ -299,6 +299,7 @@ public:
     /// UiApi contains functions used by CLI and may be used to implement
     /// another user interface.
     UiApi* get_ui_api();
+    void process_cmd_line_arg(const std::string& arg);
 
     // implementation details (for internal use)
     Ftk *get_ftk() { return ftk_; } // access to underlying data

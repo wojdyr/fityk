@@ -318,7 +318,7 @@ int main (int argc, char **argv)
         string init_file = get_config_dir() + startup_commands_filename();
         if (access(init_file.c_str(), R_OK) == 0) {
             fprintf(stderr, " -- init file: %s --\n", init_file.c_str());
-            ftk->get_ui_api()->exec_script(init_file);
+            ftk->get_ui_api()->exec_fityk_script(init_file);
             fprintf(stderr, " -- end of init file --\n");
         }
     }
@@ -330,7 +330,7 @@ int main (int argc, char **argv)
         //the rest of parameters/arguments are scripts and/or data files
         for (int i = 1; i < argc; ++i) {
             if (argv[i])
-                ftk->get_ui_api()->process_cmd_line_arg(argv[i]);
+                ftk->process_cmd_line_arg(argv[i]);
         }
 
         // there are two versions of main_loop(), w/ and w/o libreadline

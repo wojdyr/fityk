@@ -9,7 +9,7 @@
 
 namespace fityk {
 
-class Ftk;
+class BasicContext;
 
 // settings that can be changed using the set command
 struct FITYK_API Settings
@@ -70,7 +70,7 @@ public:
         kNotFound // used as a return value from get_value_type()
     };
 
-    SettingsMgr(Ftk const* F);
+    SettingsMgr(BasicContext const* ctx);
 
     /// get all option keys that start with given string
     static std::vector<std::string> get_key_list (const std::string& start);
@@ -108,7 +108,7 @@ public:
 #endif
 
 private:
-    const Ftk* F_; // used for msg()
+    const BasicContext* ctx_; // used for msg()
     Settings m_;
     std::string long_double_format_;
 

@@ -14,12 +14,34 @@
 
 namespace fityk {
 
+class BasicContext
+{
+public:
+    //BasicContext(UserInterface *ui)
+    //    : settings_mgr_(new SettingsMgr(this)), ui_(ui) {}
+    //~BasicContext() { delete settings_mgr; }
+    const SettingsMgr* settings_mgr() const { return settings_mgr_; }
+    SettingsMgr* settings_mgr() { return settings_mgr_; }
+
+    const UserInterface* ui() const { return ui_; }
+    UserInterface* ui() { return ui_; }
+
+    // short names for popular calls
+    int get_verbosity() const { return get_settings()->verbosity; }
+    void msg(const std::string &s) const
+                                { if (get_verbosity() >= 0) ui_->mesg(s); }
+    const Settings* get_settings() const { return &settings_mgr_->m(); }
+protected:
+    SettingsMgr* settings_mgr_;
+    UserInterface* ui_;
+};
+
 class Ftk;
-class UserInterface;
 class FitManager;
 class Fit;
 class Model;
 class TplateMgr;
+class LuaBridge;
 
 
 /// keeps Data and its Model
@@ -40,7 +62,7 @@ private:
 
 
 /// keeps all functions, variables, parameters, datasets with models and View
-class FITYK_API Ftk
+class FITYK_API Ftk : public BasicContext
 {
 public:
     ModelManager mgr;
@@ -69,14 +91,6 @@ public:
     int default_dm() const { return default_dm_; }
     void set_default_dm(int n) { check_dm_number(n); default_dm_ = n; }
 
-    const SettingsMgr* settings_mgr() const { return settings_mgr_; }
-    SettingsMgr* settings_mgr() { return settings_mgr_; }
-
-    const Settings* get_settings() const { return &settings_mgr_->m(); }
-
-    const UserInterface* ui() const { return ui_; }
-    UserInterface* ui() { return ui_; }
-
     const FitManager* fit_manager() const { return fit_manager_; }
     FitManager* fit_manager() { return fit_manager_; }
     Fit* get_fit() const;
@@ -84,11 +98,7 @@ public:
     const TplateMgr* get_tpm() const { return tplate_mgr_; }
     TplateMgr* get_tpm() { return tplate_mgr_; }
 
-    // short names for popular calls
-    int get_verbosity() const { return get_settings()->verbosity; }
-    void msg(const std::string &s) const
-                                { if (get_verbosity() >= 0) ui_->mesg(s); }
-
+    LuaBridge* lua_bridge() { return lua_bridge_; }
 
     /// import dataset (or multiple datasets, in special cases)
     void import_dataset(int slot, const std::string& filename,
@@ -108,13 +118,15 @@ public:
     // check if given models share common parameters
     bool are_independent(std::vector<DataAndModel*> dms) const;
 
+    // interprets command-line argument as data or script file or as command
+    void process_cmd_line_arg(const std::string& arg);
+
 private:
     int default_dm_;
     std::vector<DataAndModel*> dms_;
-    SettingsMgr* settings_mgr_;
-    UserInterface* ui_;
     FitManager* fit_manager_;
     TplateMgr* tplate_mgr_;
+    LuaBridge* lua_bridge_;
     bool dirty_plot_;
 
     void initialize();

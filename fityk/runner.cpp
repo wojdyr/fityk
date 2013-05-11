@@ -19,6 +19,7 @@
 #include "guess.h"
 #include "transform.h"
 #include "ui.h"
+#include "luabridge.h"
 
 using namespace std;
 
@@ -145,9 +146,11 @@ void Runner::command_exec(TokenType tt, const string& str)
     }
 
     // exec filename
-    else {
-        F_->ui()->exec_script(str);
-    }
+    else if (endswith(str, ".lua"))
+        F_->lua_bridge()->exec_lua_script(str);
+    else
+        F_->ui()->exec_fityk_script(str);
+
 }
 
 void Runner::command_fit(const vector<Token>& args, int ds)
@@ -825,15 +828,15 @@ void Runner::execute_statement(Statement& st)
                     F_->set_default_dm(*i);
                     if (eq) {
                         if (c->type == kCmdExec)
-                            F_->ui()->exec_lua_output(str);
+                            F_->lua_bridge()->exec_lua_output(str);
                         else // if (c->type == kCmdLua)
-                            F_->ui()->exec_lua_string("return " + str);
+                            F_->lua_bridge()->exec_lua_string("return " + str);
                     }
                     else {
                         if (c->type == kCmdExec)
                             command_exec(tt, str);
                         else // if (c->type == kCmdLua)
-                            F_->ui()->exec_lua_string(str);
+                            F_->lua_bridge()->exec_lua_string(str);
                     }
                     F_->set_default_dm(old_default_dm);
                     st.datasets.swap(backup.datasets);

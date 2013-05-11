@@ -107,7 +107,7 @@ def main():
         init_file = os.path.join(config_dir, fityk.startup_commands_filename())
         if os.path.exists(init_file):
             sys.stderr.write(" -- init file: %s --\n" % init_file)
-            ui.exec_script(init_file)
+            ui.exec_fityk_script(init_file)
             sys.stderr.write(" -- end of init file --\n")
 
     if readline:
@@ -120,7 +120,7 @@ def main():
         for s in options.cmd:
             ui.exec_and_log(s)
         for arg in args:
-            ui.process_cmd_line_arg(arg)
+            f.process_cmd_line_arg(arg)
 
         if not options.quit:
             while True:

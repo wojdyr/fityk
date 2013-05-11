@@ -13,7 +13,7 @@
 
 namespace fityk {
 
-class Ftk;
+class BasicContext;
 
 FITYK_API std::string get_file_basename(std::string const& path);
 
@@ -29,8 +29,8 @@ public :
                              const std::string& options,
                              int first_block);
 
-    Data(const Ftk* F)
-        : F_(F), given_x_(INT_MAX), given_y_(INT_MAX), given_s_(INT_MAX),
+    Data(const BasicContext* ctx)
+        : ctx_(ctx), given_x_(INT_MAX), given_y_(INT_MAX), given_s_(INT_MAX),
                   x_step_(0.) {}
     ~Data() {}
     std::string get_info() const;
@@ -84,7 +84,7 @@ public :
     void revert();
 
 private:
-    const Ftk* F_;
+    const BasicContext* ctx_;
     std::string title_;
     std::string filename_;
     int given_x_, given_y_, given_s_;/// columns given when loading the file

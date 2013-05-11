@@ -21,6 +21,7 @@
 #include "mgr.h"
 #include "func.h"
 #include "tplate.h"
+#include "luabridge.h"
 #include "lexer.h" // Lexer::kNew
 
 using namespace std;
@@ -28,7 +29,7 @@ using namespace std;
 namespace fityk {
 
 DataAndModel::DataAndModel(Ftk *F, Data* data)
-    : data_(data ? data : new Data(F)), model_(new Model(F))
+    : data_(data ? data : new Data(F)), model_(new Model(F, F->mgr))
 {}
 
 bool DataAndModel::has_any_info() const
@@ -57,6 +58,7 @@ Ftk::~Ftk()
 // initializations common for ctor and reset()
 void Ftk::initialize()
 {
+    lua_bridge_ = new LuaBridge(this);
     fit_manager_ = new FitManager(this);
     // Settings ctor is using FitManager
     settings_mgr_ = new SettingsMgr(this);
@@ -72,12 +74,12 @@ void Ftk::initialize()
 // cleaning common for dtor and reset()
 void Ftk::destroy()
 {
-    ui_->close_lua();
     purge_all_elements(dms_);
     mgr.do_reset();
     delete fit_manager_;
     delete settings_mgr_;
     delete tplate_mgr_;
+    delete lua_bridge_;
 }
 
 // reset everything but UserInterface (and related settings)
@@ -263,6 +265,41 @@ bool Ftk::are_independent(std::vector<DataAndModel*> dms) const
                 }
         }
     return true;
+}
+
+static
+bool is_fityk_script(string filename)
+{
+    const char *magic = "# Fityk";
+
+    FILE *f = fopen(filename.c_str(), "rb");
+    if (!f)
+        return false;
+
+    if (endswith(filename, ".fit") || endswith(filename, ".fityk") ||
+            endswith(filename, ".fit.gz") || endswith(filename, ".fityk.gz")) {
+        fclose(f);
+        return true;
+    }
+
+    const int magic_len = strlen(magic);
+    char buffer[32];
+    fgets(buffer, magic_len, f);
+    fclose(f);
+    return !strncmp(magic, buffer, magic_len);
+}
+
+void Ftk::process_cmd_line_arg(const string& arg)
+{
+    if (startswith(arg, "=->"))
+        ui()->exec_and_log(string(arg, 3));
+    else if (endswith(arg, ".lua"))
+        lua_bridge()->exec_lua_script(arg);
+    else if (is_fityk_script(arg))
+        ui()->exec_fityk_script(arg);
+    else {
+        ui()->exec_and_log("@+ <'" + arg + "'");
+    }
 }
 
 } // namespace fityk

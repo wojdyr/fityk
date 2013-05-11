@@ -7,8 +7,6 @@
 #include "common.h"
 #include "ui_api.h"
 
-struct lua_State;
-
 namespace fityk {
 class Ftk;
 class Parser;
@@ -47,7 +45,7 @@ public:
     void mesg(std::string const &s) const { output_message(kNormal, s); }
 
     /// Excute commands from file, i.e. run a script (.fit).
-    void exec_script(const std::string& filename);
+    void exec_fityk_script(const std::string& filename);
 
     void exec_stream(FILE *fp);
     void exec_string_as_script(const char* s);
@@ -62,9 +60,6 @@ public:
 
     /// return true if the syntax is correct
     bool check_syntax(const std::string& str);
-
-
-    void process_cmd_line_arg(const std::string& arg);
 
     void hint_ui(int hint)
           { if (hint_ui_callback_) (*hint_ui_callback_)(hint); }
@@ -83,19 +78,12 @@ public:
     const std::vector<Cmd>& cmds() const { return cmds_; }
     std::string get_history_summary() const;
 
-    void close_lua();
-    void exec_lua_string(const std::string& str);
-    void exec_lua_script(const std::string& str);
-    void exec_lua_output(const std::string& str);
-    bool is_lua_line_incomplete(const char* str);
-
 private:
     Ftk* F_;
     int cmd_count_; //!=cmds_.size() if max_cmd was exceeded
     std::vector<Cmd> cmds_;
     Parser *parser_;
     Runner *runner_;
-    lua_State *L_;
 
     /// show message to user
     void show_message(Style style, const std::string& s) const
@@ -104,9 +92,6 @@ private:
     /// Execute command(s) from string
     /// It can finish the program (eg. if s=="quit").
     UiApi::Status exec_command(const std::string& s);
-
-    lua_State* get_lua();
-    void handle_lua_error();
 
     DISALLOW_COPY_AND_ASSIGN(UserInterface);
 };

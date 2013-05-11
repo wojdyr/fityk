@@ -266,7 +266,7 @@ bool FApp::OnInit(void)
         wxString startup_file =
                     get_conf_file(fityk::startup_commands_filename());
         if (wxFileExists(startup_file)) {
-            ftk->ui()->exec_script(wx2s(startup_file));
+            ftk->ui()->exec_fityk_script(wx2s(startup_file));
         }
     }
 
@@ -341,7 +341,7 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
     }
     for (vector<string>::const_iterator i = p.begin(); i != p.end(); ++i) {
         try {
-            ftk->ui()->process_cmd_line_arg(*i);
+            ftk->process_cmd_line_arg(*i);
         }
         catch (runtime_error const& e) {
             fprintf(stderr, "Error: %s\n", e.what());

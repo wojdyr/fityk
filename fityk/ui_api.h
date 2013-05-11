@@ -39,10 +39,7 @@ public:
     virtual Status exec_and_log(const std::string& c) = 0;
 
     /// Excute commands from file, i.e. run a script (.fit).
-    virtual void exec_script(const std::string& filename) = 0;
-
-    // interprets command-line argument as data or script file or as command
-    virtual void process_cmd_line_arg(const std::string& arg) = 0;
+    virtual void exec_fityk_script(const std::string& filename) = 0;
 
     // Callbacks. connect_*() returns old callback.
 

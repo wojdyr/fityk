@@ -38,8 +38,8 @@ class FITYK_API View: public Rect
 public:
     static const double relative_x_margin, relative_y_margin;
 
-    View(Ftk const* F_)
-        : Rect(0, 180., -50, 1e3), F(F_),
+    View(Ftk const* F)
+        : Rect(0, 180., -50, 1e3), F_(F),
           log_x_(false), log_y_(false), y0_factor_(10.) {}
     std::string str() const;
     /// fit specified edges to the data range
@@ -49,7 +49,7 @@ public:
     double y0_factor() const { return y0_factor_; }
     void set_y0_factor(double f) { y0_factor_ = f; }
 private:
-    Ftk const* F;
+    Ftk const* F_;
     bool log_x_, log_y_;
     double y0_factor_;
 

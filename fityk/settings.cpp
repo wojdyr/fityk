@@ -124,8 +124,8 @@ void change_current_working_dir(const char* path)
         throw ExecuteError("Changing current working directory failed.");
 }
 
-SettingsMgr::SettingsMgr(Ftk const* F)
-    : F_(F)
+SettingsMgr::SettingsMgr(BasicContext const* ctx)
+    : ctx_(ctx)
 {
     for (int i = 0; FitManager::method_list[i][0]; ++i)
         fit_method_enum[i] = FitManager::method_list[i][0];
@@ -206,7 +206,7 @@ void SettingsMgr::set_as_string(string const& k, string const& v)
 {
     string sp = get_as_string(k);
     if (sp == v) {
-        F_->msg("Option '" + k + "' already has value: " + v);
+        ctx_->msg("Option '" + k + "' already has value: " + v);
         return;
     }
     const Option& opt = find_option(k);
@@ -248,7 +248,7 @@ void SettingsMgr::set_as_number(string const& k, double d)
 {
     string sp = get_as_string(k);
     if (sp == S(d)) {
-        F_->msg("Option '" + k + "' already has value: " + sp);
+        ctx_->msg("Option '" + k + "' already has value: " + sp);
         return;
     }
     const Option& opt = find_option(k);
