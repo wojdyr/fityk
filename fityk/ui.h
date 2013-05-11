@@ -8,9 +8,8 @@
 #include "ui_api.h"
 
 namespace fityk {
-class Ftk;
-class Parser;
-class Runner;
+class BasicContext;
+class CommandExecutor;
 
 /// commands, messages and plot refreshing
 /// it has callbacks that can be set by user interface
@@ -28,8 +27,7 @@ public:
         std::string str() const;
     };
 
-    UserInterface(Ftk* F);
-    ~UserInterface();
+    UserInterface(BasicContext* ctx, CommandExecutor* ce);
 
     /// Redraw the plot.
     void draw_plot(RepaintMode mode);
@@ -55,14 +53,8 @@ public:
 
     UiApi::Status exec_and_log(const std::string& c);
 
-    // Calls Parser::parse_statement() and Runner::execute_statement().
-    void raw_execute_line(const std::string& str);
-
     // Calls raw_execute_line(), catches exceptions and returns status code.
     UiApi::Status execute_line(const std::string& str);
-
-    /// return true if the syntax is correct
-    bool check_syntax(const std::string& str);
 
     void hint_ui(int hint)
           { if (hint_ui_callback_) (*hint_ui_callback_)(hint); }
@@ -75,18 +67,14 @@ public:
     /// wait doing nothing for given number of seconds (can be fractional).
     void wait(float seconds) const;
 
-    /// share parser -- it can be safely reused
-    Parser* parser() const { return parser_; }
-
     const std::vector<Cmd>& cmds() const { return cmds_; }
     std::string get_history_summary() const;
 
 private:
-    Ftk* F_;
+    BasicContext* ctx_;
+    CommandExecutor* cmd_executor_;
     int cmd_count_; //!=cmds_.size() if max_cmd was exceeded
     std::vector<Cmd> cmds_;
-    Parser *parser_;
-    Runner *runner_;
     bool dirty_plot_;
 
     /// show message to user

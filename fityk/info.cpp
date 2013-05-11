@@ -68,7 +68,8 @@ void models_as_script(const Ftk* F, string& r, bool commented_defines)
 {
     r += "# ------------  (un)defines  ------------";
     TplateMgr default_tpm;
-    default_tpm.add_builtin_types(F->ui()->parser());
+    Parser parser(F); // CommandExecutor.parser() could be used
+    default_tpm.add_builtin_types(&parser);
     v_foreach (Tplate::Ptr, i, default_tpm.tpvec()) {
         const Tplate* t = F->get_tpm()->get_tp((*i)->name);
         if (t == NULL || t->as_formula() != (*i)->as_formula())

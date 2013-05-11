@@ -857,4 +857,13 @@ void Runner::execute_statement(Statement& st)
         F_->settings_mgr()->set_all(*s_orig);
 }
 
+
+void CommandExecutor::raw_execute_line(const string& str)
+{
+    Lexer lex(str.c_str());
+    while (parser_.parse_statement(lex))
+        runner_.execute_statement(parser_.statement());
+}
+
+
 } // namespace fityk

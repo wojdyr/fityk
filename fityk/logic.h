@@ -42,6 +42,7 @@ class Fit;
 class Model;
 class TplateMgr;
 class LuaBridge;
+class CommandExecutor;
 
 
 /// keeps Data and its Model
@@ -115,12 +116,18 @@ public:
     // interprets command-line argument as data or script file or as command
     void process_cmd_line_arg(const std::string& arg);
 
+    /// return true if the syntax is correct
+    bool check_syntax(const std::string& str);
+
+    void parse_and_execute_line(const std::string& str);
+
 private:
     int default_dm_;
     std::vector<DataAndModel*> dms_;
     FitManager* fit_manager_;
     TplateMgr* tplate_mgr_;
     LuaBridge* lua_bridge_;
+    CommandExecutor* cmd_executor_;
 
     void initialize();
     void destroy();

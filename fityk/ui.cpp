@@ -18,8 +18,7 @@
 #include "settings.h"
 #include "logic.h"
 #include "data.h"
-#include "cparser.h"
-#include "runner.h"
+#include "runner.h" // CommandExecutor
 
 using namespace std;
 
@@ -132,17 +131,9 @@ string UserInterface::get_history_summary() const
 
 
 
-UserInterface::UserInterface(Ftk* F)
-        : F_(F), cmd_count_(0)
+UserInterface::UserInterface(BasicContext* ctx, CommandExecutor* ce)
+        : ctx_(ctx), cmd_executor_(ce), cmd_count_(0)
 {
-    parser_ = new Parser(F);
-    runner_ = new Runner(F);
-}
-
-UserInterface::~UserInterface()
-{
-    delete parser_;
-    delete runner_;
 }
 
 UiApi::Status UserInterface::exec_and_log(const string& c)
@@ -151,8 +142,8 @@ UiApi::Status UserInterface::exec_and_log(const string& c)
         return UiApi::kStatusOk;
 
     // we want to log the input before the output
-    if (!F_->get_settings()->logfile.empty()) {
-        FILE* f = fopen(F_->get_settings()->logfile.c_str(), "a");
+    if (!ctx_->get_settings()->logfile.empty()) {
+        FILE* f = fopen(ctx_->get_settings()->logfile.c_str(), "a");
         if (f) {
             fprintf(f, "%s\n", c.c_str());
             fclose(f);
@@ -165,18 +156,11 @@ UiApi::Status UserInterface::exec_and_log(const string& c)
     return r;
 }
 
-void UserInterface::raw_execute_line(const string& str)
-{
-    Lexer lex(str.c_str());
-    while (parser_->parse_statement(lex))
-        runner_->execute_statement(parser_->statement());
-}
-
 UiApi::Status UserInterface::execute_line(const string& str)
 {
     UiApi::Status status = UiApi::kStatusOk;
     try {
-        raw_execute_line(str);
+        cmd_executor_->raw_execute_line(str);
     }
     catch (SyntaxError &e) {
         warn(string("Syntax error: ") + e.what());
@@ -189,24 +173,19 @@ UiApi::Status UserInterface::execute_line(const string& str)
         status = UiApi::kStatusExecuteError;
     }
 
-    if (dirty_plot_ && F_->get_settings()->autoplot)
+    if (dirty_plot_ && ctx_->get_settings()->autoplot)
         draw_plot(UiApi::kRepaint);
 
     return status;
-}
-
-bool UserInterface::check_syntax(const string& str)
-{
-    return parser_->check_syntax(str);
 }
 
 void UserInterface::output_message(Style style, const string& s) const
 {
     show_message(style, s);
 
-    if (!F_->get_settings()->logfile.empty() &&
-            F_->get_settings()->log_full) {
-        FILE* f = fopen(F_->get_settings()->logfile.c_str(), "a");
+    if (!ctx_->get_settings()->logfile.empty() &&
+            ctx_->get_settings()->log_full) {
+        FILE* f = fopen(ctx_->get_settings()->logfile.c_str(), "a");
         if (f) {
             // insert "# " at the beginning of string and before every new line
             fprintf(f, "# ");
@@ -220,7 +199,7 @@ void UserInterface::output_message(Style style, const string& s) const
         }
     }
 
-    if (style == kWarning && F_->get_settings()->on_error[0] == 'e'/*exit*/) {
+    if (style == kWarning && ctx_->get_settings()->on_error[0] == 'e'/*exit*/) {
         show_message(kNormal, "Warning -> exiting program.");
         throw ExitRequestedException();
     }
@@ -278,7 +257,7 @@ void UserInterface::exec_fityk_script(const string& filename)
         ++line_index;
         if (line[0] == '\0')
             continue;
-        if (F_->get_verbosity() >= 0)
+        if (ctx_->get_verbosity() >= 0)
             show_message (kQuoted, S(line_index) + "> " + line);
         s += line;
         if (*(s.end() - 1) == '\\') {
@@ -291,7 +270,8 @@ void UserInterface::exec_fityk_script(const string& filename)
             replace_all(s, "_SCRIPT_DIR_/", dir); // new magic string
         }
         Status r = execute_line(s);
-        if (r != kStatusOk && F_->get_settings()->on_error[0] != 'n'/*nothing*/)
+        if (r != kStatusOk &&
+                ctx_->get_settings()->on_error[0] != 'n' /*nothing*/)
             break;
         if (user_interrupt) {
             mesg("Script stopped by signal INT.");
@@ -310,7 +290,7 @@ void UserInterface::exec_stream(FILE *fp)
     char *line;
     string s;
     while ((line = reader.next(fp)) != NULL) {
-        if (F_->get_verbosity() >= 0)
+        if (ctx_->get_verbosity() >= 0)
             show_message(kQuoted, string("> ") + line);
         s += line;
         if (*(s.end() - 1) == '\\') {
@@ -337,14 +317,14 @@ void UserInterface::exec_string_as_script(const char* s)
             --end;
         if (end > start) { // skip blank lines
             string line(start, end);
-            if (!F_->get_settings()->logfile.empty()) {
-                FILE* f = fopen(F_->get_settings()->logfile.c_str(), "a");
+            if (!ctx_->get_settings()->logfile.empty()) {
+                FILE* f = fopen(ctx_->get_settings()->logfile.c_str(), "a");
                 if (f) {
                     fprintf(f, "    %s\n", line.c_str());
                     fclose(f);
                 }
             }
-            if (F_->get_verbosity() >= 0)
+            if (ctx_->get_verbosity() >= 0)
                 show_message(kQuoted, "> " + line);
             Status r = execute_line(line);
             if (r != kStatusOk)

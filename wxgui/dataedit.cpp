@@ -498,7 +498,7 @@ bool EditTransDlg::update_apply_button()
 {
     string code = wx2s(code_tc->GetValue());
     string text = conv_code_to_one_line(code);
-    bool ok = ftk->ui()->check_syntax(text);
+    bool ok = ftk->check_syntax(text);
     apply_btn->Enable(ok);
     return ok;
 }

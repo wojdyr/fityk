@@ -123,7 +123,7 @@ vector<string> complete_fityk_line(Fityk *F,
                                    const char *text)
 {
     vector<string> entries;
-    Ftk *ftk = F->get_ftk();
+    Ftk *ftk = F->priv();
     //find start of the command, and skip blanks
     int cmd_start = start;
     while (cmd_start > 0 && line_buffer[cmd_start-1] != ';')

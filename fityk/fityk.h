@@ -302,14 +302,14 @@ public:
     void process_cmd_line_arg(const std::string& arg);
 
     // implementation details (for internal use)
-    Ftk *get_ftk() { return ftk_; } // access to underlying data
+    Ftk* priv() { return priv_; } // access to private API
     realt* get_covariance_matrix_as_array(int dataset);
 
 private:
-    Ftk *ftk_;
+    Ftk *priv_;
     bool throws_;
     std::string last_error_;
-    FitykInternalData *p_;
+    FitykInternalData *p_; // members hidden for the sake of API stability
     // disallow copy and assign
     Fityk(const Fityk&);
     void operator=(const Fityk&);

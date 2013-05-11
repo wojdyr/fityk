@@ -23,6 +23,8 @@
 #include "tplate.h"
 #include "luabridge.h"
 #include "lexer.h" // Lexer::kNew
+#include "cparser.h"
+#include "runner.h"
 
 using namespace std;
 
@@ -45,7 +47,8 @@ Ftk::Ftk()
 {
     // reading numbers won't work with decimal points different than '.'
     setlocale(LC_NUMERIC, "C");
-    ui_ = new UserInterface(this);
+    cmd_executor_ = new CommandExecutor(this);
+    ui_ = new UserInterface(this, cmd_executor_);
     initialize();
 }
 
@@ -53,6 +56,7 @@ Ftk::~Ftk()
 {
     destroy();
     delete ui_;
+    delete cmd_executor_;
 }
 
 // initializations common for ctor and reset()
@@ -63,7 +67,7 @@ void Ftk::initialize()
     // Settings ctor is using FitManager
     settings_mgr_ = new SettingsMgr(this);
     tplate_mgr_ = new TplateMgr;
-    tplate_mgr_->add_builtin_types(ui_->parser());
+    tplate_mgr_->add_builtin_types(cmd_executor_->parser());
     view = View(this);
     ui_->mark_plot_dirty();
     append_dm();
@@ -301,5 +305,16 @@ void Ftk::process_cmd_line_arg(const string& arg)
         ui()->exec_and_log("@+ <'" + arg + "'");
     }
 }
+
+bool Ftk::check_syntax(const string& str)
+{
+    return cmd_executor_->parser()->check_syntax(str);
+}
+
+void Ftk::parse_and_execute_line(const string& str)
+{
+    return cmd_executor_->raw_execute_line(str);
+}
+
 
 } // namespace fityk

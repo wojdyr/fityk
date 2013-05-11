@@ -171,8 +171,7 @@ void DataExportDlg::OnTextChanged(wxCommandEvent&)
     //    return;
     string s = wx2s(text->GetValue());
     size_t colon = s.find(':');
-    bool parsable = ftk->ui()->check_syntax("print " + s) &&
-                     colon != string::npos;
+    bool parsable = (ftk->check_syntax("print " + s) && colon != string::npos);
     FindWindow(wxID_OK)->Enable(parsable);
     if (parsable) {
         only_a_cb->SetValue(s.substr(0, colon) == "if a");

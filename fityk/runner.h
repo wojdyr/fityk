@@ -8,6 +8,7 @@
 #include "lexer.h" // Token
 #include "eparser.h"
 #include "view.h" //RealRange
+#include "cparser.h" //RealRange
 
 namespace fityk {
 
@@ -59,6 +60,23 @@ private:
     int make_func_from_template(const std::string& name,
                                 const std::vector<Token>& args, int pos);
     VMData* get_vm_from_token(const Token& t) const;
+};
+
+class CommandExecutor
+{
+public:
+    CommandExecutor(Ftk* F) : parser_(F), runner_(F) {}
+
+    /// share parser -- it can be safely reused
+    Parser* parser() { return &parser_; }
+
+    // Calls Parser::parse_statement() and Runner::execute_statement().
+    void raw_execute_line(const std::string& str);
+
+private:
+    Parser parser_;
+    Runner runner_;
+    DISALLOW_COPY_AND_ASSIGN(CommandExecutor);
 };
 
 } // namespace fityk

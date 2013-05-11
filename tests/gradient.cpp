@@ -42,17 +42,18 @@ static double boxbetts_f(const double *a, double *grad)
 
 static double boxbetts_in_fityk(const double *a, double *grad)
 {
-    boost::scoped_ptr<Ftk> ftk(new Ftk);
-    ftk->settings_mgr()->set_as_number("verbosity", -1);
+    boost::scoped_ptr<Fityk> ftk(new Fityk);
+    Ftk* priv = ftk->priv();
+    ftk->set_option_as_number("verbosity", -1);
     for (int i = 1; i <= 10; ++i)
-        ftk->get_data(0)->add_one_point(i, 0, 1);
-    ftk->ui()->raw_execute_line("define BoxBetts(a0,a1,a2) = "
+        priv->get_data(0)->add_one_point(i, 0, 1);
+    ftk->execute("define BoxBetts(a0,a1,a2) = "
             "exp(-0.1*a0*x) - exp(-0.1*a1*x) - a2 * (exp(-0.1*x) - exp(-x))");
-    ftk->ui()->raw_execute_line("F = BoxBetts(~0.9, ~11.8, ~1.08)");
+    ftk->execute("F = BoxBetts(~0.9, ~11.8, ~1.08)");
 
-    ftk->get_fit()->get_dof(ftk->get_dms()); // to invoke update_par_usage()
+    priv->get_fit()->get_dof(priv->get_dms()); // to invoke update_par_usage()
     vector<realt> avec(a, a+3);
-    return ftk->get_fit()->compute_wssr_gradient(avec, ftk->get_dms(), grad);
+    return priv->get_fit()->compute_wssr_gradient(avec, priv->get_dms(), grad);
 }
 
 
