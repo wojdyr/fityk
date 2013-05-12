@@ -11,6 +11,7 @@ using namespace std;
 
 namespace fityk {
 
+static
 Function* init_component(const string& func_name, const Tplate::Component& c,
                          vector<Variable*>& variables, const Settings* settings)
 {

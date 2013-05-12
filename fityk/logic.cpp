@@ -30,20 +30,8 @@ using namespace std;
 
 namespace fityk {
 
-DataAndModel::DataAndModel(Ftk *F, Data* data)
-    : data_(data ? data : new Data(F)), model_(new Model(F, F->mgr))
-{}
-
-bool DataAndModel::has_any_info() const
-{
-    return data()->has_any_info() ||
-           !model()->get_ff().empty() ||
-           !model()->get_zz().empty();
-}
-
-
-Ftk::Ftk()
-    : mgr(this), view(this)
+Full::Full()
+    : mgr(this), view(&dk)
 {
     // reading numbers won't work with decimal points different than '.'
     setlocale(LC_NUMERIC, "C");
@@ -52,7 +40,7 @@ Ftk::Ftk()
     initialize();
 }
 
-Ftk::~Ftk()
+Full::~Full()
 {
     destroy();
     delete ui_;
@@ -60,7 +48,7 @@ Ftk::~Ftk()
 }
 
 // initializations common for ctor and reset()
-void Ftk::initialize()
+void Full::initialize()
 {
     lua_bridge_ = new LuaBridge(this);
     fit_manager_ = new FitManager(this);
@@ -68,17 +56,17 @@ void Ftk::initialize()
     settings_mgr_ = new SettingsMgr(this);
     tplate_mgr_ = new TplateMgr;
     tplate_mgr_->add_builtin_types(cmd_executor_->parser());
-    view = View(this);
+    view = View(&dk);
     ui_->mark_plot_dirty();
-    append_dm();
-    default_dm_ = 0;
-    settings_mgr()->do_srand();
+    dk.append(new Data(this, mgr.create_model()));
+    dk.set_default_idx(0);
+    settings_mgr_->do_srand();
 }
 
 // cleaning common for dtor and reset()
-void Ftk::destroy()
+void Full::destroy()
 {
-    purge_all_elements(dms_);
+    dk.clear();
     mgr.do_reset();
     delete fit_manager_;
     delete settings_mgr_;
@@ -87,36 +75,32 @@ void Ftk::destroy()
 }
 
 // reset everything but UserInterface (and related settings)
-void Ftk::reset()
+void Full::reset()
 {
     int verbosity = get_settings()->verbosity;
     bool autoplot = get_settings()->autoplot;
     destroy();
     initialize();
     if (verbosity != get_settings()->verbosity)
-        settings_mgr()->set_as_number("verbosity", verbosity);
+        settings_mgr_->set_as_number("verbosity", verbosity);
     if (autoplot != get_settings()->autoplot)
-        settings_mgr()->set_as_number("autoplot", autoplot);
+        settings_mgr_->set_as_number("autoplot", autoplot);
 }
 
-int Ftk::append_dm(Data *data)
+void DataKeeper::remove(int d)
 {
-    DataAndModel* dm = new DataAndModel(this, data);
-    dms_.push_back(dm);
-    return dms_.size() - 1;
+    index_check(d);
+    if (datas_.size() == 1) {
+        datas_[0]->model()->clear();
+        datas_[0]->clear();
+    }
+    else {
+        delete datas_[d];
+        datas_.erase(datas_.begin() + d);
+    }
 }
 
-void Ftk::remove_dm(int d)
-{
-    if (d < 0 || d >= size(dms_))
-        throw ExecuteError("there is no such dataset: @" + S(d));
-    delete dms_[d];
-    dms_.erase(dms_.begin() + d);
-    if (dms_.empty())
-        append_dm();
-}
-
-Fit* Ftk::get_fit() const
+Fit* Full::get_fit() const
 {
     string method_name = get_settings()->fitting_method;
     return fit_manager()->get_method(method_name);
@@ -169,15 +153,15 @@ vector<int> parse_int_range(string const& s, int maximum)
 }
 } //anonymous namespace
 
-
-void Ftk::import_dataset(int slot, string const& filename,
-                         string const& format, string const& options)
+void DataKeeper::import_dataset(int slot, string const& filename,
+                                string const& format, string const& options,
+                                BasicContext* ctx, ModelManager &mgr)
 {
     const bool new_dataset = (slot == Lexer::kNew);
 
     // split "filename" (e.g. "foo.dat:1:2,3::") into real filename
     // and colon-separated indices
-    int count_colons = count(filename.begin(), filename.end(), ':');
+    int count_colons = ::count(filename.begin(), filename.end(), ':');
     string fn;
     vector<int> indices[3];
     vector<int> block_range;
@@ -229,40 +213,35 @@ void Ftk::import_dataset(int slot, string const& filename,
     int idx_s = indices[2].empty() ? INT_MAX : indices[2][0];
 
     for (size_t i = 0; i < indices[1].size(); ++i) {
-        if (new_dataset && (get_dm_count() != 1 || get_dm(0)->has_any_info())) {
+        if (new_dataset && (count() != 1 || !data(0)->completely_empty())) {
             // load data into new slot
-            auto_ptr<Data> data(new Data(this));
-            data->load_file(fn, idx_x, indices[1][i], idx_s,
-                            block_range, format, options);
-            append_dm(data.release());
+            auto_ptr<Data> d(new Data(ctx, mgr.create_model()));
+            d->load_file(fn, idx_x, indices[1][i], idx_s,
+                         block_range, format, options);
+            append(d.release());
         }
         else {
             // if new_dataset is true, there is only one dataset
-            int n = new_dataset ? 0 : slot;
-            get_data(n)->load_file(fn, idx_x, indices[1][i], idx_s,
-                                   block_range, format, options);
+            Data *d = data(new_dataset ? 0 : slot);
+            d->load_file(fn, idx_x, indices[1][i], idx_s,
+                         block_range, format, options);
         }
-    }
-
-    if (get_dm_count() == 1) {
-        RealRange r; // default value: [:]
-        view.change_view(r, r, vector1(0));
     }
 }
 
-void Ftk::outdated_plot()
+void Full::outdated_plot()
 {
     ui_->mark_plot_dirty();
     fit_manager_->outdated_error_cache();
 }
 
-bool Ftk::are_independent(std::vector<DataAndModel*> dms) const
+bool Full::are_independent(std::vector<Data*> dd) const
 {
     for (size_t i = 0; i != mgr.variables().size(); ++i)
         if (mgr.get_variable(i)->is_simple()) {
             bool dep = false;
-            v_foreach(DataAndModel*, dm, dms)
-                if ((*dm)->model()->is_dependent_on_var(i)) {
+            v_foreach(Data*, d, dd)
+                if ((*d)->model()->is_dependent_on_var(i)) {
                     if (dep)
                         return false;
                     dep = true;
@@ -293,7 +272,7 @@ bool is_fityk_script(string filename)
     return !strncmp(magic, buffer, magic_len);
 }
 
-void Ftk::process_cmd_line_arg(const string& arg)
+void Full::process_cmd_line_arg(const string& arg)
 {
     if (startswith(arg, "=->"))
         ui()->exec_and_log(string(arg, 3));
@@ -306,12 +285,12 @@ void Ftk::process_cmd_line_arg(const string& arg)
     }
 }
 
-bool Ftk::check_syntax(const string& str)
+bool Full::check_syntax(const string& str)
 {
     return cmd_executor_->parser()->check_syntax(str);
 }
 
-void Ftk::parse_and_execute_line(const string& str)
+void Full::parse_and_execute_line(const string& str)
 {
     return cmd_executor_->raw_execute_line(str);
 }

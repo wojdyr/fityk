@@ -1150,7 +1150,7 @@ CALCULATE_DERIV_BEGIN(FuncPielaszekCube)
     dy_dv[2] = dR;
     dy_dv[3] = ds;
     dy_dx = dcenter;
-CALCULATE_DERIV_END(height*t);
+CALCULATE_DERIV_END(height*t)
 
 ///////////////////////////////////////////////////////////////////////
 

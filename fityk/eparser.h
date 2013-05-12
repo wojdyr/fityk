@@ -44,19 +44,19 @@ public:
     {
         kOperator,
         kValue,
-        kIndex,
+        kIndex
     };
 
     enum ParseMode
     {
         kNormalMode,
         kAstMode,
-        kDatasetTrMode,
+        kDatasetTrMode
     };
 
     // if F is NULL, $variables, %functions, etc. are not handled
-    ExpressionParser(const Ftk* F) : ExprCalculator(F), expected_(kValue),
-                                     finished_(false) {}
+    ExpressionParser(const Full* F) : ExprCalculator(F), expected_(kValue),
+                                      finished_(false) {}
 
     /// reset state
     void clear_vm() { vm_.clear_data(); }

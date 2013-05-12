@@ -14,8 +14,6 @@
 
 namespace fityk {
 
-class DataAndModel;
-
 enum CommandType
 {
     kCmdDebug,
@@ -75,7 +73,7 @@ const char* commandtype2str(CommandType c);
 class FITYK_API Parser
 {
 public:
-    Parser(const Ftk* F);
+    Parser(const Full* F);
     ~Parser();
 
     // Parses statement. Throws SyntaxError.
@@ -98,7 +96,7 @@ public:
     Tplate::Ptr parse_define_args(Lexer& lex);
 
 private:
-    const Ftk* F_;
+    const Full* F_;
     ExpressionParser ep_;
     Statement st_;
 

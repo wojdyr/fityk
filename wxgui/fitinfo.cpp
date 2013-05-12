@@ -142,24 +142,23 @@ bool FitInfoDlg::Initialize()
 void FitInfoDlg::update_left_tc()
 {
     string s;
-    vector<DataAndModel*> dms = frame->get_selected_dms();
+    vector<Data*> datas = frame->get_selected_datas();
     const vector<realt> &pp = ftk->mgr.parameters();
     fityk::Fit *fit = ftk->get_fit();
-    int dof = fit->get_dof(dms);
-    double wssr = fit->compute_wssr(pp, dms, true);
+    int dof = fit->get_dof(datas);
+    double wssr = fit->compute_wssr(pp, datas, true);
     wssr_over_dof = wssr / dof;
-    double ssr = fit->compute_wssr(pp, dms, false);
-    double r2 = fit->compute_r_squared(pp, dms);
+    double ssr = fit->compute_wssr(pp, datas, false);
+    double r2 = fit->compute_r_squared(pp, datas);
     int points = 0;
-    for (vector<DataAndModel*>::const_iterator i = dms.begin();
-                                                    i != dms.end(); ++i)
-        points += (*i)->data()->get_n();
+    for (vector<Data*>::const_iterator i = datas.begin(); i != datas.end(); ++i)
+        points += (*i)->get_n();
 
-    if (dms.size() == 1)
+    if (datas.size() == 1)
         s = "dataset " + S(frame->get_selected_data_indices()[0])
-            + ": " + dms[0]->data()->get_title() + "\n";
+            + ": " + datas[0]->get_title() + "\n";
     else
-        s = S(dms.size()) + " datasets\n";
+        s = S(datas.size()) + " datasets\n";
     s += "points: " + S(points) +
          "\n\nDoF: " + S(dof) +
          "\nWSSR: " + nf->fmt(wssr) +
@@ -175,7 +174,7 @@ void FitInfoDlg::update_right_tc()
 {
     fityk::Fit *fit = ftk->get_fit();
     int choice = right_c->GetSelection();
-    vector<DataAndModel*> dms = frame->get_selected_dms();
+    vector<Data*> datas = frame->get_selected_datas();
     vector<realt> const &pp = ftk->mgr.parameters();
     int na = pp.size();
     wxString s;
@@ -183,7 +182,7 @@ void FitInfoDlg::update_right_tc()
         vector<double> errors;
         if (choice == 0 || choice == 1) {
             try {
-                errors = fit->get_standard_errors(dms);
+                errors = fit->get_standard_errors(datas);
             }
             catch (fityk::ExecuteError&) {
                 errors.resize(na, 0.);
@@ -203,7 +202,7 @@ void FitInfoDlg::update_right_tc()
             else //if (choice == 5)
                 level = 99;
             try {
-                errors = fit->get_confidence_limits(dms, level);
+                errors = fit->get_confidence_limits(datas, level);
             }
             catch (fityk::ExecuteError&) {
                 errors.resize(na, 0.);
@@ -235,7 +234,7 @@ void FitInfoDlg::update_right_tc()
         s = wxT("          ");
         vector<double> alpha;
         try {
-            alpha = fit->get_covariance_matrix(dms);
+            alpha = fit->get_covariance_matrix(datas);
         }
         catch (fityk::ExecuteError&) {
             alpha.resize(na*na, 0.);

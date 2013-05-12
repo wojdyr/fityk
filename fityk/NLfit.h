@@ -22,7 +22,7 @@ namespace fityk {
 class NLfit : public Fit
 {
 public:
-    NLfit(Ftk* F, const char* name, nlopt_algorithm algorithm);
+    NLfit(Full* F, const char* name, nlopt_algorithm algorithm);
     ~NLfit();
     virtual double run_method(std::vector<realt>* best_a);
 

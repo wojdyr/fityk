@@ -12,19 +12,19 @@
 namespace fityk {
 
 /// appends output of the "info" command to the result
-int eval_info_args(const Ftk* F, int ds, const std::vector<Token>& args,
+int eval_info_args(const Full* F, int ds, const std::vector<Token>& args,
                    int len, std::string& result);
 
 /// handles commands info and print
-void command_redirectable(Ftk const* F, int ds,
+void command_redirectable(Full const* F, int ds,
                           CommandType cmd, const std::vector<Token>& args);
 
-void command_debug(const Ftk* F, int ds, const Token& key, const Token&rest);
+void command_debug(const Full* F, int ds, const Token& key, const Token&rest);
 
-FITYK_API void parse_and_eval_info(Ftk *F, const std::string& s, int dataset,
+FITYK_API void parse_and_eval_info(Full *F, const std::string& s, int dataset,
                                    std::string& result);
 FITYK_API std::string& gnuplotize_formula(std::string& formula);
-FITYK_API void models_as_script(const Ftk* F, std::string& r,
+FITYK_API void models_as_script(const Full* F, std::string& r,
                                 bool commented_defines);
 
 } // namespace fityk

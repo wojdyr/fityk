@@ -11,18 +11,59 @@
 #include "ui.h" //UserInterface::Status
 #include "view.h"
 #include "settings.h"
+#include "data.h" // Data.model()
 
 namespace fityk {
 
-class BasicContext
+class Full;
+class FitManager;
+class Fit;
+class TplateMgr;
+class LuaBridge;
+class CommandExecutor;
+
+class FITYK_API DataKeeper
 {
 public:
-    //BasicContext(UserInterface *ui)
-    //    : settings_mgr_(new SettingsMgr(this)), ui_(ui) {}
-    //~BasicContext() { delete settings_mgr; }
-    const SettingsMgr* settings_mgr() const { return settings_mgr_; }
-    SettingsMgr* settings_mgr() { return settings_mgr_; }
+    void append(Data *data) { datas_.push_back(data); }
+    void remove(int d);
+    void clear() { purge_all_elements(datas_); }
 
+    const std::vector<Data*>& datas() const { return datas_; }
+    int count() const { return datas_.size(); }
+
+    Data* data(int n) { index_check(n); return datas_[n]; }
+    const Data* data(int n) const { index_check(n); return datas_[n]; }
+
+    const Model* get_model(int n) const { return data(n)->model(); }
+    Model *get_mutable_model(int n) { return data(n)->model(); }
+
+    int default_idx() const { return default_idx_; }
+    void set_default_idx(int n) { index_check(n); default_idx_ = n; }
+
+    /// import dataset (or multiple datasets, in special cases)
+    void import_dataset(int slot, const std::string& filename,
+                        const std::string& format, const std::string& options,
+                        BasicContext* ctx, ModelManager &mgr);
+
+private:
+    int default_idx_;
+    std::vector<Data*> datas_;
+
+    /// verify that n is the valid number for get_data() and return n
+    void index_check(int n) const
+    {
+        if (!is_index(n, datas_))
+            throw ExecuteError("No such dataset: @" + S(n));
+    }
+
+};
+
+/// A restricted interface to class Full. Provides read-only access to
+/// settings and access to UserInterface, primarily for printing messages.
+class FITYK_API BasicContext
+{
+public:
     const UserInterface* ui() const { return ui_; }
     UserInterface* ui() { return ui_; }
 
@@ -30,67 +71,30 @@ public:
     int get_verbosity() const { return get_settings()->verbosity; }
     void msg(const std::string &s) const
                                 { if (get_verbosity() >= 0) ui_->mesg(s); }
+    const SettingsMgr* settings_mgr() const { return settings_mgr_; }
     const Settings* get_settings() const { return &settings_mgr_->m(); }
+
 protected:
     SettingsMgr* settings_mgr_;
     UserInterface* ui_;
 };
 
-class Ftk;
-class FitManager;
-class Fit;
-class Model;
-class TplateMgr;
-class LuaBridge;
-class CommandExecutor;
-
-
-/// keeps Data and its Model
-class DataAndModel
+/// Full context.
+/// Contains everything in libfityk except public API.
+class FITYK_API Full : public BasicContext
 {
 public:
-    DataAndModel(Ftk *F, Data* data=NULL);
-    Data *data() const { return data_.get(); }
-    Model *model() const { return model_.get(); }
-    bool has_any_info() const;
-
-private:
-    boost::scoped_ptr<Data> data_;
-    boost::scoped_ptr<Model> model_;
-
-    DataAndModel(DataAndModel const&); //disable
-};
-
-
-/// keeps all functions, variables, parameters, datasets with models and View
-class FITYK_API Ftk : public BasicContext
-{
-public:
+    // for simplicity, these members are public and accessed directly
     ModelManager mgr;
+    DataKeeper dk;
     View view;
 
-    Ftk();
-    ~Ftk();
+    Full();
+    ~Full();
     /// reset everything but UserInterface (and related settings)
     void reset();
 
-    int append_dm(Data *data=0);
-    void remove_dm(int d);
-
-    const std::vector<DataAndModel*>& get_dms() const { return dms_; }
-    int get_dm_count() const { return dms_.size(); }
-
-    DataAndModel* get_dm(int n) { check_dm_number(n); return dms_[n]; }
-    const DataAndModel* get_dm(int n) const {check_dm_number(n);return dms_[n];}
-
-    const Data* get_data(int n) const { return get_dm(n)->data(); }
-    Data *get_data(int n) { return get_dm(n)->data(); }
-
-    const Model* get_model(int n) const { return get_dm(n)->model(); }
-    Model *get_mutable_model(int n)   { return get_dm(n)->model(); }
-
-    int default_dm() const { return default_dm_; }
-    void set_default_dm(int n) { check_dm_number(n); default_dm_ = n; }
+    SettingsMgr* mutable_settings_mgr() { return settings_mgr_; }
 
     const FitManager* fit_manager() const { return fit_manager_; }
     FitManager* fit_manager() { return fit_manager_; }
@@ -101,17 +105,13 @@ public:
 
     LuaBridge* lua_bridge() { return lua_bridge_; }
 
-    /// import dataset (or multiple datasets, in special cases)
-    void import_dataset(int slot, const std::string& filename,
-                        const std::string& format, const std::string& options);
-
     /// called after changes that (possibly) need to be reflected in the plot
     /// (IOW when plot needs to be updated). This function is also used
     /// to mark cache of parameter errors as outdated.
     void outdated_plot();
 
     // check if given models share common parameters
-    bool are_independent(std::vector<DataAndModel*> dms) const;
+    bool are_independent(std::vector<Data*> dd) const;
 
     // interprets command-line argument as data or script file or as command
     void process_cmd_line_arg(const std::string& arg);
@@ -122,24 +122,17 @@ public:
     void parse_and_execute_line(const std::string& str);
 
 private:
-    int default_dm_;
-    std::vector<DataAndModel*> dms_;
+    // these members, as well as settings_mgr_ and ui_, are used via getters
     FitManager* fit_manager_;
     TplateMgr* tplate_mgr_;
     LuaBridge* lua_bridge_;
     CommandExecutor* cmd_executor_;
 
+    // these two are used in ctor, dtor and reset()
     void initialize();
     void destroy();
 
-    /// verify that n is the valid number for get_dm() and return n
-    void check_dm_number(int n) const
-    {
-        if (!is_index(n, dms_))
-            throw ExecuteError("No such dataset: @" + S(n));
-    }
-
-    DISALLOW_COPY_AND_ASSIGN(Ftk);
+    DISALLOW_COPY_AND_ASSIGN(Full);
 };
 
 } // namespace fityk

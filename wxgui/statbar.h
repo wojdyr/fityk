@@ -15,6 +15,7 @@
 class HintReceiver
 {
 public:
+    virtual ~HintReceiver() {}
     virtual void set_hints(std::string const& left, std::string const& right,
                            std::string const& mode_name,
                            std::string const& shift_left,

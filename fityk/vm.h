@@ -10,7 +10,7 @@
 
 namespace fityk {
 
-class Ftk;
+class Full;
 class Variable;
 
 /// operators used in VM code
@@ -143,7 +143,7 @@ std::string vm2str(const VMData& vm) { return vm2str(vm.code(), vm.numbers()); }
 class FITYK_API ExprCalculator
 {
 public:
-    ExprCalculator(const Ftk* F) : F_(F) {}
+    ExprCalculator(const Full* F) : F_(F) {}
 
     /// calculate value of expression that may depend on dataset
     realt calculate(int n, const std::vector<Point>& points) const;
@@ -161,7 +161,7 @@ public:
     const VMData& vm() const { return vm_; }
 
 protected:
-    const Ftk* F_;
+    const Full* F_;
     VMData vm_;
 };
 

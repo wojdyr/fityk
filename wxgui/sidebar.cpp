@@ -76,6 +76,7 @@ enum {
 //                           SideBar
 //===============================================================
 
+static
 void add_bitmap_button(wxWindow* parent, wxWindowID id, const char** xpm,
                        wxString const& tip, wxSizer* sizer)
 {
@@ -85,6 +86,7 @@ void add_bitmap_button(wxWindow* parent, wxWindowID id, const char** xpm,
 }
 
 // wxToggleBitmapButton was added in 2.9. We use wxToggleButton instead
+static
 void add_toggle_bitmap_button(wxWindow* parent, wxWindowID id,
                               wxString const& /*label*/, const wxBitmap& bmp,
                               wxString const& tip, wxSizer* sizer)
@@ -296,7 +298,7 @@ void SideBar::OnDataButtonDup (wxCommandEvent&)
 void SideBar::OnDataButtonRen (wxCommandEvent&)
 {
     int n = get_focused_data();
-    fityk::Data *data = ftk->get_data(n);
+    fityk::Data *data = ftk->dk.data(n);
     wxString old_title = s2wx(data->get_title());
 
     wxString s = wxGetTextFromUser(
@@ -335,14 +337,14 @@ void SideBar::delete_selected_items()
 void SideBar::OnDataButtonCopyF (wxCommandEvent&)
 {
     int n = get_focused_data();
-    if (n+1 >= ftk->get_dm_count())
+    if (n+1 >= ftk->dk.count())
         return;
     d->list->Select(n, false);
     d->list->Select(n+1, true);
     d->list->Focus(n+1);
     string cmd = "@" + S(n+1) + ".F=copy(@" + S(n) + ".F)";
-    if (!ftk->get_model(n)->get_zz().names.empty()
-            || !ftk->get_model(n+1)->get_zz().names.empty())
+    if (!ftk->dk.get_model(n)->get_zz().names.empty()
+            || !ftk->dk.get_model(n+1)->get_zz().names.empty())
         cmd += "; @" + S(n+1) + ".Z=copy(@" + S(n) + ".Z)";
     if (ftk->mgr.find_function_nr("bg" + S(n)) != -1)
         cmd += "; %bg" + S(n+1) + "=copy(%bg" + S(n) + ")";
@@ -463,7 +465,7 @@ void SideBar::OnFuncButtonChType (wxCommandEvent&)
 void SideBar::OnFuncButtonCol (wxCommandEvent&)
 {
     vector<int> const& ffi
-        = ftk->get_model(frame->get_focused_data_index())->get_ff().idx;
+        = ftk->dk.get_model(frame->get_focused_data_index())->get_ff().idx;
     vector<int>::const_iterator in_ff = find(ffi.begin(), ffi.end(),
                                                          active_function);
     if (in_ff == ffi.end())
@@ -540,9 +542,9 @@ void SideBar::update_func_list(bool nondata_changed)
     wxColour const& bg_col = mplot->get_bg_color();
 
     //functions filter
-    while ((int) filter_ch->GetCount() > ftk->get_dm_count() + 1)
+    while ((int) filter_ch->GetCount() > ftk->dk.count() + 1)
         filter_ch->Delete(filter_ch->GetCount()-1);
-    for (int i = filter_ch->GetCount() - 1; i < ftk->get_dm_count(); ++i)
+    for (int i = filter_ch->GetCount() - 1; i < ftk->dk.count(); ++i)
         filter_ch->Append(wxString::Format(wxT("only functions from @%i"), i));
 
     //functions
@@ -550,11 +552,11 @@ void SideBar::update_func_list(bool nondata_changed)
     static int old_func_size;
     vector<string> func_data;
     vector<int> new_func_col_id;
-    Model const* model = ftk->get_model(frame->get_focused_data_index());
+    Model const* model = ftk->dk.get_model(frame->get_focused_data_index());
     // if filter is selected, only functions in `filter_model' are listed
     Model const* filter_model = NULL;
     if (filter_ch->GetSelection() > 0)
-        filter_model = ftk->get_model(filter_ch->GetSelection()-1);
+        filter_model = ftk->dk.get_model(filter_ch->GetSelection()-1);
     int func_size = ftk->mgr.functions().size();
     if (active_function == -1)
         active_function = func_size - 1;
@@ -577,14 +579,14 @@ void SideBar::update_func_list(bool nondata_changed)
             continue;
         if (i == active_function)
             pos = new_func_col_id.size();
-        Function const* f = ftk->mgr.get_function(i);
-        func_data.push_back(f->name);
-        func_data.push_back(f->tp()->name);
+        Function const* fun = ftk->mgr.get_function(i);
+        func_data.push_back(fun->name);
+        func_data.push_back(fun->tp()->name);
         realt a;
-        func_data.push_back(f->get_center(&a) ? S(a) : S("-"));
-        func_data.push_back(f->get_area(&a)   ? S(a) : S("-"));
-        func_data.push_back(f->get_height(&a) ? S(a) : S("-"));
-        func_data.push_back(f->get_fwhm(&a)   ? S(a) : S("-"));
+        func_data.push_back(fun->get_center(&a) ? S(a) : S("-"));
+        func_data.push_back(fun->get_area(&a)   ? S(a) : S("-"));
+        func_data.push_back(fun->get_height(&a) ? S(a) : S("-"));
+        func_data.push_back(fun->get_fwhm(&a)   ? S(a) : S("-"));
         vector<int> const& ffi = model->get_ff().idx;
         vector<int> const& zzi = model->get_zz().idx;
         vector<int>::const_iterator in_ff = find(ffi.begin(), ffi.end(), i);
@@ -631,13 +633,13 @@ void SideBar::update_var_list()
     }
 
     for (int i = 0; i < size(variables); ++i) {
-        const Variable* v = variables[i];
-        var_data.push_back(v->name);           //name
+        const Variable* var = variables[i];
+        var_data.push_back(var->name);           //name
         string refs = S(var_frefs[i]) + "+" + S(var_vrefs[i]) + " / "
-                      + S(v->used_vars().get_count());
+                      + S(var->used_vars().get_count());
         var_data.push_back(refs); //refs
-        var_data.push_back(S(v->value())); //value
-        var_data.push_back(v->get_formula(ftk->mgr.parameters()));  //formula
+        var_data.push_back(S(var->value())); //value
+        var_data.push_back(var->get_formula(ftk->mgr.parameters()));  //formula
     }
     v->list->populate(var_data);
 }
@@ -646,9 +648,9 @@ int SideBar::get_focused_data() const
 {
     wxListView *lv = d->list;
     int focused = lv->GetFocusedItem();
-    if (focused >= ftk->get_dm_count()) {
+    if (focused >= ftk->dk.count()) {
         d->update_data_list(false);
-        focused = ftk->get_dm_count() - 1;
+        focused = ftk->dk.count() - 1;
         lv->Focus(focused);
     }
     else if (focused < 0) {
@@ -675,7 +677,7 @@ vector<int> SideBar::get_selected_data_indices()
     if (!frame) // app not fully initialized yet
         return sel;
     wxListView *lv = d->list;
-    if (ftk->get_dm_count() != lv->GetItemCount())
+    if (ftk->dk.count() != lv->GetItemCount())
         d->update_data_list(false);
     for (int i = lv->GetFirstSelected(); i != -1; i = lv->GetNextSelected(i))
         sel.push_back(i);
@@ -692,7 +694,7 @@ vector<int> SideBar::get_selected_data_indices()
 vector<int> SideBar::get_ordered_dataset_numbers()
 {
     wxListView *lv = d->list;
-    if (ftk->get_dm_count() != lv->GetItemCount())
+    if (ftk->dk.count() != lv->GetItemCount())
         d->update_data_list(false);
     vector<int> ordered;
     int count = lv->GetItemCount();
@@ -720,7 +722,7 @@ vector<int> SideBar::get_ordered_dataset_numbers()
 
 string SideBar::get_sel_datasets_as_string()
 {
-    if (ftk->get_dm_count() == 1)
+    if (ftk->dk.count() == 1)
         return "";
     if (data_look->GetSelection() == 0) // all datasets
         return " @*";
@@ -793,7 +795,7 @@ void SideBar::OnDataFocusChanged(wxListEvent &)
     //         + S(d->list->GetFocusedItem()));
     if (n < 0)
         return;
-    int length = ftk->get_dm_count();
+    int length = ftk->dk.count();
     if (length > 1)
         frame->plot_pane()->refresh_plots(false, kAllPlots);
     update_data_inf();
@@ -815,7 +817,7 @@ void SideBar::OnDataSelectionChanged(wxListEvent &/*event*/)
 
 void SideBar::update_data_buttons()
 {
-    bool not_the_last = get_focused_data()+1 < ftk->get_dm_count();
+    bool not_the_last = get_focused_data()+1 < ftk->dk.count();
     int sel_d = d->list->GetSelectedItemCount();
     data_page->FindWindow(ID_DP_REN)->Enable(sel_d == 1);
     //data_page->FindWindow(ID_DP_DEL)->Enable(sel_d > 0);
@@ -872,8 +874,8 @@ void SideBar::update_data_inf()
     wxTextCtrl* inf = d->inf;
     inf->Clear();
     inf->AppendText(wxString::Format(wxT("@%d: "), n));
-    inf->AppendText(s2wx(ftk->get_data(n)->get_info()));
-    wxFileName fn(s2wx(ftk->get_data(n)->get_filename()));
+    inf->AppendText(s2wx(ftk->dk.data(n)->get_info()));
+    wxFileName fn(s2wx(ftk->dk.data(n)->get_filename()));
     if (fn.IsOk() && !fn.IsAbsolute()) {
         fn.MakeAbsolute();
         inf->AppendText(wxT("\nPath: ") + fn.GetFullPath());
@@ -894,7 +896,7 @@ void SideBar::update_func_inf()
     realt a;
     if (func->get_center(&a))
         inf->AppendText(wxT("Center: ")
-                   + s2wx(format1<realt, 30>("%.10"REALT_LENGTH_MOD"g", a)));
+                   + s2wx(format1<realt, 30>("%.10" REALT_LENGTH_MOD "g", a)));
     if (func->get_area(&a))
         inf->AppendText(wxT("\nArea: ") + s2wx(S(a)));
     if (func->get_height(&a))
@@ -907,10 +909,11 @@ void SideBar::update_func_inf()
         inf->AppendText(s2wx("\n" + *i + ": " + S(func->get_other_prop(*i))));
 
     vector<string> in;
-    for (int i = 0; i < ftk->get_dm_count(); ++i) {
-        if (contains_element(ftk->get_model(i)->get_ff().idx, active_function))
+    for (int i = 0; i < ftk->dk.count(); ++i) {
+        const Model *model = ftk->dk.get_model(i);
+        if (contains_element(model->get_ff().idx, active_function))
             in.push_back("@" + S(i) + ".F");
-        if (contains_element(ftk->get_model(i)->get_zz().idx, active_function))
+        if (contains_element(model->get_zz().idx, active_function))
             in.push_back("@" + S(i) + ".Z");
     }
     if (!in.empty())
@@ -995,10 +998,10 @@ void SideBar::OnVarFocusChanged(wxListEvent&)
 bool SideBar::find_value_of_param(string const& p, double* value)
 {
     if (active_function != -1) {
-        Function const* f = ftk->mgr.get_function(active_function);
-        int idx = index_of_element(f->tp()->fargs, p);
+        Function const* fun = ftk->mgr.get_function(active_function);
+        int idx = index_of_element(fun->tp()->fargs, p);
         if (idx != -1) {
-            *value = f->av()[idx];
+            *value = fun->av()[idx];
             return true;
         }
     }
@@ -1034,8 +1037,8 @@ void SideBar::make_same_func_par(string const& p, bool checked)
         // varname (_hwhm or _shape) will be auto-deleted
     }
     string cmd;
-    for (int i = 0; i < ftk->get_dm_count(); ++i)
-        if (ftk->get_model(i)->get_ff().names.size() > 0) {
+    for (int i = 0; i < ftk->dk.count(); ++i)
+        if (ftk->dk.get_model(i)->get_ff().names.size() > 0) {
             if (!cmd.empty())
                 cmd += "; ";
             cmd += "@" + S(i) + ".F[*]." + p + " = " + val_str;

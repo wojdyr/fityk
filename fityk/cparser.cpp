@@ -88,6 +88,7 @@ const char* commandtype2str(CommandType c)
     return NULL; // avoid warning
 }
 
+static
 Token nop()
 {
     Token t;
@@ -95,6 +96,7 @@ Token nop()
     return t;
 }
 
+static
 bool is_command(const Token& token, const char* cmd_base,
                                     const char* cmd_suffix)
 {
@@ -109,7 +111,7 @@ bool is_command(const Token& token, const char* cmd_base,
 }
 
 
-Parser::Parser(const Ftk* F)
+Parser::Parser(const Full* F)
     : F_(F), ep_(F)
 {
 }
@@ -136,7 +138,7 @@ Token Parser::read_and_calc_expr(Lexer& lex)
 {
     Token t = read_expr(lex);
     int ds = st_.datasets[0];
-    const vector<Point>& points = F_->get_data(ds)->points();
+    const vector<Point>& points = F_->dk.data(ds)->points();
     t.value.d = ep_.calculate(0, points);
     return t;
 }
@@ -418,6 +420,7 @@ Tplate::Ptr Parser::parse_define_args(Lexer& lex)
     return tp;
 }
 
+static
 void parse_undefine_args(Lexer& lex, vector<Token>& args)
 {
     do {
@@ -425,6 +428,7 @@ void parse_undefine_args(Lexer& lex, vector<Token>& args)
     } while (lex.discard_token_if(kTokenComma));
 }
 
+static
 void parse_delete_args(Lexer& lex, vector<Token>& args)
 {
     do {
@@ -441,6 +445,7 @@ void parse_delete_args(Lexer& lex, vector<Token>& args)
     } while (lex.discard_token_if(kTokenComma));
 }
 
+static
 void parse_exec_args(Lexer& lex, vector<Token>& args)
 {
     if (lex.discard_token_if(kTokenBang))
@@ -492,12 +497,12 @@ void Parser::parse_guess_args(Lexer& lex, vector<Token>& args)
     args.push_back(t);
     if (lex.peek_token().type == kTokenOpen) {
         lex.get_expected_token(kTokenOpen);
-        Token t = lex.get_token_if(kTokenClose);
-        while (t.type != kTokenClose) {
+        Token t2 = lex.get_token_if(kTokenClose);
+        while (t2.type != kTokenClose) {
             args.push_back(lex.get_expected_token(kTokenLname));
             lex.get_expected_token(kTokenAssign); // discard '='
             args.push_back(read_var(lex));
-            t = lex.get_expected_token(kTokenComma, kTokenClose);
+            t2 = lex.get_expected_token(kTokenComma, kTokenClose);
         }
     }
     parse_real_range(lex, args);
@@ -764,10 +769,11 @@ void Parser::parse_fz(Lexer& lex, Command &cmd)
         lex.throw_syntax_error("unexpected token after F/Z");
 }
 
-void add_to_datasets(const Ftk* F_, vector<int>& datasets, int n)
+static
+void add_to_datasets(const Full* F_, vector<int>& datasets, int n)
 {
     if (n == Lexer::kAll)
-        for (int j = 0; j != F_->get_dm_count(); ++j)
+        for (int j = 0; j != F_->dk.count(); ++j)
             datasets.push_back(j);
     else
         datasets.push_back(n);
@@ -800,7 +806,7 @@ bool Parser::parse_statement(Lexer& lex)
         }
     }
     if (st_.datasets.empty())
-        st_.datasets.push_back(F_->default_dm());
+        st_.datasets.push_back(F_->dk.default_idx());
 
     if (lex.peek_token().type == kTokenLname &&
             is_command(lex.peek_token(), "w","ith")) {

@@ -26,10 +26,9 @@ struct Vertex
 class NMfit : public Fit
 {
 public:
-    NMfit(Ftk* F, const char* name) : Fit(F, name) {}
+    NMfit(Full* F, const char* name) : Fit(F, name) {}
     virtual double run_method(std::vector<realt>* best_a);
 private:
-    int iteration;
     std::vector<Vertex> vertices;
     std::vector<Vertex>::iterator best, s_worst /*second worst*/, worst;
     std::vector<realt> coord_sum;

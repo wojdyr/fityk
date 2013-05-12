@@ -34,12 +34,10 @@ void View::change_view(const RealRange& hor_r, const RealRange& ver_r,
     // For the first dataset in `dataset' (@n, it doesn't contain @*) both
     // data points and models are considered.
     // For the next ones only data points.
-    DataAndModel const* first = F_->get_dm(datasets[0]);
-    vector<Model const*> models(1, first->model());
-    vector<Data const*> datas(datasets.size());
-    datas[0] = first->data();
-    for (size_t i = 1; i < datasets.size(); ++i)
-        datas[i] = F_->get_dm(datasets[i])->data();
+    vector<const Data*> datas(datasets.size());
+    for (size_t i = 0; i != datasets.size(); ++i)
+        datas[i] = dk_->data(datasets[i]);
+    vector<const Model*> models(1, datas[0]->model());
 
     if (hor.lo_inf() || hor.hi_inf()) {
         double x_min=0, x_max=0;

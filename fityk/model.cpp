@@ -20,17 +20,23 @@ using namespace std;
 
 namespace fityk {
 
-Model::Model(BasicContext *ctx, ModelManager &mgr)
-    : ctx_(ctx), mgr_(mgr)
+void Model::destroy()
 {
-    mgr_.register_model(this);
+    mgr_.delete_model(this);
 }
 
-Model::~Model()
+void Model::clear()
 {
-    mgr_.unregister_model(this);
+    if (ff_.names.empty() && zz_.names.empty())
+        return;
+    ff_.names.clear();
+    ff_.idx.clear();
+    zz_.names.clear();
+    zz_.idx.clear();
+    //mgr_.auto_remove_functions();
+    //mgr.update_indices_in_models();
+    //F_->outdated_plot();
 }
-
 
 /// checks if this model depends on the variable with index idx
 bool Model::is_dependent_on_var(int idx) const

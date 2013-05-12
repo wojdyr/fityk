@@ -173,6 +173,7 @@ void FPlot::set_font(wxDC &dc, wxFont const& font)
         dc.SetFont(font);
 }
 
+static
 void draw_line_with_style(wxDC& dc, wxPenStyle style,
                           wxCoord X1, wxCoord Y1, wxCoord X2, wxCoord Y2)
 {

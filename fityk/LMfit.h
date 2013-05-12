@@ -15,15 +15,15 @@ namespace fityk {
 class LMfit : public Fit
 {
 public:
-    LMfit(Ftk* F, const char* name) : Fit(F, name) {}
+    LMfit(Full* F, const char* name) : Fit(F, name) {}
     virtual double run_method(std::vector<realt>* best_a);
 
     // the same methods that were used for all methods up to ver. 1.2.1
     // (just for backward compatibility)
     virtual std::vector<double>
-        get_covariance_matrix(const std::vector<DataAndModel*>& dms);
+        get_covariance_matrix(const std::vector<Data*>& datas);
     virtual std::vector<double>
-        get_standard_errors(const std::vector<DataAndModel*>& dms);
+        get_standard_errors(const std::vector<Data*>& datas);
 
 private:
     std::vector<realt> alpha_; // matrix

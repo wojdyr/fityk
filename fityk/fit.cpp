@@ -26,57 +26,57 @@ using namespace std;
 
 namespace fityk {
 
-int count_points(const vector<DataAndModel*>& dms)
+int count_points(const vector<Data*>& datas)
 {
     int n = 0;
-    v_foreach (DataAndModel*, i, dms)
-        n += (*i)->data()->get_n();
+    v_foreach (Data*, i, datas)
+        n += (*i)->get_n();
     return n;
 }
 
-Fit::Fit(Ftk *F, const string& m)
+Fit::Fit(Full *F, const string& m)
     : name(m), F_(F),
       evaluations_(0), na_(0), last_refresh_time_(0)
 {
 }
 
 /// dof = degrees of freedom = (number of points - number of parameters)
-int Fit::get_dof(const vector<DataAndModel*>& dms)
+int Fit::get_dof(const vector<Data*>& datas)
 {
-    update_par_usage(dms);
+    update_par_usage(datas);
     int used_parameters = count(par_usage_.begin(), par_usage_.end(), true);
-    return count_points(dms) - used_parameters;
+    return count_points(datas) - used_parameters;
 }
 
-string Fit::get_goodness_info(const vector<DataAndModel*>& dms)
+string Fit::get_goodness_info(const vector<Data*>& datas)
 {
     const SettingsMgr *sm = F_->settings_mgr();
     const vector<realt>& pp = F_->mgr.parameters();
-    int dof = get_dof(dms);
-    //update_par_usage(dms);
-    realt wssr = compute_wssr(pp, dms, true);
+    int dof = get_dof(datas);
+    //update_par_usage(datas);
+    realt wssr = compute_wssr(pp, datas, true);
     return "WSSR=" + sm->format_double(wssr)
            + "  DoF=" + S(dof)
            + "  WSSR/DoF=" + sm->format_double(wssr/dof)
-           + "  SSR=" + sm->format_double(compute_wssr(pp, dms, false))
-           + "  R2=" + sm->format_double(compute_r_squared(pp, dms));
+           + "  SSR=" + sm->format_double(compute_wssr(pp, datas, false))
+           + "  R2=" + sm->format_double(compute_r_squared(pp, datas));
 }
 
-vector<double> Fit::get_covariance_matrix(const vector<DataAndModel*>& dms)
+vector<double> Fit::get_covariance_matrix(const vector<Data*>& datas)
 {
-    return MPfit(F_, "").get_covariance_matrix(dms);
+    return MPfit(F_, "").get_covariance_matrix(datas);
 }
 
-vector<double> Fit::get_standard_errors(const vector<DataAndModel*>& dms)
+vector<double> Fit::get_standard_errors(const vector<Data*>& datas)
 {
-    return MPfit(F_, "").get_standard_errors(dms);
+    return MPfit(F_, "").get_standard_errors(datas);
 }
 
-vector<double> Fit::get_confidence_limits(const vector<DataAndModel*>& dms,
+vector<double> Fit::get_confidence_limits(const vector<Data*>& datas,
                                           double level_percent)
 {
-    vector<double> v = get_standard_errors(dms);
-    int dof = get_dof(dms);
+    vector<double> v = get_standard_errors(datas);
+    int dof = get_dof(datas);
     double level = 1. - level_percent / 100.;
 #if 1
     // for unknown reasons this crashes when the program is run under valgrind
@@ -93,11 +93,11 @@ vector<double> Fit::get_confidence_limits(const vector<DataAndModel*>& dms,
     return v;
 }
 
-string Fit::get_cov_info(const vector<DataAndModel*>& dms)
+string Fit::get_cov_info(const vector<Data*>& datas)
 {
     string s;
     const SettingsMgr *sm = F_->settings_mgr();
-    vector<double> alpha = get_covariance_matrix(dms);
+    vector<double> alpha = get_covariance_matrix(datas);
     s += "\nCovariance matrix\n    ";
     for (int i = 0; i < na_; ++i)
         if (par_usage_[i])
@@ -119,19 +119,18 @@ int Fit::compute_deviates(const vector<realt> &A, double *deviates)
     ++evaluations_;
     F_->mgr.use_external_parameters(A); //that's the only side-effect
     int ntot = 0;
-    v_foreach (DataAndModel*, i, dmdm_)
+    v_foreach (Data*, i, fitted_datas_)
         ntot += compute_deviates_for_data(*i, deviates + ntot);
     return ntot;
 }
 
 //static
-int Fit::compute_deviates_for_data(const DataAndModel* dm, double *deviates)
+int Fit::compute_deviates_for_data(const Data* data, double *deviates)
 {
-    const Data* data = dm->data();
     int n = data->get_n();
     vector<realt> xx = data->get_xx();
     vector<realt> yy(n, 0.);
-    dm->model()->compute_model(xx, yy);
+    data->model()->compute_model(xx, yy);
     for (int j = 0; j < n; ++j)
         deviates[j] = (data->get_y(j) - yy[j]) / data->get_sigma(j);
     return n;
@@ -139,12 +138,12 @@ int Fit::compute_deviates_for_data(const DataAndModel* dm, double *deviates)
 
 
 realt Fit::compute_wssr(const vector<realt> &A,
-                        const vector<DataAndModel*>& dms,
+                        const vector<Data*>& datas,
                         bool weigthed)
 {
     realt wssr = 0;
     F_->mgr.use_external_parameters(A); //that's the only side-effect
-    v_foreach (DataAndModel*, i, dms) {
+    v_foreach (Data*, i, datas) {
         wssr += compute_wssr_for_data(*i, weigthed);
     }
     ++evaluations_;
@@ -152,13 +151,12 @@ realt Fit::compute_wssr(const vector<realt> &A,
 }
 
 //static
-realt Fit::compute_wssr_for_data(const DataAndModel* dm, bool weigthed)
+realt Fit::compute_wssr_for_data(const Data* data, bool weigthed)
 {
-    const Data* data = dm->data();
     int n = data->get_n();
     vector<realt> xx = data->get_xx();
     vector<realt> yy(n, 0.);
-    dm->model()->compute_model(xx, yy);
+    data->model()->compute_model(xx, yy);
     // using long double, because it does not effect (much) the efficiency
     // and notably increases the accuracy of WSSR.
     // If better accuracy is needed, Kahan summation algorithm could be used.
@@ -174,11 +172,11 @@ realt Fit::compute_wssr_for_data(const DataAndModel* dm, bool weigthed)
 
 // R^2 for multiple datasets is calculated with separate mean y for each dataset
 realt Fit::compute_r_squared(const vector<realt> &A,
-                             const vector<DataAndModel*>& dms)
+                             const vector<Data*>& datas)
 {
     realt sum_err = 0, sum_tot = 0, se = 0, st = 0;
     F_->mgr.use_external_parameters(A);
-    v_foreach (DataAndModel*, i, dms) {
+    v_foreach (Data*, i, datas) {
         compute_r_squared_for_data(*i, &se, &st);
         sum_err += se;
         sum_tot += st;
@@ -187,14 +185,13 @@ realt Fit::compute_r_squared(const vector<realt> &A,
 }
 
 //static
-realt Fit::compute_r_squared_for_data(const DataAndModel* dm,
+realt Fit::compute_r_squared_for_data(const Data* data,
                                       realt* sum_err, realt* sum_tot)
 {
-    const Data* data = dm->data();
     int n = data->get_n();
     vector<realt> xx = data->get_xx();
     vector<realt> yy(n, 0.);
-    dm->model()->compute_model(xx, yy);
+    data->model()->compute_model(xx, yy);
     realt ysum = 0;
     realt ss_err = 0; // Sum of squares of dist. between fitted curve and data
     for (int j = 0; j < n; j++) {
@@ -222,7 +219,7 @@ realt Fit::compute_r_squared_for_data(const DataAndModel* dm,
 
 //results in alpha and beta
 void Fit::compute_derivatives(const vector<realt> &A,
-                              const vector<DataAndModel*>& dms,
+                              const vector<Data*>& datas,
                               vector<realt>& alpha, vector<realt>& beta)
 {
     assert (size(A) == na_ && size(alpha) == na_ * na_ && size(beta) == na_);
@@ -230,7 +227,7 @@ void Fit::compute_derivatives(const vector<realt> &A,
     fill(beta.begin(), beta.end(), 0.0);
 
     F_->mgr.use_external_parameters(A);
-    v_foreach (DataAndModel*, i, dms) {
+    v_foreach (Data*, i, datas) {
         compute_derivatives_for(*i, alpha, beta);
     }
     // filling second half of alpha[]
@@ -241,16 +238,15 @@ void Fit::compute_derivatives(const vector<realt> &A,
 
 //results in alpha and beta
 //it computes only half of alpha matrix
-void Fit::compute_derivatives_for(const DataAndModel* dm,
+void Fit::compute_derivatives_for(const Data* data,
                                   vector<realt>& alpha, vector<realt>& beta)
 {
-    const Data* data = dm->data();
     int n = data->get_n();
     vector<realt> xx = data->get_xx();
     vector<realt> yy(n, 0.);
     const int dyn = na_+1;
     vector<realt> dy_da(n*dyn, 0.);
-    dm->model()->compute_model_with_derivs(xx, yy, dy_da);
+    data->model()->compute_model_with_derivs(xx, yy, dy_da);
     for (int i = 0; i != n; i++) {
         realt inv_sig = 1.0 / data->get_sigma(i);
         realt dy_sig = (data->get_y(i) - yy[i]) * inv_sig;
@@ -268,27 +264,26 @@ void Fit::compute_derivatives_for(const DataAndModel* dm,
 
 // similar to compute_derivatives(), but adjusted for MPFIT interface
 void Fit::compute_derivatives_mp(const vector<realt> &A,
-                                 const vector<DataAndModel*>& dms,
+                                 const vector<Data*>& datas,
                                  double **derivs, double *deviates)
 {
     ++evaluations_;
     F_->mgr.use_external_parameters(A);
     int ntot = 0;
-    v_foreach (DataAndModel*, i, dms) {
+    v_foreach (Data*, i, datas) {
         ntot += compute_derivatives_mp_for(*i, ntot, derivs, deviates);
     }
 }
 
-int Fit::compute_derivatives_mp_for(const DataAndModel* dm, int offset,
+int Fit::compute_derivatives_mp_for(const Data* data, int offset,
                                     double **derivs, double *deviates)
 {
-    const Data* data = dm->data();
     int n = data->get_n();
     vector<realt> xx = data->get_xx();
     vector<realt> yy(n, 0.);
     const int dyn = na_+1;
     vector<realt> dy_da(n*dyn, 0.);
-    dm->model()->compute_model_with_derivs(xx, yy, dy_da);
+    data->model()->compute_model_with_derivs(xx, yy, dy_da);
     for (int i = 0; i != n; ++i)
         deviates[offset+i] = (data->get_y(i) - yy[i]) / data->get_sigma(i);
     for (int j = 0; j != na_; ++j)
@@ -300,7 +295,7 @@ int Fit::compute_derivatives_mp_for(const DataAndModel* dm, int offset,
 
 // similar to compute_derivatives(), but adjusted for NLopt interface
 realt Fit::compute_wssr_gradient(const vector<realt> &A,
-                                 const vector<DataAndModel*>& dms,
+                                 const vector<Data*>& datas,
                                  double *grad)
 {
     assert(size(A) == na_);
@@ -308,21 +303,20 @@ realt Fit::compute_wssr_gradient(const vector<realt> &A,
     F_->mgr.use_external_parameters(A);
     realt wssr = 0.;
     fill(grad, grad+na_, 0.0);
-    v_foreach (DataAndModel*, i, dms)
+    v_foreach (Data*, i, datas)
         wssr += compute_wssr_gradient_for(*i, grad);
     return wssr;
 }
 
-realt Fit::compute_wssr_gradient_for(const DataAndModel* dm, double *grad)
+realt Fit::compute_wssr_gradient_for(const Data* data, double *grad)
 {
     realt wssr = 0;
-    const Data* data = dm->data();
     int n = data->get_n();
     vector<realt> xx = data->get_xx();
     vector<realt> yy(n, 0.);
     const int dyn = na_+1;
     vector<realt> dy_da(n*dyn, 0.);
-    dm->model()->compute_model_with_derivs(xx, yy, dy_da);
+    data->model()->compute_model_with_derivs(xx, yy, dy_da);
     for (int i = 0; i != n; i++) {
         realt sig = data->get_sigma(i);
         realt dy_sig = (data->get_y(i) - yy[i]) / sig;
@@ -367,14 +361,14 @@ private:
 };
 
 /// initialize and run fitting procedure for not more than max_eval evaluations
-void Fit::fit(int max_eval, const vector<DataAndModel*>& dms)
+void Fit::fit(int max_eval, const vector<Data*>& datas)
 {
     // initialization
     start_time_ = clock();
     last_refresh_time_ = time(0);
     ComputeUI compute_ui(F_->ui());
-    update_par_usage(dms);
-    dmdm_ = dms;
+    update_par_usage(datas);
+    fitted_datas_ = datas;
     a_orig_ = F_->mgr.parameters();
     F_->fit_manager()->push_param_history(a_orig_);
     evaluations_ = 0;
@@ -383,8 +377,8 @@ void Fit::fit(int max_eval, const vector<DataAndModel*>& dms)
                               : F_->get_settings()->max_wssr_evaluations);
     int nu = count(par_usage_.begin(), par_usage_.end(), true);
     F_->msg("Fitting " + S(nu) + " (of " + S(na_) + ") parameters to "
-            + S(count_points(dms)) + " points ...");
-    initial_wssr_ = compute_wssr(a_orig_, dmdm_);
+            + S(count_points(datas)) + " points ...");
+    initial_wssr_ = compute_wssr(a_orig_, fitted_datas_);
     best_shown_wssr_ = initial_wssr_;
     const SettingsMgr *sm = F_->settings_mgr();
     if (F_->get_verbosity() >= 1)
@@ -415,12 +409,12 @@ void Fit::fit(int max_eval, const vector<DataAndModel*>& dms)
     }
 }
 
-// sets na_ and par_usage_ based on F_->mgr and dms
-void Fit::update_par_usage(const vector<DataAndModel*>& dms)
+// sets na_ and par_usage_ based on F_->mgr and datas
+void Fit::update_par_usage(const vector<Data*>& datas)
 {
     if (F_->mgr.parameters().empty())
         throw ExecuteError("there are no fittable parameters.");
-    if (dms.empty())
+    if (datas.empty())
         throw ExecuteError("No datasets to fit.");
 
     na_ = F_->mgr.parameters().size();
@@ -428,7 +422,7 @@ void Fit::update_par_usage(const vector<DataAndModel*>& dms)
     par_usage_ = vector<bool>(na_, false);
     for (int idx = 0; idx < na_; ++idx) {
         int var_idx = F_->mgr.gpos_to_vpos(idx);
-        v_foreach (DataAndModel*, i, dms) {
+        v_foreach (Data*, i, datas) {
             if ((*i)->model()->is_dependent_on_var(var_idx)) {
                 par_usage_[idx] = true;
                 break; //go to next idx
@@ -536,7 +530,7 @@ const char* FitManager::method_list[][3] =
 };
 
 
-FitManager::FitManager(Ftk *F_)
+FitManager::FitManager(Full *F_)
     : ParameterHistoryMgr(F_), dirty_error_cache_(true)
 
 {
@@ -580,7 +574,7 @@ double FitManager::get_standard_error(const Variable* var) const
         return -1.; // value signaling unknown standard error
     if (dirty_error_cache_
             || errors_cache_.size() != F_->mgr.parameters().size()) {
-        errors_cache_ = F_->get_fit()->get_standard_errors(F_->get_dms());
+        errors_cache_ = F_->get_fit()->get_standard_errors(F_->dk.datas());
     }
     return errors_cache_[var->gpos()];
 }

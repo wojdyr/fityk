@@ -37,12 +37,12 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id)
                              wxDefaultPosition, wxDefaultSize,
                              data_choices, 1, wxRA_SPECIFY_COLS);
     separately_cb = new wxCheckBox(this, -1, "fit each dataset separately");
-    if (ftk->get_dm_count() == 1) {
+    if (ftk->dk.count() == 1) {
         data_rb->Enable(1, false);
         separately_cb->Enable(false);
     }
     else {
-        bool independent = ftk->are_independent(ftk->get_dms());
+        bool independent = ftk->are_independent(ftk->dk.datas());
         separately_cb->SetValue(independent);
     }
     top_sizer->Add(data_rb, 0, wxALL|wxEXPAND, 5);

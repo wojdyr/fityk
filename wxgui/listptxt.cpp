@@ -189,18 +189,18 @@ void DataListPlusText::update_data_list(bool nondata_changed)
     wxColour const& bg_col = mplot->get_bg_color();
 
     vector<string> data_data;
-    for (int i = 0; i < ftk->get_dm_count(); ++i) {
-        DataAndModel const* dm = ftk->get_dm(i);
+    for (int i = 0; i < ftk->dk.count(); ++i) {
+        const fityk::Data* data = ftk->dk.data(i);
         data_data.push_back(S(i));
-        data_data.push_back(S(dm->model()->get_ff().names.size())
-                            + "+" + S(dm->model()->get_zz().names.size()));
-        data_data.push_back(dm->data()->get_title());
-        data_data.push_back(dm->data()->get_filename());
+        data_data.push_back(S(data->model()->get_ff().names.size())
+                            + "+" + S(data->model()->get_zz().names.size()));
+        data_data.push_back(data->get_title());
+        data_data.push_back(data->get_filename());
     }
     wxImageList* data_images = 0;
-    if (nondata_changed || ftk->get_dm_count() > list->GetItemCount()) {
+    if (nondata_changed || ftk->dk.count() > list->GetItemCount()) {
         data_images = new wxImageList(16, 16);
-        for (int i = 0; i < ftk->get_dm_count(); ++i)
+        for (int i = 0; i < ftk->dk.count(); ++i)
             data_images->Add(make_color_bitmap16(mplot->get_data_color(i),
                                                  bg_col));
     }

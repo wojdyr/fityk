@@ -14,6 +14,7 @@
 namespace fityk {
 
 class BasicContext;
+class Model;
 
 FITYK_API std::string get_file_basename(std::string const& path);
 
@@ -29,10 +30,8 @@ public :
                              const std::string& options,
                              int first_block);
 
-    Data(const BasicContext* ctx)
-        : ctx_(ctx), given_x_(INT_MAX), given_y_(INT_MAX), given_s_(INT_MAX),
-                  x_step_(0.) {}
-    ~Data() {}
+    Data(BasicContext *ctx, Model *model);
+    ~Data();
     std::string get_info() const;
 
     void load_file(const std::string& fn,
@@ -42,7 +41,7 @@ public :
 
     int load_arrays(const std::vector<realt>& x, const std::vector<realt>& y,
                     const std::vector<realt>& sigma,
-                    const std::string& data_title);
+                    const std::string& title);
     //void load_data_sum(const std::vector<const Data*>& dd,
     //                   const std::string& op);
     void set_points(const std::vector<Point>& p);
@@ -54,7 +53,8 @@ public :
     int get_n() const { return active_.size(); }
     std::vector<realt> get_xx() const;
     bool is_empty() const { return p_.empty(); }
-    bool has_any_info() const { return !is_empty() || !get_title().empty(); }
+    bool completely_empty() const;
+    bool has_any_info() const;
     double get_x_step() const { return x_step_; } /// 0.0 if not fixed
     void after_transform(); // update x_step_, active_
     std::string range_as_string() const;
@@ -82,9 +82,12 @@ public :
     int get_given_y() const { return given_y_; }
     int get_given_s() const { return given_s_; }
     void revert();
+    Model* model() { return model_; }
+    const Model* model() const { return model_; }
 
 private:
     const BasicContext* ctx_;
+    Model* const model_;
     std::string title_;
     std::string filename_;
     int given_x_, given_y_, given_s_;/// columns given when loading the file

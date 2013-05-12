@@ -51,7 +51,7 @@ namespace fityk {
 /// Minimal examples of using libfityk in C++, Python, Lua and Perl are in
 /// samples/hello.* files.
 
-class Ftk;
+class Full;
 class UiApi;
 struct FitykInternalData;
 
@@ -92,8 +92,8 @@ public:
     const std::string name;
     RealRange domain;
 
-    realt value() const { return value_; };
-    int gpos() const { return gpos_; };
+    realt value() const { return value_; }
+    int gpos() const { return gpos_; }
     bool is_simple() const { return gpos_ != -1; }
 
 protected:
@@ -147,7 +147,7 @@ class FITYK_API Fityk
 public:
 
     Fityk();
-    Fityk(Ftk* F);
+    Fityk(Full* F);
     ~Fityk();
 
     /// @name execute fityk commands or change data
@@ -302,11 +302,11 @@ public:
     void process_cmd_line_arg(const std::string& arg);
 
     // implementation details (for internal use)
-    Ftk* priv() { return priv_; } // access to private API
+    Full* priv() { return priv_; } // access to private API
     realt* get_covariance_matrix_as_array(int dataset);
 
 private:
-    Ftk *priv_;
+    Full *priv_;
     bool throws_;
     std::string last_error_;
     FitykInternalData *p_; // members hidden for the sake of API stability
@@ -334,6 +334,14 @@ typedef struct
     bool is_active;
 } Point;
 
+#endif /* __cplusplus */
+
+#if !defined(__cplusplus) || defined(FITYK_DECLARE_C_API)
+#ifdef __cplusplus
+extern "C" {
+using fityk::Point;
+using fityk::Fityk;
+#endif
 
 FITYK_API Fityk* fityk_create();
 FITYK_API void fityk_delete(Fityk *f);
@@ -361,7 +369,11 @@ FITYK_API int fityk_get_dof(Fityk *f, int dataset);
 /* length of the array is parameter_count^2                        */
 FITYK_API realt* fityk_get_covariance_matrix(Fityk *f, int dataset);
 
-#endif /* __cplusplus */
+#ifdef __cplusplus
+} // extern "C"
+#endif
+
+#endif
 
 #endif /* FITYK_FITYK_H_ */
 

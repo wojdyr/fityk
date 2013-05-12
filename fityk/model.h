@@ -30,8 +30,8 @@ struct FunctionSum
 class FITYK_API Model
 {
 public:
-    Model(BasicContext *ctx, ModelManager &mgr);
-    ~Model();
+    void destroy();
+    void clear();
 
     /// calculate model (single point)
     realt value(realt x) const;
@@ -75,6 +75,12 @@ private:
     const BasicContext* ctx_;
     ModelManager &mgr_;
     FunctionSum ff_, zz_;
+
+    // can be created/deleted only from ModelManager
+    friend class ModelManager;
+    Model(const BasicContext *ctx, ModelManager &mgr) : ctx_(ctx), mgr_(mgr) {}
+    ~Model() {}
+
 
     DISALLOW_COPY_AND_ASSIGN(Model);
 };

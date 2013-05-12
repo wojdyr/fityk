@@ -102,10 +102,8 @@ public:
     void do_srand();
     std::string format_double(double d) const
             { return format1<double, 32>(m_.numeric_format.c_str(), d); }
-#if USE_LONG_DOUBLE
     std::string format_double(long double d) const
             { return format1<long double, 64>(long_double_format_.c_str(), d); }
-#endif
 
 private:
     const BasicContext* ctx_; // used for msg()

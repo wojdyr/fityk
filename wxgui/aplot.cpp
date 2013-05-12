@@ -137,8 +137,8 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
 {
     //printf("AuxPlot::draw()\n");
     int pos = frame->get_focused_data_index();
-    Data const* data = ftk->get_data(pos);
-    Model const* model = ftk->get_model(pos);
+    const Data* data = ftk->dk.data(pos);
+    const Model* model = data->model();
     if (auto_zoom_y_ || fit_y_once_) {
         fit_y_zoom(data, model);
         fit_y_once_ = false;
@@ -283,8 +283,9 @@ void AuxPlot::set_scale(int pixel_width, int pixel_height)
         case apk_diff_y_perc:
             ys.scale = -1. * y_zoom_base_ * y_zoom_;
             break;
-        default:
-            assert(0);
+        case apk_cum_chi2:
+            // FIXME
+            break;
     }
     ys.origin = - pixel_height / 2. / ys.scale;
 }
@@ -524,8 +525,9 @@ void AuxPlot::fit_y_zoom(Data const* data, Model const* model)
             y_zoom_base_ = pixel_height / y;
             y_zoom_ = 0.9;
             break;
-        default:
-            assert(0);
+        case apk_empty:
+            //assert(0);
+            break;
     }
 }
 

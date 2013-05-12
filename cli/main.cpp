@@ -203,8 +203,6 @@ void main_loop()
     // the main loop -- reading input and executing commands
     for (;;)
         read_and_execute_input();
-
-    printf("\n");
 }
 
 
@@ -232,7 +230,6 @@ void main_loop()
         }
         ftk->get_ui_api()->exec_and_log(s);
     }
-    printf("\n");
 }
 
 #endif //HAVE_LIBREADLINE

@@ -16,7 +16,7 @@ namespace fityk {
 class MPfit : public Fit
 {
 public:
-    MPfit(Ftk* F, const char* name) : Fit(F, name) {}
+    MPfit(Full* F, const char* name) : Fit(F, name) {}
     virtual double run_method(std::vector<realt>* best_a);
 
     // implementation (must be public to be called inside callback function)
@@ -25,14 +25,14 @@ public:
     int on_iteration();
 
     virtual std::vector<double>
-        get_covariance_matrix(const std::vector<DataAndModel*>& dms);
+        get_covariance_matrix(const std::vector<Data*>& datas);
     virtual std::vector<double>
-        get_standard_errors(const std::vector<DataAndModel*>& dms);
+        get_standard_errors(const std::vector<Data*>& datas);
 private:
     mp_config_struct mp_conf_;
     mp_result result_;
 
-    int run_mpfit(const std::vector<DataAndModel*>& dms,
+    int run_mpfit(const std::vector<Data*>& datas,
                   const std::vector<realt>& parameters,
                   const std::vector<bool>& param_usage,
                   double *final_a=NULL);

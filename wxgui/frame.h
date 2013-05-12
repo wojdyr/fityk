@@ -17,11 +17,11 @@ class ProportionalSplitter;
 class PrintManager;
 class FStatusBar;
 
-namespace fityk { class Ftk; struct RealRange; class DataAndModel; }
-extern fityk::Ftk *ftk;
+namespace fityk { class Full; struct RealRange; class Data; }
+extern fityk::Full *ftk;
 using fityk::UserInterface;
 using fityk::RealRange;
-using fityk::DataAndModel;
+using fityk::Data;
 
 // execute command(s) from string
 UserInterface::Status exec(const std::string &s);
@@ -187,7 +187,7 @@ public:
     void update_config_menu(wxMenu *menu);
     int get_focused_data_index();
     std::vector<int> get_selected_data_indices();
-    std::vector<DataAndModel*> get_selected_dms();
+    std::vector<Data*> get_selected_datas();
     std::string get_datasets();
     std::string get_guess_string(const std::string& name);
     PlotPane *plot_pane() { return plot_pane_; }

@@ -5,7 +5,6 @@
 #define BUILDING_LIBFITYK
 #include "transform.h"
 #include "logic.h"
-#include "lexer.h"
 #include "data.h"
 
 using namespace std;
@@ -100,8 +99,8 @@ void shirley_bg(vector<Point> &pp)
 
 namespace fityk {
 
-/// executes VM code and stores results in Dataset `out'
-void DatasetTransformer::run_dt(const VMData& vm, int out)
+/// executes VM code and stores results in dataset `data_out'
+void run_data_transform(const DataKeeper& dk, const VMData& vm, Data* data_out)
 {
     DtStackItem stack[6];
     DtStackItem* stackPtr = stack - 1; // will be ++'ed first
@@ -124,8 +123,8 @@ void DatasetTransformer::run_dt(const VMData& vm, int out)
                     throw ExecuteError("stack overflow");
                 stackPtr->is_num = false;
                 ++i;
-                stackPtr->points = F_->get_data(*i)->points();
-                stackPtr->title = F_->get_data(*i)->get_title();
+                stackPtr->points = dk.data(*i)->points();
+                stackPtr->title = dk.data(*i)->get_title();
                 if (stackPtr->title.empty())
                     stackPtr->title = "nt"; // no title
                 break;
@@ -229,18 +228,12 @@ void DatasetTransformer::run_dt(const VMData& vm, int out)
     }
     assert(stackPtr == stack);
 
-    // change dataset `out'
-    if (out == Lexer::kNew) {
-        F_->append_dm();
-        out = F_->get_dm_count() - 1;
-    }
-    Data *data = F_->get_data(out);
     if (!stackPtr->is_num) {
-        data->set_points(stackPtr->points);
-        data->set_title(stackPtr->title);
+        data_out->set_points(stackPtr->points);
+        data_out->set_title(stackPtr->title);
     }
     else if (stackPtr->num == 0.)
-        data->clear();
+        data_out->clear();
     else
         throw ExecuteError("dataset or 0 expected on RHS");
 }

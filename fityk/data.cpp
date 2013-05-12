@@ -8,6 +8,7 @@
 #include "numfuncs.h"
 #include "settings.h"
 #include "logic.h"
+#include "model.h"
 
 #include <math.h>
 #include <string.h>
@@ -35,6 +36,18 @@ string get_file_basename(const string& path)
 }
 
 
+Data::Data(BasicContext* ctx, Model *model)
+        : ctx_(ctx), model_(model),
+          given_x_(INT_MAX), given_y_(INT_MAX), given_s_(INT_MAX), x_step_(0.)
+{
+}
+
+Data::~Data()
+{
+    model_->destroy();
+}
+
+
 string Data::get_info() const
 {
     string s;
@@ -56,6 +69,7 @@ string Data::get_info() const
     return s;
 }
 
+// does not clear model
 void Data::clear()
 {
     filename_ = "";
@@ -68,6 +82,13 @@ void Data::clear()
     active_.clear();
     has_sigma_ = false;
 }
+
+bool Data::completely_empty() const
+{
+    return is_empty() && get_title().empty() &&
+           model()->get_ff().empty() && model()->get_zz().empty();
+}
+
 
 void Data::post_load()
 {
@@ -94,12 +115,12 @@ void Data::post_load()
 }
 
 int Data::load_arrays(const vector<realt> &x, const vector<realt> &y,
-                      const vector<realt> &sigma, const string &data_title)
+                      const vector<realt> &sigma, const string &title)
 {
     assert(x.size() == y.size());
     assert(sigma.empty() || sigma.size() == y.size());
     clear();
-    title_ = data_title;
+    title_ = title;
     p_.resize(y.size());
     if (sigma.empty())
         for (size_t i = 0; i != y.size(); ++i)

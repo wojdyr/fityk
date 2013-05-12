@@ -546,10 +546,10 @@ void App::OnConvert(wxCommandEvent&)
                 }
             }
 
-            for (int i = 0; i < np; ++i) {
-                fprintf(f, "%.9g\t%.9g", xcol.get_value(i), ycol.get_value(i));
+            for (int j = 0; j < np; ++j) {
+                fprintf(f, "%.9g\t%.9g", xcol.get_value(j), ycol.get_value(j));
                 if (has_err)
-                    fprintf(f, "\t%.9g", ecol->get_value(i));
+                    fprintf(f, "\t%.9g", ecol->get_value(j));
                 fprintf(f, "\n");
             }
         } catch (runtime_error const& e) {

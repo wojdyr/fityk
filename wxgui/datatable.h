@@ -11,7 +11,7 @@ namespace fityk { class Data; }
 class GridTable;
 class wxGrid;
 class wxGridEvent;
-class wxCheckBox;;
+class wxCheckBox;
 
 class DataTableDlg : public wxDialog
 {

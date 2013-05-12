@@ -21,7 +21,7 @@ struct Individual
 class GAfit : public Fit
 {
 public:
-    GAfit(Ftk* F, const char* name);
+    GAfit(Full* F, const char* name);
     ~GAfit();
     virtual double run_method(std::vector<realt>* best_a);
 private:

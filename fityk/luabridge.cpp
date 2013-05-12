@@ -76,7 +76,7 @@ static int lua_nested_call(lua_State *L)
 
 namespace fityk {
 
-LuaBridge::LuaBridge(Ftk *F)
+LuaBridge::LuaBridge(Full *F)
     : ctx_(F)
 {
     L_ = luaL_newstate();

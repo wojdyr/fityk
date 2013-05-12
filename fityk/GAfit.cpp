@@ -20,7 +20,7 @@ using namespace std;
 
 namespace fityk {
 
-GAfit::GAfit(Ftk* F, const char* name)
+GAfit::GAfit(Full* F, const char* name)
    : Fit(F, name),
      popsize (100), elitism(0),
      mutation_type('u'), p_mutation(0.1), mutate_all_genes(false),
@@ -109,7 +109,7 @@ double GAfit::run_method(std::vector<realt>* best_a)
 
 void GAfit::compute_wssr_for_ind (vector<Individual>::iterator ind)
 {
-    ind->raw_score = compute_wssr(ind->g, dmdm_);
+    ind->raw_score = compute_wssr(ind->g, fitted_datas_);
 }
 
 void GAfit::autoplot_in_run()

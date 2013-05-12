@@ -67,8 +67,8 @@ bool is_vector_sorted(const vector<T>& v)
 }
 
 TEST_CASE("linear-guess", "test Guess::estimate_linear_parameters()") {
-    boost::scoped_ptr<Ftk> ftk(new Ftk);
-    Data *data = ftk->get_data(0);
+    boost::scoped_ptr<Full> ftk(new Full);
+    Data *data = ftk->dk.data(0);
     //ftk->settings_mgr()->set_as_number("verbosity", -1);
     int n = sizeof(norris::yx) / sizeof(norris::yx[0]);
     for (int i = 0; i < n; ++i) {
@@ -78,7 +78,7 @@ TEST_CASE("linear-guess", "test Guess::estimate_linear_parameters()") {
     }
     REQUIRE(is_vector_sorted(data->points()));
     Guess g(ftk->get_settings());
-    g.set_data(ftk->get_dm(0), RealRange(), -1);
+    g.set_data(ftk->dk.data(0), RealRange(), -1);
     boost::array<double,3> lin_est = g.estimate_linear_parameters();
     //printf("slope %.14f\nintercept %.14f\n", lin_est[0], lin_est[1]);
     REQUIRE(lin_est[0] == Approx(norris::cert_b1));

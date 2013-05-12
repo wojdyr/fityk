@@ -28,7 +28,7 @@ private:
     void OnViewSpinCtrlUpdate(wxSpinEvent& event);
     void compute_all_wssr();
     void clear_history();
-    void OnActivate(wxActivateEvent&) { compute_all_wssr(); };
+    void OnActivate(wxActivateEvent&) { compute_all_wssr(); }
 
     void initialize_lc();
     DECLARE_EVENT_TABLE()

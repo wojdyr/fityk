@@ -337,9 +337,9 @@ void EditTransDlg::OnAdd(wxCommandEvent&)
     for (int i = 1; ; ++i) {
         name.Printf(wxT("transform %d"), i);
         bool uniq = true;
-        for (vector<DataTransform>::const_iterator i = transforms.begin();
-                                                i != transforms.end(); ++i)
-            if (i->name == name) {
+        for (vector<DataTransform>::const_iterator j = transforms.begin();
+                                                j != transforms.end(); ++j)
+            if (j->name == name) {
                 uniq = false;
                 break;
             }

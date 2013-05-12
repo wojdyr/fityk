@@ -39,12 +39,12 @@ double LMfit::run_method(std::vector<realt>* best_a)
     }
 
     realt chi2 = initial_wssr_;
-    compute_derivatives(a_orig_, dmdm_, alpha_, beta_);
+    compute_derivatives(a_orig_, fitted_datas_, alpha_, beta_);
 
     int small_change_counter = 0;
     for (int iter = 0; !common_termination_criteria(); iter++) {
         prepare_next_parameters(lambda, *best_a); // -> temp_beta_
-        double new_chi2 = compute_wssr(temp_beta_, dmdm_);
+        double new_chi2 = compute_wssr(temp_beta_, fitted_datas_);
         if (F_->get_verbosity() >= 1)
             F_->ui()->mesg(iteration_info(new_chi2) +
                            format1<double,32>("  lambda=%.5g", lambda) +
@@ -65,7 +65,7 @@ double LMfit::run_method(std::vector<realt>* best_a)
             else
                 small_change_counter = 0;
 
-            compute_derivatives(*best_a, dmdm_, alpha_, beta_);
+            compute_derivatives(*best_a, fitted_datas_, alpha_, beta_);
             lambda /= F_->get_settings()->lm_lambda_down_factor;
         }
 
@@ -110,13 +110,13 @@ void LMfit::prepare_next_parameters(double lambda, const vector<realt> &a)
 }
 
 
-vector<double> LMfit::get_covariance_matrix(const vector<DataAndModel*>& dms)
+vector<double> LMfit::get_covariance_matrix(const vector<Data*>& datas)
 {
-    update_par_usage(dms);
+    update_par_usage(datas);
     vector<realt> alpha(na_*na_, 0.);
 
     vector<realt> beta(na_);
-    compute_derivatives(F_->mgr.parameters(), dms, alpha, beta);
+    compute_derivatives(F_->mgr.parameters(), datas, alpha, beta);
 
     // To avoid singular matrix, put fake values corresponding to unused
     // parameters.
@@ -154,14 +154,14 @@ vector<double> LMfit::get_covariance_matrix(const vector<DataAndModel*>& dms)
 #endif
 }
 
-vector<double> LMfit::get_standard_errors(const vector<DataAndModel*>& dms)
+vector<double> LMfit::get_standard_errors(const vector<Data*>& datas)
 {
     const vector<realt> &pp = F_->mgr.parameters();
-    realt wssr = compute_wssr(pp, dms, true);
-    int dof = get_dof(dms);
+    realt wssr = compute_wssr(pp, datas, true);
+    int dof = get_dof(datas);
     // `na_' was set by get_dof() above, from update_par_usage()
     vector<double> errors(na_);
-    vector<double> alpha = get_covariance_matrix(dms);
+    vector<double> alpha = get_covariance_matrix(datas);
     // `na_' was set by functions above
     for (int i = 0; i < na_; ++i)
         errors[i] = sqrt(wssr / dof * alpha[i*na_ + i]);

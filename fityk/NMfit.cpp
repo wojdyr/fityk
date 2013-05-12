@@ -87,8 +87,8 @@ void NMfit::change_simplex()
         try_new_worst (2.);
     else if (t >= s_worst->wssr) {
         realt old = worst->wssr;
-        realt t = try_new_worst(0.5);
-        if (t >= old) { // than multiple contraction
+        realt t2 = try_new_worst(0.5);
+        if (t2 >= old) { // than multiple contraction
             for (vector<Vertex>::iterator i = vertices.begin();
                                                     i != vertices.end() ;++i) {
                 if (i == best)
@@ -172,7 +172,7 @@ bool NMfit::termination_criteria(int iter, realt convergence)
 void NMfit::compute_v(Vertex& v)
 {
     assert (!v.a.empty());
-    v.wssr = compute_wssr(v.a, dmdm_);
+    v.wssr = compute_wssr(v.a, fitted_datas_);
     v.computed = true;
 }
 

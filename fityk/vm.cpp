@@ -112,8 +112,8 @@ string op2str(int op)
         OP_(DATASET) OP_(DT_SUM_SAME_X) OP_(DT_AVG_SAME_X) OP_(DT_SHIRLEY_BG)
         OP_(OPEN_ROUND)  OP_(OPEN_SQUARE)
     }
-    return S(op);
-};
+    return S(op); // unreachable (if all OPs are listed above)
+}
 #undef OP_
 
 string vm2str(vector<int> const& code, vector<realt> const& data)
@@ -193,7 +193,7 @@ inline realt as_bool(realt d) { return fabs(d) < 0.5 ? 0 : 1; }
 #define STACK_OFFSET_CHANGE(ch) stackPtr+=(ch)
 
 inline
-void run_const_op(const Ftk* F, const std::vector<realt>& numbers,
+void run_const_op(const Full* F, const std::vector<realt>& numbers,
                   vector<int>::const_iterator& i,
                   realt*& stackPtr,
                   const int n,
@@ -277,11 +277,11 @@ void run_const_op(const Ftk* F, const std::vector<realt>& numbers,
             break;
         case OP_SUM_F:
             i++;
-            *stackPtr = F->get_model(*i)->value(*stackPtr);
+            *stackPtr = F->dk.get_model(*i)->value(*stackPtr);
             break;
         case OP_SUM_Z:
             i++;
-            *stackPtr = F->get_model(*i)->zero_shift(*stackPtr);
+            *stackPtr = F->dk.get_model(*i)->zero_shift(*stackPtr);
             break;
         case OP_NUMAREA:
             i += 2;
@@ -291,7 +291,7 @@ void run_const_op(const Ftk* F, const std::vector<realt>& numbers,
                                     *(stackPtr+1), iround(*(stackPtr+2)));
             }
             else if (*(i-1) == OP_SUM_F) {
-                *stackPtr = F->get_model(*i)->numarea(*stackPtr,
+                *stackPtr = F->dk.get_model(*i)->numarea(*stackPtr,
                                     *(stackPtr+1), iround(*(stackPtr+2)));
             }
             else // OP_SUM_Z
@@ -493,7 +493,7 @@ void run_const_op(const Ftk* F, const std::vector<realt>& numbers,
 
         case OP_DATASET:
             throw ExecuteError("@n can not be used in this context");
-            break;
+            break; // unreachable
 
         default:
             //cerr << "Unknown operator in VM code: " << *i << endl;
@@ -502,7 +502,7 @@ void run_const_op(const Ftk* F, const std::vector<realt>& numbers,
 }
 
 inline
-void run_mutab_op(const Ftk* F, const std::vector<realt>& numbers,
+void run_mutab_op(const Full* F, const std::vector<realt>& numbers,
                   vector<int>::const_iterator& i,
                   realt*& stackPtr,
                   const int n,

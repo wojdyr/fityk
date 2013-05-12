@@ -110,7 +110,7 @@
 using namespace std;
 using fityk::FitManager;
 FFrame *frame = NULL;
-fityk::Ftk *ftk = NULL;
+fityk::Full *ftk = NULL;
 
 UserInterface::Status exec(const std::string &s)
 {
@@ -252,6 +252,7 @@ enum {
 };
 
 
+static
 void append_mi(wxMenu* menu, int id, wxBitmap const& bitmap,
                const wxString& text=wxT(""), const wxString& helpString=wxT(""))
 {
@@ -378,7 +379,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (wxID_EXIT,        FFrame::OnQuit)
 END_EVENT_TABLE()
 
-
+static
 void read_recent_files(list<wxFileName> &recent_files,
                        const wxString& config_group)
 {
@@ -393,6 +394,7 @@ void read_recent_files(list<wxFileName> &recent_files,
     }
 }
 
+static
 void save_recent_files(list<wxFileName> &recent_files,
                        const wxString& config_group)
 {
@@ -1071,7 +1073,7 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
                 for (size_t i = 0; i < sel.size(); ++i)
                     paths.push_back(s2wx(f + "::::" + S(sel[i])));
             }
-        } catch (const runtime_error& e) {
+        } catch (const runtime_error& /*e*/) {
         } // ignore the exception here, it'll be thrown later
     }
 
@@ -1098,7 +1100,7 @@ void FFrame::OnDataXLoad (wxCommandEvent&)
     vector<int> sel = get_selected_data_indices();
     int n = (sel.size() == 1 ? sel[0] : -1);
     // in case of multi-selection, use the first item
-    fityk::Data *data = ftk->get_data(sel[0]);
+    fityk::Data *data = ftk->dk.data(sel[0]);
     DLoadDlg dload_dialog(this, n, data, data_dir_);
     dload_dialog.ShowModal();
 }
@@ -1114,7 +1116,7 @@ void FFrame::OnDataRevertUpdate (wxUpdateUIEvent& event)
 {
     vector<int> sel = get_selected_data_indices();
     event.Enable(sel.size() == 1
-                 && !ftk->get_data(sel[0])->get_filename().empty());
+                 && !ftk->dk.data(sel[0])->get_filename().empty());
 }
 
 void FFrame::OnDataRevert (wxCommandEvent&)
@@ -1132,7 +1134,7 @@ void FFrame::OnDataRevert (wxCommandEvent&)
 void FFrame::OnDataTable(wxCommandEvent&)
 {
     int data_nr = get_focused_data_index();
-    DataTableDlg data_table(this, -1, data_nr, ftk->get_data(data_nr));
+    DataTableDlg data_table(this, -1, data_nr, ftk->dk.data(data_nr));
     data_table.ShowModal();
 }
 
@@ -1141,7 +1143,7 @@ void FFrame::OnDataEditor (wxCommandEvent&)
     vector<pair<int,fityk::Data*> > dd;
     vector<int> sel = get_selected_data_indices();
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i)
-        dd.push_back(make_pair(*i, ftk->get_data(*i)));
+        dd.push_back(make_pair(*i, ftk->dk.data(*i)));
     EditTransDlg data_editor(this, -1, dd);
     data_editor.ShowModal();
     update_menu_saved_transforms();
@@ -1188,8 +1190,8 @@ void FFrame::OnDataCalcShirley (wxCommandEvent&)
 {
     vector<int> sel = get_selected_data_indices();
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i) {
-        string title = ftk->get_data(*i)->get_title();
-        int c = ftk->get_dm_count();
+        string title = ftk->dk.data(*i)->get_title();
+        int c = ftk->dk.count();
         exec("@+ = shirley_bg(@" + S(*i) + ")");
         exec("@" + S(c) + ": title = '" + title + "-Shirley'");
     }
@@ -1261,7 +1263,7 @@ void FFrame::export_as_info(const string& info, const char* caption,
     wxString name;
     vector<int> sel = get_selected_data_indices();
     if (sel.size() == 1) {
-        const string& filename = ftk->get_data(sel[0])->get_filename();
+        const string& filename = ftk->dk.data(sel[0])->get_filename();
         if (!filename.empty())
             name = wxFileName(s2wx(filename)).GetName() + ext;
     }
@@ -2185,10 +2187,10 @@ vector<int> FFrame::get_selected_data_indices()
 
 string FFrame::get_datasets()
 {
-    if (ftk->get_dm_count() == 1)
+    if (ftk->dk.count() == 1)
         return "";
     vector<int> sel = get_selected_data_indices();
-    if (ftk->get_dm_count() == (int) sel.size())
+    if (ftk->dk.count() == (int) sel.size())
         return "@*: ";
     else
         return "@" + join_vector(sel, " @") + ": ";
@@ -2233,13 +2235,13 @@ string FFrame::get_guess_string(const std::string& name)
         return name + s + ")";
 }
 
-vector<DataAndModel*> FFrame::get_selected_dms()
+vector<Data*> FFrame::get_selected_datas()
 {
     vector<int> sel = get_selected_data_indices();
-    vector<DataAndModel*> dms(sel.size());
+    vector<Data*> datas(sel.size());
     for (size_t i = 0; i < sel.size(); ++i)
-        dms[i] = ftk->get_dm(sel[i]);
-    return dms;
+        datas[i] = ftk->dk.data(sel[i]);
+    return datas;
 }
 
 MainPlot* FFrame::get_main_plot()
@@ -2266,7 +2268,7 @@ void FFrame::update_app_title()
 {
     string title = "Fityk " VERSION;
     int pos = get_focused_data_index();
-    string const& filename = ftk->get_data(pos)->get_filename();
+    string const& filename = ftk->dk.data(pos)->get_filename();
     if (!filename.empty())
         title += " - " + filename;
     SetTitle(s2wx(title));
@@ -2458,7 +2460,7 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
             break;
         }
         case ID_T_RUN:
-            if (ftk->are_independent(frame->get_selected_dms()))
+            if (ftk->are_independent(frame->get_selected_datas()))
                 exec(frame->get_datasets() + "fit");
             else {
                 string ds = frame->get_datasets();
@@ -2489,10 +2491,10 @@ void FToolBar::on_addpeak_hover()
     string info;
     try {
         fityk::Guess g(ftk->get_settings());
-        const DataAndModel* dm = ftk->get_dm(frame->get_focused_data_index());
-        if (dm->data()->get_n() == 0)
+        const Data* data = ftk->dk.data(frame->get_focused_data_index());
+        if (data->get_n() == 0)
             return;
-        g.set_data(dm, RealRange(), -1);
+        g.set_data(data, RealRange(), -1);
         if (frame->peak_type_nr_ >= (int) ftk->get_tpm()->tpvec().size())
             return;
         if (ftk->get_tpm()->tpvec()[frame->peak_type_nr_]->peak_d) {

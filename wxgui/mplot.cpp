@@ -39,7 +39,7 @@ enum {
 
     ID_peak_popup_info                     ,
     ID_peak_popup_del                      ,
-    ID_peak_popup_guess                    ,
+    ID_peak_popup_guess
 };
 
 
@@ -464,6 +464,7 @@ void MainPlot::OnPaint(wxPaintEvent&)
     update_buffer_and_blit();
 }
 
+static
 double y_of_data_for_draw_data(vector<Point>::const_iterator i,
                            const Model* /*model*/)
 {
@@ -485,10 +486,10 @@ void MainPlot::draw_dataset(wxDC& dc, int n, bool set_pen)
                 (col.Blue() + bg_col.Blue())/2);
     }
     if (set_pen)
-        draw_data(dc, y_of_data_for_draw_data, ftk->get_data(n), 0,
+        draw_data(dc, y_of_data_for_draw_data, ftk->dk.data(n), 0,
                   col, wxNullColour, offset);
     else
-        draw_data(dc, y_of_data_for_draw_data, ftk->get_data(n), 0,
+        draw_data(dc, y_of_data_for_draw_data, ftk->dk.data(n), 0,
                   dc.GetPen().GetColour(), dc.GetPen().GetColour(), offset);
 }
 
@@ -496,7 +497,7 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
 {
     //printf("MainPlot::draw()\n");
     int focused_data = frame->get_focused_data_index();
-    const Model* model = ftk->get_model(focused_data);
+    const Model* model = ftk->dk.get_model(focused_data);
 
     set_scale(get_pixel_width(dc), get_pixel_height(dc));
 
@@ -768,10 +769,10 @@ void MainPlot::draw_desc(wxDC& dc, int dataset, bool set_pen)
     try {
         parse_and_eval_info(ftk, desc_format_, dataset, result);
     }
-    catch (const fityk::SyntaxError& e) {
+    catch (const fityk::SyntaxError& /*e*/) {
         result = "syntax error!";
     }
-    catch (const fityk::ExecuteError& e) {
+    catch (const fityk::ExecuteError& /*e*/) {
         result = "(---)";
     }
     wxString label = s2wx(result);
@@ -1064,7 +1065,7 @@ void MainPlot::update_mouse_hints()
                 shift_left = "activate rectangle";
                 shift_right = "disactivate rectangle";
                 break;
-            default:
+            case mmd_readonly:
                 assert(0);
         }
     }
@@ -1128,7 +1129,7 @@ static string get_peak_description(int n)
 void MainPlot::look_for_peaktop(wxMouseEvent& event)
 {
     int focused_data = frame->get_sidebar()->get_focused_data();
-    const Model* model = ftk->get_model(focused_data);
+    const Model* model = ftk->dk.get_model(focused_data);
     const vector<int>& idx = model->get_ff().idx;
     if (special_points.size() != idx.size())
         refresh();
@@ -1347,7 +1348,7 @@ bool MainPlot::can_activate()
 {
     vector<int> sel = frame->get_sidebar()->get_selected_data_indices();
     v_foreach (int, i, sel) {
-        const fityk::Data* data = ftk->get_data(*i);
+        const fityk::Data* data = ftk->dk.data(*i);
         // if data->is_empty() we allow to try disactivate data to let user
         // experiment with mouse right after launching the program
         if (data->is_empty() || data->get_n() != (int) data->points().size())
@@ -1512,7 +1513,7 @@ void MainPlot::add_peak_from_draft(int X, int Y)
     else
         tail += "(" + args + ")";
     string cmd;
-    if (ftk->get_dm_count() == 1)
+    if (ftk->dk.count() == 1)
         cmd = tail;
     else {
         vector<int> sel = frame->get_sidebar()->get_selected_data_indices();

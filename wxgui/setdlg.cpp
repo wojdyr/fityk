@@ -280,7 +280,7 @@ SettingsDlg::SettingsDlg(wxWindow* parent)
     //finish layout
     wxBoxSizer *top_sizer = new wxBoxSizer (wxVERTICAL);
     top_sizer->Add(nb, 1, wxLEFT|wxRIGHT|wxTOP|wxEXPAND, 10);
-#if __WXMAC__
+#ifdef __WXMAC__
     nb->SetMinSize(wxSize(-1, 300));
 #endif
     wxStaticText *note = new SmallStaticText(this,

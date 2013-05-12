@@ -13,6 +13,10 @@
 
 #include "ceria.h"
 
+#ifndef STANDALONE_POWDIFPAT
+#define STANDALONE_POWDIFPAT 0 // disable warnings (-Wundef)
+#endif
+
 #if STANDALONE_POWDIFPAT
 #  include <wx/filepicker.h>
 #  include <xylib/xylib.h>

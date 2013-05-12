@@ -14,7 +14,7 @@ using fityk::FitManager;
 enum {
     ID_SHIST_LC             = 26100,
     ID_SHIST_CWSSR                 ,
-    ID_SHIST_V                     , // and next 3
+    ID_SHIST_V                       // and next 3
 };
 
 BEGIN_EVENT_TABLE(SumHistoryDlg, wxDialog)
@@ -110,12 +110,12 @@ void SumHistoryDlg::compute_all_wssr()
         return;
     FitManager const* fm = ftk->fit_manager();
     const vector<realt> orig = ftk->mgr.parameters();
-    vector<DataAndModel*> dms = frame->get_selected_dms();
+    vector<Data*> datas = frame->get_selected_datas();
 
     for (int i = 0; i != fm->get_param_history_size(); ++i) {
         vector<realt> const& item = fm->get_item(i);
         if (item.size() == orig.size()) {
-            double wssr = ftk->get_fit()->compute_wssr(item, dms, true);
+            double wssr = ftk->get_fit()->compute_wssr(item, datas, true);
             lc->SetItem(i, 2, wxString::Format(wxT("%g"), wssr));
         }
     }

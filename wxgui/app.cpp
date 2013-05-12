@@ -148,6 +148,7 @@ void interrupt_handler (int /*signum*/)
     fityk::user_interrupt = true;
 }
 
+static
 void write_white_config(wxConfigBase *w)
 {
     cfg_write_color(w, "MainPlot/Colors/bg", wxColour(255, 255, 255));
@@ -190,7 +191,7 @@ bool FApp::OnInit(void)
         return false; //false = exit the application
     } //the rest of options will be processed in process_argv()
 
-    ftk = new fityk::Ftk;
+    ftk = new fityk::Full;
 
     // set callbacks
     ftk->ui()->connect_show_message(gui_show_message);
@@ -348,11 +349,11 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
             exit(1);
         }
     }
-    if (ftk->get_dm_count() > 1) {
+    if (ftk->dk.count() > 1) {
         frame->SwitchSideBar(true);
         // zoom to show all loaded datafiles
         RealRange r;
-        ftk->view.change_view(r, r, range_vector(0, ftk->get_dm_count()));
+        ftk->view.change_view(r, r, range_vector(0, ftk->dk.count()));
     }
 }
 

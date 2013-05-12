@@ -17,7 +17,7 @@
 #include "img/close.xpm"
 
 #include <wx/stc/stc.h>
-#if __WXMAC__
+#ifdef __WXMAC__
 #include <wx/generic/buttonbar.h>
 #define wxToolBar wxButtonToolBar
 #endif
@@ -138,7 +138,7 @@ EditorDlg::EditorDlg(wxWindow* parent)
     tb_->AddSeparator();
     tb_->AddTool(ID_SE_CLOSE, wxT("Close"), wxBitmap(close_xpm), wxNullBitmap,
                  wxITEM_NORMAL, wxT("Exit debugger"), wxT("Close debugger"));
-#if __WXMAC__
+#ifdef __WXMAC__
     for (size_t i = 0; i < tb_->GetToolsCount(); ++i) {
         const wxToolBarToolBase *tool = tb_->GetToolByPos(i);
         tb_->SetToolShortHelp(tool->GetId(), tool->GetLabel());

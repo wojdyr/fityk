@@ -103,14 +103,14 @@ void ModelInfoDlg::update_text()
     bool simplify = simplify_cb->GetValue();
     bool extra_breaks = extra_space_cb->GetValue();
     const char* fmt = nf->format().c_str();
-    vector<fityk::DataAndModel*> dms = frame->get_selected_dms();
-    v_foreach (fityk::DataAndModel*, i, dms) {
+    vector<fityk::Data*> datas = frame->get_selected_datas();
+    v_foreach (fityk::Data*, i, datas) {
         fityk::Model *model = (*i)->model();
         if (sel == 0 || sel == 1) { // formula or gnuplot formula
             string formula = model->get_formula(simplify, fmt, extra_breaks);
             if (sel == 1)
                 formula = fityk::gnuplotize_formula(formula);
-            if (i != dms.begin())
+            if (i != datas.begin())
                 s += "\n";
             s += formula;
         }

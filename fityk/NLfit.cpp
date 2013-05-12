@@ -14,7 +14,7 @@ using namespace std;
 
 namespace fityk {
 
-NLfit::NLfit(Ftk* F, const char* name, nlopt_algorithm algorithm)
+NLfit::NLfit(Full* F, const char* name, nlopt_algorithm algorithm)
     : Fit(F, name), algorithm_(algorithm), opt_(NULL)
 {
 }
@@ -44,9 +44,9 @@ double NLfit::calculate(int n, const double* par, double* grad)
 
     double wssr;
     if (!grad || stop)
-        wssr = compute_wssr(A, dmdm_);
+        wssr = compute_wssr(A, fitted_datas_);
     else
-        wssr = compute_wssr_gradient(A, dmdm_, grad);
+        wssr = compute_wssr_gradient(A, fitted_datas_, grad);
     if (F_->get_verbosity() >= 1)
         F_->ui()->mesg(iteration_info(wssr));
     return wssr;

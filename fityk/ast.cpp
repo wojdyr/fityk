@@ -83,6 +83,8 @@ OpTree* OpTree::clone() const
 
 ////////////////////////////////////////////////////////////////////////////
 
+namespace {
+
 OpTree* simplify_terms(OpTree *a);
 OpTree* do_multiply(OpTree *a, OpTree *b);
 
@@ -779,6 +781,7 @@ OpTree* simplify_terms(OpTree *a)
     return t;
 }
 
+} // anonymouse namespace
 ////////////////////////////////////////////////////////////////////////////
 
 

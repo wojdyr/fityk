@@ -15,6 +15,7 @@
 
 using namespace std;
 
+static
 Pos apply_seitz(Pos const& p0, SeitzMatrix const& s)
 {
     Pos p;
@@ -35,6 +36,7 @@ string fullHM(const SpaceGroupSetting *sgs)
         return string(sgs->HM) + ":" + sgs->ext;
 }
 
+static
 bool check_symmetric_hkl(const SgOps &sg_ops, const Miller &p1,
                                               const Miller &p2)
 {
@@ -53,6 +55,7 @@ bool check_symmetric_hkl(const SgOps &sg_ops, const Miller &p1,
     return false;
 }
 
+static
 bool is_position_empty(const vector<Pos>& pp, const Pos& p)
 {
     const double eps = 0.01;
@@ -65,6 +68,7 @@ bool is_position_empty(const vector<Pos>& pp, const Pos& p)
     return true;
 }
 
+static
 double mod1(double x) { return x - floor(x); }
 
 void add_symmetric_images(Atom& a, const SgOps& sg_ops)
@@ -253,6 +257,7 @@ int get_sg_order(const SgOps& sg_ops)
     return sg_ops.tr.size() * sg_ops.seitz.size() * (sg_ops.inv ? 2 : 1);
 }
 
+static
 char parse_sg_extension(const char *symbol, char *qualif)
 {
     if (symbol == NULL || *symbol == '\0') {
@@ -276,6 +281,7 @@ char parse_sg_extension(const char *symbol, char *qualif)
     return ext;
 }
 
+static
 const SpaceGroupSetting* parse_hm_or_hall(const char *symbol)
 {
     // copy and 'normalize' symbol (up to ':') to table s
@@ -321,6 +327,7 @@ const SpaceGroupSetting* parse_hm_or_hall(const char *symbol)
     return NULL;
 }
 
+static
 const SpaceGroupSetting* find_space_group_setting(int sgn, const char *setting)
 {
     char qualif[5];
@@ -405,6 +412,7 @@ void Crystal::set_space_group(const SpaceGroupSetting* sgs_)
 
 // returns true if exists t in sg_ops.tr, such that: h*(t+T) != n
 // used by is_sys_absent()
+static
 bool has_nonunit_tr(const SgOps& sg_ops, const int* T, int h, int k, int l)
 {
     for (vector<TransVec>::const_iterator t = sg_ops.tr.begin();
@@ -414,6 +422,7 @@ bool has_nonunit_tr(const SgOps& sg_ops, const int* T, int h, int k, int l)
     return false;
 }
 
+static
 bool is_sys_absent(const SgOps& sg_ops, int h, int k, int l)
 {
     for (size_t i = 0; i < sg_ops.seitz.size(); ++i) {
@@ -500,6 +509,7 @@ void Crystal::generate_reflections(double min_d)
 
 
 // stol = sin(theta)/lambda
+static
 void set_F2(Plane& p, const vector<Atom>& atoms,
                  RadiationType radiation, double stol)
 {
@@ -526,6 +536,7 @@ void set_F2(Plane& p, const vector<Atom>& atoms,
     //       p.h, p.k, p.l, F_real, F_img, p.F2);
 }
 
+static
 void set_lpf(PlanesWithSameD &bp, RadiationType radiation, double lambda)
 {
     if (lambda == 0)
@@ -659,6 +670,7 @@ const Anode anodes[] = {
 };
 
 
+static
 const char* default_cel_files[][2] = {
 
 {"bSiC",

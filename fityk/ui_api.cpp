@@ -23,7 +23,7 @@ void add_c_string_array(const char **array, const char* text,
             entries.push_back(*p);
 }
 
-void type_completions(Ftk *F, const char *text, vector<string> &entries)
+void type_completions(Full *F, const char *text, vector<string> &entries)
 {
     v_foreach (Tplate::Ptr, i, F->get_tpm()->tpvec())
         if (strncmp((*i)->name.c_str(), text, strlen(text)) == 0)
@@ -52,6 +52,7 @@ const char* startup_commands_filename() { return "init"; }
 
 volatile bool user_interrupt = false;
 
+static
 void simple_show_message(UiApi::Style style, const string& s)
 {
     if (style == UiApi::kWarning)
@@ -60,6 +61,7 @@ void simple_show_message(UiApi::Style style, const string& s)
     fflush(stdout);
 }
 
+static
 string simple_user_input(const string& prompt)
 {
     printf("%s ", prompt.c_str());
@@ -123,7 +125,7 @@ vector<string> complete_fityk_line(Fityk *F,
                                    const char *text)
 {
     vector<string> entries;
-    Ftk *ftk = F->priv();
+    Full *priv = F->priv();
     //find start of the command, and skip blanks
     int cmd_start = start;
     while (cmd_start > 0 && line_buffer[cmd_start-1] != ';')
@@ -175,12 +177,12 @@ vector<string> complete_fityk_line(Fityk *F,
             }
         }
         if (!has_eq)
-            entries = ftk->settings_mgr()->get_key_list(text);
+            entries = priv->settings_mgr()->get_key_list(text);
         else {
             string key = strip_string(string(ptr, has_eq));
             try {
                 const char** allowed_values =
-                        ftk->settings_mgr()->get_allowed_values(key);
+                        priv->settings_mgr()->get_allowed_values(key);
                 if (allowed_values != NULL)
                             add_c_string_array(allowed_values, text, entries);
             }
@@ -189,26 +191,26 @@ vector<string> complete_fityk_line(Fityk *F,
     }
     // FunctionType completion
     else if (starts_with_command(ptr, start - cmd_start, "g","uess")) {
-        type_completions(ftk, text, entries);
+        type_completions(priv, text, entries);
     }
     // FunctionType or "guess" completion
     else if (cmd_start <= start-3 && line_buffer[cmd_start] == '%'
                && strchr(line_buffer+cmd_start, '=')
                && !strchr(line_buffer+cmd_start, '(')) {
-        type_completions(ftk, text, entries);
+        type_completions(priv, text, entries);
         if (strncmp("guess", text, strlen(text)) == 0)
             entries.push_back("guess");
     }
 
     // %function completion
     else if (text[0] == '%') {
-        v_foreach (Function*, i, ftk->mgr.functions())
+        v_foreach (Function*, i, priv->mgr.functions())
             if (!strncmp((*i)->name.c_str(), text+1, strlen(text+1)))
                 entries.push_back("%" + (*i)->name);
     }
     // $variable completion
     else if (start > 0 && line_buffer[start-1] == '$') {
-        v_foreach (Variable*, i, ftk->mgr.variables())
+        v_foreach (Variable*, i, priv->mgr.variables())
             if (!strncmp ((*i)->name.c_str(), text, strlen(text)))
                 entries.push_back((*i)->name);
     }
@@ -223,9 +225,9 @@ vector<string> complete_fityk_line(Fityk *F,
             ++arg_start;
         const char* arg_ptr = line_buffer + arg_start;
         if (starts_with_command(arg_ptr, start - arg_start, "set",""))
-            entries = ftk->settings_mgr()->get_key_list(text);
+            entries = priv->settings_mgr()->get_key_list(text);
         else {
-            type_completions(ftk, text, entries);
+            type_completions(priv, text, entries);
             add_c_string_array(info_args, text, entries);
         }
     }

@@ -12,19 +12,18 @@
 
 namespace fityk {
 
-class Ftk;
+class Full;
 struct Statement;
 struct Command;
-class DataAndModel;
+class Data;
 
 RealRange args2range(const Token& t1, const Token& t2);
-void add_dms_from_token(Ftk* F, const Token& token,
-                        std::vector<DataAndModel*>& dms);
+void token_to_data(Full* F, const Token& token, std::vector<Data*>& dms);
 
 class Runner
 {
 public:
-    Runner(Ftk* F) : F_(F), ep_(F) {}
+    Runner(Full* F) : F_(F), ep_(F) {}
 
     // Execute the last parsed string.
     // Throws ExecuteError, ExitRequestedException.
@@ -33,7 +32,7 @@ public:
     void execute_statement(Statement& st);
 
 private:
-    Ftk* F_;
+    Full* F_;
     std::vector<VMData>* vdlist_;
     ExpressionParser ep_;
 
@@ -65,7 +64,7 @@ private:
 class CommandExecutor
 {
 public:
-    CommandExecutor(Ftk* F) : parser_(F), runner_(F) {}
+    CommandExecutor(Full* F) : parser_(F), runner_(F) {}
 
     /// share parser -- it can be safely reused
     Parser* parser() { return &parser_; }

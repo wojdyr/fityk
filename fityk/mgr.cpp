@@ -31,6 +31,7 @@ ModelManager::ModelManager(const BasicContext* ctx)
       var_autoname_counter_(0),
       func_autoname_counter_(0)
 {
+    assert(ctx != NULL);
 }
 
 ModelManager::~ModelManager()
@@ -39,10 +40,18 @@ ModelManager::~ModelManager()
     purge_all_elements(variables_);
 }
 
-void ModelManager::unregister_model(const Model *s)
+Model* ModelManager::create_model()
 {
-    vector<Model*>::iterator k = find(models_.begin(), models_.end(), s);
+    Model *m = new Model(ctx_, *this);
+    models_.push_back(m);
+    return m;
+}
+
+void ModelManager::delete_model(Model *m)
+{
+    vector<Model*>::iterator k = find(models_.begin(), models_.end(), m);
     assert (k != models_.end());
+    delete *k;
     models_.erase(k);
 }
 
@@ -96,11 +105,11 @@ Variable* make_compound_variable(const string &name, VMData* vd,
     vm_foreach (int, i, vd->get_mutable_code()) {
         if (*i == OP_SYMBOL) {
             ++i;
-            const string& name = all_variables[*i]->name;
-            int idx = index_of_element(used_vars, name);
+            const string& vname = all_variables[*i]->name;
+            int idx = index_of_element(used_vars, vname);
             if (idx == -1) {
                 idx = used_vars.size();
-                used_vars.push_back(name);
+                used_vars.push_back(vname);
             }
             *i = idx;
         }
@@ -137,8 +146,8 @@ int ModelManager::make_variable(const string &name, VMData* vd)
     // compound variable
     else {
         // OP_TILDE -> new variable
-        vector<int>& code = vd->get_mutable_code();
-        vm_foreach (int, op, code) {
+        vector<int>& mcode = vd->get_mutable_code();
+        vm_foreach (int, op, mcode) {
             if (*op == OP_TILDE) {
                 *op = OP_SYMBOL;
                 ++op;
@@ -146,7 +155,7 @@ int ModelManager::make_variable(const string &name, VMData* vd)
                 *op = variables_.size();
                 int num_index = *(op+1);
                 double value = vd->numbers()[num_index];
-                code.erase(op+1);
+                mcode.erase(op+1);
                 string tname = next_var_name();
                 Variable *tilde_var = new Variable(tname, parameters_.size());
                 parameters_.push_back(value);

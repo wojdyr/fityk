@@ -153,7 +153,7 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
 #if !STANDALONE_POWDIFPAT
     int data_nr = frame->get_focused_data_index();
     if (data_nr >= 0) {
-        data = ftk->get_data(data_nr);
+        data = ftk->dk.data(data_nr);
         x_min = data->get_x_min();
         x_max = data->get_x_max();
         y_max = 0;
@@ -192,6 +192,7 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
             (wxObjectEventFunction) &PowderBook::OnPageChanged);
 }
 
+static
 wxString get_cel_files_dir()
 {
     wxString fityk_dir = wxStandardPaths::Get().GetUserDataDir();
@@ -429,6 +430,7 @@ PlotWithLines::PlotWithLines(wxWindow* parent, PhasePanel* phase_panel,
     set_bg_color(wxColour(64, 64, 64));
 }
 
+static
 double get_max_intensity(const vector<PlanesWithSameD>& bp)
 {
     double max_intensity = 0.;
@@ -793,7 +795,7 @@ void PhasePanel::enable_parameter_fields()
             par_c->Enable(false);
             set_ortho_angles();
             break;
-        default:
+        case UndefinedSystem:
             break;
     }
 }
@@ -830,6 +832,7 @@ void PhasePanel::OnLineToggled(wxCommandEvent& event)
     sample_plot_->refresh();
 }
 
+static
 wxString make_info_string_for_line(const PlanesWithSameD& bp,
                                    PowderBook *powder_book)
 {
@@ -860,6 +863,7 @@ wxString make_info_string_for_line(const PlanesWithSameD& bp,
     return info;
 }
 
+static
 wxString make_info_string_for_atoms(const vector<Atom>& atoms, int error_line)
 {
     wxString info = wxT("In unit cell:");
@@ -908,6 +912,7 @@ void PhasePanel::OnAtomsUnfocus(wxFocusEvent&)
     sample_plot_->refresh();
 }
 
+static
 bool isspace(const char* s)
 {
     for (const char* i = s; *s != '\0'; ++i)
@@ -975,10 +980,10 @@ void PhasePanel::update_miller_indices(bool sg_changed)
         hkl_list->Clear();
         vm_foreach (PlanesWithSameD, i, cr_.bp) {
             i->enabled = powder_book->is_d_active(i->d);
-            char a = (i->planes.size() == 1 ? ' ' : '*');
+            char ac = (i->planes.size() == 1 ? ' ' : '*');
             Miller const& m = i->planes[0];
             hkl_list->Append(wxString::Format(wxT("(%d,%d,%d)%c  d=%g"),
-                                              m.h, m.k, m.l, a, i->d));
+                                              m.h, m.k, m.l, ac, i->d));
             hkl_list->Check(hkl_list->GetCount() - 1, i->enabled);
         }
 #ifdef __WXMAC__
@@ -1236,12 +1241,14 @@ wxPanel* PowderBook::PrepareActionPanel()
     return panel;
 }
 
+static
 wxString get_var(LockableRealCtrl *ctrl, double mult = 1.)
 {
     return wxString::Format(ctrl->is_locked() ? wxT("%.9g") : wxT("~%.9g"),
                             ctrl->get_value() * mult);
 }
 
+static
 wxString hkl2wxstr(const Miller& hkl)
 {
     wxString s;
@@ -1283,7 +1290,7 @@ wxString PowderBook::prepare_commands()
         s = wxT("delete %pd*, $pd* # delete old model\n");
 
     wxString ds_pref;
-    if (ftk->get_dm_count() > 1) {
+    if (ftk->dk.count() > 1) {
         int data_nr = frame->get_focused_data_index();
         ds_pref.Printf(wxT("@%d."), data_nr);
     }

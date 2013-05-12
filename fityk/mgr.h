@@ -25,8 +25,9 @@ public:
 
     ModelManager(const BasicContext* ctx);
     ~ModelManager();
-    void register_model(Model *m) { models_.push_back(m); }
-    void unregister_model(const Model *m);
+
+    Model* create_model();
+    void delete_model(Model *m);
 
     //int assign_variable(const std::string &name, const std::string &rhs);
     int make_variable(const std::string &name, VMData* vd);

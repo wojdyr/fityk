@@ -113,7 +113,7 @@ void DLoadDlg::exec_command(bool replace)
         if (browser_->title_tc->IsEnabled()) {
             wxString t = browser_->title_tc->GetValue().Trim();
             if (!t.IsEmpty()) {
-                int slot = (replace ? data_idx_ : ftk->get_dm_count() - 1);
+                int slot = (replace ? data_idx_ : ftk->dk.count() - 1);
                 exec("@" + S(slot) + ": title = '" + wx2s(t) + "'");
             }
         }

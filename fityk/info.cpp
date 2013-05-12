@@ -64,7 +64,7 @@ string& gnuplotize_formula(string& formula)
 }
 
 
-void models_as_script(const Ftk* F, string& r, bool commented_defines)
+void models_as_script(const Full* F, string& r, bool commented_defines)
 {
     r += "# ------------  (un)defines  ------------";
     TplateMgr default_tpm;
@@ -93,8 +93,8 @@ void models_as_script(const Ftk* F, string& r, bool commented_defines)
     v_foreach (Function*, i, F->mgr.functions())
         r +="\n" + (*i)->get_basic_assignment();
     r += "\n\n# ------------  models  ------------";
-    for (int i = 0; i != F->get_dm_count(); ++i) {
-        const Model* model = F->get_model(i);
+    for (int i = 0; i != F->dk.count(); ++i) {
+        const Model* model = F->dk.get_model(i);
         const vector<string>& ff = model->get_ff().names;
         if (!ff.empty())
             r += "\n@" + S(i) +  ": F = %" + join_vector(ff, " + %");
@@ -155,7 +155,7 @@ string info_compiler()
         ;
 }
 
-string get_variable_info(const Ftk* F, const Variable* v)
+string get_variable_info(const Full* F, const Variable* v)
 {
     string s = "$" + v->name + " = " + v->get_formula(F->mgr.parameters()) +
                 " = " + F->settings_mgr()->format_double(v->value()) +
@@ -166,7 +166,7 @@ string get_variable_info(const Ftk* F, const Variable* v)
 }
 
 
-void info_functions(const Ftk* F, const string& name, string& result)
+void info_functions(const Full* F, const string& name, string& result)
 {
     if (!contains_element(name, '*')) {
         const Function *f = F->mgr.find_function(name);
@@ -180,7 +180,7 @@ void info_functions(const Ftk* F, const string& name, string& result)
     }
 }
 
-void info_variables(const Ftk* F, const string& name, string& result)
+void info_variables(const Full* F, const string& name, string& result)
 {
     if (!contains_element(name, '*')) {
         const Variable* var = F->mgr.find_variable(name);
@@ -194,7 +194,7 @@ void info_variables(const Ftk* F, const string& name, string& result)
     }
 }
 
-void info_func_type(const Ftk* F, const string& functype, string& result)
+void info_func_type(const Full* F, const string& functype, string& result)
 {
     const Tplate* tp = F->get_tpm()->get_tp(functype);
     if (tp == NULL)
@@ -211,7 +211,7 @@ void info_func_type(const Ftk* F, const string& functype, string& result)
     }
 }
 
-string info_func_props(const Ftk* F, const string& name)
+string info_func_props(const Full* F, const string& name)
 {
     const Function* f = F->mgr.find_function(name);
     string s = f->tp()->as_formula();
@@ -235,7 +235,7 @@ string info_func_props(const Ftk* F, const string& name)
 }
 
 
-void info_history(const Ftk* F, const Token& t1, const Token& t2,
+void info_history(const Full* F, const Token& t1, const Token& t2,
                   string& result)
 {
     const vector<UserInterface::Cmd>& cmds = F->ui()->cmds();
@@ -257,13 +257,13 @@ void info_history(const Ftk* F, const Token& t1, const Token& t2,
 }
 
 
-void info_guess(const Ftk* F, int ds, const RealRange& range, string& result)
+void info_guess(const Full* F, int ds, const RealRange& range, string& result)
 {
     if (range.lo >= range.hi)
         result += "invalid range";
     else {
         Guess g(F->get_settings());
-        g.set_data(F->get_dm(ds), range, -1);
+        g.set_data(F->dk.data(ds), range, -1);
         boost::array<double,4> peak_v = g.estimate_peak_parameters();
         for (int i = 0; i != 4; ++i)
             result += (i != 0 ? ", " : "")
@@ -276,7 +276,7 @@ void info_guess(const Ftk* F, int ds, const RealRange& range, string& result)
     }
 }
 
-void save_state(const Ftk* F, string& r)
+void save_state(const Full* F, string& r)
 {
     if (!r.empty())
         r += "\n";
@@ -297,8 +297,8 @@ void save_state(const Ftk* F, string& r)
     }
     r += "\n";
     r += "\n# ------------  datasets ------------";
-    for (int i = 0; i != F->get_dm_count(); ++i) {
-        const Data* data = F->get_data(i);
+    for (int i = 0; i != F->dk.count(); ++i) {
+        const Data* data = F->dk.data(i);
         if (i != 0)
             r += "\n@+ = 0";
         r += "\nuse @" + S(i);
@@ -320,13 +320,13 @@ void save_state(const Ftk* F, string& r)
     models_as_script(F, r, true);
     r += "\n";
     r += "\nplot " + F->view.str();
-    r += "\nuse @" + S(F->default_dm());
+    r += "\nuse @" + S(F->dk.default_idx());
     r += "\nset autoplot = " + F->settings_mgr()->get_as_string("autoplot");
     r += "\nset verbosity = " + F->settings_mgr()->get_as_string("verbosity");
 }
 
 static
-string format_error_info(const Ftk* F, const vector<double>& errors)
+string format_error_info(const Full* F, const vector<double>& errors)
 {
     string s;
     const SettingsMgr *sm = F->settings_mgr();
@@ -344,7 +344,7 @@ string format_error_info(const Ftk* F, const vector<double>& errors)
     return s;
 }
 
-int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
+int eval_one_info_arg(const Full* F, int ds, const vector<Token>& args, int n,
                       string& result)
 {
     int ret = 0;
@@ -366,36 +366,36 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             for (size_t i = 0; i < F->mgr.functions().size(); ++i)
                 result += (i > 0 ? " %" : "%") + F->mgr.get_function(i)->name;
         else if (word == "dataset_count")
-            result += S(F->get_dm_count());
+            result += S(F->dk.count());
         else if (word == "view")
             result += F->view.str();
         else if (word == "fit_history")
             result += F->fit_manager()->param_history_info();
         else if (word == "filename") {
-            result += F->get_data(ds)->get_filename();
+            result += F->dk.data(ds)->get_filename();
         }
         else if (word == "title") {
-            result += F->get_data(ds)->get_title();
+            result += F->dk.data(ds)->get_title();
         }
         else if (word == "data") {
-            result += F->get_data(ds)->get_info();
+            result += F->dk.data(ds)->get_info();
         }
         else if (word == "formula") {
             const char* fmt = F->get_settings()->numeric_format.c_str();
-            result += F->get_model(ds)->get_formula(false, fmt, false);
+            result += F->dk.get_model(ds)->get_formula(false, fmt, false);
         }
         else if (word == "gnuplot_formula") {
             const char* fmt = F->get_settings()->numeric_format.c_str();
-            string formula = F->get_model(ds)->get_formula(false, fmt, false);
+            string formula = F->dk.get_model(ds)->get_formula(false, fmt,false);
             result += gnuplotize_formula(formula);
         }
         else if (word == "simplified_formula") {
             const char* fmt = F->get_settings()->numeric_format.c_str();
-            result += F->get_model(ds)->get_formula(true, fmt, false);
+            result += F->dk.get_model(ds)->get_formula(true, fmt, false);
         }
         else if (word == "simplified_gnuplot_formula") {
             const char* fmt = F->get_settings()->numeric_format.c_str();
-            string formula = F->get_model(ds)->get_formula(true, fmt, false);
+            string formula = F->dk.get_model(ds)->get_formula(true, fmt, false);
             result += gnuplotize_formula(formula);
         }
         else if (word == "models") {
@@ -406,14 +406,14 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
         }
         else if (word == "peaks") {
             vector<double> no_errors; // empty vec -> no errors
-            result += F->get_model(ds)->get_peak_parameters(no_errors);
+            result += F->dk.get_model(ds)->get_peak_parameters(no_errors);
         }
         else if (word == "peaks_err") {
             //FIXME: assumes the dataset was fitted separately
-            DataAndModel* dm = const_cast<DataAndModel*>(F->get_dm(ds));
-            vector<DataAndModel*> dms(1, dm);
-            vector<double> errors = F->get_fit()->get_standard_errors(dms);
-            result += F->get_model(ds)->get_peak_parameters(errors);
+            Data* data = const_cast<Data*>(F->dk.data(ds));
+            vector<Data*> datas(1, data);
+            vector<double> errors = F->get_fit()->get_standard_errors(datas);
+            result += F->dk.get_model(ds)->get_peak_parameters(errors);
         }
         else if (word == "history_summary")
             result += F->ui()->get_history_summary();
@@ -457,17 +457,17 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
                 ++n;
                 ++ret;
             }
-            vector<DataAndModel*> v;
+            vector<Data*> v;
             while (args[n+1].type == kTokenDataset) {
-                add_dms_from_token(const_cast<Ftk*>(F), args[n+1], v);
+                token_to_data(const_cast<Full*>(F), args[n+1], v);
                 ++n;
                 ++ret;
             }
             assert(args[n+1].type == kTokenNop); // separator
             ++ret;
             if (v.empty()) {
-                DataAndModel* dm = const_cast<DataAndModel*>(F->get_dm(ds));
-                v.push_back(dm);
+                Data* data = const_cast<Data*>(F->dk.data(ds));
+                v.push_back(data);
             }
             if (word == "fit")
                 result += F->get_fit()->get_goodness_info(v);
@@ -524,7 +524,7 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
             ++n;
             ++ret;
         }
-        const Model* model = F->get_model(k);
+        const Model* model = F->dk.get_model(k);
         char fz = *args[n].str;
         if (is_index(n+1, args) && args[n+1].type == kTokenExpr) {
             ++ret;
@@ -543,21 +543,21 @@ int eval_one_info_arg(const Ftk* F, int ds, const vector<Token>& args, int n,
     return ret;
 }
 
-void eval_one_print_arg(const Ftk* F, int ds, const Token& t, string& result)
+void eval_one_print_arg(const Full* F, int ds, const Token& t, string& result)
 {
     if (t.type == kTokenString)
         result += Lexer::get_string(t);
     else if (t.type == kTokenExpr)
         result += F->settings_mgr()->format_double(t.value.d);
     else if (t.as_string() == "filename")
-        result += F->get_data(ds)->get_filename();
+        result += F->dk.data(ds)->get_filename();
     else if (t.as_string() == "title")
-        result += F->get_data(ds)->get_title();
+        result += F->dk.data(ds)->get_title();
     else
         assert(0);
 }
 
-int eval_print_args(const Ftk* F, int ds, const vector<Token>& args, int len,
+int eval_print_args(const Full* F, int ds, const vector<Token>& args, int len,
                     string& result)
 {
     // args: condition (expr|string|"filename"|"title")+
@@ -576,7 +576,7 @@ int eval_print_args(const Ftk* F, int ds, const vector<Token>& args, int len,
                 Lexer lex(args[i].str);
                 expr_parsers[i].parse_expr(lex, ds);
             }
-        const vector<Point>& points = F->get_data(ds)->points();
+        const vector<Point>& points = F->dk.data(ds)->points();
         for (int k = 0; k != (int) points.size(); ++k) {
             if (args[0].type == kTokenExpr) {
                 double cond = expr_parsers[0].calculate(k, points);
@@ -602,7 +602,7 @@ int eval_print_args(const Ftk* F, int ds, const vector<Token>& args, int len,
 
 } // anonymous namespace
 
-int eval_info_args(const Ftk* F, int ds, const vector<Token>& args, int len,
+int eval_info_args(const Full* F, int ds, const vector<Token>& args, int len,
                    string& result)
 {
     int n = 0;
@@ -623,7 +623,7 @@ int eval_info_args(const Ftk* F, int ds, const vector<Token>& args, int len,
     return n;
 }
 
-void command_redirectable(const Ftk* F, int ds,
+void command_redirectable(const Full* F, int ds,
                           CommandType cmd, const vector<Token>& args)
 {
     string info;
@@ -657,14 +657,14 @@ void command_redirectable(const Ftk* F, int ds,
     }
 }
 
-void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
+void command_debug(const Full* F, int ds, const Token& key, const Token& rest)
 {
     // args: any-token rest-of-line
     string r;
     string word = key.as_string();
 
     if (word == "parse") {
-        Parser parser(const_cast<Ftk*>(F));
+        Parser parser(const_cast<Full*>(F));
         try {
             Lexer lex(rest.str);
             while (parser.parse_statement(lex))
@@ -701,10 +701,9 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
 
     // show values of derivatives for all variables
     else if (word == "rd") {
-        for (int i = 0; i < size(F->mgr.variables()); ++i) {
-            const Variable* var = F->mgr.get_variable(i);
-            r += "$" + var->name + ": ";
-            v_foreach (Variable::ParMult, i, var->recursive_derivatives())
+        v_foreach(Variable*, v, F->mgr.variables()) {
+            r += "$" + (*v)->name + ": ";
+            v_foreach (Variable::ParMult, i, (*v)->recursive_derivatives())
                 r += "p" + S(i->p) + "=$"
                     + F->mgr.gpos_to_var(i->p)->name
                     + " *" + S(i->mult) + "    ";
@@ -718,16 +717,16 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
             const Function *f = F->mgr.get_function(i);
             r += S(i) + ": %" + f->name + ": ";
             const IndexedVars& uv = f->used_vars();
-            for (int i = 0; i != uv.get_count(); ++i)
-                r += uv.get_name(i) + "/" + S(uv.get_idx(i)) + " ";
+            for (int j = 0; j != uv.get_count(); ++j)
+                r += uv.get_name(j) + "/" + S(uv.get_idx(j)) + " ";
             r += "\n";
         }
         for (size_t i = 0; i != F->mgr.variables().size(); ++i) {
             const Variable *v = F->mgr.get_variable(i);
             r += S(i) + ": $" + v->name + ": ";
             const IndexedVars& uv = v->used_vars();
-            for (int i = 0; i != uv.get_count(); ++i)
-                r += uv.get_name(i) + "/" + S(uv.get_idx(i)) + " ";
+            for (int j = 0; j != uv.get_count(); ++j)
+                r += uv.get_name(j) + "/" + S(uv.get_idx(j)) + " ";
             r += "\n";
         }
     }
@@ -738,7 +737,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
         ExpressionParser ep(F);
         ep.parse_expr(lex, ds);
         realt x = ep.calculate();
-        const Model* model = F->get_model(ds);
+        const Model* model = F->dk.get_model(ds);
         vector<realt> symb = model->get_symbolic_derivatives(x);
         vector<realt> num = model->get_numeric_derivatives(x, 1e-8);
         assert (symb.size() == num.size());
@@ -793,7 +792,7 @@ void command_debug(const Ftk* F, int ds, const Token& key, const Token& rest)
     F->ui()->mesg(r);
 }
 
-void parse_and_eval_info(Ftk *F, const string& s, int dataset,
+void parse_and_eval_info(Full *F, const string& s, int dataset,
                          string& result)
 {
     Lexer lex(s.c_str());

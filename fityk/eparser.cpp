@@ -88,7 +88,7 @@ const char* function_name(int op)
         case OP_DVOIGT_DY: return "dvoigt_dy";
         case OP_RANDNORM: return "randnormal";
         case OP_RANDU: return "randuniform";
-        // Ftk functions
+        // Fityk functions
         case OP_FUNC: return "%function";
         case OP_SUM_F: return "F";
         case OP_SUM_Z: return "Z";
@@ -134,7 +134,7 @@ int get_function_narg(int op)
         case OP_RANDNORM:
         case OP_RANDU:
             return 2;
-        // Ftk functions
+        // Fityk functions
         case OP_FUNC:
         case OP_SUM_F:
         case OP_SUM_Z:
@@ -348,7 +348,7 @@ void ExpressionParser::put_ag_function(Lexer& lex, int ds, AggregFunc& ag)
     lex.get_expected_token(kTokenOpen); // discard '('
     ExpressionParser ep(F_);
     ep.parse_expr(lex, ds);
-    const vector<Point>& points = F_->get_data(ds)->points();
+    const vector<Point>& points = F_->dk.data(ds)->points();
     Token t = lex.get_expected_token(kTokenClose, "if");
     if (t.type == kTokenClose) {
         for (size_t n = 0; n != points.size(); ++n) {
@@ -376,7 +376,7 @@ void ExpressionParser::put_value_from_curly(Lexer& lex, int ds)
     ExpressionParser ep(F_);
     ep.parse_expr(lex, ds);
     lex.get_expected_token(kTokenRCurly); // discard '}'
-    double x = ep.calculate(0, F_->get_data(ds)->points());
+    double x = ep.calculate(0, F_->dk.data(ds)->points());
     put_number(x);
 }
 
@@ -478,7 +478,7 @@ void ExpressionParser::put_fz_sth(Lexer& lex, char fz, int ds, bool ast_mode)
         ep.parse_expr(lex, ds);
         lex.get_expected_token(kTokenRSquare); // discard ']'
         int idx = iround(ep.calculate());
-        const string& name = F_->get_model(ds)->get_func_name(fz, idx);
+        const string& name = F_->dk.get_model(ds)->get_func_name(fz, idx);
         put_func_sth(lex, name, ast_mode);
     }
     else if (lex.peek_token().type == kTokenOpen) {
@@ -612,7 +612,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
     opstack_.clear();
     finished_ = false;
     expected_ = kValue;
-    if (F_ != NULL && default_ds >= F_->get_dm_count())
+    if (F_ != NULL && default_ds >= F_->dk.count())
         lex.throw_syntax_error("wrong dataset index");
     while (!finished_) {
         const Token token = lex.get_token();
@@ -718,11 +718,11 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                         put_ag_function(lex, default_ds, ag);
                     }
                     else if (word == "argmin") {
-                        AggregArgMin ag(F_->get_data(default_ds)->points());
+                        AggregArgMin ag(F_->dk.data(default_ds)->points());
                         put_ag_function(lex, default_ds, ag);
                     }
                     else if (word == "argmax") {
-                        AggregArgMax ag(F_->get_data(default_ds)->points());
+                        AggregArgMax ag(F_->dk.data(default_ds)->points());
                         put_ag_function(lex, default_ds, ag);
                     }
                     else if (word == "avg") {
@@ -736,7 +736,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                     else if (word == "darea") {
                         if (F_ == NULL)
                             lex.throw_syntax_error("darea: unknown @dataset");
-                        AggregDArea ag(F_->get_data(default_ds)->points());
+                        AggregDArea ag(F_->dk.data(default_ds)->points());
                         put_ag_function(lex, default_ds, ag);
                     }
 

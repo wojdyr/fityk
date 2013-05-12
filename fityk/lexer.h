@@ -68,7 +68,7 @@ enum TokenType
     kTokenQMark, // ?
     kTokenBang, // !
 
-    kTokenNop, // end of line (returned by Lexer) or placeholder (in Parser)
+    kTokenNop // end of line (returned by Lexer) or placeholder (in Parser)
 };
 
 const char* tokentype2str(TokenType tt);

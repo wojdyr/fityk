@@ -10,13 +10,13 @@ struct lua_State;
 
 namespace fityk {
 
-class Ftk;
+class Full;
 class BasicContext;
 
 class LuaBridge
 {
 public:
-    LuaBridge(Ftk *F);
+    LuaBridge(Full *F);
     ~LuaBridge();
     void close_lua();
     void exec_lua_string(const std::string& str);

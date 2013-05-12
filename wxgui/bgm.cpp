@@ -46,7 +46,7 @@ string BgManager::get_bg_name() const
 
 void BgManager::set_stripped(bool value)
 {
-    stripped_.resize(ftk->get_dm_count());
+    stripped_.resize(ftk->dk.count());
     stripped_[data_idx_] = value;
 }
 
@@ -220,7 +220,7 @@ void BgManager::set_as_recent(int n)
 void BgManager::set_as_convex_hull()
 {
     fityk::SimplePolylineConvex convex;
-    const fityk::Data* data = ftk->get_data(data_idx_);
+    const fityk::Data* data = ftk->dk.data(data_idx_);
     for (int i = 0; i < data->get_n(); ++i)
         convex.push_point(data->get_x(i), data->get_y(i));
     const vector<PointD>& vertices = convex.get_vertices();

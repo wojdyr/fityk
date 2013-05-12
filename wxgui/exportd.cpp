@@ -44,7 +44,7 @@ void exec_redirected_command(const vector<int>& sel,
         return;
     }
     string datasets;
-    if (ftk->get_dm_count() == (int) sel.size())
+    if (ftk->dk.count() == (int) sel.size())
         datasets = "@*";
     else
         datasets = "@" + join_vector(sel, " @");
@@ -62,7 +62,7 @@ bool export_data_dlg(wxWindow *parent)
 
     int f_count = 0;
     if (sel.size() == 1)
-        f_count = ftk->get_model(sel[0])->get_ff().names.size();
+        f_count = ftk->dk.get_model(sel[0])->get_ff().names.size();
 
     DataExportDlg ded(parent, -1, f_count);
     if (ded.ShowModal() != wxID_OK)

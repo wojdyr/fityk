@@ -16,6 +16,7 @@ class ValueChangingWidget;
 class ValueChangingWidgetObserver
 {
 public:
+    virtual ~ValueChangingWidgetObserver() {}
     virtual void change_value(ValueChangingWidget *w, double factor) = 0;
     virtual void finalize_changes() = 0;
 };
@@ -49,6 +50,7 @@ private:
 class ParameterPanelObserver
 {
 public:
+    virtual ~ParameterPanelObserver() {}
     virtual void on_parameter_changing(const std::vector<realt>& values) = 0;
     virtual void on_parameter_changed(int n) = 0;
     virtual void on_parameter_lock_clicked(int n, int state) = 0;

@@ -44,11 +44,10 @@ int MPfit::calculate(int /*m*/, int npar, double *par, double *deviates,
     vector<realt> A(par, par+npar);
     if (F_->get_verbosity() >= 1)
         output_tried_parameters(A);
-    //printf("wssr=%g, p0=%g, p1=%g\n", compute_wssr(A, dmdm_), par[0], par[1]);
     if (!derivs)
         compute_deviates(A, deviates);
     else
-        compute_derivatives_mp(A, dmdm_, derivs, deviates);
+        compute_derivatives_mp(A, fitted_datas_, derivs, deviates);
     return 0;
 }
 
@@ -141,7 +140,7 @@ void init_config(mp_config_struct* mp_conf)
 
 
 // final_a either has the same size as parameters or is NULL
-int MPfit::run_mpfit(const vector<DataAndModel*>& dms,
+int MPfit::run_mpfit(const vector<Data*>& datas,
                      const vector<realt>& parameters,
                      const vector<bool>& param_usage,
                      double *final_a)
@@ -175,18 +174,18 @@ int MPfit::run_mpfit(const vector<DataAndModel*>& dms,
         }
 #endif
 
-    // dms cannot be easily passed to the calculate_for_mpfit() callback
-    // in a different way than through member variable (dmdm_).
+    // datas cannot be easily passed to the calculate_for_mpfit() callback
+    // in a different way than through member variable (fitted_datas_).
     int status;
-    if (&dms != &dmdm_) {
-        vector<DataAndModel*> saved = dms;
-        dmdm_.swap(saved);
-        status = mpfit(calculate_for_mpfit, count_points(dms),
+    if (&datas != &fitted_datas_) {
+        vector<Data*> saved = datas;
+        fitted_datas_.swap(saved);
+        status = mpfit(calculate_for_mpfit, count_points(datas),
                        parameters.size(), a, pars, &mp_conf_, this, &result_);
-        dmdm_.swap(saved);
+        fitted_datas_.swap(saved);
     }
     else
-        status = mpfit(calculate_for_mpfit, count_points(dms),
+        status = mpfit(calculate_for_mpfit, count_points(datas),
                        parameters.size(), a, pars, &mp_conf_, this, &result_);
     soft_assert(status == result_.status);
     delete [] pars;
@@ -207,7 +206,7 @@ double MPfit::run_method(vector<realt>* best_a)
     zero_init_result(&result_);
 
     double *a = new double[na_];
-    int status = run_mpfit(dmdm_, a_orig_, par_usage(), a);
+    int status = run_mpfit(fitted_datas_, a_orig_, par_usage(), a);
     //soft_assert(result_.nfev + 1 == evaluations_);
     F_->msg("mpfit status: " + S(mpstatus_to_string(status)));
     best_a->assign(a, a+na_);
@@ -215,23 +214,23 @@ double MPfit::run_method(vector<realt>* best_a)
     return result_.bestnorm;
 }
 
-vector<double> MPfit::get_covariance_matrix(const vector<DataAndModel*>& dms)
+vector<double> MPfit::get_covariance_matrix(const vector<Data*>& datas)
 {
-    update_par_usage(dms);
+    update_par_usage(datas);
     vector<double> alpha(na_*na_, 0.);
     init_config(&mp_conf_);
     mp_conf_.maxiter = MP_NO_ITER;
     zero_init_result(&result_);
     result_.covar = &alpha[0]; // that's legal, vectors use contiguous storage
-    int status = run_mpfit(dms, F_->mgr.parameters(), par_usage());
+    int status = run_mpfit(datas, F_->mgr.parameters(), par_usage());
     soft_assert(status == MP_MAXITER);
     return alpha;
 }
 
-vector<double> MPfit::get_standard_errors(const vector<DataAndModel*>& dms)
+vector<double> MPfit::get_standard_errors(const vector<Data*>& datas)
 {
-    double wssr = compute_wssr(F_->mgr.parameters(), dms, true);
-    double err_factor = sqrt(wssr / get_dof(dms));
+    double wssr = compute_wssr(F_->mgr.parameters(), datas, true);
+    double err_factor = sqrt(wssr / get_dof(datas));
     // `na_' was set by get_dof() above, from update_par_usage()
     vector<double> errors(na_, 0.);
 
@@ -240,7 +239,7 @@ vector<double> MPfit::get_standard_errors(const vector<DataAndModel*>& dms)
     zero_init_result(&result_);
     result_.xerror = &errors[0]; // that's legal
 
-    int status = run_mpfit(dms, F_->mgr.parameters(), par_usage());
+    int status = run_mpfit(datas, F_->mgr.parameters(), par_usage());
     soft_assert(status == MP_MAXITER || status == MP_OK_DIR);
 
     for (int i = 0; i < na_; ++i)

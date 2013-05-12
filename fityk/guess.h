@@ -11,7 +11,7 @@
 
 namespace fityk {
 
-class DataAndModel;
+class Data;
 struct Settings;
 
 /// guessing initial parameters of functions
@@ -27,8 +27,7 @@ public:
     /// substract the current model from the data, (optionally) with exception
     /// of function that has index `ignore_idx'.
     /// This exception is used in "Guess %f = ..." if %f is already defined.
-    void set_data(const DataAndModel* dm, const RealRange& range,
-                  int ignore_idx);
+    void set_data(const Data* data, const RealRange& range, int ignore_idx);
 
     /// returns values corresponding to linear_traits
     boost::array<double,3> estimate_linear_parameters() const;

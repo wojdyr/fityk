@@ -25,27 +25,26 @@ const array<string, 3> Guess::linear_traits =
 const array<string, 4> Guess::peak_traits =
                                     {{ "center", "height", "hwhm", "area" }};
 
-void Guess::set_data(const DataAndModel* dm, const RealRange& range,
-                     int ignore_idx)
+void Guess::set_data(const Data* data, const RealRange& range, int ignore_idx)
 {
-    pair<int,int> point_indexes = dm->data()->get_index_range(range);
+    pair<int,int> point_indexes = data->get_index_range(range);
     int len = point_indexes.second - point_indexes.first;
     assert(len >= 0);
     if (len == 0)
         throw ExecuteError("guess: empty range");
     xx_.resize(len);
     for (int j = 0; j != len; ++j)
-        xx_[j] = dm->data()->get_x(point_indexes.first + j);
+        xx_[j] = data->get_x(point_indexes.first + j);
     if (settings_->guess_uses_weights) {
         sigma_.resize(len);
         for (int j = 0; j != len; ++j)
-            sigma_[j] = dm->data()->get_sigma(point_indexes.first + j);
+            sigma_[j] = data->get_sigma(point_indexes.first + j);
     }
     yy_.clear(); // just in case
     yy_.resize(len, 0.);
-    dm->model()->compute_model(xx_, yy_, ignore_idx);
+    data->model()->compute_model(xx_, yy_, ignore_idx);
     for (int j = 0; j != len; ++j)
-        yy_[j] = dm->data()->get_y(point_indexes.first + j) - yy_[j];
+        yy_[j] = data->get_y(point_indexes.first + j) - yy_[j];
 }
 
 

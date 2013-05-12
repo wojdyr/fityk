@@ -10,6 +10,7 @@
 class InputLineObserver
 {
 public:
+    virtual ~InputLineObserver() {}
     virtual void ProcessInputLine(const wxString& line) = 0;
 };
 
