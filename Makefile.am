@@ -61,6 +61,8 @@ samples_hello_LDADD = fityk/libfityk.la
 samples_helloc_SOURCES = samples/hello.c
 samples_helloc_CPPFLAGS = -I$(srcdir)
 samples_helloc_LDADD = fityk/libfityk.la
+# workaround to link helloc with C++ linker
+nodist_EXTRA_samples_helloc_SOURCES = dummy.cxx
 
 check-scripts:
 	cli/cfityk -q ../tests/test_syntax.fit
