@@ -50,7 +50,7 @@ FStatusBar::FStatusBar(wxWindow *parent)
     split->SetMinimumPaneSize(150);
     sizer->Add(split, wxSizerFlags(1).Centre().Border(wxLEFT));
 
-    wxBitmapButton *prefbtn = new wxBitmapButton
+    prefbtn = new wxBitmapButton
 #ifdef __WXMSW__
         // on wxMSW the default width is too small
         (this, -1, GET_BMP(sbprefs), wxDefaultPosition, wxSize(22, 16));
@@ -187,7 +187,6 @@ bool FStatusBar::set_extra_value(wxString const& s)
 void FStatusBar::show_or_hide()
 {
     wxSizer *sizer = GetSizer();
-    // this doesn't work: sizer->Show(prefbtn, show_btn);
     sizer->Show(1, show_btn);
     sizer->Show(2, show_hints);
     sizer->Layout();
