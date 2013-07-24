@@ -127,16 +127,16 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
                     columns_panel, wxT("Select columns (0 for point index):"));
     h2a_sizer->Add (new wxStaticText (columns_panel, -1, wxT("x")),
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    x_column = new SpinCtrl(columns_panel, wxID_ANY, 1, 0, 99, 50);
+    x_column = new SpinCtrl(columns_panel, wxID_ANY, 1, 0, 999, 50);
     h2a_sizer->Add (x_column, 0, wxALL|wxALIGN_LEFT, 5);
     h2a_sizer->Add (new wxStaticText (columns_panel, -1, wxT("y")),
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    y_column = new SpinCtrl(columns_panel, wxID_ANY, 2, 0, 99, 50);
+    y_column = new SpinCtrl(columns_panel, wxID_ANY, 2, 0, 999, 50);
     h2a_sizer->Add (y_column, 0, wxALL|wxALIGN_LEFT, 5);
     std_dev_cb = new wxCheckBox(columns_panel, -1, wxT("std.dev."));
     std_dev_cb->SetValue(false);
     h2a_sizer->Add(std_dev_cb, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL,5);
-    s_column = new SpinCtrl(columns_panel, wxID_ANY, 3, 1, 99, 50);
+    s_column = new SpinCtrl(columns_panel, wxID_ANY, 3, 1, 999, 50);
     h2a_sizer->Add(s_column, 0, wxALL|wxALIGN_LEFT, 5);
     columns_panel->SetSizer(h2a_sizer);
     left_sizer->Add (columns_panel, 0, wxALL|wxEXPAND, 5);
@@ -567,7 +567,7 @@ void App::OnAbout(wxCommandEvent&)
                     "to two- or three-column text format.\n";
     adi.SetDescription(desc);
     adi.SetWebSite("http://www.nieto.pl/xyconvert/");
-    adi.SetCopyright("(C) 2008-2011 Marcin Wojdyr <wojdyr@gmail.com>");
+    adi.SetCopyright("(C) 2008-2013 Marcin Wojdyr <wojdyr@gmail.com>");
     wxAboutBox(adi);
 }
 
