@@ -12,13 +12,13 @@
 using namespace std;
 
 // these definitions of Pseudo-Voigt should be identical to the built-in one.
-const char* PV2 = "define PV2(height, center, hwhm, shape) = "
+static const char* PV2 = "define PV2(height, center, hwhm, shape) = "
  "Gaussian((1-shape)*height, center, hwhm) + "
  "Lorentzian(shape*height, center, hwhm)";
-const char* PV3 = "define PV3(height, center, hwhm, shape) = "
+static const char* PV3 = "define PV3(height, center, hwhm, shape) = "
  "(1-shape)*height*exp(-ln(2)*((x-center)/hwhm)^2) + "
  "shape*height/(1+((x-center)/hwhm)^2)";
-const char* PV4 = "define PV4(height, center, hwhm, shape) = "
+static const char* PV4 = "define PV4(height, center, hwhm, shape) = "
  "SplitPseudoVoigt(height, center, hwhm, hwhm, shape, shape)";
 
 TEST_CASE("pseudo-voigt", "") {

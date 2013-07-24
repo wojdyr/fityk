@@ -56,8 +56,8 @@ static double boxbetts_in_fityk(const double *a, double *grad)
     return priv->get_fit()->compute_wssr_gradient(avec, priv->dk.datas(), grad);
 }
 
-
-int test_gradient()
+#if 0
+static int test_gradient()
 {
     const double a[3] = { 0.9, 11.8, 1.08 };
     double grad[3], grad_again[3];
@@ -70,7 +70,8 @@ int test_gradient()
             ssr_again, grad_again[0], grad_again[1], grad_again[2]);
     return 0;
 }
-//int main() { return test_gradient(); }
+int main() { return test_gradient(); }
+#endif
 
 
 TEST_CASE("gradient", "test Fit::compute_wssr_gradient()") {
