@@ -912,15 +912,6 @@ void PhasePanel::OnAtomsUnfocus(wxFocusEvent&)
     sample_plot_->refresh();
 }
 
-static
-bool isspace(const char* s)
-{
-    for (const char* i = s; *s != '\0'; ++i)
-        if (!isspace(s))
-            return false;
-    return true;
-}
-
 void PhasePanel::OnAtomsChanged(wxCommandEvent&)
 {
     string atoms_str = wx2s(atoms_tc->GetValue());
