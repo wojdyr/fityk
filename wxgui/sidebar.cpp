@@ -8,7 +8,7 @@
 #include <wx/tglbtn.h>
 
 #include "sidebar.h"
-#include "fancyrc.h"
+#include "parpan.h"
 #include "listptxt.h"
 #include "gradient.h"
 #include "cmn.h" //SpinCtrl, ProportionalSplitter, change_color_dlg, ...
@@ -138,7 +138,7 @@ END_EVENT_TABLE()
 
 SideBar::SideBar(wxWindow *parent, wxWindowID id)
     : ProportionalSplitter(parent, id, 0.75),
-      pp_func(NULL), active_function(-1),
+      pp_func_(NULL), active_function_(-1),
       skipOnFuncFocusChanged_(false)
 {
     //wxPanel *upper = new wxPanel(this, -1);
@@ -146,9 +146,9 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     nb = new wxNotebook(this, -1);
     //upper_sizer->Add(nb, 1, wxEXPAND);
     //upper->SetSizerAndFit(upper_sizer);
-    param_panel = new ParameterPanel(this, -1, this);
-    param_panel->set_key_sink(frame, wxKeyEventHandler(FFrame::focus_input));
-    SplitHorizProp(nb, param_panel);
+    param_panel_ = new ParameterPanel(this, -1, this);
+    param_panel_->set_key_sink(frame, wxKeyEventHandler(FFrame::focus_input));
+    SplitHorizProp(nb, param_panel_);
 
     //-----  data page  -----
     data_page = new wxPanel(nb, -1);
@@ -450,10 +450,10 @@ void SideBar::OnFuncButtonNew (wxCommandEvent&)
 
 void SideBar::OnFuncButtonEdit (wxCommandEvent&)
 {
-    if (!pp_func)
+    if (!pp_func_)
         return;
-    string t = pp_func->get_current_assignment(ftk->mgr.variables(),
-                                               ftk->mgr.parameters());
+    string t = pp_func_->get_current_assignment(ftk->mgr.variables(),
+                                                ftk->mgr.parameters());
     frame->edit_in_input(t);
 }
 
@@ -467,7 +467,7 @@ void SideBar::OnFuncButtonCol (wxCommandEvent&)
     vector<int> const& ffi
         = ftk->dk.get_model(frame->get_focused_data_index())->get_ff().idx;
     vector<int>::const_iterator in_ff = find(ffi.begin(), ffi.end(),
-                                                         active_function);
+                                                         active_function_);
     if (in_ff == ffi.end())
         return;
     int color_id = in_ff - ffi.begin();
@@ -558,26 +558,26 @@ void SideBar::update_func_list(bool nondata_changed)
     if (filter_ch->GetSelection() > 0)
         filter_model = ftk->dk.get_model(filter_ch->GetSelection()-1);
     int func_size = ftk->mgr.functions().size();
-    if (active_function == -1)
-        active_function = func_size - 1;
+    if (active_function_ == -1)
+        active_function_ = func_size - 1;
     else {
-        if (active_function >= func_size ||
-                ftk->mgr.get_function(active_function) != pp_func)
-            active_function = ftk->mgr.find_function_nr(active_function_name);
-        if (active_function == -1 || func_size == old_func_size+1)
-            active_function = func_size - 1;
+        if (active_function_ >= func_size ||
+                ftk->mgr.get_function(active_function_) != pp_func_)
+            active_function_ = ftk->mgr.find_function_nr(active_function_name_);
+        if (active_function_ == -1 || func_size == old_func_size+1)
+            active_function_ = func_size - 1;
     }
-    if (active_function != -1)
-        active_function_name = ftk->mgr.get_function(active_function)->name;
+    if (active_function_ != -1)
+        active_function_name_ = ftk->mgr.get_function(active_function_)->name;
     else
-        active_function_name = "";
+        active_function_name_ = "";
 
     int pos = -1;
     for (int i = 0; i < func_size; ++i) {
         if (filter_model && !contains_element(filter_model->get_ff().idx, i)
                            && !contains_element(filter_model->get_zz().idx, i))
             continue;
-        if (i == active_function)
+        if (i == active_function_)
             pos = new_func_col_id.size();
         Function const* fun = ftk->mgr.get_function(i);
         func_data.push_back(fun->name);
@@ -743,12 +743,14 @@ string SideBar::get_sel_datasets_as_string()
 
 void SideBar::activate_function(int n)
 {
-    active_function = n;
+    if (active_function_ == n)
+        return;
+    active_function_ = n;
     do_activate_function();
 
     int pos;
     if (filter_ch->GetSelection() > 0)
-        pos = f->list->FindItem(-1, s2wx(active_function_name));
+        pos = f->list->FindItem(-1, s2wx(active_function_name_));
     else if (n < f->list->GetItemCount())
         pos = n;
     else
@@ -765,10 +767,10 @@ void SideBar::activate_function(int n)
 
 void SideBar::do_activate_function()
 {
-    if (active_function != -1)
-        active_function_name = ftk->mgr.get_function(active_function)->name;
+    if (active_function_ != -1)
+        active_function_name_ = ftk->mgr.get_function(active_function_)->name;
     else
-        active_function_name = "";
+        active_function_name_ = "";
     frame->plot_pane()->refresh_plots(false, kMainPlot);
     update_func_inf();
     update_param_panel();
@@ -890,9 +892,9 @@ void SideBar::update_func_inf()
 {
     wxTextCtrl* inf = f->inf;
     inf->Clear();
-    if (active_function < 0)
+    if (active_function_ < 0)
         return;
-    Function const* func = ftk->mgr.get_function(active_function);
+    Function const* func = ftk->mgr.get_function(active_function_);
     realt a;
     if (func->get_center(&a))
         inf->AppendText(wxT("Center: ")
@@ -911,9 +913,9 @@ void SideBar::update_func_inf()
     vector<string> in;
     for (int i = 0; i < ftk->dk.count(); ++i) {
         const Model *model = ftk->dk.get_model(i);
-        if (contains_element(model->get_ff().idx, active_function))
+        if (contains_element(model->get_ff().idx, active_function_))
             in.push_back("@" + S(i) + ".F");
-        if (contains_element(model->get_zz().idx, active_function))
+        if (contains_element(model->get_zz().idx, active_function_))
             in.push_back("@" + S(i) + ".Z");
     }
     if (!in.empty())
@@ -982,10 +984,10 @@ void SideBar::OnFuncFocusChanged(wxListEvent&)
         return;
     int n = f->list->GetFocusedItem();
     if (n == -1)
-        active_function = -1;
+        active_function_ = -1;
     else {
         string name = wx2s(f->list->GetItemText(n));
-        active_function = ftk->mgr.find_function_nr(name);
+        active_function_ = ftk->mgr.find_function_nr(name);
     }
     do_activate_function();
 }
@@ -997,8 +999,8 @@ void SideBar::OnVarFocusChanged(wxListEvent&)
 
 bool SideBar::find_value_of_param(string const& p, double* value)
 {
-    if (active_function != -1) {
-        Function const* fun = ftk->mgr.get_function(active_function);
+    if (active_function_ != -1) {
+        Function const* fun = ftk->mgr.get_function(active_function_);
         int idx = index_of_element(fun->tp()->fargs, p);
         if (idx != -1) {
             *value = fun->av()[idx];
@@ -1048,18 +1050,18 @@ void SideBar::make_same_func_par(string const& p, bool checked)
 
 void SideBar::on_parameter_changing(const std::vector<realt>& values)
 {
-    frame->get_main_plot()->draw_overlay_func(pp_func, values);
+    frame->get_main_plot()->draw_overlay_func(pp_func_, values);
 }
 
 void SideBar::on_parameter_changed(int n)
 {
-    string vname = wx2s(param_panel->get_label2(n));
-    exec(vname + " = ~" + eS(param_panel->get_value(n)));
+    string vname = wx2s(param_panel_->get_label2(n));
+    exec(vname + " = ~" + eS(param_panel_->get_value(n)));
 }
 
 void SideBar::on_parameter_lock_clicked(int n, int state)
 {
-    string vname = wx2s(param_panel->get_label2(n));
+    string vname = wx2s(param_panel_->get_label2(n));
     if (state == 0)
         exec(vname + " = ~{" + vname + "}");
     else if (state == 1)
@@ -1079,56 +1081,51 @@ void SideBar::on_parameter_lock_clicked(int n, int state)
     }
 }
 
-void SideBar::change_parameter_value(int idx, double value)
-{
-    if (idx < param_panel->get_count())
-        param_panel->set_value(idx, value);
-}
-
 void SideBar::update_param_panel()
 {
-    int old_count = param_panel->get_count();
-    if (active_function < 0) {
-        param_panel->delete_row_range(0, old_count);
-        pp_func = NULL;
+    int old_count = param_panel_->get_count();
+    if (active_function_ < 0) {
+        param_panel_->delete_row_range(0, old_count);
+        pp_func_ = NULL;
         return;
     }
 
-    pp_func = ftk->mgr.get_function(active_function);
+    pp_func_ = ftk->mgr.get_function(active_function_);
 
-    wxString new_label = s2wx("%" + pp_func->name +" : "+ pp_func->tp()->name);
-    if (param_panel->get_title() != new_label)
-        param_panel->set_title(new_label);
+    wxString new_label = s2wx("%" + pp_func_->name +
+                              " : " + pp_func_->tp()->name);
+    if (param_panel_->get_title() != new_label)
+        param_panel_->set_title(new_label);
 
-    int new_count = pp_func->nv();
+    int new_count = pp_func_->nv();
     // don't show too many parameters of vararg functions
     // (but if user defined function with large number of arguments
     // let him see all parameters)
-    if (new_count > 8 && !pp_func->tp()->fargs.empty())
+    if (new_count > 8 && !pp_func_->tp()->fargs.empty())
         new_count = 8;
     if (new_count < old_count)
-        param_panel->delete_row_range(new_count, old_count);
+        param_panel_->delete_row_range(new_count, old_count);
 
     for (int i = 0; i < new_count; ++i) {
         const Variable* var =
-            ftk->mgr.get_variable(pp_func->used_vars().get_idx(i));
-        wxString label = s2wx(pp_func->get_param(i));
+            ftk->mgr.get_variable(pp_func_->used_vars().get_idx(i));
+        wxString label = s2wx(pp_func_->get_param(i));
         if (var->is_simple() || var->is_constant()) {
             bool locked = var->is_constant();
-            param_panel->set_normal_parameter(i, label, var->value(),
-                                              locked, s2wx("$"+var->name));
+            param_panel_->set_normal_parameter(i, label, var->value(),
+                                               locked, s2wx("$"+var->name));
         }
         else
-            param_panel->set_disabled_parameter(i, label, var->value(),
-                                                s2wx("$"+var->name));
+            param_panel_->set_disabled_parameter(i, label, var->value(),
+                                                 s2wx("$"+var->name));
     }
 
     // Layout() is needed only when the layout has changed (e.g. when label2
     // is shown for the first time). We call it always, just in case.
-    param_panel->Layout();
+    param_panel_->Layout();
     if (new_count != old_count) {
         int sash_pos = GetClientSize().GetHeight() - 3
-                         - param_panel->GetSizer()->GetMinSize().GetHeight();
+                         - param_panel_->GetSizer()->GetMinSize().GetHeight();
         if (sash_pos < GetSashPosition())
             SetSashPosition(max(50, sash_pos));
     }

@@ -114,8 +114,8 @@ public:
                                     const char *num_fmt) const;
     bool get_center(realt* a) const;
     bool get_height(realt* a) const;
-    bool get_fwhm(realt*) const;
-    bool get_area(realt*) const;
+    bool get_fwhm(realt* a) const;
+    bool get_area(realt* a) const;
     bool get_nonzero_range(double level, realt& left, realt& right) const;
     void update_var_indices(const std::vector<Variable*>& variables);
 

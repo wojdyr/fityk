@@ -16,6 +16,7 @@
 #include "statbar.h" // HintReceiver
 #include "bgm.h"
 #include "gradient.h"
+#include "drag.h"
 #include "fityk/data.h"
 #include "fityk/logic.h"
 #include "fityk/model.h"
@@ -175,220 +176,6 @@ private:
         { mp_->y_tic_size = event.GetPosition(); mp_->refresh(); }
 };
 
-//---------------------- FunctionMouseDrag --------------------------------
-
-/// utility used in MainPlot for dragging function
-class FunctionMouseDrag
-{
-public:
-    enum drag_type
-    {
-        no_drag,
-        relative_value, //eg. for area
-        absolute_value,  //eg. for width
-        absolute_pixels
-    };
-
-    class Drag
-    {
-    public:
-        drag_type how;
-        int parameter_idx;
-        std::string parameter_name;
-        std::string variable_name; /// name of variable that are to be changed
-        double value; /// current value of parameter
-        double ini_value; /// initial value of parameter
-        double multiplier; /// increases or decreases changing rate
-        double ini_x;
-
-        Drag() : how(no_drag) {}
-        void set(const Function* p, int idx, drag_type how_,
-                 double multiplier_);
-        void change_value(double x, double dx, int dX);
-        std::string get_cmd() const;
-    };
-
-    FunctionMouseDrag() : sidebar_dirty(false) {}
-    void start(const Function* p, int X, int Y, double x, double y);
-    void move(bool shift, int X, int Y, double x, double y);
-    void stop();
-    const std::vector<realt>& get_values() const { return values; }
-    const std::string& get_status() const { return status; }
-    std::string get_cmd() const;
-
-private:
-    Drag drag_x; ///for horizontal dragging (x axis)
-    Drag drag_y; /// y axis
-    Drag drag_shift_x; ///x with [shift]
-    Drag drag_shift_y; ///y with [shift]
-    double px, py;
-    int pX, pY;
-    std::vector<realt> values;
-    std::string status;
-    bool sidebar_dirty;
-
-    void set_defined_drags();
-    bool bind_parameter_to_drag(Drag &drag, const std::string& name,
-                      const Function* p, drag_type how, double multiplier=1.);
-    void set_drag(Drag &drag, const Function* p, int idx,
-                  drag_type how, double multiplier=1.);
-};
-
-
-void FunctionMouseDrag::Drag::change_value(double x, double dx, int dX)
-{
-    if (how == no_drag || dx == 0. || dX == 0)
-        return;
-    if (how == relative_value) {
-        if (ini_x == 0.) {
-            ini_x = x - dx;
-            if (is_zero(ini_x))
-                ini_x += dx;
-        }
-        //value += dx * fabs(value / x) * multiplier;
-        value = x / ini_x * ini_value;
-    }
-    else if (how == absolute_value)
-        value += dx * multiplier;
-    else if (how == absolute_pixels)
-        value += dX * multiplier;
-    else
-        assert(0);
-}
-
-string FunctionMouseDrag::Drag::get_cmd() const
-{
-    if (how != no_drag && value != ini_value)
-        return "$" + variable_name + " = ~" + eS(value) + "; ";
-    else
-        return "";
-}
-
-void FunctionMouseDrag::Drag::set(const Function* p, int idx,
-                                  drag_type how_, double multiplier_)
-{
-    const Variable* var = ftk->mgr.get_variable(p->used_vars().get_idx(idx));
-    if (!var->is_simple()) {
-        how = no_drag;
-        return;
-    }
-    how = how_;
-    parameter_idx = idx;
-    parameter_name = p->get_param(idx);
-    variable_name = p->used_vars().get_name(idx);
-    value = ini_value = p->av()[idx];
-    multiplier = multiplier_;
-    ini_x = 0.;
-}
-
-
-void FunctionMouseDrag::start(const Function* p, int X, int Y,
-                              double x, double y)
-{
-    drag_x.parameter_name = drag_y.parameter_name
-        = drag_shift_x.parameter_name = drag_shift_y.parameter_name = "-";
-    set_defined_drags();
-    if (drag_x.how == no_drag)
-        bind_parameter_to_drag(drag_x, "center", p, absolute_value);
-    if (drag_y.how == no_drag)
-        bind_parameter_to_drag(drag_y, "height", p, absolute_value)
-        || bind_parameter_to_drag(drag_y, "area", p, relative_value)
-        || bind_parameter_to_drag(drag_y, "avgy", p, absolute_value)
-        || bind_parameter_to_drag(drag_y, "intercept", p, relative_value);
-    if (drag_shift_x.how == no_drag)
-        bind_parameter_to_drag(drag_shift_x, "hwhm", p, absolute_value, 0.5)
-        || bind_parameter_to_drag(drag_shift_x, "fwhm", p, absolute_value, 0.5);
-
-    values = p->av();
-    size_t nv = p->nv();
-    if (nv < values.size()) // av() may contain additional numbers
-        values.resize(nv);
-
-    status = "Move to change: " + drag_x.parameter_name + "/"
-        + drag_y.parameter_name + ", with [Shift]: "
-        + drag_shift_x.parameter_name + "/" + drag_shift_y.parameter_name;
-
-    pX = X;
-    pY = Y;
-    px = x;
-    py = y;
-}
-
-void FunctionMouseDrag::set_defined_drags()
-{
-    drag_x.how = no_drag;
-    drag_y.how = no_drag;
-    drag_shift_x.how = no_drag;
-    drag_shift_y.how = no_drag;
-}
-
-bool FunctionMouseDrag::bind_parameter_to_drag(Drag &drag, const string& name,
-                                              const Function* p, drag_type how,
-                                              double multiplier)
-{
-    // search for Function(..., height, ...)
-    int idx = index_of_element(p->tp()->fargs, name);
-    if (idx != -1) {
-        drag.set(p, idx, how, multiplier);
-        return true;
-    }
-
-    const vector<string>& defvals = p->tp()->defvals;
-    // search for Function(..., foo=height, ...)
-    idx = index_of_element(defvals, name);
-    // search for Function(..., foo=height*..., ...)
-    if (idx != -1)
-        v_foreach (string, i, defvals)
-            if (startswith(*i, name+"*")) {
-                idx = i - defvals.begin();
-                break;
-            }
-    if (idx != -1) {
-        drag.set(p, idx, how, multiplier);
-        return true;
-    }
-    return false;
-}
-
-void FunctionMouseDrag::move(bool shift, int X, int Y, double x, double y)
-{
-    SideBar *sib = frame->get_sidebar();
-
-    Drag &hor = shift ? drag_shift_x : drag_x;
-    hor.change_value(x, x - px, X - pX);
-    if (hor.how != no_drag) {
-        values[hor.parameter_idx] = hor.value;
-        sib->change_parameter_value(hor.parameter_idx, hor.value);
-        sidebar_dirty = true;
-    }
-    pX = X;
-    px = x;
-
-    Drag &vert = shift ? drag_shift_y : drag_y;
-    vert.change_value(y, y - py, Y - pY);
-    if (vert.how != no_drag) {
-        values[vert.parameter_idx] = vert.value;
-        sib->change_parameter_value(vert.parameter_idx, vert.value);
-        sidebar_dirty = true;
-    }
-    pY = Y;
-    py = y;
-}
-
-void FunctionMouseDrag::stop()
-{
-    if (sidebar_dirty) {
-        frame->get_sidebar()->update_param_panel();
-        sidebar_dirty = false;
-    }
-}
-
-string FunctionMouseDrag::get_cmd() const
-{
-    return drag_x.get_cmd() + drag_y.get_cmd() + drag_shift_x.get_cmd()
-        + drag_shift_y.get_cmd();
-}
-
 static
 void stroke_line(wxDC& dc, const vector<double>& YY, int from=0, int to=-1)
 {
@@ -442,7 +229,7 @@ END_EVENT_TABLE()
 MainPlot::MainPlot (wxWindow *parent)
     : FPlot(parent),
       bgm_(new BgManager(xs)),
-      fmd_(new FunctionMouseDrag),
+      dragged_func_(new DraggedFunc(ftk->mgr)),
       basic_mode_(mmd_zoom), mode_(mmd_zoom),
       crosshair_cursor_(false),
       pressed_mouse_button_(0),
@@ -456,7 +243,7 @@ MainPlot::MainPlot (wxWindow *parent)
 MainPlot::~MainPlot()
 {
     delete bgm_;
-    delete fmd_;
+    delete dragged_func_;
 }
 
 void MainPlot::OnPaint(wxPaintEvent&)
@@ -991,7 +778,9 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
 void MainPlot::switch_to_mode(MouseModeEnum m)
 {
     if (pressed_mouse_button_) {
-        fmd_->stop();
+        if (dragged_func_->has_changed())
+            frame->get_sidebar()->update_param_panel(); // reverts the values
+        dragged_func_->stop();
         downX = downY = INT_MIN;
         pressed_mouse_button_ = 0;
         frame->set_status_text("");
@@ -1100,10 +889,10 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
     }
     else if (pressed_mouse_button_ == 1 && mouse_op_ == kDragPeak
              && over_peak_ >= 0) {
-        fmd_->move(event.ShiftDown(), X, Y, xs.valr(X), ys.valr(Y));
-        frame->set_status_text(fmd_->get_status());
+        dragged_func_->move(event.ShiftDown(), X, Y, xs.valr(X), ys.valr(Y));
+        frame->set_status_text(dragged_func_->status());
         draw_overlay_func(ftk->mgr.get_function(over_peak_),
-                          fmd_->get_values());
+                          frame->get_sidebar()->parpan_values());
     }
 
     overlay.change_pos(X, Y);
@@ -1148,7 +937,9 @@ void MainPlot::cancel_mouse_press()
 {
     if (pressed_mouse_button_) {
         overlay.switch_mode(get_normal_ovmode());
-        fmd_->stop();
+        if (dragged_func_->has_changed())
+            frame->get_sidebar()->update_param_panel(); // reverts the values
+        dragged_func_->stop();
         if (GetCapture() == this)
             ReleaseMouse();
         connect_esc_to_cancel(false);
@@ -1245,7 +1036,8 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         SetCursor(wxCURSOR_SIZENWSE);
         connect_esc_to_cancel(true);
         const Function* p = ftk->mgr.get_function(over_peak_);
-        fmd_->start(p, downX, downY, x, y);
+        dragged_func_->start(p, downX, downY, x, y,
+                             frame->get_sidebar()->dragged_func_callback());
         overlay.start_mode(Overlay::kFunction, downX, downY);
         draw_overlay_limits(p);
         frame->set_status_text("Moving %" + p->name + "...");
@@ -1433,8 +1225,8 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
     }
     // drag peak
     else if (mouse_op_ == kDragPeak) {
-        fmd_->stop();
-        string cmd = fmd_->get_cmd();
+        string cmd = dragged_func_->get_cmd();
+        dragged_func_->stop();
         if (!cmd.empty())
             exec(cmd);
         else {

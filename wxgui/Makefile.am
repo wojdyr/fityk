@@ -24,7 +24,8 @@ noinst_LIBRARIES = libceria.a
 libceria_a_SOURCES = ceria.cpp ceria.h atomtables.c atomtables.h \
 		     sgtables.c sgtables.h
 
-fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h fancyrc.cpp fancyrc.h \
+fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h parpan.cpp parpan.h \
+		drag.cpp drag.h \
 		inputline.cpp inputline.h listptxt.cpp listptxt.h \
 		dload.cpp dload.h xybrowser.cpp xybrowser.h \
 		plotpane.cpp plotpane.h textpane.cpp textpane.h \
@@ -58,7 +59,7 @@ inputline: sample_inputline.cpp inputline.cpp inputline.h
 if POWDIFPAT
 bin_PROGRAMS += powdifpat
 powdifpat_SOURCES = powdifpat.cpp powdifpat.h sgchooser.cpp sgchooser.h \
-		    uplot.cpp uplot.h cmn.cpp cmn.h fancyrc.cpp fancyrc.h
+		    uplot.cpp uplot.h cmn.cpp cmn.h parpan.cpp parpan.h
 powdifpat_CPPFLAGS = $(WX_CPPFLAGS) -DSTANDALONE_POWDIFPAT
 powdifpat_LDADD = libceria.a $(WX_LIBS) -lxy $(powdifpat_res)
 endif

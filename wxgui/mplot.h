@@ -12,7 +12,7 @@
 namespace fityk { class Function; }
 class HintReceiver;
 class BgManager;
-class FunctionMouseDrag;
+class DraggedFunc;
 
 // operation started by pressing mouse button
 enum MouseOperation
@@ -103,7 +103,7 @@ public:
 
 private:
     BgManager* bgm_;
-    FunctionMouseDrag *fmd_; //for function dragging
+    DraggedFunc *dragged_func_; // for mouse-driven function dragging
     MouseModeEnum basic_mode_,
                   mode_;  ///actual mode -- either basic_mode_ or mmd_peak
 

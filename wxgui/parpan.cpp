@@ -4,7 +4,7 @@
 
 #include <wx/wx.h>
 
-#include "fancyrc.h"
+#include "parpan.h"
 #include "cmn.h" //KFTextCtrl
 
 #include "img/lock.xpm"
@@ -238,6 +238,13 @@ void ParameterPanel::finalize_changes()
     observer_->on_parameter_changed(active_item_);
     active_item_ = -1;
 }
+
+void ParameterPanel::change_parameter_value(int idx, double value)
+{
+    if (idx < get_count())
+        set_value(idx, value);
+}
+
 
 double ParameterPanel::get_value(int n) const
 {

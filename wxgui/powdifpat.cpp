@@ -28,7 +28,7 @@
 #include "atomtables.h"
 #include "cmn.h"
 #include "uplot.h" // BufferedPanel, scale_tics_step()
-#include "fancyrc.h" // LockableRealCtrl 
+#include "parpan.h" // LockableRealCtrl 
 #include "ceria.h"
 
 #if !STANDALONE_POWDIFPAT
