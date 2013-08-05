@@ -1058,14 +1058,15 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
             overlay.start_mode(Overlay::kPeakDraft, downX, ys.px(0));
         } else if (tp->traits & Tplate::kSigmoid) {
             func_draft_kind_ = Tplate::kSigmoid;
-            overlay.start_mode(Overlay::kSigmoidDraft, downX, ys.px(0));
+            overlay.start_mode(Overlay::kSigmoidDraft, downX, downY);
         } else {
             func_draft_kind_ = Tplate::kLinear;
             overlay.start_mode(Overlay::kLinearDraft, downX, downY);
         }
         SetCursor(wxCURSOR_SIZING);
         connect_esc_to_cancel(true);
-        frame->set_status_text("Add drawed peak...");
+        frame->set_status_text("Add function from wireframe...");
+        // see also: add_peak_from_draft()
     }
     else if (mouse_op_ == kAddPeakInRange) {
         SetCursor(wxCURSOR_SIZEWE);
@@ -1279,29 +1280,30 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
 void MainPlot::add_peak_from_draft(int X, int Y)
 {
     string args;
-    if (func_draft_kind_ == Tplate::kLinear && downY != Y) {
-        double x1 = xs.valr(downX);
-        double y1 = ys.valr(downY);
-        double x2 = xs.valr(X);
-        double y2 = ys.valr(Y);
+    double x1 = xs.valr(downX);
+    double y1 = ys.valr(downY);
+    double x2 = xs.valr(X);
+    double y2 = ys.valr(Y);
+    if (func_draft_kind_ == Tplate::kLinear) {
+        if (downX == X)
+            return;
         double m = (y2 - y1) / (x2 - x1);
         args = "slope=~" + eS(m) + ", intercept=~" + eS(y1-m*x1)
                + ", avgy=~" + eS((y1+y2)/2);
     } else if (func_draft_kind_ == Tplate::kPeak) {
-        double height = ys.valr(Y);
-        double center = xs.valr(downX);
-        double hwhm = fabs(center - xs.valr(X));
+        double height = y2;
+        double center = x1;
+        double hwhm = fabs(center - x2);
         double area = 2 * height * hwhm;
         args = "height=~" + eS(height) + ", center=~" + eS(center)
                  + ", area=~" + eS(area);
         if (ftk->mgr.find_variable_nr("_hwhm") == -1)
             args += ", hwhm=~" + eS(hwhm);
     } else if (func_draft_kind_ == Tplate::kSigmoid) {
-        //TODO
-        double lower = ys.valr(downY);
-        double upper = ys.valr(Y);
-        double xmid = xs.valr(downX);
-        double wsig = 2;
+        double lower = y1 - fabs(y2-y1);
+        double upper = y1 + fabs(y2-y1);
+        double xmid = x1;
+        double wsig = 0.5*(x2-x1);
         args = "lower=~" + eS(lower) + ", upper=~" + eS(upper)
                  + ", xmid=~" + eS(xmid) + ", wsig=~" + eS(wsig);
     }

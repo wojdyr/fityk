@@ -1,4 +1,4 @@
-User-visible changes in version 1.2.2  (2013-04-  ):
+User-visible changes in version 1.2.2  (2013-08-  ):
 * fitting:
   - the default method changed to MPFIT implementation of Lev-Mar
   - a few optimization methods from the NLopt library have been added
@@ -7,6 +7,7 @@ User-visible changes in version 1.2.2  (2013-04-  ):
     - removed stopping criterium based on iterations. The max. number of
       WSSR evaluations can be used instead.
     - removed fit continuation (fit +N)
+* new function Sigmoid and new category of functions (S-shaped/step/sigmoidal)
 * covariance matrix and standard errors are calculated using MPFIT library
 * GUI: added menu Session > Recent Scripts
 * Lua: added F:executef()

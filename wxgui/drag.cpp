@@ -75,7 +75,7 @@ void DraggedFunc::start(const Function* p, int X, int Y, double x, double y,
       || bind_param(mgr_, drag_y_, "upper", p, absolute_value);
     bind_param(mgr_, drag_shift_x_, "hwhm", p, absolute_value)
       || bind_param(mgr_, drag_shift_x_, "fwhm", p, absolute_value, 2.)
-      || bind_param(mgr_, drag_shift_x_, "wsig", p, absolute_value, 2.);
+      || bind_param(mgr_, drag_shift_x_, "wsig", p, absolute_value, 1.);
     bind_param(mgr_, drag_shift_y_, "lower", p, absolute_value);
 
     status_ = "Move to change: " + drag_x_.parameter_name + "/"

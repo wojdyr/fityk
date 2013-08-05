@@ -468,7 +468,7 @@ Example::
     ``height``, ``center``, ``hwhm``, ``area``,
 
   * if the functions is S-shaped (sigmoidal) or step-like:
-    ``lower``, ``upper``, ``xmid``,
+    ``lower``, ``upper``, ``xmid``, ``wsig``,
 
   * if the function is more like linear:
     ``slope``, ``intercept``, ``avgy``.
@@ -718,7 +718,8 @@ are multiplied by the values of options :option:`height_correction`
 and :option:`width_correction`, respectively. The default value for both
 options is 1.
 
-TODO: write about initial parameters of sigmoidal functions
+Another simple algorithm can roughly estimate initial parameters of sigmoidal
+functions.
 
 The linear traits ``slope`` and ``intercept`` are calculated using linear
 regression (without weights of points).

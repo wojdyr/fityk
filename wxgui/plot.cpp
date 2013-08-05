@@ -107,13 +107,12 @@ void Overlay::draw_overlay()
             break;
         }
         case kSigmoidDraft: {
-            //TODO
-            int ctr = x1_;
-            int hwhm = abs(x1_ - x2_);
-            int ymid = (y2_ + y1_) / 2;
-            dc.DrawLine(ctr, y1_, ctr, y2_); // vertical line
-            dc.DrawLine(ctr - hwhm, ymid, ctr + hwhm, ymid); // horizontal
-            dc.DrawLine(ctr, y2_, ctr + 2 * hwhm, y1_); // right slope
+            int dy = y2_ - y1_;
+            int dx = abs(x2_ - x1_);
+            int dc_width = dc.GetSize().GetWidth();
+            dc.DrawLine(0,        y1_ - dy, x1_ - dx, y1_ - dy);
+            dc.DrawLine(x1_ - dx, y1_ - dy, x1_ + dx, y1_ + dy);
+            dc.DrawLine(x1_ + dx, y1_ + dy, dc_width, y1_ + dy);
             break;
         }
         case kCrossHair:

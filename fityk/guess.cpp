@@ -152,21 +152,47 @@ vector<double> Guess::estimate_linear_parameters() const
     return vector3(slope, intercept, avgy);
 }
 
+// ad-hoc arbitrary procedure to guess initial sigmoid parameters,
+// with no theoretical justification
 vector<double> Guess::estimate_sigmoid_parameters() const
 {
     double lower;
     double upper;
     vector<realt> ycopy = yy_;
+
+    // ignoring 20% lowest and 20% highest points
     sort(ycopy.begin(), ycopy.end());
     if (ycopy.size() < 10) {
         lower = ycopy.front();
         upper = ycopy.back();
     } else {
-        lower = ycopy[ycopy.size()/4];
-        upper = ycopy[ycopy.size()*3/4];
+        lower = ycopy[ycopy.size()/5];
+        upper = ycopy[ycopy.size()*4/5];
     }
-    double xmid = (xx_.front() + xx_.back()) / 2.;
-    double wsig = (xx_.back() - xx_.front()) / 5.;;
+
+    // fitting ax+b to linearized sigmoid
+    double sx = 0, sy = 0, sxx = 0, sxy = 0;
+    int n = 0;
+    for (size_t i = 0; i != yy_.size(); ++i) {
+        if (yy_[i] <= lower || yy_[i] >= upper)
+            continue;
+        double x = xx_[i];
+        // normalizing: y ->  (y - lower) / (upper - lower);
+        // and          y -> -log(1/y-1);
+        double y =  -log((upper - lower) / (yy_[i] - lower) - 1.);
+        sx += x;
+        sy += y;
+        sxx += x*x;
+        sxy += x*y;
+        ++n;
+    }
+    double a = (n * sxy - sx * sy) / (n * sxx - sx * sx);
+    double b = (sy - a * sx) / n;
+
+    //double xmid = (xx_.front() + xx_.back()) / 2.;
+    double xmid = -b/a;
+    //double wsig = (xx_.back() - xx_.front()) / 10.;
+    double wsig = 1/a;
     return vector4(lower, upper, xmid, wsig);
 }
 
