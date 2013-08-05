@@ -2497,18 +2497,21 @@ void FToolBar::on_addpeak_hover()
         g.set_data(data, RealRange(), -1);
         if (frame->peak_type_nr_ >= (int) ftk->get_tpm()->tpvec().size())
             return;
-        if (ftk->get_tpm()->tpvec()[frame->peak_type_nr_]->peak_d) {
-            boost::array<double,4> peak_v = g.estimate_peak_parameters();
-            for (int i = 0; i != 4; ++i)
-                info += (i != 0 ? ", " : "") +
-                        fityk::Guess::peak_traits[i] + ": " + S(peak_v[i]);
+        int traits = ftk->get_tpm()->tpvec()[frame->peak_type_nr_]->traits;
+        const vector<string>* tr_names;
+        vector<double> v;
+        if (traits & fityk::Tplate::kPeak) {
+            tr_names = &fityk::Guess::peak_traits;
+            v = g.estimate_peak_parameters();
+        } else if (traits & fityk::Tplate::kSigmoid) {
+            tr_names = &fityk::Guess::sigmoid_traits;
+            v = g.estimate_sigmoid_parameters();
+        } else {
+            tr_names = &fityk::Guess::linear_traits;
+            v = g.estimate_linear_parameters();
         }
-        else {
-            boost::array<double,3> lin_v = g.estimate_linear_parameters();
-            for (int i = 0; i != 3; ++i)
-                info += (i != 0 ? ", " : "") +
-                        fityk::Guess::linear_traits[i] + ": " + S(lin_v[i]);
-        }
+        for (size_t i = 0; i != v.size(); ++i)
+            info += (i != 0 ? ", " : "") + (*tr_names)[i] + ": " + S(v[i]);
     }
     catch (fityk::ExecuteError &) {
         // ignore peak-outside-of-range or empty-range errors

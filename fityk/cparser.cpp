@@ -396,16 +396,20 @@ Tplate::Ptr Parser::parse_define_args(Lexer& lex)
         tp->defvals.push_back(default_value);
     }
 
-    tp->linear_d = false;
+    tp->traits = 0;
     v_foreach (string, i, new_vars)
         if (contains_element(Guess::linear_traits, *i)) {
-            tp->linear_d = true;
+            tp->traits |= Tplate::kLinear;
             break;
         }
-    tp->peak_d = false;
     v_foreach (string, i, new_vars)
         if (contains_element(Guess::peak_traits, *i)) {
-            tp->peak_d = true;
+            tp->traits |= Tplate::kPeak;
+            break;
+        }
+    v_foreach (string, i, new_vars)
+        if (contains_element(Guess::sigmoid_traits, *i)) {
+            tp->traits |= Tplate::kSigmoid;
             break;
         }
 

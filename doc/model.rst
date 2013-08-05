@@ -405,6 +405,11 @@ exponential probability density.
 .. math:: 
    y = a_0 + a_1 x +a_2 x^2 + a_3 x^3 + a_4 x^4 + a_5 x^5
 
+**Sigmoid:**
+
+.. math::
+   y = L + \frac{U-L}{1+\exp\left(-\frac{x-x_{mid}}{w}\right)}
+
 
 Variadic Functions
 ------------------
@@ -459,8 +464,11 @@ Example::
 
 - There are special names of parameters that Fityk understands:
 
-  * if the functions is peak-like:
+  * if the functions is peak-like (bell-shaped):
     ``height``, ``center``, ``hwhm``, ``area``,
+
+  * if the functions is S-shaped (sigmoidal) or step-like:
+    ``lower``, ``upper``, ``xmid``,
 
   * if the function is more like linear:
     ``slope``, ``intercept``, ``avgy``.
@@ -709,6 +717,8 @@ The values of height and width found by the algorithm
 are multiplied by the values of options :option:`height_correction`
 and :option:`width_correction`, respectively. The default value for both
 options is 1.
+
+TODO: write about initial parameters of sigmoidal functions
 
 The linear traits ``slope`` and ``intercept`` are calculated using linear
 regression (without weights of points).

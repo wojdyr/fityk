@@ -236,17 +236,23 @@ void Runner::command_guess(const vector<Token>& args, int ds)
     // guess
     vector<string> gkeys;
     vector<realt> gvals;
-    if (tp->peak_d) {
-        boost::array<double,4> peak_v = g.estimate_peak_parameters();
-        gkeys.insert(gkeys.end(), Guess::peak_traits.begin(),
-                                  Guess::peak_traits.end());
-        gvals.insert(gvals.end(), peak_v.begin(), peak_v.end());
-    }
-    if (tp->linear_d) {
-        boost::array<double,3> lin_v = g.estimate_linear_parameters();
+    if (tp->traits & Tplate::kLinear) {
         gkeys.insert(gkeys.end(), Guess::linear_traits.begin(),
                                   Guess::linear_traits.end());
-        gvals.insert(gvals.end(), lin_v.begin(), lin_v.end());
+        vector<double> v = g.estimate_linear_parameters();
+        gvals.insert(gvals.end(), v.begin(), v.end());
+    }
+    if (tp->traits & Tplate::kPeak) {
+        gkeys.insert(gkeys.end(), Guess::peak_traits.begin(),
+                                  Guess::peak_traits.end());
+        vector<double> v = g.estimate_peak_parameters();
+        gvals.insert(gvals.end(), v.begin(), v.end());
+    }
+    if (tp->traits & Tplate::kSigmoid) {
+        gkeys.insert(gkeys.end(), Guess::sigmoid_traits.begin(),
+                                  Guess::sigmoid_traits.end());
+        vector<double> v = g.estimate_sigmoid_parameters();
+        gvals.insert(gvals.end(), v.begin(), v.end());
     }
 
     // calculate default values

@@ -508,7 +508,7 @@ string Fit::iteration_info(realt wssr)
 const char* FitManager::method_list[][3] =
 {
  { "mpfit", "Lev-Mar (from MPFIT)", "Levenberg-Marquardt" },
- { "levenberg_marquardt", "Lev-Mar (custom)", "Levenberg-Marquardt" },
+ { "levenberg_marquardt", "Lev-Mar (own)", "Levenberg-Marquardt" },
 #if HAVE_LIBNLOPT
  { "nlopt_nm", "Nelder-Mead (from NLopt)","Nelder-Mead Simplex" },
  { "nlopt_lbfgs", "BFGS (from NLopt)", "L-BFGS" },
@@ -524,7 +524,7 @@ const char* FitManager::method_list[][3] =
  //{ "nlopt_cobyla", "COBYLA (from NLopt)",
  //                            "Constrained Optimization BY Linear Approx." },
 #endif
- { "nelder_mead_simplex", "Nelder-Mead Simplex", "(custom implementation)" },
+ { "nelder_mead_simplex", "Nelder-Mead Simplex", "(own implementation)" },
  { "genetic_algorithms", "Genetic Algorithm", "(not really maintained)" },
  { NULL, NULL }
 };

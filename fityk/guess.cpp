@@ -16,14 +16,15 @@
 #include "settings.h"
 
 using namespace std;
-using boost::array;
 
 namespace fityk {
 
-const array<string, 3> Guess::linear_traits =
-                                    {{ "slope", "intercept", "avgy" }};
-const array<string, 4> Guess::peak_traits =
-                                    {{ "center", "height", "hwhm", "area" }};
+const vector<string> Guess::linear_traits
+                    = vector3(S("slope"), S("intercept"), S("avgy"));
+const vector<string> Guess::peak_traits
+                    = vector4(S("center"), S("height"), S("hwhm"), S("area"));
+const vector<string> Guess::sigmoid_traits
+                    = vector4(S("lower"), S("upper"), S("xmid"), S("wsig"));
 
 void Guess::set_data(const Data* data, const RealRange& range, int ignore_idx)
 {
@@ -102,7 +103,7 @@ double Guess::find_hwhm(int pos, double* area) const
 
 // outputs vector with: center, height, hwhm, area
 // returns values corresponding to peak_traits
-array<double,4> Guess::estimate_peak_parameters() const
+vector<double> Guess::estimate_peak_parameters() const
 {
     // find the highest point, which must be higher than the previous point
     // and not lower than the next one (-> it cannot be the first/last point)
@@ -129,11 +130,10 @@ array<double,4> Guess::estimate_peak_parameters() const
     double center = xx_[pos];
     double area;
     double hwhm = find_hwhm(pos, &area) * settings_->width_correction;
-    array<double,4> r = {{ center, height, hwhm, area }};
-    return r;
+    return vector4(center, height, hwhm, area);
 }
 
-array<double,3> Guess::estimate_linear_parameters() const
+vector<double> Guess::estimate_linear_parameters() const
 {
     double sx = 0, sy = 0, sxx = 0, /*syy = 0,*/ sxy = 0;
     int n = yy_.size();
@@ -149,8 +149,25 @@ array<double,3> Guess::estimate_linear_parameters() const
     double slope = (n * sxy - sx * sy) / (n * sxx - sx * sx);
     double intercept = (sy - slope * sx) / n;
     double avgy = sy / n;
-    array<double,3> r = {{ slope, intercept, avgy }};
-    return r;
+    return vector3(slope, intercept, avgy);
+}
+
+vector<double> Guess::estimate_sigmoid_parameters() const
+{
+    double lower;
+    double upper;
+    vector<realt> ycopy = yy_;
+    sort(ycopy.begin(), ycopy.end());
+    if (ycopy.size() < 10) {
+        lower = ycopy.front();
+        upper = ycopy.back();
+    } else {
+        lower = ycopy[ycopy.size()/4];
+        upper = ycopy[ycopy.size()*3/4];
+    }
+    double xmid = (xx_.front() + xx_.back()) / 2.;
+    double wsig = (xx_.back() - xx_.front()) / 5.;;
+    return vector4(lower, upper, xmid, wsig);
 }
 
 } // namespace fityk

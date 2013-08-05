@@ -6,7 +6,6 @@
 
 #include <vector>
 #include <string>
-#include <boost/array.hpp>
 #include "common.h" // realt
 
 namespace fityk {
@@ -18,8 +17,9 @@ struct Settings;
 class FITYK_API Guess
 {
 public:
-    static const boost::array<std::string, 3> linear_traits;
-    static const boost::array<std::string, 4> peak_traits;
+    static const std::vector<std::string> linear_traits;
+    static const std::vector<std::string> peak_traits;
+    static const std::vector<std::string> sigmoid_traits;
 
     Guess(Settings const *settings) : settings_(settings) {}
 
@@ -30,9 +30,11 @@ public:
     void set_data(const Data* data, const RealRange& range, int ignore_idx);
 
     /// returns values corresponding to linear_traits
-    boost::array<double,3> estimate_linear_parameters() const;
+    std::vector<double> estimate_linear_parameters() const;
     /// returns values corresponding to peak_traits
-    boost::array<double,4> estimate_peak_parameters() const;
+    std::vector<double> estimate_peak_parameters() const;
+    /// returns values corresponding to sigmoid_traits
+    std::vector<double> estimate_sigmoid_parameters() const;
 
 private:
     Settings const* settings_;

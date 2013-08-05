@@ -264,15 +264,20 @@ void info_guess(const Full* F, int ds, const RealRange& range, string& result)
     else {
         Guess g(F->get_settings());
         g.set_data(F->dk.data(ds), range, -1);
-        boost::array<double,4> peak_v = g.estimate_peak_parameters();
+        vector<double> lin_v = g.estimate_linear_parameters();
+        for (int i = 0; i != 3; ++i)
+            result += (i != 0 ? ", " : "")
+                      + Guess::linear_traits[i] + ": " + S(lin_v[i]);
+        result += "\n";
+        vector<double> peak_v = g.estimate_peak_parameters();
         for (int i = 0; i != 4; ++i)
             result += (i != 0 ? ", " : "")
                       + Guess::peak_traits[i] + ": " + S(peak_v[i]);
         result += "\n";
-        boost::array<double,3> lin_v = g.estimate_linear_parameters();
+        vector<double> s_v = g.estimate_sigmoid_parameters();
         for (int i = 0; i != 3; ++i)
             result += (i != 0 ? ", " : "")
-                      + Guess::linear_traits[i] + ": " + S(lin_v[i]);
+                      + Guess::sigmoid_traits[i] + ": " + S(s_v[i]);
     }
 }
 

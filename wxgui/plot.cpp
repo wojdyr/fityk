@@ -79,16 +79,6 @@ void Overlay::draw_overlay()
                 dc.DrawRectangle(min(x1_, x2_), min(y1_, y2_), width, height);
             }
             break;
-        case kPeakDraft: {
-            int ctr = x1_;
-            int hwhm = abs(x1_ - x2_);
-            int ymid = (y2_ + y1_) / 2;
-            dc.DrawLine(ctr, y1_, ctr, y2_); // vertical line
-            dc.DrawLine(ctr - hwhm, ymid, ctr + hwhm, ymid); // horizontal
-            dc.DrawLine(ctr, y2_, ctr - 2 * hwhm, y1_); // left slope
-            dc.DrawLine(ctr, y2_, ctr + 2 * hwhm, y1_); // right slope
-            break;
-        }
         case kLinearDraft: {
             int width = dc.GetSize().GetWidth();
             int height = dc.GetSize().GetHeight();
@@ -104,6 +94,26 @@ void Overlay::draw_overlay()
                 dc.DrawLine(x1_ - y1_ * im, 0,
                             x1_ + (height - y1_) * im, height);
             }
+            break;
+        }
+        case kPeakDraft: {
+            int ctr = x1_;
+            int hwhm = abs(x1_ - x2_);
+            int ymid = (y2_ + y1_) / 2;
+            dc.DrawLine(ctr, y1_, ctr, y2_); // vertical line
+            dc.DrawLine(ctr - hwhm, ymid, ctr + hwhm, ymid); // horizontal
+            dc.DrawLine(ctr, y2_, ctr - 2 * hwhm, y1_); // left slope
+            dc.DrawLine(ctr, y2_, ctr + 2 * hwhm, y1_); // right slope
+            break;
+        }
+        case kSigmoidDraft: {
+            //TODO
+            int ctr = x1_;
+            int hwhm = abs(x1_ - x2_);
+            int ymid = (y2_ + y1_) / 2;
+            dc.DrawLine(ctr, y1_, ctr, y2_); // vertical line
+            dc.DrawLine(ctr - hwhm, ymid, ctr + hwhm, ymid); // horizontal
+            dc.DrawLine(ctr, y2_, ctr + 2 * hwhm, y1_); // right slope
             break;
         }
         case kCrossHair:

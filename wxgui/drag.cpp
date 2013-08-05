@@ -35,10 +35,10 @@ int find_parameter_with_name(const Tplate& tp, const string& name)
 }
 
 static
-bool bind_parameter_to_drag(const ModelManager& mgr,
-                            DraggedFunc::Drag &drag, const string& name,
-                            const Function* p, DraggedFunc::DragType how,
-                            double multiplier=1.)
+bool bind_param(const ModelManager& mgr,
+                DraggedFunc::Drag &drag, const string& name,
+                const Function* p, DraggedFunc::DragType how,
+                double multiplier=1.)
 {
     int idx = find_parameter_with_name(*p->tp(), name);
     if (idx == -1)
@@ -65,14 +65,19 @@ void DraggedFunc::start(const Function* p, int X, int Y, double x, double y,
     drag_x_.how = drag_y_.how = drag_shift_x_.how = drag_shift_y_.how = no_drag;
     drag_x_.parameter_name = drag_y_.parameter_name
         = drag_shift_x_.parameter_name = drag_shift_y_.parameter_name = "-";
-    bind_parameter_to_drag(mgr_, drag_x_, "center", p, absolute_value);
-    bind_parameter_to_drag(mgr_, drag_y_, "height", p, absolute_value)
-      || bind_parameter_to_drag(mgr_, drag_y_, "area", p, relative_value)
-      || bind_parameter_to_drag(mgr_, drag_y_, "avgy", p, absolute_value)
-      || bind_parameter_to_drag(mgr_, drag_y_, "intercept", p, absolute_value);
-    bind_parameter_to_drag(mgr_, drag_shift_x_, "hwhm", p, absolute_value)
-      || bind_parameter_to_drag(mgr_, drag_shift_x_, "fwhm", p,
-                                                          absolute_value, 2.);
+
+    bind_param(mgr_, drag_x_, "center", p, absolute_value)
+      || bind_param(mgr_, drag_x_, "xmid", p, absolute_value);
+    bind_param(mgr_, drag_y_, "height", p, absolute_value)
+      || bind_param(mgr_, drag_y_, "area", p, relative_value)
+      || bind_param(mgr_, drag_y_, "avgy", p, absolute_value)
+      || bind_param(mgr_, drag_y_, "intercept", p, absolute_value)
+      || bind_param(mgr_, drag_y_, "upper", p, absolute_value);
+    bind_param(mgr_, drag_shift_x_, "hwhm", p, absolute_value)
+      || bind_param(mgr_, drag_shift_x_, "fwhm", p, absolute_value, 2.)
+      || bind_param(mgr_, drag_shift_x_, "wsig", p, absolute_value, 2.);
+    bind_param(mgr_, drag_shift_y_, "lower", p, absolute_value);
+
     status_ = "Move to change: " + drag_x_.parameter_name + "/"
         + drag_y_.parameter_name + ", with [Shift]: "
         + drag_shift_x_.parameter_name + "/" + drag_shift_y_.parameter_name;

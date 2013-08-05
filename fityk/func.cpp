@@ -31,6 +31,8 @@ Function::Function(const Settings* settings,
 void Function::init()
 {
     center_idx_ = index_of_element(tp_->fargs, "center");
+    if (center_idx_ == -1 && (tp_->traits & Tplate::kSigmoid))
+        center_idx_ = index_of_element(tp_->fargs, "xmid");
     if (av_.size() != tp_->fargs.size())
         throw ExecuteError("Function " + tp_->name + " requires "
            + S(tp_->fargs.size()) + " argument(s), got " + S(av_.size()) + ".");

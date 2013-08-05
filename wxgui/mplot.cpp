@@ -501,8 +501,7 @@ void MainPlot::prepare_peaktops(const Model* model, int Ymax)
             // but it would be slightly inaccurate
             x = xs.val(X);
             x += model->zero_shift(x);
-        }
-        else {
+        } else {
             X = no_ctr_idx * 10 + 5;
             ++no_ctr_idx;
             x = xs.val(X);
@@ -1054,12 +1053,14 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         const Tplate* tp = ftk->get_tpm()->get_tp(frame->get_peak_type());
         if (tp == NULL)
             return;
-        if (tp->peak_d) {
-            func_draft_kind_ = kPeak;
+        if (tp->traits & Tplate::kPeak) {
+            func_draft_kind_ = Tplate::kPeak;
             overlay.start_mode(Overlay::kPeakDraft, downX, ys.px(0));
-        }
-        else {
-            func_draft_kind_ = kLinear;
+        } else if (tp->traits & Tplate::kSigmoid) {
+            func_draft_kind_ = Tplate::kSigmoid;
+            overlay.start_mode(Overlay::kSigmoidDraft, downX, ys.px(0));
+        } else {
+            func_draft_kind_ = Tplate::kLinear;
             overlay.start_mode(Overlay::kLinearDraft, downX, downY);
         }
         SetCursor(wxCURSOR_SIZING);
@@ -1278,7 +1279,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
 void MainPlot::add_peak_from_draft(int X, int Y)
 {
     string args;
-    if (func_draft_kind_ == kLinear && downY != Y) {
+    if (func_draft_kind_ == Tplate::kLinear && downY != Y) {
         double x1 = xs.valr(downX);
         double y1 = ys.valr(downY);
         double x2 = xs.valr(X);
@@ -1286,8 +1287,7 @@ void MainPlot::add_peak_from_draft(int X, int Y)
         double m = (y2 - y1) / (x2 - x1);
         args = "slope=~" + eS(m) + ", intercept=~" + eS(y1-m*x1)
                + ", avgy=~" + eS((y1+y2)/2);
-    }
-    else {
+    } else if (func_draft_kind_ == Tplate::kPeak) {
         double height = ys.valr(Y);
         double center = xs.valr(downX);
         double hwhm = fabs(center - xs.valr(X));
@@ -1296,6 +1296,14 @@ void MainPlot::add_peak_from_draft(int X, int Y)
                  + ", area=~" + eS(area);
         if (ftk->mgr.find_variable_nr("_hwhm") == -1)
             args += ", hwhm=~" + eS(hwhm);
+    } else if (func_draft_kind_ == Tplate::kSigmoid) {
+        //TODO
+        double lower = ys.valr(downY);
+        double upper = ys.valr(Y);
+        double xmid = xs.valr(downX);
+        double wsig = 2;
+        args = "lower=~" + eS(lower) + ", upper=~" + eS(upper)
+                 + ", xmid=~" + eS(xmid) + ", wsig=~" + eS(wsig);
     }
     string tail = "F += " + frame->get_guess_string(frame->get_peak_type());
     if (*(tail.end() - 1) == ')') {

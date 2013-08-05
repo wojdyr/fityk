@@ -131,11 +131,13 @@ void DefinitionMgrDlg::update_desc(const Tplate& tp)
     wxString desc = wxString::Format(wxT("%d args:"), (int)tp.fargs.size());
     v_foreach (string, i, tp.fargs)
         desc += wxT(" ") + s2wx(*i);
-    desc += wxT("\npeak traits: ");
-    desc += (tp.peak_d ? wxT("yes") : wxT("no"));
-    desc += wxT("\nlinear traits: ");
-    desc += (tp.linear_d ? wxT("yes") : wxT("no"));
-    desc += wxT("\nused by:");
+    desc += "\nlinear traits: ";
+    desc += (tp.traits & Tplate::kLinear ? "yes" : "no");
+    desc += "\npeak traits: ";
+    desc += (tp.traits & Tplate::kPeak ? "yes" : "no");
+    desc += "\nsigmoid traits: ";
+    desc += (tp.traits & Tplate::kSigmoid ? "yes" : "no");
+    desc += "\nused by:";
     bool used = false;
     v_foreach (Tplate::Ptr, i, ftk->get_tpm()->tpvec())
         v_foreach (Tplate::Component, c, (*i)->components)

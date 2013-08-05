@@ -5,6 +5,7 @@
 #define FITYK_WX_MPLOT_H_
 
 #include "plot.h"
+#include "fityk/tplate.h" // Tplate::Kind
 
 /// it cares about visualization of spline / polyline background
 /// which can be set by selecting points on Plot
@@ -42,7 +43,6 @@ class MainPlot : public FPlot
 {
     friend class MainPlotConfDlg;
 public:
-    enum Kind { kLinear, kPeak };
     static const int kMaxDataColors = 256;
 
     MainPlot(wxWindow *parent);
@@ -126,7 +126,7 @@ private:
     int pressed_mouse_button_;
     MouseOperation mouse_op_;
     int over_peak_; /// the cursor is over peaktop of this peak
-    Kind func_draft_kind_; // for function adding (with drawing draft)
+    fityk::Tplate::Kind func_draft_kind_; // for function adding (drawing draft)
     HintReceiver *hint_receiver_; // used to set mouse hints, probably statusbar
     bool auto_freeze_;
 

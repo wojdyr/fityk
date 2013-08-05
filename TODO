@@ -1,5 +1,8 @@
 ----  1.2.9
 
+* add a new function category: sigmoids/steps (now function can be guessed as
+  "peak" and "linear"). (GUI): drawing drafts for the new category.
+
 * settings: [fitting] use box-constraints=0/1
 
 * tests: fitting with constraints
@@ -64,9 +67,6 @@
 * data smoothing (Savitzky-Golay and/or other methods)
 
 * GUI: constraining parameters of two peak using the peak-top menu
-
-* add a new function category: sigmoids/steps (now function can be guessed as
-  "peak" and "linear"). (GUI): drawing drafts for the new category.
 
 * splines: fitting, guessing, handling knots in the GUI
 

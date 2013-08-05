@@ -93,8 +93,9 @@ public:
     {
         kNone,
         kRect,
-        kPeakDraft,
         kLinearDraft,
+        kPeakDraft,
+        kSigmoidDraft,
         kFunction,
         kCrossHair,
         kVLine,

@@ -33,12 +33,17 @@ struct FITYK_API Tplate
         std::vector<VMData> cargs;
     };
 
+    enum Kind {
+        kLinear = 1,
+        kPeak = 2,
+        kSigmoid = 4
+    };
+
     std::string name;
     std::vector<std::string> fargs;
     std::vector<std::string> defvals;
     std::string rhs; // used in info only, not in calculations
-    bool linear_d; // uses Guess::linear_traits
-    bool peak_d;   // uses Guess::peak_traits
+    int traits; // 0 or combination of kLinear, kPeak and kSigmoid
     create_type create;
     std::vector<Component> components; // kSum, kSplit
     std::vector<OpTree*> op_trees;     // kCustom
@@ -80,7 +85,7 @@ private:
     std::vector<Tplate::Ptr> tpvec_;
 
     void add(const char* name, const char* cs_fargs, const char* cs_dv,
-             const char* rhs, bool linear_d, bool peak_d,
+             const char* rhs, int traits,
              Tplate::create_type create, Parser* parser=NULL);
 
     DISALLOW_COPY_AND_ASSIGN(TplateMgr);

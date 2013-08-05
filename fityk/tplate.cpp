@@ -42,12 +42,15 @@ bool Tplate::is_coded() const
 vector<string> Tplate::get_missing_default_values() const
 {
     vector<string> gkeys;
-    if (peak_d)
-        gkeys.insert(gkeys.end(), Guess::peak_traits.begin(),
-                                  Guess::peak_traits.end());
-    if (linear_d)
+    if (traits & kLinear)
         gkeys.insert(gkeys.end(), Guess::linear_traits.begin(),
                                   Guess::linear_traits.end());
+    if (traits & kPeak)
+        gkeys.insert(gkeys.end(), Guess::peak_traits.begin(),
+                                  Guess::peak_traits.end());
+    if (traits & kSigmoid)
+        gkeys.insert(gkeys.end(), Guess::sigmoid_traits.begin(),
+                                  Guess::sigmoid_traits.end());
     ExpressionParser ep(NULL);
     vector<string> missing;
     for (size_t i = 0; i < fargs.size(); ++i) {
@@ -96,7 +99,7 @@ void TplateMgr::add(const char* name,
                const char* cs_fargs, // comma-separated parameters
                const char* cs_dv,    // comma-separated default values
                const char* rhs,
-               bool linear_d, bool peak_d,
+               int traits,
                Tplate::create_type create,
                Parser* parser)
 {
@@ -107,8 +110,7 @@ void TplateMgr::add(const char* name,
         tp->defvals = split_string(cs_dv, ',');
     }
     tp->rhs = rhs;
-    tp->linear_d = linear_d;
-    tp->peak_d = peak_d;
+    tp->traits = traits;
     tp->create = create;
     assert(tp->fargs.size() == tp->defvals.size());
     tpvec_.push_back(Tplate::Ptr(tp));
@@ -128,115 +130,115 @@ void TplateMgr::add_builtin_types(Parser* p)
 
     add("Constant", "a", "avgy",
         "a",
-        /*linear_d=*/true, /*peak_d=*/false, &create_FuncConstant);
+        Tplate::kLinear, &create_FuncConstant);
 
     add("Linear", "a0,a1", "intercept,slope",
         "a0 + a1 * x",
-        /*linear_d=*/true, /*peak_d=*/false, &create_FuncLinear);
+        Tplate::kLinear, &create_FuncLinear);
 
     add("Quadratic", "a0,a1,a2", "intercept,slope,0",
         "a0 + a1*x + a2*x^2",
-        /*linear_d=*/true, /*peak_d=*/false, &create_FuncQuadratic);
+        Tplate::kLinear, &create_FuncQuadratic);
 
     add("Cubic", "a0,a1,a2,a3", "intercept,slope,0,0",
         "a0 + a1*x + a2*x^2 + a3*x^3",
-        /*linear_d=*/true, /*peak_d=*/false, &create_FuncCubic);
+        Tplate::kLinear, &create_FuncCubic);
 
     add("Polynomial4", "a0,a1,a2,a3,a4", "intercept,slope,0,0,0",
         "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4",
-        /*linear_d=*/true, /*peak_d=*/false, &create_FuncPolynomial4);
+        Tplate::kLinear, &create_FuncPolynomial4);
 
     add("Polynomial5", "a0,a1,a2,a3,a4,a5", "intercept,slope,0,0,0,0",
         "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5",
-        /*linear_d=*/true, /*peak_d=*/false, &create_FuncPolynomial5);
+        Tplate::kLinear, &create_FuncPolynomial5);
 
     add("Polynomial6", "a0,a1,a2,a3,a4,a5,a6", "intercept,slope,0,0,0,0,0",
         "a0 + a1*x + a2*x^2 + a3*x^3 + a4*x^4 + a5*x^5 + a6*x^6",
-        /*linear_d=*/true, /*peak_d=*/false, &create_FuncPolynomial6);
+        Tplate::kLinear, &create_FuncPolynomial6);
 
     add("Gaussian", "height,center,hwhm", ",,",
         "height*exp(-ln(2)*((x-center)/hwhm)^2)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_FuncGaussian);
+        Tplate::kPeak, &create_FuncGaussian);
 
     add("SplitGaussian", "height,center,hwhm1,hwhm2", ",,hwhm,hwhm",
     "x<center ? Gaussian(height,center,hwhm1) : Gaussian(height,center,hwhm2)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_FuncSplitGaussian);
+        Tplate::kPeak, &create_FuncSplitGaussian);
 
     add("Lorentzian", "height,center,hwhm", ",,",
         "height/(1+((x-center)/hwhm)^2)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_FuncLorentzian);
+        Tplate::kPeak, &create_FuncLorentzian);
 
     add("Pearson7", "height,center,hwhm,shape", ",,,2",
         "height/(1+((x-center)/hwhm)^2*(2^(1/shape)-1))^shape",
-        /*linear_d=*/false, /*peak_d=*/true, &create_FuncPearson7);
+        Tplate::kPeak, &create_FuncPearson7);
 
     add("SplitPearson7",
         "height,center,hwhm1,hwhm2,shape1,shape2", ",,hwhm,hwhm,2,2",
         "x < center ? Pearson7(height, center, hwhm1, shape1)"
                   " : Pearson7(height, center, hwhm2, shape2)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_FuncSplitPearson7);
+        Tplate::kPeak, &create_FuncSplitPearson7);
 
     add("PseudoVoigt", "height,center,hwhm,shape", ",,,0.5",
         "height*((1-shape)*exp(-ln(2)*((x-center)/hwhm)^2)"
                             "+shape/(1+((x-center)/hwhm)^2))",
-        /*linear_d=*/false, /*peak_d=*/true, &create_FuncPseudoVoigt);
+        Tplate::kPeak, &create_FuncPseudoVoigt);
 
     add("FCJAsymm","height,center,hwhm,shape,h_l,s_l",",,,0.5,,",
         "Finger-Cox-Jephcoat asymmetry with PseudoVoight peakshape",
-        false,true,&create_FuncFCJAsymm);
+        Tplate::kPeak, &create_FuncFCJAsymm);
 
     add("Voigt", "height,center,gwidth,shape", ",,hwhm*0.8,0.1",
         "convolution of Gaussian and Lorentzian #",
-        /*linear_d=*/false, /*peak_d=*/true, &create_FuncVoigt);
+        Tplate::kPeak, &create_FuncVoigt);
 
     add("VoigtA", "area,center,gwidth,shape", ",,hwhm*0.8,0.1",
         "convolution of Gaussian and Lorentzian #",
-        /*linear_d=*/false, /*peak_d=*/true, &create_FuncVoigtA);
+        Tplate::kPeak, &create_FuncVoigtA);
 
     add("EMG", "a,b,c,d", "height,center,hwhm*0.8,hwhm*0.08",
            "a*c*(2*pi)^0.5/(2*d) * exp((b-x)/d + c^2/(2*d^2))"
            " * (abs(d)/d - erf((b-x)/(2^0.5*c) + c/(2^0.5*d)))",
-        /*linear_d=*/false, /*peak_d=*/true, &create_FuncEMG);
+        Tplate::kPeak, &create_FuncEMG);
 
     add("DoniachSunjic", "h,a,f,e", "height,0.1,1,center",
        "h * cos(pi*a/2 + (1-a)*atan((x-e)/f)) / (f^2+(x-e)^2)^((1-a)/2)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_FuncDoniachSunjic);
+        Tplate::kPeak, &create_FuncDoniachSunjic);
 
     add("PielaszekCube", "a,center,r,s", "height*0.016,,300,150",
         "...#",
-        /*linear_d=*/false, /*peak_d=*/true, &create_FuncPielaszekCube);
+        Tplate::kPeak, &create_FuncPielaszekCube);
 
     add("LogNormal", "height,center,width,asym", ",,2*hwhm,0.1",
         "height*exp(-ln(2)*(ln(2.0*asym*(x-center)/width+1)/asym)^2)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_FuncLogNormal);
+        Tplate::kPeak, &create_FuncLogNormal);
 
     add("Spline", "", "",
         "cubic spline #",
-        /*linear_d=*/false, /*peak_d=*/false, &create_FuncSpline);
+        0, &create_FuncSpline);
 
     add("Polyline", "", "",
         "linear interpolation #",
-        /*linear_d=*/false, /*peak_d=*/false, &create_FuncPolyline);
+        0, &create_FuncPolyline);
 
 
     //------------------- interpreted functions ---------------------
 
     add("ExpDecay", "a,t", "0,1",
         "a*exp(-x/t)",
-        /*linear_d=*/false, /*peak_d=*/false, &create_CustomFunction, p);
+        0, &create_CustomFunction, p);
 
     add("GaussianA", "area,center,hwhm", ",,",
         "Gaussian(area/hwhm/sqrt(pi/ln(2)), center, hwhm)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction, p);
+        Tplate::kPeak, &create_CompoundFunction, p);
 
     add("LogNormalA", "area,center,width,asym", ",,2*hwhm,0.1",
         "LogNormal(sqrt(ln(2)/pi)*(2*area/width)*exp(-asym^2/4/ln(2)), "
                    "center, width, asym)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction, p);
+        Tplate::kPeak, &create_CompoundFunction, p);
 
     add("LorentzianA", "area,center,hwhm", ",,",
         "Lorentzian(area/hwhm/pi, center, hwhm)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction, p);
+        Tplate::kPeak, &create_CompoundFunction, p);
     assert(tpvec_.back()->components[0].cargs.size() == 3);
     assert(tpvec_.back()->components[0].cargs[1].code().size() == 2);
 
@@ -244,31 +246,35 @@ void TplateMgr::add_builtin_types(Parser* p)
         "Pearson7(area/(hwhm*exp(lgamma(shape-0.5)-lgamma(shape))"
                         "*sqrt(pi/(2^(1/shape)-1))), "
                  "center, hwhm, shape)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction, p);
+        Tplate::kPeak, &create_CompoundFunction, p);
 
     add("PseudoVoigtA",
         "area,center,hwhm,shape",
         ",,,0.5",
         "GaussianA(area*(1-shape), center, hwhm)"
          " + LorentzianA(area*shape, center, hwhm)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_CompoundFunction, p);
+        Tplate::kPeak, &create_CompoundFunction, p);
+
+    add("Sigmoid", "lower,upper,xmid,wsig", ",,,",
+        "lower + (upper-lower)/(1+exp((xmid-x)/wsig))",
+        Tplate::kSigmoid, &create_CustomFunction, p);
 
     add("SplitLorentzian", "height,center,hwhm1,hwhm2", ",,hwhm,hwhm",
         "x < center ? Lorentzian(height, center, hwhm1)"
                   " : Lorentzian(height, center, hwhm2)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_SplitFunction, p);
+        Tplate::kPeak, &create_SplitFunction, p);
 
     add("SplitPseudoVoigt",
         "height,center,hwhm1,hwhm2,shape1,shape2", ",,hwhm,hwhm,0.5,0.5",
         "x < center ? PseudoVoigt(height, center, hwhm1, shape1)"
                   " : PseudoVoigt(height, center, hwhm2, shape2)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_SplitFunction, p);
+        Tplate::kPeak, &create_SplitFunction, p);
 
     add("SplitVoigt",
         "height,center,hwhm1,hwhm2,shape1,shape2", ",,hwhm,hwhm,0.5,0.5",
         "x < center ? Voigt(height, center, hwhm1, shape1)"
                   " : Voigt(height, center, hwhm2, shape2)",
-        /*linear_d=*/false, /*peak_d=*/true, &create_SplitFunction, p);
+        Tplate::kPeak, &create_SplitFunction, p);
 }
 
 void TplateMgr::define(Tplate::Ptr tp)
