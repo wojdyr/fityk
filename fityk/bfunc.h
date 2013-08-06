@@ -139,34 +139,6 @@ class FuncPseudoVoigt : public Function
     bool get_area(realt* a) const;
 };
 
-class FuncFCJAsymm : public Function
-{
-    DECLARE_FUNC_OBLIGATORY_METHODS(FCJAsymm, Function)
-    void more_precomputations();
-    bool get_nonzero_range(double level, realt &left, realt &right) const;
-    bool get_center(realt* a) const { *a = av_[1]; return true; }
-    bool get_height(realt* a) const { *a = av_[0]; return true; }
-    bool get_fwhm(realt* a) const { *a = 2 * fabs(av_[2]); return true; }
-    realt dfunc_int(realt angle1, realt angle2) const;
-    realt fcj_psv(realt x, realt location, realt fwhm, realt mixing) const;
-    static const double x100[];
-    static const double w100[];
-    static const double x1024[];
-    static const double w1024[];
-    realt twopsiinfl;
-    realt twopsimin;
-    realt cent_rad;
-    realt radians;
-    realt delta_n_neg[1024];      //same number of points as x1024 and w1024
-    realt delta_n_pos[1024];
-    realt weight_neg[1024];
-    realt weight_pos[1024];
-    realt denom;                 //denominator constant for given parameters
-    realt denom_unscaled;        //denominator for x-axis in radians
-    realt df_ds_factor;          //derivative with respect to denominator
-    realt df_dh_factor;          //derivative with respect to denominator
-};
-
 class FuncVoigt : public Function
 {
     DECLARE_FUNC_OBLIGATORY_METHODS(Voigt, Function)
@@ -255,6 +227,51 @@ class FuncPolyline : public VarArgFunction
 private:
     mutable std::vector<PointD> q_;
 };
+
+
+// macros for use in implementations
+
+#define CALCULATE_VALUE_BEGIN(NAME) \
+void NAME::calculate_value_in_range(vector<realt> const &xx, vector<realt> &yy,\
+                                    int first, int last) const\
+{\
+    for (int i = first; i < last; ++i) {\
+        realt x = xx[i];
+
+
+#define CALCULATE_VALUE_END(VAL) \
+        yy[i] += (VAL);\
+    }\
+}
+
+#define CALCULATE_DERIV_BEGIN(NAME) \
+void NAME::calculate_value_deriv_in_range(vector<realt> const &xx, \
+                                          vector<realt> &yy, \
+                                          vector<realt> &dy_da, \
+                                          bool in_dx, \
+                                          int first, int last) const \
+{ \
+    int dyn = dy_da.size() / xx.size(); \
+    vector<realt> dy_dv(nv(), 0.); \
+    for (int i = first; i < last; ++i) { \
+        realt x = xx[i]; \
+        realt dy_dx;
+
+
+#define CALCULATE_DERIV_END(VAL) \
+        if (!in_dx) { \
+            yy[i] += (VAL); \
+            v_foreach (Multi, j, multi_) \
+                dy_da[dyn*i+j->p] += dy_dv[j->n] * j->mult;\
+            dy_da[dyn*i+dyn-1] += dy_dx;\
+        }\
+        else {  \
+            v_foreach (Multi, j, multi_) \
+                dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1] * dy_dv[j->n]*j->mult;\
+        } \
+    } \
+}
+
 
 } // namespace fityk
 #endif

@@ -410,6 +410,12 @@ exponential probability density.
 .. math::
    y = L + \frac{U-L}{1+\exp\left(-\frac{x-x_{mid}}{w}\right)}
 
+**FCJAsymm:**
+
+Axial asymmetry peak shape in the Finger, Cox and Jephcoat model, see
+`J. Appl. Cryst. (1994) 27, 892 <http://dx.doi.org/10.1107/S0021889894004218>`_
+and `J. Appl. Cryst. (2013) 46, 1219
+<http://dx.doi.org/10.1107/S0021889813016233>`_.
 
 Variadic Functions
 ------------------

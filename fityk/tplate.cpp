@@ -7,6 +7,7 @@
 #include "func.h"
 #include "udf.h"
 #include "bfunc.h"
+#include "f_fcjasym.h"
 #include "ast.h"
 #include "lexer.h"
 #include "cparser.h"
