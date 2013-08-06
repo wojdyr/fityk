@@ -1303,7 +1303,8 @@ void MainPlot::add_peak_from_draft(int X, int Y)
         double lower = y1 - fabs(y2-y1);
         double upper = y1 + fabs(y2-y1);
         double xmid = x1;
-        double wsig = 0.5*(x2-x1);
+        // this corresponds to the drawing in Overlay::draw_overlay()
+        double wsig = (y2 > y1 ? 1 : -1) * 0.5 * fabs(x2-x1);
         args = "lower=~" + eS(lower) + ", upper=~" + eS(upper)
                  + ", xmid=~" + eS(xmid) + ", wsig=~" + eS(wsig);
     }
