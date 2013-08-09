@@ -443,7 +443,7 @@ CALCULATE_VALUE_END(av_[0]*M_PI/180 * numer/denom)
 CALCULATE_DERIV_BEGIN(FuncFCJAsymm)
     realt fwhm_rad = av_[2]*2*M_PI/180.0;
     realt numer = 0.0;
-realt hfunc_neg,hfunc_pos;  //FCJ hfunc for neg, pos regions of G-L integration
+    realt hfunc_neg=0.0,hfunc_pos=0.0;  //FCJ hfunc for neg, pos regions of G-L integration
     realt sumWdGdh = 0.0;  // derivative with respect to H/L
     realt sumWdGds = 0.0;  // derivative with respect to S/L
     realt sumWdRdG = 0.0; // sum w_i * dR/dgamma * W(delta,twotheta)/H
