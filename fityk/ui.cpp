@@ -26,7 +26,9 @@ namespace fityk {
 
 // utils for reading FILE
 
+#if !HAVE_GETLINE
 // simple replacement for GNU getline() (returns int, not ssize_t)
+static
 int our_getline(char **lineptr, size_t *n, FILE *stream)
 {
     int c;
@@ -42,9 +44,11 @@ int our_getline(char **lineptr, size_t *n, FILE *stream)
     (*lineptr)[counter] = '\0';
     return c == EOF ? -1 : counter;
 }
+#endif //!HAVE_GETLINE
 
 
 // the same as our_getline(), but works with gzFile instead of FILE
+static
 int gzipped_getline(char **lineptr, size_t *n, gzFile stream)
 {
     int c;

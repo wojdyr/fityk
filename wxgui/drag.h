@@ -13,6 +13,7 @@ namespace fityk { class Function; class ModelManager; }
 class DraggedFuncObserver
 {
 public:
+    virtual ~DraggedFuncObserver() {}
     virtual void change_parameter_value(int idx, double value) = 0;
 };
 

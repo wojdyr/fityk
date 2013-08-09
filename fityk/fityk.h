@@ -233,7 +233,7 @@ public:
     /// returns number of datasets n, always n >= 1
     int get_dataset_count() const;
 
-    /// returns dataset set by "use @n" command
+    /// returns dataset set by the "use" command
     int get_default_dataset() const;
 
     /// get data points

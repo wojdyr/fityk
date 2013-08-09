@@ -103,6 +103,7 @@ static const Option options[] = {
     OPT(nm_move_factor, kDouble, 1., NULL),
 };
 
+static
 const Option& find_option(const string& name)
 {
     size_t len = sizeof(options) / sizeof(options[0]);
