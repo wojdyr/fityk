@@ -69,6 +69,12 @@ void Runner::command_set(const vector<Token>& args)
     }
 }
 
+void Runner::command_ui(const vector<Token>& args)
+{
+    assert(args.size() == 2);
+    F_->ui()->hint_ui(args[0].as_string(), args[1].as_string());
+}
+
 void Runner::command_undefine(const vector<Token>& args)
 {
     v_foreach (Token, i, args)
@@ -726,6 +732,9 @@ void Runner::execute_command(Command& c, int ds)
             break;
         case kCmdSleep:
             F_->ui()->wait(c.args[0].value.d);
+            break;
+        case kCmdUi:
+            command_ui(c.args);
             break;
         case kCmdUndef:
             command_undefine(c.args);

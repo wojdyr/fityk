@@ -129,6 +129,9 @@ public:
     // The filename can be inside 'single quotes'.
     Token get_filename_token();
 
+    // Reads the same as get_filename_token() and blanks. Returns kTokenRest
+    Token get_rest_of_cmd();
+
     // Reads rest of the line and returns kTokenRest
     Token get_rest_of_line();
 

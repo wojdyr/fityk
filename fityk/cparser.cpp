@@ -26,7 +26,7 @@ namespace fityk {
 const char *command_list[] = {
     "debug", "define", "delete", "exec", "fit", "guess", "info", "lua",
     "plot", "print",
-    "quit", "reset", "set", "sleep", "title", "undefine", "use", "with",
+    "quit", "reset", "set", "sleep", "title", "ui", "undefine", "use", "with",
     NULL
 };
 
@@ -70,6 +70,7 @@ const char* commandtype2str(CommandType c)
         case kCmdSet:     return "Set";
         case kCmdSleep:   return "Sleep";
         case kCmdTitle:   return "Title";
+        case kCmdUi:      return "Ui";
         case kCmdUndef:   return "Undef";
         case kCmdUse:     return "Use";
         case kCmdShell:   return "Shell";
@@ -422,6 +423,16 @@ Tplate::Ptr Parser::parse_define_args(Lexer& lex)
     parse_define_rhs(lex, tp.get());
     tp->rhs = string(start_rhs, lex.pchar());
     return tp;
+}
+
+static
+void parse_ui_args(Lexer& lex, vector<Token>& args)
+{
+    Token key = lex.get_expected_token(kTokenLname);
+    lex.get_expected_token(kTokenAssign); // discard '='
+    Token value = lex.get_rest_of_cmd();
+    args.push_back(key);
+    args.push_back(value);
 }
 
 static
@@ -903,6 +914,10 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
                       lex.peek_token().type == kTokenLSquare))) {
             cmd.type = kCmdSet;
             parse_set_args(lex, cmd.args);
+        }
+        else if (is_command(token, "ui","")) {
+            cmd.type = kCmdUi;
+            parse_ui_args(lex, cmd.args);
         }
         else if (is_command(token, "undef","ine")) {
             cmd.type = kCmdUndef;

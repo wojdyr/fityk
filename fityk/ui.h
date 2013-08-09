@@ -56,13 +56,16 @@ public:
     // Calls raw_execute_line(), catches exceptions and returns status code.
     UiApi::Status execute_line(const std::string& str);
 
-    void hint_ui(int hint)
-          { if (hint_ui_callback_) (*hint_ui_callback_)(hint); }
+    void hint_ui(const std::string& key, const std::string& value)
+          { if (hint_ui_callback_) (*hint_ui_callback_)(key, value); }
 
     std::string get_input_from_user(const std::string& prompt) {
         return user_input_callback_ ? (*user_input_callback_)(prompt)
                                     : std::string();
     }
+
+    std::string ui_state_as_script() const
+        { return ui_state_callback_ ? (*ui_state_callback_)() : std::string(); }
 
     /// wait doing nothing for given number of seconds (can be fractional).
     void wait(float seconds) const;

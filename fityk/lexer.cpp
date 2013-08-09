@@ -351,6 +351,18 @@ Token Lexer::get_filename_token()
     return t;
 }
 
+Token Lexer::get_rest_of_cmd()
+{
+    Token t = get_token();
+    if (t.type == kTokenString || t.type == kTokenNop)
+        return t;
+    while (*cur_ != '\0' && *cur_ != ';' && *cur_ != '#')
+        ++cur_;
+    t.type = kTokenRest;
+    t.length = cur_ - t.str;
+    return t;
+}
+
 Token Lexer::get_rest_of_line()
 {
     // avoid calling here read_token() because it may throw exception

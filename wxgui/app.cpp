@@ -25,6 +25,8 @@
 #include "dataedit.h" //DataEditorDlg::read_transforms()
 #include "sidebar.h" // initializations
 #include "statbar.h" // initializations
+#include "mplot.h" // MainPlot::bgm()
+#include "bgm.h" // [gs]et_bg_subtracted()
 #include "fityk/logic.h"
 
 using namespace std;
@@ -100,21 +102,33 @@ void gui_draw_plot(UserInterface::RepaintMode mode)
     frame->plot_pane()->refresh_plots(now, kAllPlots);
 }
 
-// Switch between normal (=1) and disabled w/ "busy" cursor (0) GUI mode.
-// or force wxYield (-1).
-// Typically. To be used during time-consuming computations.
-// Also used to invoke wxYield();
-void gui_hint(int mode)
+void gui_hint(const string& key, const string& value)
 {
     static wxWindowDisabler *wd = NULL;
-    if (mode == 0)
-        wd = new wxWindowDisabler();
-    else if (mode == 1) {
-        delete wd;
-        wd = NULL;
-    }
-    else if (mode == -1)
+    if (key == "busy") {
+        // This is typically used during time-consuming computations.
+        if (!value.empty())
+            wd = new wxWindowDisabler();
+        else {
+            delete wd;
+            wd = NULL;
+        }
+    } else if (key == "yield") {
         wxYield();
+    } else if (key == "bg_subtracted_from") {
+        frame->get_main_plot()->bgm()->set_bg_subtracted(value, true);
+    } else {
+        ftk->ui()->warn("[GUI] unknown property: " + key);
+    }
+}
+
+string ui_state()
+{
+    string ret;
+    string bg_subtracted = frame->get_main_plot()->bgm()->get_bg_subtracted();
+    if (!bg_subtracted.empty())
+        ret += "\nui bg_subtracted_from =" + bg_subtracted;
+    return ret;
 }
 
 
@@ -199,6 +213,7 @@ bool FApp::OnInit(void)
     ftk->ui()->connect_hint_ui(gui_hint);
     ftk->ui()->connect_exec_command(gui_exec_command);
     ftk->ui()->connect_user_input(gui_user_input);
+    ftk->ui()->connect_ui_state(ui_state);
 
     wxImage::AddHandler(new wxPNGHandler);
 

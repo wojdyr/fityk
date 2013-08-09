@@ -120,6 +120,14 @@ UiApi::connect_user_input(UiApi::t_user_input_callback *func)
     return old;
 }
 
+UiApi::t_ui_state_callback*
+UiApi::connect_ui_state(UiApi::t_ui_state_callback *func)
+{
+    UiApi::t_ui_state_callback *old = ui_state_callback_;
+    ui_state_callback_ = func;
+    return old;
+}
+
 vector<string> complete_fityk_line(Fityk *F,
                                    const char* line_buffer, int start, int end,
                                    const char *text)

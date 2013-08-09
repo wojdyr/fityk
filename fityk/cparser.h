@@ -32,6 +32,7 @@ enum CommandType
     kCmdSet,
     kCmdSleep,
     kCmdTitle,
+    kCmdUi,
     kCmdUndef,
     kCmdUse,
     kCmdShell,

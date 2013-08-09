@@ -324,6 +324,8 @@ void save_state(const Full* F, string& r)
     r += "\n\n";
     models_as_script(F, r, true);
     r += "\n";
+    r += F->ui()->ui_state_as_script();
+    r += "\n";
     r += "\nplot " + F->view.str();
     r += "\nuse @" + S(F->dk.default_idx());
     r += "\nset autoplot = " + F->settings_mgr()->get_as_string("autoplot");

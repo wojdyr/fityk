@@ -283,3 +283,29 @@ void BgManager::read_recent_baselines()
         }
     }
 }
+
+void BgManager::set_bg_subtracted(const string& index_list, bool value)
+{
+    stripped_.resize(ftk->dk.count());
+    const char* str = index_list.c_str();
+    while (*str != '\0') {
+        char *endptr;
+        int n = strtol(str, &endptr, 10);
+        if (str == endptr)
+            break;
+        if (is_index(n, stripped_) &&
+                ftk->mgr.find_function_nr("bg"+S(n)) != -1) {
+            stripped_[n] = value;
+        }
+        str = endptr;
+    }
+}
+
+string BgManager::get_bg_subtracted() const
+{
+    string r;
+    for (size_t i = 0; i != stripped_.size(); ++i)
+        if (stripped_[i])
+            r += " " + S(i);
+    return r;
+}

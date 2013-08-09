@@ -37,6 +37,10 @@ public:
     void read_recent_baselines();
     void write_recent_baselines();
 
+    // handle "ui bg_subtracted_from = index_list"
+    void set_bg_subtracted(const std::string& index_list, bool value);
+    std::string get_bg_subtracted() const;
+
 private:
     const Scale& x_scale_;
     bool spline_;

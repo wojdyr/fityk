@@ -1,6 +1,4 @@
 
-* fix problem with background stored in saved session
-
 ----  1.2.9
 
 * settings: [fitting] use box-constraints=0/1
