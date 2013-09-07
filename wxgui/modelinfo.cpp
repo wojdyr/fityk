@@ -25,7 +25,7 @@ ModelInfoDlg::ModelInfoDlg(wxWindow* parent, wxWindowID id)
 bool ModelInfoDlg::Initialize()
 {
     //  +------------------------------------------------------+
-    //  |  _____       []show extra breaks     num fmt: [6][g] |
+    //  |  _____           [] extra breaks     num fmt: [6][g] |
     //  | [o form] [                                         ] |
     //  | [o gnup] [ mathematical formula (normal or gnuplot ] |
     //  | [o scri] [ variant) or fityk script                ] |
@@ -34,7 +34,7 @@ bool ModelInfoDlg::Initialize()
     //  |          [                                         ] |
     //  +------------------------------------------------------+
 
-    extra_space_cb = new wxCheckBox(this, -1, "show extra breaks");
+    extra_space_cb = new wxCheckBox(this, -1, "extra breaks");
     nf = new NumericFormatPanel(this);
     wxArrayString choices;
     choices.Add("formula");
