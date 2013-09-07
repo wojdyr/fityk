@@ -87,17 +87,6 @@ void PlotPane::refresh_plots(bool now, WhichPlot which_plot)
     }
 }
 
-bool PlotPane::is_background_white()
-{
-    //have all visible plots white background?
-    if (plot_->get_bg_color() != *wxWHITE)
-        return false;
-    for (int i = 0; i < 2; ++i)
-        if (aux_visible(i) && aux_plot_[i]->get_bg_color() != *wxWHITE)
-            return false;
-    return true;
-}
-
 bool PlotPane::aux_visible(int n) const
 {
     return IsSplit() && (aux_split_->GetWindow1() == aux_plot_[n]

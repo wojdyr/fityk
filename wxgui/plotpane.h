@@ -35,7 +35,6 @@ public:
     void save_settings(wxConfigBase *cf) const;
     void read_settings(wxConfigBase *cf);
     void refresh_plots(bool now, WhichPlot which_plot);
-    bool is_background_white();
     const MainPlot* get_plot() const { return plot_; }
     MainPlot* get_plot() { return plot_; }
     AuxPlot* get_aux_plot(int n) const
