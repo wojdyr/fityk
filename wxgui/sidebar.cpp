@@ -776,17 +776,17 @@ void SideBar::do_activate_function()
     update_param_panel();
 }
 
-void SideBar::select_datasets(const vector<int>& datasets)
-{
-    if (datasets.empty())
-        return;
-    wxListView *lv = d->list;
-    int n = lv->GetItemCount();
-    for (int i = 0; i != n; ++i)
-        lv->Select(i, contains_element(datasets, i));
-    if (datasets[0] < n)
-        lv->Focus(datasets[0]);
-}
+//void SideBar::select_datasets(const vector<int>& datasets)
+//{
+//    if (datasets.empty())
+//        return;
+//    wxListView *lv = d->list;
+//    int n = lv->GetItemCount();
+//    for (int i = 0; i != n; ++i)
+//        lv->Select(i, contains_element(datasets, i));
+//    if (datasets[0] < n)
+//        lv->Focus(datasets[0]);
+//}
 
 // Focus is _not_ used for data-related operations, only for function-related
 // ones. Sum and functions are shown only for focused dataset.
