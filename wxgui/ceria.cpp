@@ -758,7 +758,7 @@ CelFile read_cel_file(FILE *f)
         }
         cel.atoms.push_back(atom);
         // skip the rest of the line
-        for (char c = fgetc(f); c != '\n' && c != EOF; c = fgetc(f))
+        for (int c = fgetc(f); c != '\n' && c != EOF; c = fgetc(f))
             ;
     }
     int sgn;
@@ -772,7 +772,7 @@ CelFile read_cel_file(FILE *f)
         return cel;
     }
     cel.sgs = find_first_sg_with_number(sgn);
-    for (char c = fgetc(f); c != '\n' && c != EOF; c = fgetc(f)) {
+    for (int c = fgetc(f); c != '\n' && c != EOF; c = fgetc(f)) {
         if (c == ':') {
             fscanf(f, "%8s", s);
             cel.sgs = find_space_group_setting(sgn, s);
