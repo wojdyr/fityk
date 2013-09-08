@@ -1,4 +1,4 @@
-// This file is part of fityk program. Copyright (C) 2005 Marcin Wojdyr
+// This file is part of fityk program. Copyright 2005 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
 #define BUILDING_LIBFITYK

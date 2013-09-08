@@ -1,4 +1,4 @@
-// This file is part of fityk program. Copyright (C) 2009 Marcin Wojdyr
+// This file is part of fityk program. Copyright 2009 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 // AboutDlg: "about..." dialog
 

@@ -1,5 +1,5 @@
 /*  debyer -- program for calculation of diffration patterns
- *  Copyright (C) 2009 Marcin Wojdyr
+ *  Copyright 2009 Marcin Wojdyr
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
