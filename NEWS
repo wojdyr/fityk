@@ -10,6 +10,7 @@ User-visible changes in version 1.2.2  (2013-08-  ):
 * new function Sigmoid and new category of functions (S-shaped/step/sigmoidal)
 * covariance matrix and standard errors are calculated using MPFIT library
 * GUI: added menu Session > Recent Scripts
+* GUI: added checkbox to Functions > Export Peak Parameters
 * Lua: added F:executef()
 
 User-visible changes in version 1.2.1  (2012-11-05):

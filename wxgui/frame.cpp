@@ -107,7 +107,10 @@
 #include "img/zoom-fit16.h"
 #include "img/powdifpat16.xpm"
 
-using namespace std;
+//using namespace std;
+using std::string;
+using std::vector;
+
 using fityk::FitManager;
 FFrame *frame = NULL;
 fityk::Full *ftk = NULL;
@@ -380,7 +383,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
 END_EVENT_TABLE()
 
 static
-void read_recent_files(list<wxFileName> &recent_files,
+void read_recent_files(std::list<wxFileName> &recent_files,
                        const wxString& config_group)
 {
     recent_files.clear();
@@ -395,7 +398,7 @@ void read_recent_files(list<wxFileName> &recent_files,
 }
 
 static
-void save_recent_files(list<wxFileName> &recent_files,
+void save_recent_files(std::list<wxFileName> &recent_files,
                        const wxString& config_group)
 {
     wxConfigBase *c = wxConfig::Get();
@@ -404,7 +407,7 @@ void save_recent_files(list<wxFileName> &recent_files,
     if (c->HasGroup(config_group))
         c->DeleteGroup(config_group);
     int counter = 0;
-    for (list<wxFileName>::const_iterator i = recent_files.begin();
+    for (std::list<wxFileName>::const_iterator i = recent_files.begin();
          i != recent_files.end() && counter < 9;
          ++i, ++counter) {
         wxString key = config_group + wxT("/") + s2wx(S(counter));
@@ -598,11 +601,11 @@ void FFrame::save_settings(wxConfigBase *cf) const
     //cf->Write (wxT("BotWinHeight"), bottom_window->GetClientSize().GetHeight());
 }
 
-wxMenu* FFrame::add_recent_menu(const list<wxFileName>& files, int id)
+wxMenu* FFrame::add_recent_menu(const std::list<wxFileName>& files, int id)
 {
     wxMenu *menu = new wxMenu;
     int n = 1;
-    for (list<wxFileName>::const_iterator i = files.begin();
+    for (std::list<wxFileName>::const_iterator i = files.begin();
             i != files.end() && n < 16; i++, n++)
         menu->Append(id + n, i->GetFullName(), i->GetFullPath());
     return menu;
@@ -904,7 +907,7 @@ void FFrame::update_menu_previous_zooms()
     while (menu->GetMenuItemCount() > 0) // clear
         menu->Delete(menu->GetMenuItems().GetLast()->GetData());
     const vector<string>& items = zoom_hist_.items();
-    int last = min(items.size() - 1, pos + 5);
+    int last = std::min(items.size() - 1, pos + 5);
     for (int i = last; i >= 0 && i > last - 10; i--)
         menu->AppendRadioItem(ID_G_V_ZOOM_FIRST + i, s2wx(items[i]));
     menu->Check(ID_G_V_ZOOM_FIRST + pos, true);
@@ -986,27 +989,6 @@ void FFrame::OnExample(wxCommandEvent& event)
 
 namespace {
 
-class ExtraCheckBox: public wxPanel
-{
-public:
-    ExtraCheckBox(wxWindow* parent, wxString label, bool value)
-        : wxPanel(parent, -1)
-    {
-        cb = new wxCheckBox(this, -1, label);
-        cb->SetValue(value);
-        wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-#ifdef __WXMSW__
-        sizer->AddSpacer(100);
-        sizer->Add(cb, 0, wxLEFT|wxBOTTOM, 5);
-#else
-        sizer->Add(cb);
-#endif
-        SetSizerAndFit(sizer);
-    }
-    wxCheckBox *cb;
-};
-
-
 wxWindow* qload_filedialog_extra(wxWindow* parent)
 {
     bool def_sqrt = (S(ftk->get_settings()->default_sigma) == "sqrt");
@@ -1073,7 +1055,7 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
                 for (size_t i = 0; i < sel.size(); ++i)
                     paths.push_back(s2wx(f + "::::" + S(sel[i])));
             }
-        } catch (const runtime_error& /*e*/) {
+        } catch (const std::runtime_error& /*e*/) {
         } // ignore the exception here, it'll be thrown later
     }
 
@@ -1085,7 +1067,7 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
     }
     wxWindow *extra = fdlg.GetExtraControl();
     if (extra != NULL) {
-        bool checked = wxDynamicCast(extra,ExtraCheckBox)->cb->GetValue();
+        bool checked = wxDynamicCast(extra,ExtraCheckBox)->is_checked();
         string selected = checked ? "sqrt" : "one";
         if (ftk->get_settings()->default_sigma != selected)
             cmd = "with default_sigma=" + selected + " " + cmd;
@@ -1140,10 +1122,10 @@ void FFrame::OnDataTable(wxCommandEvent&)
 
 void FFrame::OnDataEditor (wxCommandEvent&)
 {
-    vector<pair<int,fityk::Data*> > dd;
+    vector<std::pair<int,fityk::Data*> > dd;
     vector<int> sel = get_selected_data_indices();
     for (vector<int>::const_iterator i = sel.begin(); i != sel.end(); ++i)
-        dd.push_back(make_pair(*i, ftk->dk.data(*i)));
+        dd.push_back(std::make_pair(*i, ftk->dk.data(*i)));
     EditTransDlg data_editor(this, -1, dd);
     data_editor.ShowModal();
     update_menu_saved_transforms();
@@ -1212,7 +1194,7 @@ void FFrame::OnDataRmShirley (wxCommandEvent&)
 
 void FFrame::OnDataExport (wxCommandEvent&)
 {
-    export_data_dlg(this);
+    export_data_dlg(get_selected_data_indices(), this, &export_dir_);
 }
 
 void FFrame::OnDefinitionMgr(wxCommandEvent&)
@@ -1253,8 +1235,7 @@ void FFrame::OnModelExport(wxCommandEvent&)
 
 void FFrame::OnParametersExport(wxCommandEvent&)
 {
-    export_as_info("info peaks", "Export parameters to file", ".peaks",
-                   "parameters of functions (*.peaks)|*.peaks");
+    export_peak_parameters(get_selected_data_indices(), this, &export_dir_);
 }
 
 void FFrame::export_as_info(const string& info, const char* caption,
@@ -1388,7 +1369,7 @@ void FFrame::OnLogStart (wxCommandEvent&)
         string cmd = "set logfile='" + wx2s(fdlg.GetPath()) + "'";
         wxWindow *extra = fdlg.GetExtraControl();
         if (extra != NULL) {
-            bool checked = wxDynamicCast(extra,ExtraCheckBox)->cb->GetValue();
+            bool checked = wxDynamicCast(extra,ExtraCheckBox)->is_checked();
             if (checked != ftk->get_settings()->log_full)
                 cmd += ", log_full=" + S(checked ? "1" : "0");
         }
@@ -1601,7 +1582,7 @@ void FFrame::update_menu_functions()
     }
     // -- end of the workaround
 
-    for (size_t i = 0; i < min(pcnt, cnt); i++)
+    for (size_t i = 0; i < std::min(pcnt, cnt); i++)
         if (func_type_menu_->GetLabel(ID_G_M_PEAK_N+i) != s2wx(peak_types_[i]))
             func_type_menu_->SetLabel(ID_G_M_PEAK_N+i, s2wx(peak_types_[i]));
     for (size_t i = cnt; i < pcnt; i++)
@@ -1974,7 +1955,7 @@ void FFrame::update_config_menu(wxMenu *menu)
     wxArrayString filenames;
     int n = wxDir::GetAllFiles(wxGetApp().config_dir, &filenames);
     int config_number_limit = ID_G_LCONF_X_END - ID_G_LCONF_X;
-    for (int i = 0; i < min(n, config_number_limit); ++i) {
+    for (int i = 0; i < std::min(n, config_number_limit); ++i) {
         wxFileName fn(filenames[i]);
         menu->Append(ID_G_LCONF_X + i, fn.GetFullName(), fn.GetFullPath());
     }
