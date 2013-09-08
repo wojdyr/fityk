@@ -3,6 +3,19 @@
 
 // tests for bindings are in the samples/ directory
 
+%{
+// suppress a number of clang warnings from SWIG-generated code
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wused-but-marked-unused"
+#pragma clang diagnostic ignored "-Wmissing-variable-declarations"
+#pragma clang diagnostic ignored "-Wunreachable-code"
+#pragma clang diagnostic ignored "-Wmissing-prototypes"
+#pragma clang diagnostic ignored "-Wshadow"
+#pragma clang diagnostic ignored "-Wc++98-compat-pedantic"
+#pragma clang diagnostic ignored "-Wconditional-uninitialized"
+#endif
+%}
+
 #if defined(SWIGPERL)
 // Perl has convention of capitalized module names
 %module Fityk
