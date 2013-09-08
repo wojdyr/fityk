@@ -1,8 +1,10 @@
 *~
+*.bak
 *.pyc
 cscope.out
 tags
 Makefile.in
+Makefile
 configure
 config.h.in
 aclocal.m4
@@ -18,10 +20,16 @@ doc/latex/
 doc/web/
 doc/doctrees/
 samples/tmp_*
-src/swig/Fityk.pm
-src/swig/fityk.py
-src/swig/fityk_*.cpp
-src/swig/luarun.h
+fityk/swig/Fityk.pm
+fityk/swig/fityk.py
+fityk/swig/fityk_*.cpp
+fityk/swig/luarun.h
+fityk/swig/java/
 doc/screenshots/*.png
 ! doc/screenshots/fityk076.png
-src/cmpfit/
+fityk/cmpfit/test*
+fityk/cmpfit/*.patch
+*-build/
+*-build-*/
+fityk-?.?.?-setup.exe
+fityk-?.?.?.tar.bz2
