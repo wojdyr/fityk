@@ -369,6 +369,7 @@ private:
     wxTextCtrl *ext_tc;
 };
 
+DECLARE_APP(App)
 IMPLEMENT_APP(App)
 
 

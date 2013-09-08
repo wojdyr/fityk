@@ -40,16 +40,14 @@ using namespace std;
 // not thread-safe, but let's keep it simple
 static FILE* message_sink_ = NULL;
 
-namespace fityk {
+namespace {
+using namespace fityk;
+
 void write_message_to_file(UserInterface::Style style, string const& s)
 {
     if (message_sink_ && style != UserInterface::kInput)
         fprintf(message_sink_, "%s\n", s.c_str());
 }
-} // namespace fityk
-
-namespace {
-using namespace fityk;
 
 realt get_wssr_or_ssr(const Full* priv, int dataset, bool weigthed)
 {

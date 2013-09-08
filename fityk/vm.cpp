@@ -493,7 +493,7 @@ void run_const_op(const Full* F, const std::vector<realt>& numbers,
 
         case OP_DATASET:
             throw ExecuteError("@n can not be used in this context");
-            break; // unreachable
+            //break; // unreachable
 
         default:
             //cerr << "Unknown operator in VM code: " << *i << endl;

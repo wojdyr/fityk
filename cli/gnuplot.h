@@ -6,6 +6,9 @@
 
 #include <stdio.h>
 
+namespace fityk { class Fityk; }
+extern fityk::Fityk* ftk; // defined in cli/main.cpp
+
 class GnuPlot
 {
 public:

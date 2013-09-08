@@ -27,8 +27,6 @@
 using namespace std;
 using fityk::Point;
 
-extern fityk::Fityk* ftk; // defined in cli/main.cpp
-
 #ifndef HAVE_FINITE
 static int finite(double x) { return x == x; }
 #endif

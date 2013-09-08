@@ -52,6 +52,7 @@ Fityk* ftk = 0;
 
 //------ implementation of CLI specific methods for UiApi callbacks ------
 
+static
 void cli_draw_plot (UiApi::RepaintMode /*mode*/)
 {
     static GnuPlot my_gnuplot;

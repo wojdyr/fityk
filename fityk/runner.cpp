@@ -745,7 +745,7 @@ void Runner::execute_command(Command& c, int ds)
             break;
         case kCmdQuit:
             throw ExitRequestedException();
-            break; // unreachable
+            //break; // unreachable
         case kCmdShell:
             system(c.args[0].str);
             break;

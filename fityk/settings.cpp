@@ -184,7 +184,7 @@ double SettingsMgr::get_as_number(string const& k) const
     else if (opt.vtype == kBool)
         return double(m_.*opt.val.b.ptr);
     throw ExecuteError("Not a number: option " +  k);
-    return 0; // avoid compiler warning
+    //return 0; // avoid compiler warning
 }
 
 int SettingsMgr::get_enum_index(string const& k) const
