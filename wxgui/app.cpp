@@ -89,8 +89,7 @@ string gui_user_input(const string& prompt)
             return "n";
         else
             return "";
-    }
-    else {
+    } else {
         wxString s = wxGetTextFromUser(s2wx(prompt), "Query");
         return strip_string(wx2s(s));
     }
@@ -199,8 +198,7 @@ bool FApp::OnInit(void)
     if (cmdLineParser.Parse(false) != 0) {
         cmdLineParser.Usage();
         return false; //false = exit the application
-    }
-    else if (cmdLineParser.Found(wxT("V"))) {
+    } else if (cmdLineParser.Found(wxT("V"))) {
         wxMessageOutput::Get()->Printf(wxT("fityk version %s\n"), wxT(VERSION));
         return false; //false = exit the application
     } //the rest of options will be processed in process_argv()
@@ -324,8 +322,7 @@ struct less_filename : public binary_function<string, string, bool> {
         if (isdigit(x[n]) && isdigit(y[n])) {
             string xc(x, n), yc(y, n);
             return strtod(xc.c_str(), 0) < strtod(yc.c_str(), 0);
-        }
-        else
+        } else
             return x < y;
     }
 };

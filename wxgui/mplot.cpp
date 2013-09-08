@@ -189,8 +189,7 @@ void stroke_line(wxDC& dc, const vector<double>& YY, int from=0, int to=-1)
         for (int i = from+1; i <= to; ++i)
             path.AddLineToPoint(i, YY[i]);
         gc->StrokePath(path);
-    }
-    else {
+    } else {
         int n = to - from + 1;
         wxPoint *points = new wxPoint[n];
         for (int i = 0; i < n; ++i) {
@@ -325,8 +324,7 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
     if (mode_ == mmd_bg) {
         bgm_->update_focused_data(focused_data);
         draw_baseline(dc);
-    }
-    else {
+    } else {
         if (plabels_visible_)
             draw_plabels(dc, model, !monochrome);
     }
@@ -443,8 +441,7 @@ void MainPlot::draw_plabels (wxDC& dc, const Model* model, bool set_pen)
         if (vertical_plabels_) {
             dc.GetMultiLineTextExtent(label, &h, &w); // w and h swapped
             h = 0; // Y correction is not needed
-        }
-        else
+        } else
             dc.GetMultiLineTextExtent(label, &w, &h);
         int X = peaktop.x - w/2;
         int Y = peaktop.y - h - 2;
@@ -827,8 +824,7 @@ void MainPlot::update_mouse_hints()
             left = "cancel";
         if (pressed_mouse_button_ != 3)
             right = "cancel";
-    }
-    else { //button not pressed
+    } else { //button not pressed
         switch (mode_) {
             case mmd_peak:
                 left = "move peak"; right = "peak menu";
@@ -881,12 +877,10 @@ void MainPlot::OnMouseMove(wxMouseEvent &event)
                     overlay.switch_mode(get_normal_ovmode());
                     overlay.draw_overlay();
                 }
-            }
-            else
+            } else
                 overlay.switch_mode(Overlay::kVLine);
         }
-    }
-    else if (pressed_mouse_button_ == 1 && mouse_op_ == kDragPeak
+    } else if (pressed_mouse_button_ == 1 && mouse_op_ == kDragPeak
              && over_peak_ >= 0) {
         dragged_func_->move(event.ShiftDown(), X, Y, xs.valr(X), ys.valr(Y));
         frame->set_status_text(dragged_func_->status());
@@ -1007,30 +1001,25 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         connect_esc_to_cancel(true);
         overlay.start_mode(Overlay::kRect, downX, downY);
         frame->set_status_text("Select second corner to zoom...");
-    }
-    else if (mouse_op_ == kShowPlotMenu) {
+    } else if (mouse_op_ == kShowPlotMenu) {
         show_popup_menu(event);
         pressed_mouse_button_ = 0;
-    }
-    else if (mouse_op_ == kShowPeakMenu) {
+    } else if (mouse_op_ == kShowPeakMenu) {
         show_peak_menu(event);
         pressed_mouse_button_ = 0;
-    }
-    else if (mouse_op_ == kVerticalZoom) {
+    } else if (mouse_op_ == kVerticalZoom) {
         SetCursor(wxCURSOR_SIZENS);
         CaptureMouse();
         connect_esc_to_cancel(true);
         overlay.start_mode(Overlay::kHRange, downX, downY);
         frame->set_status_text("Select vertical span...");
-    }
-    else if (mouse_op_ == kHorizontalZoom) {
+    } else if (mouse_op_ == kHorizontalZoom) {
         SetCursor(wxCURSOR_SIZEWE);
         CaptureMouse();
         connect_esc_to_cancel(true);
         overlay.start_mode(Overlay::kVRange, downX, downY);
         frame->set_status_text("Select horizontal span...");
-    }
-    else if (mouse_op_ == kDragPeak) {
+    } else if (mouse_op_ == kDragPeak) {
         frame->get_sidebar()->activate_function(over_peak_);
         SetCursor(wxCURSOR_SIZENWSE);
         connect_esc_to_cancel(true);
@@ -1040,16 +1029,13 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         overlay.start_mode(Overlay::kFunction, downX, downY);
         draw_overlay_limits(p);
         frame->set_status_text("Moving %" + p->name + "...");
-    }
-    else if (mouse_op_ == kAddBgPoint) {
+    } else if (mouse_op_ == kAddBgPoint) {
         bgm_->add_background_point(x, y);
         refresh();
-    }
-    else if (mouse_op_ == kDeleteBgPoint) {
+    } else if (mouse_op_ == kDeleteBgPoint) {
         bgm_->rm_background_point(x);
         refresh();
-    }
-    else if (mouse_op_ == kAddPeakTriangle) {
+    } else if (mouse_op_ == kAddPeakTriangle) {
         const Tplate* tp = ftk->get_tpm()->get_tp(frame->get_peak_type());
         if (tp == NULL)
             return;
@@ -1067,14 +1053,12 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
         connect_esc_to_cancel(true);
         frame->set_status_text("Add function from wireframe...");
         // see also: add_peak_from_draft()
-    }
-    else if (mouse_op_ == kAddPeakInRange) {
+    } else if (mouse_op_ == kAddPeakInRange) {
         SetCursor(wxCURSOR_SIZEWE);
         connect_esc_to_cancel(true);
         overlay.start_mode(Overlay::kVRange, downX, downY);
         frame->set_status_text("Select range to add a peak in it...");
-    }
-    else if (mouse_op_ == kActivateSpan || mouse_op_ == kDisactivateSpan ||
+    } else if (mouse_op_ == kActivateSpan || mouse_op_ == kDisactivateSpan ||
              mouse_op_ == kActivateRect || mouse_op_ == kDisactivateRect) {
         string act_str;
         if (mouse_op_ == kActivateSpan || mouse_op_ == kActivateRect) {
@@ -1090,8 +1074,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
                 return;
             }
             act_str = "activate";
-        }
-        else
+        } else
             act_str = "disactivate";
         string status_beginning;
         CaptureMouse();
@@ -1100,8 +1083,7 @@ void MainPlot::OnButtonDown (wxMouseEvent &event)
             SetCursor(wxCURSOR_SIZENWSE);
             overlay.start_mode(Overlay::kRect, downX, downY);
             status_beginning = "Select data in rectangle to ";
-        }
-        else {
+        } else {
             SetCursor(wxCURSOR_SIZEWE);
             overlay.start_mode(Overlay::kVRange, downX, downY);
             status_beginning = "Select data range to ";
@@ -1166,8 +1148,7 @@ void freeze_functions_in_range(double x1, double x2, bool freeze)
                 ftk->mgr.get_variable((*i)->used_vars().get_idx(j));
             if (freeze && var->is_simple()) {
                 cmd += "$" + var->name + "=" + eS(var->value()) + "; ";
-            }
-            else if (!freeze && var->is_constant()) {
+            } else if (!freeze && var->is_constant()) {
                 cmd += "$" + var->name + "=~" + eS(var->value()) + "; ";
             }
         }
@@ -1212,14 +1193,12 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         double y2 = ys.valr(event.GetY());
         frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)),
                            RealRange(min(y1,y2), max(y1,y2)));
-    }
-    else if (mouse_op_ == kVerticalZoom) {
+    } else if (mouse_op_ == kVerticalZoom) {
         double y1 = ys.valr(downY);
         double y2 = ys.valr(event.GetY());
         frame->change_zoom(ftk->view.hor,
                            RealRange(min(y1,y2), max(y1,y2)));
-    }
-    else if (mouse_op_ == kHorizontalZoom) {
+    } else if (mouse_op_ == kHorizontalZoom) {
         double x1 = xs.valr(downX);
         double x2 = xs.valr(event.GetX());
         frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)),
@@ -1271,8 +1250,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
         exec(frame->get_datasets() + "guess "
                   + frame->get_guess_string(frame->get_peak_type())
                   + " [" + eS(min(x1,x2)) + " : " + eS(max(x1,x2)) + "]");
-    }
-    else {
+    } else {
         ;// nothing - action done in OnButtonDown()
     }
 }
@@ -1312,8 +1290,7 @@ void MainPlot::add_peak_from_draft(int X, int Y)
     if (*(tail.end() - 1) == ')') {
         tail.resize(tail.size() - 1);
         tail += ", " + args + ")";
-    }
-    else
+    } else
         tail += "(" + args + ")";
     string cmd;
     if (ftk->dk.count() == 1)
@@ -1680,8 +1657,7 @@ void MainPlotConfDlg::OnColor(wxColourPickerEvent& event)
         mp_->set_bg_color(event.GetColour());
         frame->update_data_pane();
         data_color_combo_->Refresh();
-    }
-    else if (id == inactive_cp_->GetId())
+    } else if (id == inactive_cp_->GetId())
         mp_->inactiveDataCol = event.GetColour();
     else if (id == axis_cp_->GetId())
         mp_->xAxisCol = event.GetColour();

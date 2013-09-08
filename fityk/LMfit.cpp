@@ -61,8 +61,7 @@ double LMfit::run_method(std::vector<realt>* best_a)
                     F_->msg("... converged.");
                     break;
                 }
-            }
-            else
+            } else
                 small_change_counter = 0;
 
             compute_derivatives(*best_a, fitted_datas_, alpha_, beta_);

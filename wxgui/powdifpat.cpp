@@ -657,8 +657,7 @@ void PhasePanel::OnAddToQLButton(wxCommandEvent&)
                                   wxT("Overwrite?"), wxYES_NO|wxICON_QUESTION);
         if (answer != wxYES)
             return;
-    }
-    else
+    } else
         saved_phase_lb->Append(name);
 
     CelFile cel;
@@ -1154,8 +1153,7 @@ void PowderBook::set_peak_name(const string& name)
     if (startswith(name, "Split")) {
         split_cb->SetValue(true);
         basename = name.substr(5);
-    }
-    else
+    } else
         basename = name;
 
     int sel = 0;
@@ -1304,8 +1302,7 @@ wxString PowderBook::prepare_commands()
             }
             ++lambda_symbol;
         }
-    }
-    else
+    } else
         ++lambda_symbol;
 
     // corrections
@@ -1335,8 +1332,7 @@ wxString PowderBook::prepare_commands()
     if (!xc_args.empty()) {
         if (xc_args == wxT("p6")) { // special case, we don't need "define"
             s += wxT("%pd_xcorr = Constant($pd_p6)\n");
-        }
-        else {
+        } else {
             s += wxT("define PdXcorr(") + xc_args + wxT(") = ") + xc_def
                 + wxT("\n");
             s += wxT("%pd_xcorr = PdXcorr(") + xc_vargs + wxT(")\n");
@@ -1435,8 +1431,7 @@ wxString PowderBook::prepare_commands()
                 double c = cos(ctr/2);
                 double hwhm = sqrt(u_val*t*t + v_val*t + w_val + z_val/(c*c))/2;
                 s += wvar + wxString::Format(wxT(" = ~%.5g\n"), hwhm);
-            }
-            else if (width_sel == 1 /*H2=Utan2T...*/) {
+            } else if (width_sel == 1 /*H2=Utan2T...*/) {
                 s +=  wvar + wxT(" = sqrt(");
                 if (has_u)
                     s += wxT("$pd_u*tan(") + theta_rad + wxT(")^2");
@@ -1461,8 +1456,7 @@ wxString PowderBook::prepare_commands()
             wxString svar = pre + wxT("s") + hkl_str;
             if (shape_sel == 0 /*independent*/) {
                 s += svar + wxString::Format(wxT(" = ~%.5g\n"), a_val);
-            }
-            else if (shape_sel == 1 || shape_sel == 2) {
+            } else if (shape_sel == 1 || shape_sel == 2) {
                 s += svar + wxT(" = ");
                 if (has_a)
                     s += wxT("$pd_a");
@@ -1560,8 +1554,7 @@ wxString PowderBook::prepare_commands()
                     s += wvar + wxT(", ") + wvar;
                     if (has_shape)
                         s += wxT(", ") + svar + wxT(", ") + svar;
-                }
-                else { // normal (not split) function
+                } else { // normal (not split) function
                     s += wvar;
                     if (has_shape)
                         s += wxT(", ") + svar;
@@ -1747,11 +1740,9 @@ void PowderBook::OnAnodeSelected(wxCommandEvent& event)
             if (s.EndsWith(wxT("A12"))) {
                 a1 = i->alpha1;
                 a2 = i->alpha2;
-            }
-            else if (s.EndsWith(wxT("A1"))) {
+            } else if (s.EndsWith(wxT("A1"))) {
                 a1 = i->alpha1;
-            }
-            else
+            } else
                 a1 = (2 * i->alpha1 + i->alpha2) / 3.;
             lambda_ctrl[0]->set_value(a1);
             if (a2 != 0) {
@@ -1816,8 +1807,7 @@ void PowderBook::OnQuickListImport(wxCommandEvent&)
             wxMessageBox(wxT("Support for CIF files is not ready yet."),
                          wxT("Sorry."), wxOK|wxICON_ERROR);
             continue;
-        }
-        else {
+        } else {
             FILE *f = wxFopen(paths[i], wxT("r"));
             if (f) {
                 CelFile cel = read_cel_file(f);
@@ -1843,8 +1833,7 @@ void PowderBook::OnPageChanged(wxBookCtrlEvent& event)
             p->update_miller_indices(false);
             p->sample_plot_->refresh();
         }
-    }
-    else if (event.GetSelection() == 4) { // action
+    } else if (event.GetSelection() == 4) { // action
 #if !STANDALONE_POWDIFPAT
         action_txt->SetValue(prepare_commands());
 #endif
@@ -1892,8 +1881,7 @@ double PowderBook::d2x(double d) const
     if (xaxis_val == 0) { // 2T
         double lambda0 = lambda_ctrl[0]->get_value();
         return 180 / M_PI * 2 * asin(lambda0 / (2 * d));
-    }
-    else if (xaxis_val == 1) // Q
+    } else if (xaxis_val == 1) // Q
         return 2 * M_PI / d;
     else if (xaxis_val == 2) // d
         return d;
@@ -1991,8 +1979,7 @@ void PowderBook::update_phase_labels(PhasePanel* p, int active)
             PhasePanel *page = new PhasePanel(sample_nb, this);
             sample_nb->AddPage(page, wxT("+"));
         }
-    }
-    else if (active != last && last_empty) {
+    } else if (active != last && last_empty) {
         sample_nb->DeletePage(last);
     }
 }

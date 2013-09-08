@@ -110,13 +110,11 @@ void PlotPane::show_aux(int n, bool show)
                 aux_plot_[n]->Show(true);
                 aux_split_->Unsplit(aux_plot_[n==0 ? 1 : 0]);
             }
-        }
-        else {//one was invisible
+        } else {//one was invisible
             aux_split_->SplitHorizProp(aux_plot_[0], aux_plot_[1]);
             aux_plot_[n]->Show(true);
         }
-    }
-    else { //hide
+    } else { //hide
         if (aux_split_->IsSplit()) //both where visible
             aux_split_->Unsplit(aux_plot_[n]);
         else // only one was visible

@@ -162,8 +162,7 @@ int parse_atoms(const char* s, Crystal& cr)
             a.neutron_sf = find_in_nn92(a.symbol);
             cr.atoms.push_back(a);
             add_symmetric_images(cr.atoms[atom_count], cr.sg_ops);
-        }
-        else {
+        } else {
             Atom &b = cr.atoms[atom_count];
             if (strcmp(a.symbol, b.symbol) != 0) {
                 memcpy(b.symbol, a.symbol, 8);
@@ -290,14 +289,12 @@ const SpaceGroupSetting* parse_hm_or_hall(const char *symbol)
         if (*symbol == '\0' || *symbol == ':') {
             s[i] = '\0';
             break;
-        }
-        else if (isspace(*symbol)) {
+        } else if (isspace(*symbol)) {
             s[i] = ' ';
             ++symbol;
             while (isspace(*symbol))
                 ++symbol;
-        }
-        else {
+        } else {
             // In HM symbols, first character is upper case letter.
             // In Hall symbols, the second character is upper case.
             // The first and second chars are either upper or ' ' or '-'.
@@ -319,8 +316,7 @@ const SpaceGroupSetting* parse_hm_or_hall(const char *symbol)
                 }
             }
             return p;
-        }
-        else if (strcmp(p->Hall + (p->Hall[0] == ' ' ? 1 : 0), s) == 0) {
+        } else if (strcmp(p->Hall + (p->Hall[0] == ' ' ? 1 : 0), s) == 0) {
             return p;
         }
     }
@@ -353,8 +349,7 @@ const SpaceGroupSetting* parse_any_sg_symbol(const char *symbol)
         const char* colon = strchr(symbol, ':');
         int sgn = strtol(symbol, NULL, 10);
         return find_space_group_setting(sgn, colon);
-    }
-    else {
+    } else {
         return parse_hm_or_hall(symbol);
     }
 }
@@ -392,8 +387,7 @@ void Crystal::set_space_group(const SpaceGroupSetting* sgs_)
     }
     if (sgs->Hall[0] == '-') {
         sg_ops.inv = true;
-    }
-    else {
+    } else {
         const char* t = strstr(sgs->Hall, " -1");
         if (t != NULL) {
             sg_ops.inv = true;
@@ -434,8 +428,7 @@ bool is_sys_absent(const SgOps& sg_ops, int h, int k, int l)
         if (h == M[0] && k == M[1] && l == M[2]) {
             if (has_nonunit_tr(sg_ops, T, h, k, l))
                 return true;
-        }
-        else if (h == -M[0] && k == -M[1] && l == -M[2] && sg_ops.inv) {
+        } else if (h == -M[0] && k == -M[1] && l == -M[2] && sg_ops.inv) {
             int ts[3] = { sg_ops.inv_t.x - T[0],
                           sg_ops.inv_t.y - T[1],
                           sg_ops.inv_t.z - T[2] };
@@ -548,8 +541,7 @@ void set_lpf(PlanesWithSameD &bp, RadiationType radiation, double lambda)
             // LP = (1 + cos(2T)^2) / (cos(T) sin(T)^2)
             //  (Pecharsky & Zavalij, eq. (2.70), p. 192)
             bp.lpf = (1 + cos(2*T)*cos(2*T)) / (cos(T)*sin(T)*sin(T));
-        }
-        else if (radiation == kNeutron) {
+        } else if (radiation == kNeutron) {
             // Kisi & Howard, Applications of Neutron Powder Diffraction (2.38)
             // no polarization only the Lorentz factor:
             // L = 1 / (4 sin^2(T) cos(T))
@@ -777,15 +769,13 @@ CelFile read_cel_file(FILE *f)
             fscanf(f, "%8s", s);
             cel.sgs = find_space_group_setting(sgn, s);
             break;
-        }
-        else if (isdigit(c)) {
+        } else if (isdigit(c)) {
             ungetc(c, f);
             int pc_setting;
             fscanf(f, "%d", &pc_setting);
             cel.sgs = get_sg_from_powdercell_rgnr(sgn, pc_setting);
             break;
-        }
-        else if (!isspace(c))
+        } else if (!isspace(c))
             break;
     }
     return cel;

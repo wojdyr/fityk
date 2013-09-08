@@ -68,8 +68,7 @@ void ModelManager::sort_variables()
             for (vector<Variable*>::iterator i = variables_.begin();
                     i != variables_.end(); ++i)
                 (*i)->set_var_idx(variables_);
-        }
-        else
+        } else
             ++pos;
     }
 }
@@ -83,8 +82,7 @@ string ModelManager::get_or_make_variable(const VMData* vd)
     int ret;
     if (vd->index != -1) {
         ret = vd->index;
-    }
-    else {
+    } else {
         ret = next_var_name();
         assign_variable(ret, func);
     }
@@ -112,8 +110,7 @@ Variable* make_compound_variable(const string &name, VMData* vd,
                 used_vars.push_back(vname);
             }
             *i = idx;
-        }
-        else if (VMData::has_idx(*i))
+        } else if (VMData::has_idx(*i))
             ++i;
     }
 
@@ -160,8 +157,7 @@ int ModelManager::make_variable(const string &name, VMData* vd)
                 Variable *tilde_var = new Variable(tname, parameters_.size());
                 parameters_.push_back(value);
                 variables_.push_back(tilde_var);
-            }
-            else if (VMData::has_idx(*op))
+            } else if (VMData::has_idx(*op))
                 ++op;
         }
 
@@ -260,8 +256,7 @@ int ModelManager::add_variable(Variable* new_var)
     if (pos == -1) {
         pos = variables_.size();
         variables_.push_back(var.release());
-    }
-    else {
+    } else {
         if (var->used_vars().depends_on(pos, variables_)) { //check for loops
             throw ExecuteError("loop in dependencies of $" + var->name);
         }
@@ -284,8 +279,7 @@ string ModelManager::assign_variable_copy(const Variable* orig,
         parameters_.push_back(val);
         int gpos = parameters_.size() - 1;
         var = new Variable(name, gpos);
-    }
-    else {
+    } else {
         vector<string> vars;
         for (int i = 0; i != orig->used_vars().get_count(); ++i) {
             int v_idx = orig->used_vars().get_idx(i);
@@ -315,8 +309,7 @@ void ModelManager::delete_variables(const vector<string> &names)
             if (k == -1)
                 throw ExecuteError("undefined variable: $" + *i);
             nn.insert(k);
-        }
-        else
+        } else
             for (size_t j = 0; j != variables_.size(); ++j)
                 if (match_glob(variables_[j]->name.c_str(), i->c_str()))
                     nn.insert(j);
@@ -356,8 +349,7 @@ void ModelManager::delete_funcs(const vector<string>& names)
             if (k == -1)
                 throw ExecuteError("undefined function: %" + *i);
             nn.insert(k);
-        }
-        else
+        } else
             for (size_t j = 0; j != functions_.size(); ++j)
                 if (match_glob(functions_[j]->name.c_str(), i->c_str()))
                     nn.insert(j);
@@ -514,8 +506,7 @@ int ModelManager::add_func(Function* func)
         functions_[nr] = func;
         remove_unreferred();
         ctx_->msg("%" + func->name + " replaced.");
-    }
-    else {
+    } else {
         nr = functions_.size();
         functions_.push_back(func);
         ctx_->msg("%" + func->name + " created.");

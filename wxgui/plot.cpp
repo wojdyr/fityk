@@ -40,8 +40,7 @@ double Scale::valr(int px) const
         double delta = fabs(val - exp((px-1) / scale + origin));
         double t = pow(10, floor(log10(delta)));
         return floor(val / t + 0.5) * t;
-    }
-    else {
+    } else {
         double val = px / scale + origin;
         double delta = fabs(0.5 / scale);
         double t = pow(10, floor(log10(delta)));
@@ -88,8 +87,7 @@ void Overlay::draw_overlay()
                 double m = (double) dy / dx;
                 dc.DrawLine(0, y1_ - m * x1_,
                             width, y1_ + m * (width - x1_));
-            }
-            else {
+            } else {
                 double im = (double) dx / dy;
                 dc.DrawLine(x1_ - y1_ * im, 0,
                             x1_ + (height - y1_) * im, height);
@@ -177,8 +175,7 @@ void FPlot::set_font(wxDC &dc, wxFont const& font)
         wxFont f = font;
         f.SetPointSize(f.GetPointSize() * pen_width);
         dc.SetFont(f);
-    }
-    else
+    } else
         dc.SetFont(font);
 }
 
@@ -337,8 +334,7 @@ void stroke_lines(wxDC& dc, wxGraphicsContext *gc, int n, wxPoint2DDouble *pp)
         return;
     if (gc) {
         gc->StrokeLines(n, pp);
-    }
-    else {
+    } else {
         wxPoint *points = new wxPoint[n];
         for (int i = 0; i < n; ++i) {
             points[i].x = iround(pp[i].m_x);
@@ -399,13 +395,11 @@ void FPlot::draw_data_by_activity(wxDC& dc, wxPoint2DDouble *pp,
             for (int i = 0; i != len; ++i)
                 if (aa[i] == state)
                     gc->DrawEllipse(pp[i].m_x - r/2., pp[i].m_y - r/2., r, r);
-        }
-        else
+        } else
             for (int i = 0; i != len; ++i)
                 if (aa[i] == state)
                     dc.DrawEllipse(pp[i].m_x - r/2, pp[i].m_y - r/2, r, r);
-    }
-    else if (!line_between_points) { // if we are here, point_radius == 1
+    } else if (!line_between_points) { // if we are here, point_radius == 1
         if (gc) {
             wxGraphicsPath path = gc->CreatePath();
             for (int i = 0; i != len; ++i)
@@ -418,8 +412,7 @@ void FPlot::draw_data_by_activity(wxDC& dc, wxPoint2DDouble *pp,
             gc->SetAntialiasMode(wxANTIALIAS_NONE);
             gc->StrokePath(path);
             gc->SetAntialiasMode(wxANTIALIAS_DEFAULT);
-        }
-        else
+        } else
             for (int i = 0; i != len; ++i)
                 if (aa[i] == state)
                     dc.DrawPoint(iround(pp[i].m_x), iround(pp[i].m_y));

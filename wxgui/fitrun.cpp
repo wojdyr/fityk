@@ -40,8 +40,7 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id)
     if (ftk->dk.count() == 1) {
         data_rb->Enable(1, false);
         separately_cb->Enable(false);
-    }
-    else {
+    } else {
         bool independent = ftk->are_independent(ftk->dk.datas());
         separately_cb->SetValue(independent);
     }

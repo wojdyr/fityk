@@ -171,8 +171,7 @@ void info_functions(const Full* F, const string& name, string& result)
     if (!contains_element(name, '*')) {
         const Function *f = F->mgr.find_function(name);
         result += f->get_basic_assignment();
-    }
-    else {
+    } else {
         v_foreach (Function*, i, F->mgr.functions())
             if (match_glob((*i)->name.c_str(), name.c_str()))
                 result += (result.empty() ? "" : "\n")
@@ -185,8 +184,7 @@ void info_variables(const Full* F, const string& name, string& result)
     if (!contains_element(name, '*')) {
         const Variable* var = F->mgr.find_variable(name);
         result += get_variable_info(F, var);
-    }
-    else {
+    } else {
         v_foreach (Variable*, i, F->mgr.variables())
             if (match_glob((*i)->name.c_str(), name.c_str()))
                 result += (result.empty() ? "" : "\n")
@@ -380,49 +378,38 @@ int eval_one_info_arg(const Full* F, int ds, const vector<Token>& args, int n,
             result += F->fit_manager()->param_history_info();
         else if (word == "filename") {
             result += F->dk.data(ds)->get_filename();
-        }
-        else if (word == "title") {
+        } else if (word == "title") {
             result += F->dk.data(ds)->get_title();
-        }
-        else if (word == "data") {
+        } else if (word == "data") {
             result += F->dk.data(ds)->get_info();
-        }
-        else if (word == "formula") {
+        } else if (word == "formula") {
             const char* fmt = F->get_settings()->numeric_format.c_str();
             result += F->dk.get_model(ds)->get_formula(false, fmt, false);
-        }
-        else if (word == "gnuplot_formula") {
+        } else if (word == "gnuplot_formula") {
             const char* fmt = F->get_settings()->numeric_format.c_str();
             string formula = F->dk.get_model(ds)->get_formula(false, fmt,false);
             result += gnuplotize_formula(formula);
-        }
-        else if (word == "simplified_formula") {
+        } else if (word == "simplified_formula") {
             const char* fmt = F->get_settings()->numeric_format.c_str();
             result += F->dk.get_model(ds)->get_formula(true, fmt, false);
-        }
-        else if (word == "simplified_gnuplot_formula") {
+        } else if (word == "simplified_gnuplot_formula") {
             const char* fmt = F->get_settings()->numeric_format.c_str();
             string formula = F->dk.get_model(ds)->get_formula(true, fmt, false);
             result += gnuplotize_formula(formula);
-        }
-        else if (word == "models") {
+        } else if (word == "models") {
             models_as_script(F, result, false);
-        }
-        else if (word == "state") {
+        } else if (word == "state") {
             save_state(F, result);
-        }
-        else if (word == "peaks") {
+        } else if (word == "peaks") {
             vector<double> no_errors; // empty vec -> no errors
             result += F->dk.get_model(ds)->get_peak_parameters(no_errors);
-        }
-        else if (word == "peaks_err") {
+        } else if (word == "peaks_err") {
             //FIXME: assumes the dataset was fitted separately
             Data* data = const_cast<Data*>(F->dk.data(ds));
             vector<Data*> datas(1, data);
             vector<double> errors = F->get_fit()->get_standard_errors(datas);
             result += F->dk.get_model(ds)->get_peak_parameters(errors);
-        }
-        else if (word == "history_summary")
+        } else if (word == "history_summary")
             result += F->ui()->get_history_summary();
 
         else if (word == "set") {
@@ -430,8 +417,7 @@ int eval_one_info_arg(const Full* F, int ds, const vector<Token>& args, int n,
                 string key = args[n+1].as_string();
                 result += F->settings_mgr()->get_as_string(key) + "\ntype: "
                         + F->settings_mgr()->get_type_desc(key);
-            }
-            else {
+            } else {
                 result += "Available options:";
                 vector<string> e = F->settings_mgr()->get_key_list("");
                 v_foreach(string, i, e)
@@ -446,8 +432,7 @@ int eval_one_info_arg(const Full* F, int ds, const vector<Token>& args, int n,
         else if (word == "history") {
             info_history(F, args[n+1], args[n+2], result);
             ret += 2;
-        }
-        else if (word == "guess") {
+        } else if (word == "guess") {
             RealRange range = args2range(args[n+1], args[n+2]);
             info_guess(F, ds, range, result);
             ret += 2;
@@ -482,14 +467,12 @@ int eval_one_info_arg(const Full* F, int ds, const vector<Token>& args, int n,
                 result += "Standard errors:";
                 vector<double> errors = F->get_fit()->get_standard_errors(v);
                 result += format_error_info(F, errors);
-            }
-            else if (word == "confidence") {
+            } else if (word == "confidence") {
                 result += S(level) + "% confidence intervals:";
                 vector<double> limits =
                     F->get_fit()->get_confidence_limits(v, level);
                 result += format_error_info(F, limits);
-            }
-            else //if (word == "cov")
+            } else //if (word == "cov")
                 result += F->get_fit()->get_cov_info(v);
         }
 
@@ -539,8 +522,7 @@ int eval_one_info_arg(const Full* F, int ds, const vector<Token>& args, int n,
             const string& name = model->get_func_name(fz, idx);
             const Function *f = F->mgr.find_function(name);
             result += f->get_basic_assignment();
-        }
-        else {
+        } else {
             const vector<string>& names = model->get_fz(fz).names;
             if (!names.empty())
                 result += "%" + join_vector(names, " + %");
@@ -575,8 +557,7 @@ int eval_print_args(const Full* F, int ds, const vector<Token>& args, int len,
                 result += sep;
             eval_one_print_arg(F, ds, args[n], result);
         }
-    }
-    else {
+    } else {
         vector<ExpressionParser> expr_parsers(args.size() + 1, F);
         for (int i = 0; i < len; ++i)
             if (args[i].type == kTokenExpr) {
@@ -598,8 +579,7 @@ int eval_print_args(const Full* F, int ds, const vector<Token>& args, int len,
                 if (args[n].type == kTokenExpr) {
                     double value = expr_parsers[n].calculate(k, points);
                     result += F->settings_mgr()->format_double(value);
-                }
-                else
+                } else
                     eval_one_print_arg(F, ds, args[n], result);
             }
         }
@@ -650,8 +630,7 @@ void command_redirectable(const Full* F, int ds,
             info += "\n[... " + S(more) + " characters more...]";
         }
         F->ui()->mesg(info);
-    }
-    else {
+    } else {
         assert(args.back().type == kTokenFilename ||
                args.back().type == kTokenString);
         string filename = Lexer::get_string(args.back());

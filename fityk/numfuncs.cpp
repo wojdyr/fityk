@@ -127,8 +127,7 @@ double rand_gauss()
         saved = x1 * f;
         is_saved = true;
         return x2 * f;
-    }
-    else {
+    } else {
         is_saved = false;
         return saved;
     }
@@ -156,8 +155,7 @@ string format_matrix(const vector<realt>& vec, int m, int n,
     if (m == 1) { // vector
         for (int i = 0; i < n; i++)
             h += S(vec[i]) + (i < n - 1 ? ", " : " }") ;
-    }
-    else { //matrix
+    } else { //matrix
         string blanks(strlen(mname) + 1, ' ');
         for (int j = 0; j < m; j++){
             if (j > 0)

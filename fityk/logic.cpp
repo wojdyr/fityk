@@ -93,8 +93,7 @@ void DataKeeper::remove(int d)
     if (datas_.size() == 1) {
         datas_[0]->model()->clear();
         datas_[0]->clear();
-    }
-    else {
+    } else {
         delete datas_[d];
         datas_.erase(datas_.begin() + d);
     }
@@ -130,8 +129,7 @@ vector<int> parse_int_range(string const& s, int maximum)
         if (dots == string::npos) {
             int n = atoi_all(*i);
             values.push_back(n);
-        }
-        else {
+        } else {
             int m = atoi_all(i->substr(0, dots));
             string n_ = i->substr(dots+2);
             int n = n_.empty() ? maximum : atoi_all(i->substr(dots+2));
@@ -195,8 +193,7 @@ void DataKeeper::import_dataset(int slot, string const& filename,
             end_pos = pos;
         }
         assert(fn_end == end_pos);
-    }
-    else {
+    } else {
         fn = filename;
     }
 
@@ -219,8 +216,7 @@ void DataKeeper::import_dataset(int slot, string const& filename,
             d->load_file(fn, idx_x, indices[1][i], idx_s,
                          block_range, format, options);
             append(d.release());
-        }
-        else {
+        } else {
             // if new_dataset is true, there is only one dataset
             Data *d = data(new_dataset ? 0 : slot);
             d->load_file(fn, idx_x, indices[1][i], idx_s,

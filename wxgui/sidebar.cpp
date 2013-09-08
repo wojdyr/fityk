@@ -318,18 +318,15 @@ void SideBar::delete_selected_items()
     vector<string> elems;
     if (txt == "data") {
         elems = d->get_selected_data();
-    }
-    else if (txt == "functions") {
+    } else if (txt == "functions") {
         elems = get_selected_func();
         vm_foreach (string, i, elems)
             *i = "%" + *i;
-    }
-    else if (txt == "variables") {
+    } else if (txt == "variables") {
         elems = get_selected_vars();
         vm_foreach (string, i, elems)
             *i = "$" + *i;
-    }
-    else
+    } else
         assert(0);
     exec("delete " + join_vector(elems, ", "));
 }
@@ -365,8 +362,7 @@ void SideBar::OnDataButtonCol (wxCommandEvent&)
             update_lists();
             frame->plot_pane()->refresh_plots(false, kMainPlot);
         }
-    }
-    else {//sel_size > 1
+    } else {//sel_size > 1
         int first_sel = d->list->GetFirstSelected();
         int last_sel = 0;
         for (int i = first_sel; i != -1; i = d->list->GetNextSelected(i))
@@ -652,8 +648,7 @@ int SideBar::get_focused_data() const
         d->update_data_list(false);
         focused = ftk->dk.count() - 1;
         lv->Focus(focused);
-    }
-    else if (focused < 0) {
+    } else if (focused < 0) {
         focused = 0;
         if (lv->GetItemCount() != 0)
             lv->Focus(focused);
@@ -709,8 +704,7 @@ vector<int> SideBar::get_ordered_dataset_numbers()
         if (lv->IsSelected(i)) {
             if (i != focused)
                 selected.push_back(i);
-        }
-        else
+        } else
             ordered.push_back(i);
     }
     ordered.insert(ordered.end(), selected.begin(), selected.end());
@@ -1030,8 +1024,7 @@ void SideBar::make_same_func_par(string const& p, bool checked)
 
         exec("$" + varname + " = ~" + S(value));
         val_str = "$" + varname;
-    }
-    else {
+    } else {
         int nr = ftk->mgr.find_variable_nr(varname);
         if (nr == -1)
             return;
@@ -1074,8 +1067,7 @@ void SideBar::on_parameter_lock_clicked(int n, int state)
                 v->list->Select(i, true);
                 v->list->EnsureVisible(i);
                 v->list->Focus(i);
-            }
-            else
+            } else
                 v->list->Select(i, false);
         }
     }
@@ -1114,8 +1106,7 @@ void SideBar::update_param_panel()
             bool locked = var->is_constant();
             param_panel_->set_normal_parameter(i, label, var->value(),
                                                locked, s2wx("$"+var->name));
-        }
-        else
+        } else
             param_panel_->set_disabled_parameter(i, label, var->value(),
                                                  s2wx("$"+var->name));
     }

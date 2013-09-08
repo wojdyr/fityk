@@ -124,8 +124,7 @@ char *completion_generator(const char *text, int state)
         entries = complete_fityk_line(ftk, rl_line_buffer, f_start, f_end,
                                       text);
         list_index = 0;
-    }
-    else
+    } else
         list_index++;
     rl_attempted_completion_over = 1;
 
@@ -268,40 +267,32 @@ int main (int argc, char **argv)
               "  -I, --no-init         don't process $HOME/.fityk/init file\n"
               "  -q, --quit            don't enter interactive shell\n");
             return 0;
-        }
-        else if (!strcmp(argv[i], "-V") || !strcmp(argv[i], "--version")) {
+        } else if (!strcmp(argv[i], "-V") || !strcmp(argv[i], "--version")) {
             printf("fityk version " VERSION "\n");
             return 0;
-        }
-        else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--cmd")) {
+        } else if (!strcmp(argv[i], "-c") || !strcmp(argv[i], "--cmd")) {
             argv[i] = 0;
             ++i;
             if (i < argc) {
                 script_string = argv[i];
                 argv[i] = 0;
-            }
-            else {
+            } else {
                 fprintf(stderr, "Option %s requires parameter\n", argv[i]);
                 return 1;
             }
-        }
-        else if (!strncmp(argv[i], "-c", 2)) {
+        } else if (!strncmp(argv[i], "-c", 2)) {
             script_string = string(argv[i] + 2);
             argv[i] = 0;
-        }
-        else if (!strncmp(argv[i], "--cmd=", 6)) {
+        } else if (!strncmp(argv[i], "--cmd=", 6)) {
             script_string = string(argv[i] + 6);
             argv[i] = 0;
-        }
-        else if (!strcmp(argv[i], "-I") || !strcmp(argv[i], "--no-init")) {
+        } else if (!strcmp(argv[i], "-I") || !strcmp(argv[i], "--no-init")) {
             argv[i] = 0;
             exec_init_file = false;
-        }
-        else if (!strcmp(argv[i], "-q") || !strcmp(argv[i], "--quit")) {
+        } else if (!strcmp(argv[i], "-q") || !strcmp(argv[i], "--quit")) {
             argv[i] = 0;
             quit = true;
-        }
-        else if (strlen(argv[i]) > 1 && argv[i][0] == '-') {
+        } else if (strlen(argv[i]) > 1 && argv[i][0] == '-') {
             fprintf(stderr, "Unknown option %s\n", argv[i]);
             return 1;
         }

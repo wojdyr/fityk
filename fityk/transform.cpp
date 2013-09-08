@@ -147,8 +147,7 @@ void run_data_transform(const DataKeeper& dk, const VMData& vm, Data* data_out)
                     vm_foreach (Point, j, stackPtr->points)
                         j->y += find_extrapolated_y((stackPtr+1)->points, j->x);
                     stackPtr->title += "+" + (stackPtr+1)->title;
-                }
-                else
+                } else
                     throw ExecuteError("adding number and dataset");
                 break;
 
@@ -160,8 +159,7 @@ void run_data_transform(const DataKeeper& dk, const VMData& vm, Data* data_out)
                     vm_foreach (Point, j, stackPtr->points)
                         j->y -= find_extrapolated_y((stackPtr+1)->points, j->x);
                     stackPtr->title += "-" + (stackPtr+1)->title;
-                }
-                else
+                } else
                     throw ExecuteError("substracting number and dataset");
                 break;
 
@@ -171,14 +169,12 @@ void run_data_transform(const DataKeeper& dk, const VMData& vm, Data* data_out)
                     stackPtr->num *= (stackPtr+1)->num;
                 else if (!stackPtr->is_num && !(stackPtr+1)->is_num) {
                     throw ExecuteError("multiplying two datasets");
-                }
-                else if (!stackPtr->is_num && (stackPtr+1)->is_num) {
+                } else if (!stackPtr->is_num && (stackPtr+1)->is_num) {
                     realt mult = (stackPtr+1)->num;
                     vm_foreach (Point, j, stackPtr->points)
                         j->y *= mult;
                     stackPtr->title += "*" + S(mult);
-                }
-                else if (stackPtr->is_num && !(stackPtr+1)->is_num) {
+                } else if (stackPtr->is_num && !(stackPtr+1)->is_num) {
                     realt mult = stackPtr->num;
                     stackPtr->points.swap((stackPtr+1)->points);
                     stackPtr->is_num = false;
@@ -231,8 +227,7 @@ void run_data_transform(const DataKeeper& dk, const VMData& vm, Data* data_out)
     if (!stackPtr->is_num) {
         data_out->set_points(stackPtr->points);
         data_out->set_title(stackPtr->title);
-    }
-    else if (stackPtr->num == 0.)
+    } else if (stackPtr->num == 0.)
         data_out->clear();
     else
         throw ExecuteError("dataset or 0 expected on RHS");

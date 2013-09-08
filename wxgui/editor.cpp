@@ -74,8 +74,7 @@ public:
             SetLexer(wxSTC_LEX_LUA);
             StyleSetForeground(wxSTC_LUA_COMMENT, comment_col);
             StyleSetForeground(wxSTC_LUA_COMMENTLINE, comment_col);
-        }
-        else {
+        } else {
             // actually we set filetype to apache config, but since
             // we only customize colors of comments it works fine.
             SetLexer(wxSTC_LEX_CONF);
@@ -253,8 +252,7 @@ int EditorDlg::exec_fityk_line(int n)
     /*
     UserInterface::Status r = exec(s);
     if (r == UserInterface::kStatusOk) {
-    }
-    else { // error
+    } else { // error
     }
     */
     return counter;
@@ -277,8 +275,7 @@ int EditorDlg::exec_lua_line(int n)
     /*
     UserInterface::Status r = exec(s);
     if (r == UserInterface::kStatusOk) {
-    }
-    else { // error
+    } else { // error
     }
     */
     return counter;
@@ -293,8 +290,7 @@ void EditorDlg::OnExec(wxCommandEvent&)
         long x;
         ed_->PositionToXY(p1, &x, &y1);
         ed_->PositionToXY(p2, &x, &y2);
-    }
-    else
+    } else
         y2 = ed_->GetNumberOfLines();
 
     for (int i = y1; i <= y2; )

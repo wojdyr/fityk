@@ -398,8 +398,7 @@ void Fit::fit(int max_eval, const vector<Data*>& datas)
         double percent_change = (wssr - initial_wssr_) / initial_wssr_ * 100.;
         F_->msg("WSSR: " + sm->format_double(wssr) +
                 " (" + S(percent_change) + "%)");
-    }
-    else {
+    } else {
         F_->msg("Better fit NOT found (WSSR = " + sm->format_double(wssr)
                 + ", was " + sm->format_double(initial_wssr_) + ")."
                 "\nParameters NOT changed");
@@ -614,8 +613,7 @@ bool ParameterHistoryMgr::push_param_history(const vector<realt>& aa)
         param_history_.push_back(aa);
         ++param_hist_ptr_;
         return true;
-    }
-    else
+    } else
         return false;
 }
 

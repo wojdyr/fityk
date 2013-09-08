@@ -196,8 +196,7 @@ void OutputWin::OnRightDown (wxMouseEvent& event)
             if (line.StartsWith(wxT("=-> ")))
                 selection_ = line.substr(4);
         }
-    }
-    else if (selection_.StartsWith(wxT("=-> ")))
+    } else if (selection_.StartsWith(wxT("=-> ")))
         selection_ = selection_.substr(4);
     if (selection_.empty())
         popup_menu.Enable(ID_OUTPUT_EDITLINE, false);

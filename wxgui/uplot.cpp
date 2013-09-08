@@ -46,8 +46,7 @@ void BufferedPanel::gc_draw(wxMemoryDC& dc)
         gdc.Clear();
 #endif
         draw(gdc);
-    }
-    else
+    } else
         draw(dc);
 }
 
@@ -218,8 +217,7 @@ vector<double> scale_tics_step (double beg, double end, int max_tics,
                 }
             }
         }
-    }
-    else { // !logarithm
+    } else { // !logarithm
         double min_step = (end - beg) / max_tics;
         double s = pow(10, floor (log10 (min_step)));
         int minor_div = 5; //ratio of major-step to minor-step
@@ -229,8 +227,7 @@ vector<double> scale_tics_step (double beg, double end, int max_tics,
         else if (s * 2 >= min_step) {
             s *= 2;
             minor_div = 2;
-        }
-        else if (s * 2.5 >= min_step)
+        } else if (s * 2.5 >= min_step)
             s *= 2.5;
         else if (s * 5 >=  min_step)
             s *= 5;

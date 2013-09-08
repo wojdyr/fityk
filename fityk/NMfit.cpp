@@ -50,8 +50,7 @@ void NMfit::find_best_worst()
     if (vertices[0].wssr < vertices[1].wssr) {
         worst = vertices.begin() + 1;
         s_worst = best = vertices.begin();
-    }
-    else {
+    } else {
         worst = vertices.begin();
         s_worst = best = vertices.begin() + 1;
     }
@@ -61,8 +60,7 @@ void NMfit::find_best_worst()
         if (i->wssr > worst->wssr) {
             s_worst = worst;
             worst = i;
-        }
-        else if (i->wssr > s_worst->wssr && i != worst)
+        } else if (i->wssr > s_worst->wssr && i != worst)
             s_worst = i;
     }
 }

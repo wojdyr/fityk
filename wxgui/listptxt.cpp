@@ -121,8 +121,7 @@ void ListWithColors::OnShowColumn(wxCommandEvent &event)
         InsertColumn(col, s2wx(columns[n].first));
         for (int i = 0; i < GetItemCount(); ++i)
             SetItem(i, col, s2wx(list_data[i*columns.size()+n]));
-    }
-    else
+    } else
         DeleteColumn(col);
     columns[n].second = show;
     Refresh();

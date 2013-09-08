@@ -54,8 +54,7 @@ void View::change_view(const RealRange& hor_r, const RealRange& ver_r,
                 hor.lo = exp(log(x_min) - margin);
             if (hor.hi_inf())
                 hor.hi = exp(log(x_max) + margin);
-        }
-        else {
+        } else {
             double margin = (x_max - x_min) * relative_x_margin;
             if (hor.lo_inf())
                 hor.lo = x_min - margin;
@@ -79,8 +78,7 @@ void View::change_view(const RealRange& hor_r, const RealRange& ver_r,
                 ver.lo = exp(log(y_min) - margin);
             if (ver.hi_inf())
                 ver.hi = exp(log(y_max) + margin);
-        }
-        else {
+        } else {
             double margin = (y_max - y_min) * relative_y_margin;
             if (ver.lo_inf())
                 ver.lo = y_min - margin;

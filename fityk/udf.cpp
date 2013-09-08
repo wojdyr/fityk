@@ -22,8 +22,7 @@ Function* init_component(const string& func_name, const Tplate::Component& c,
         if (j->single_symbol()) {
             int idx = j->code()[1];
             var_name = variables[idx]->name;
-        }
-        else {
+        } else {
             var_name = "_i" + S(variables.size() + 1);
             VMData vm = *j;
             if (vm.has_op(OP_TILDE))
@@ -264,8 +263,7 @@ void CustomFunction::calculate_value_deriv_in_range(const vector<realt> &xx,
             v_foreach (Multi, j, multi_)
                 dy_da[dyn*i+j->p] += derivatives_[j->n] * j->mult;
             dy_da[dyn*i+dyn-1] += derivatives_.back();
-        }
-        else {
+        } else {
             v_foreach (Multi, j, multi_)
                 dy_da[dyn*i+j->p] += dy_da[dyn*i+dyn-1]
                                        * derivatives_[j->n] * j->mult;
@@ -405,8 +403,7 @@ bool SplitFunction::get_fwhm(realt* a) const
     if (two_halves && left_->get_fwhm(&fwhm1) && right_->get_fwhm(&fwhm2)) {
         *a = (fwhm1 + fwhm2) / 2.;
         return true;
-    }
-    else
+    } else
         return false;
 }
 
@@ -421,8 +418,7 @@ bool SplitFunction::get_area(realt* a) const
     if (two_halves && left_->get_area(&area1) && right_->get_area(&area2)) {
         *a = (area1 + area2) / 2.;
         return true;
-    }
-    else
+    } else
         return false;
 }
 

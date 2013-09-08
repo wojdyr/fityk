@@ -198,8 +198,7 @@ string Model::get_peak_parameters(const vector<double>& errors) const
                 if (var->is_simple()) {
                     double err = errors[var->gpos()];
                     s += " +/- " + sm->format_double(err);
-                }
-                else
+                } else
                     s += " +/- ?";
             }
         }

@@ -189,8 +189,7 @@ CALCULATE_DERIV_BEGIN(FuncSplitGaussian)
     if (x < av_[1]) {
         dy_dv[2] = dcenter * xa1a2;
         dy_dv[3] = 0;
-    }
-    else {
+    } else {
         dy_dv[2] = 0;
         dy_dv[3] = dcenter * xa1a2;
     }
@@ -547,12 +546,10 @@ realt FuncVoigt::get_other_prop(string const& name) const
     if (name == "GaussianFWHM") {
         realt sigma = fabs(av_[2]) / M_SQRT2;
         return 2 * sigma * sqrt(2 * M_LN2);
-    }
-    else if (name == "LorentzianFWHM") {
+    } else if (name == "LorentzianFWHM") {
         realt gamma = fabs(av_[2]) * av_[3];
         return 2 * gamma;
-    }
-    else
+    } else
         return 0.;
 }
 
@@ -673,13 +670,11 @@ CALCULATE_VALUE_BEGIN(FuncEMG)
         realt e_arg = bx/d + c*c/(2*d*d);
         // t = fact * exp(e_arg) * (d >= 0 ? 1-erf(erf_arg) : -1-erf(erf_arg));
         t = fact * exp(e_arg) * (d >= 0 ? erfc(erf_arg) : -erfc(-erf_arg));
-    }
-    else if ((d >= 0 && erf_arg > -26) || (d < 0 && -erf_arg > -26)) {
+    } else if ((d >= 0 && erf_arg > -26) || (d < 0 && -erf_arg > -26)) {
         realt h = exp(-bx*bx/(2*c*c));
         realt ee = d >= 0 ? erfcexp_x4(erf_arg) : -erfcexp_x4(-erf_arg);
         t = fact * h * ee;
-    }
-    else
+    } else
         t = 0;
 CALCULATE_VALUE_END(a*t)
 
@@ -910,8 +905,7 @@ CALCULATE_DERIV_BEGIN(FuncLogNormal)
         dy_dv[3] = ex*(2.0*M_LN2*b*b/av_[3]
             -4.0*(x-av_[1])*log(a+1)*M_LN2/(av_[2]*av_[3]*av_[3]*(a+1)));
         dy_dx = -4.0*M_LN2/(av_[2]*(a+1))*ex*b;
-    }
-    else {
+    } else {
         ex = 0.0;
         dy_dv[0] = 0.0;
         dy_dv[1] = 0.0;
@@ -937,8 +931,7 @@ bool FuncLogNormal::get_nonzero_range(double level,
         if (w1>w0) {
             left = w0;
             right = w1;
-        }
-        else {
+        } else {
             left = w1;
             right = w0;
         }
@@ -1011,14 +1004,12 @@ CALCULATE_DERIV_BEGIN(FuncPolyline)
     if (q_.empty()) {
         dy_dx = 0;
         value = 0.;
-    }
-    else if (q_.size() == 1) {
+    } else if (q_.size() == 1) {
         //dy_dv[0] = 0; // 0 -> p_x
         dy_dv[1] = 1; // 1 -> p_y
         dy_dx = 0;
         value = q_[0].y;
-    }
-    else {
+    } else {
         // value = p0.y + (p1.y - p0.y) / (p1.x - p0.x) * (x - p0.x);
         vector<PointD>::iterator pos = get_interpolation_segment(q_, x);
         double lx = (pos + 1)->x - pos->x;

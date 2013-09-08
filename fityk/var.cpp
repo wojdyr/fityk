@@ -115,8 +115,7 @@ void Variable::recalculate(vector<Variable*> const &variables,
         assert (gpos_ < (int) parameters.size());
         value_ = parameters[gpos_];
         assert(derivatives_.empty());
-    }
-    else if (gpos_ == -1) {
+    } else if (gpos_ == -1) {
         value_ = run_code_for_variable(vm_, variables, derivatives_);
         recursive_derivatives_.clear();
         for (int i = 0; i < size(derivatives_); ++i) {
@@ -126,14 +125,12 @@ void Variable::recalculate(vector<Variable*> const &variables,
                 recursive_derivatives_.back().mult *= derivatives_[i];
             }
         }
-    }
-    else if (gpos_ == -2) {
+    } else if (gpos_ == -2) {
         if (original_) {
             value_ = original_->value_;
             recursive_derivatives_ = original_->recursive_derivatives_;
         }
-    }
-    else
+    } else
         assert(0);
 }
 

@@ -190,8 +190,7 @@ void FitInfoDlg::update_right_tc()
             if (choice == 1)
                 vm_foreach (double, i, errors)
                     *i *= 1. / sqrt(wssr_over_dof);
-        }
-        else {
+        } else {
             int level;
             if (choice == 2)
                 level = 50;
@@ -229,8 +228,7 @@ void FitInfoDlg::update_right_tc()
                     s += s2wx(nf->fmt(errors[i]));
             }
         }
-    }
-    else {
+    } else {
         s = wxT("          ");
         vector<double> alpha;
         try {

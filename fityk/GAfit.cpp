@@ -129,8 +129,7 @@ void GAfit::mutation()
                                                             mutation_strength);
                 compute_wssr_for_ind (i);
             }
-        }
-        else
+        } else
             for (int j = 0; j < na_; ++j)
                 if (rand() < RAND_MAX * p_mutation) {
                     i->g[j] = draw_a_from_distribution(j, mutation_type,
@@ -422,8 +421,7 @@ realt GAfit::max_in_window ()
         else
             return *max_element (max_raw_history.begin(),
                                  max_raw_history.begin() + window_size);
-    }
-    else
+    } else
         return -1;
 }
 
@@ -456,8 +454,7 @@ bool GAfit::termination_criteria_and_print_info(int iter)
     if (min < best_indiv.raw_score) {
         best_indiv = *ibest;
         no_progress_iters = 0;
-    }
-    else
+    } else
         no_progress_iters ++;
 
     //checking stop conditions

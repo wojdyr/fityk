@@ -113,8 +113,7 @@ void ModelInfoDlg::update_text()
             if (i != datas.begin())
                 s += "\n";
             s += formula;
-        }
-        else { // if (sel == 2) // script
+        } else { // if (sel == 2) // script
             models_as_script(ftk, s, false);
             // currently all models are exported at once
             break;

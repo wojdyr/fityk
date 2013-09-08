@@ -231,8 +231,7 @@ void XyFileBrowser::update_block_list()
             const string& name =
                 plot_preview->get_data()->get_block(i)->get_name();
             bb.push_back(name.empty() ? "Block #" + S(i+1) : name);
-        }
-    else {
+        } else {
         bb.push_back("<default block>");
     }
     updateControlWithItems(block_ch, bb);
@@ -320,8 +319,7 @@ void XyFileBrowser::update_plot_preview()
             plot_preview->block_nr = block_ch->GetSelection();
             plot_preview->load_dataset(wx2s(path), get_filetype(), "");
         }
-    }
-    else
+    } else
         plot_preview->make_outdated();
     plot_preview->refresh();
 }

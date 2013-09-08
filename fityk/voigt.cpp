@@ -83,8 +83,7 @@ void humdev(const float x, const float y,
         d1 *= d;
         dkdx = d1 * x * y * (c0 - (c2 + xq) * (xq + xq));
         dkdy = d1 * (r0 - xq * (r2 - xq * (b1 + xq)));
-    }
-    else {
+    } else {
 
         if (abx > xlimc) {  // Region C
             if (rgc) {
@@ -211,8 +210,7 @@ void humdev(const float x, const float y,
                     dkdy += c[j] * (mf[j] + pf[j] - yf2 * (mfq + pfq))
                                + s[j] * yf1 * (mt[j] * mfq - pt[j] * pfq);
                 }
-            }
-            else {               //  Humlicek CPF12 Region II
+            } else {               //  Humlicek CPF12 Region II
                 float yp2y0 = y + (float)3.;
                 for (int j = 0; j <= 5; ++j) {
                     k += (c[j] * (mq[j] * mf[j] - ym[j] * 1.5f)

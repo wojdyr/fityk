@@ -437,8 +437,7 @@ void ParameterPanel::OnTextEnter(wxCommandEvent &event)
     if (ok) {
         values_[n] = t;
         observer_->on_parameter_changed(n);
-    }
-    else
+    } else
         tc->ChangeValue(double2wxstr(values_[n]));
 }
 

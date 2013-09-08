@@ -67,8 +67,7 @@ void GnuPlot::fork_and_make_pipe()
         fprintf(stderr,
                 "** Calling `" GNUPLOT_PATH "' failed. Plotting disabled. **");
         exit(0); // terminate only the child process 
-    }
-    else {
+    } else {
         // Parent process closes up input side of pipe
         close(fd[0]);
         gnuplot_pipe_ = fdopen(fd[1], "w"); //fdopen() - POSIX, not ANSI
@@ -121,8 +120,7 @@ void GnuPlot::plot()
         for (vector<Point>::const_iterator i = begin; i != end; ++i)
             if (i->is_active && finite(i->x) && finite(i->y))
                 fprintf(gnuplot_pipe_, "%f  %f\n", double(i->x), double(i->y));
-    }
-    else
+    } else
         // if there are no points, we send empty dataset to reset the plot
         fprintf(gnuplot_pipe_, "0.0  0.0\n");
     fprintf(gnuplot_pipe_, "e\n");//gnuplot needs 'e' at the end of data
@@ -135,8 +133,7 @@ void GnuPlot::plot()
                 if (finite(y))
                     fprintf(gnuplot_pipe_, "%f  %f\n", double(i->x), y);
             }
-    }
-    else
+    } else
         fprintf(gnuplot_pipe_, "0.0  0.0\n");
     fprintf(gnuplot_pipe_, "e\n");
 

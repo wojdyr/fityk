@@ -101,13 +101,11 @@ void Data::post_load()
             for (vector<Point>::iterator i = p_.begin(); i < p_.end(); ++i)
                 i->sigma = i->y > 1. ? sqrt (i->y) : 1.;
             inf += " No explicit std. dev. Set as sqrt(y)";
-        }
-        else if (dds == "one") {
+        } else if (dds == "one") {
             for (vector<Point>::iterator i = p_.begin(); i < p_.end(); ++i)
                 i->sigma = 1.;
             inf += " No explicit std. dev. Set as equal 1.";
-        }
-        else
+        } else
             assert(0);
     }
     ctx_->msg(inf);
@@ -294,8 +292,7 @@ void Data::load_file (const string& fn,
                 for (int i = 0; i < n; ++i) {
                     p_.push_back(Point(xcol.get_value(i), ycol.get_value(i)));
                 }
-            }
-            else {
+            } else {
                 const xylib::Column& scol
                     = block->get_column(idx_s != INT_MAX ?  idx_s : 2);
                 for (int i = 0; i < n; ++i) {
@@ -317,8 +314,7 @@ void Data::load_file (const string& fn,
                 block_name += ycol.get_name();
                 if (!xcol.get_name().empty())
                     block_name += "(" + xcol.get_name() + ")";
-            }
-            else if (!block->get_name().empty()) {
+            } else if (!block->get_name().empty()) {
                 if (!block_name.empty())
                     block_name += "/";
                 block_name += block->get_name();
@@ -415,8 +411,7 @@ void Data::find_step()
     if (len < 2) {
         x_step_ = 0.;
         return;
-    }
-    else if (len == 2) {
+    } else if (len == 2) {
         x_step_ = p_[1].x - p_[0].x;
         return;
     }

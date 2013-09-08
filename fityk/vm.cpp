@@ -125,8 +125,7 @@ string vm2str(vector<int> const& code, vector<realt> const& data)
             ++i;
             assert (*i >= 0 && *i < size(data));
             s += "[" + S(*i) + "](" + S(data[*i]) + ")";
-        }
-        else if (VMData::has_idx(*i)) {
+        } else if (VMData::has_idx(*i)) {
             ++i;
             s += "[" + S(*i) + "]";
         }
@@ -159,8 +158,7 @@ void VMData::replace_symbols(const vector<realt>& vv)
                 *op = numbers_.size();
                 numbers_.push_back(value);
             }
-        }
-        else if (has_idx(*op))
+        } else if (has_idx(*op))
             ++op;
     }
 }
@@ -289,12 +287,10 @@ void run_const_op(const Full* F, const std::vector<realt>& numbers,
             if (*(i-1) == OP_FUNC) {
                 *stackPtr = F->mgr.get_function(*i)->numarea(*stackPtr,
                                     *(stackPtr+1), iround(*(stackPtr+2)));
-            }
-            else if (*(i-1) == OP_SUM_F) {
+            } else if (*(i-1) == OP_SUM_F) {
                 *stackPtr = F->dk.get_model(*i)->numarea(*stackPtr,
                                     *(stackPtr+1), iround(*(stackPtr+2)));
-            }
-            else // OP_SUM_Z
+            } else // OP_SUM_Z
                 throw ExecuteError("Z.numarea() is not implemented. "
                                    "Does anyone need it?");
             break;
@@ -305,12 +301,10 @@ void run_const_op(const Full* F, const std::vector<realt>& numbers,
             if (*(i-1) == OP_FUNC) {
                 *stackPtr = F->mgr.get_function(*i)->find_x_with_value(
                                   *stackPtr, *(stackPtr+1), *(stackPtr+2));
-            }
-            else if (*(i-1) == OP_SUM_F) {
+            } else if (*(i-1) == OP_SUM_F) {
                 throw ExecuteError("F.findx() is not implemented. "
                                    "Does anyone need it?");
-            }
-            else // OP_SUM_Z
+            } else // OP_SUM_Z
                 throw ExecuteError("Z.findx() is not implemented. "
                                    "Does anyone need it?");
             break;
@@ -321,12 +315,10 @@ void run_const_op(const Full* F, const std::vector<realt>& numbers,
             if (*(i-1) == OP_FUNC) {
                 *stackPtr = F->mgr.get_function(*i)->find_extremum(*stackPtr,
                                                             *(stackPtr+1));
-            }
-            else if (*(i-1) == OP_SUM_F) {
+            } else if (*(i-1) == OP_SUM_F) {
                 throw ExecuteError("F.extremum() is not implemented. "
                                    "Does anyone need it?");
-            }
-            else // OP_SUM_Z
+            } else // OP_SUM_Z
                 throw ExecuteError("Z.extremum() is not implemented. "
                                    "Does anyone need it?");
             break;
@@ -702,8 +694,7 @@ realt ExprCalculator::calculate_custom(const vector<realt>& custom_val) const
                 *stackPtr = custom_val[*i];
             else
                 throw ExecuteError("[internal] variable mismatch");
-        }
-        else
+        } else
             run_const_op(F_, vm_.numbers(), i, stackPtr, 0, dummy, dummy);
         if (stackPtr - stack >= 16)
             throw ExecuteError("stack overflow");
@@ -724,16 +715,14 @@ realt run_code_for_variable(const VMData& vm,
             STACK_OFFSET_CHANGE(+1);
             ++i; // skip the next one
             *stackPtr = variables[*i]->value();
-        }
-        else if (*i == OP_PUT_DERIV) {
+        } else if (*i == OP_PUT_DERIV) {
             ++i;
             // the OP_PUT_DERIV opcode is followed by a number n,
             // the derivative is calculated with respect to n'th variable
             assert(*i < (int) derivatives.size());
             derivatives[*i] = *stackPtr;
             STACK_OFFSET_CHANGE(-1);
-        }
-        else
+        } else
             run_func_op(vm.numbers(), i, stackPtr);
     }
     assert(stackPtr == stack);
@@ -750,16 +739,14 @@ realt run_code_for_custom_func(const VMData& vm, realt x,
         if (*i == OP_X) {
             STACK_OFFSET_CHANGE(+1);
             *stackPtr = x;
-        }
-        else if (*i == OP_PUT_DERIV) {
+        } else if (*i == OP_PUT_DERIV) {
             ++i;
             // the OP_PUT_DERIV opcode is followed by a number n,
             // the derivative is calculated with respect to n'th variable
             assert(*i < (int) derivatives.size());
             derivatives[*i] = *stackPtr;
             STACK_OFFSET_CHANGE(-1);
-        }
-        else
+        } else
             run_func_op(vm.numbers(), i, stackPtr);
     }
     assert(stackPtr == stack);
@@ -776,8 +763,7 @@ realt run_code_for_custom_func_value(const VMData& vm, realt x,
         if (*i == OP_X) {
             STACK_OFFSET_CHANGE(+1);
             *stackPtr = x;
-        }
-        else
+        } else
             run_func_op(vm.numbers(), i, stackPtr);
     }
     assert(stackPtr == stack);

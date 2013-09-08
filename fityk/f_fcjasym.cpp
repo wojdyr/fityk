@@ -506,16 +506,14 @@ CALCULATE_DERIV_BEGIN(FuncFCJAsymm)
       realt dconvol =  w1024[pt] * psvval * hfunc_pos / abs(cos(delta_n_pos[pt]));
     sumWdGdh += dconvol;
     sumWdGds += dconvol;
-    }
-    else if(side == 1 && av_[5] < av_[4]) {
+    } else if(side == 1 && av_[5] < av_[4]) {
       sumWdGds += 2.0* w1024[pt] * psvval *hfunc_pos / abs(cos(delta_n_pos[pt]));
     }
     if(fabs(cos(delta_n_neg[pt])) > fabs(cos(twopsiinfl)) && side == 0) {
       realt dconvol =  w1024[pt] * psvval * hfunc_neg / abs(cos(delta_n_neg[pt]));
     sumWdGdh += dconvol;
     sumWdGds += dconvol;
-    }
-    else if (side == 0 && av_[5] < av_[4]) {
+    } else if (side == 0 && av_[5] < av_[4]) {
       sumWdGds += 2.0* w1024[pt] * psvval * hfunc_neg / abs(cos(delta_n_neg[pt]));
     }
     }

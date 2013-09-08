@@ -167,8 +167,7 @@ string SettingsMgr::get_as_string(string const& k, bool quote_str) const
     else if (opt.vtype == kString) {
         string v = m_.*opt.val.s.ptr;
         return quote_str ? "'" + v + "'" : v;
-    }
-    else if (opt.vtype == kEnum)
+    } else if (opt.vtype == kEnum)
         return S(m_.*opt.val.e.ptr);
     assert(0);
     return "";
@@ -221,18 +220,15 @@ void SettingsMgr::set_as_string(string const& k, string const& v)
             fprintf(f, "%s. LOG START: %s", fityk_version_line,
                                               time_now().c_str());
             fclose(f);
-        }
-        else if (k == "numeric_format") {
+        } else if (k == "numeric_format") {
             if (count(v.begin(), v.end(), '%') != 1)
                 throw ExecuteError("Exactly one `%' expected, e.g. '%.9g'");
             set_long_double_format(v);
-        }
-        else if (k == "cwd") {
+        } else if (k == "cwd") {
             change_current_working_dir(v.c_str());
         }
         m_.*opt.val.s.ptr = v;
-    }
-    else { // if (opt.vtype == kEnum)
+    } else { // if (opt.vtype == kEnum)
         const char **ptr = opt.allowed_values;
         while (*ptr) {
             if (*ptr == v) {
@@ -258,16 +254,14 @@ void SettingsMgr::set_as_number(string const& k, double d)
         m_.*opt.val.i.ptr = iround(d);
         if (k == "pseudo_random_seed")
             do_srand();
-    }
-    else if (opt.vtype == kDouble) {
+    } else if (opt.vtype == kDouble) {
         if (k == "epsilon") {
             if (d <= 0.)
                 throw ExecuteError("Value of epsilon must be positive.");
             epsilon = d;
         }
         m_.*opt.val.d.ptr = d;
-    }
-    else // if (opt.vtype == kBool)
+    } else // if (opt.vtype == kBool)
         m_.*opt.val.b.ptr = (fabs(d) >= 0.5);
 }
 

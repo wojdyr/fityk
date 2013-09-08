@@ -72,8 +72,7 @@ void replace_words(string &t, const string &old_word, const string &new_word)
               && (pos+k==t.size() || !(isalnum(t[pos+k]) || t[pos+k]=='_'))) {
             t.replace(pos, k, new_word);
             pos += new_word.size();
-        }
-        else
+        } else
             pos++;
     }
 }
@@ -101,8 +100,7 @@ find_matching_bracket(const string& formula, string::size_type left_pos)
             if (level == 1)
                 return p;
             --level;
-        }
-        else if (formula[p] == opening)
+        } else if (formula[p] == opening)
             ++level;
     }
     throw ExecuteError("Matching bracket `" + S(closing) + "' not found.");
@@ -123,8 +121,7 @@ bool match_glob(const char* name, const char* pattern)
                     return true;
                 --name;
             }
-        }
-        else {
+        } else {
             if (*name != *pattern)
                 return false;
             ++name;

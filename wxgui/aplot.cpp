@@ -149,8 +149,7 @@ void AuxPlot::draw(wxDC &dc, bool monochrome)
     if (monochrome) {
         dc.SetPen(*wxBLACK_PEN);
         dc.SetBrush(*wxBLACK_BRUSH);
-    }
-    else
+    } else
         dc.SetPen(wxPen(xAxisCol, pen_width));
 
     if (mark_peak_pos_) {
@@ -228,12 +227,10 @@ void AuxPlot::OnMouseMove(wxMouseEvent &event)
         if (X < move_plot_margin_width) {
             SetCursor(wxCURSOR_POINT_LEFT);
             X = -1; // don't draw lines
-        }
-        else if (X > GetClientSize().GetWidth() - move_plot_margin_width) {
+        } else if (X > GetClientSize().GetWidth() - move_plot_margin_width) {
             SetCursor(wxCURSOR_POINT_RIGHT);
             X = -1; // don't draw lines
-        }
-        else
+        } else
             SetCursor(wxCURSOR_CROSS);
     }
     overlay.change_pos(X, 0);
@@ -401,8 +398,7 @@ void AuxPlot::OnLeftUp (wxMouseEvent &event)
     if (abs(event.GetX() - downX) >= 5) {
         RealRange all;
         frame->change_zoom(RealRange(min(x1,x2), max(x1,x2)), all);
-    }
-    else {
+    } else {
         frame->set_status_text("");
         overlay.draw_overlay();
         frame->plot_pane()->draw_vertical_lines(event.GetX(), -1, this);

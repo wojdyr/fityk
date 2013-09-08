@@ -62,8 +62,7 @@ double Guess::find_hwhm(int pos, double* area) const
         if (yy_[i] > hm) {
             if (counter > 0) // previous point had y < hm
                 --counter;   // compensate it, it was only fluctuation
-        }
-        else {
+        } else {
             ++counter;
             // we found a point below `hm', but we need to find `n' points
             // below `hm' to be sure that it's not a fluctuation
@@ -80,8 +79,7 @@ double Guess::find_hwhm(int pos, double* area) const
         if (yy_[i] > hm) {
             if (counter > 0)
                 counter--;
-        }
-        else {
+        } else {
             counter++;
             if (counter == n) {
                 // +1 here is intentionally asymmetric with the left side
@@ -115,8 +113,7 @@ vector<double> Guess::estimate_peak_parameters() const
                     sigma_[i+1] * yy_[i] >= sigma_[i] * yy_[i+1])
                 pos = i;
         }
-    }
-    else {
+    } else {
         for (int i = 1; i < (int) yy_.size() - 1; ++i) {
             int t = (pos == -1 ? i-1 : pos);
             if (yy_[i] > yy_[t] && yy_[i] >= yy_[i+1])

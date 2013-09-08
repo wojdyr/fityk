@@ -115,8 +115,7 @@ public:
               wxGridTableMessage msg(this, wxGRIDTABLE_NOTIFY_ROWS_APPENDED, 1);
               GetView()->ProcessTableMessage(msg);
             }
-        }
-        else {
+        } else {
             if (value == GetValueAsDouble(row, col))
                 return;
             char buffer[32];

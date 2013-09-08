@@ -153,15 +153,13 @@ wxColour GradientDlg::get_value(float x)
         c = hsv2wxColour(iround(h1 * (1-x) + (h2 + corr) * x),
                          iround(s1 * (1-x) + s2 * x),
                          iround(v1 * (1-x) + v2 * x));
-    }
-    else if (rb3_->GetValue()) { // rgb
+    } else if (rb3_->GetValue()) { // rgb
         wxColour c1 = from_cp_->GetColour();
         wxColour c2 = to_cp_->GetColour();
         c = wxColour(iround(c1.Red() * (1-x) + c2.Red() * x),
                      iround(c1.Green() * (1-x) + c2.Green() * x),
                      iround(c1.Blue() * (1-x) + c2.Blue() * x));
-    }
-    else { // one color
+    } else { // one color
         c = from_cp_->GetColour();
     }
     return c;
@@ -266,8 +264,7 @@ void MultiColorCombo::OnSelection(wxCommandEvent& event)
         if (change_color_dlg(colors_[0]))
             for (size_t i = 1; i < colors_.size(); ++i)
                 colors_[i] = colors_[0];
-    }
-    else
+    } else
         for (size_t i = 0; i < colors_.size(); ++i)
             colors_[i] = get_color(n, i);
     SetSelection(0);

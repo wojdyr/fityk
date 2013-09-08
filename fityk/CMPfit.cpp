@@ -183,8 +183,7 @@ int MPfit::run_mpfit(const vector<Data*>& datas,
         status = mpfit(calculate_for_mpfit, count_points(datas),
                        parameters.size(), a, pars, &mp_conf_, this, &result_);
         fitted_datas_.swap(saved);
-    }
-    else
+    } else
         status = mpfit(calculate_for_mpfit, count_points(datas),
                        parameters.size(), a, pars, &mp_conf_, this, &result_);
     soft_assert(status == result_.status);

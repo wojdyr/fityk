@@ -42,8 +42,7 @@ void token_to_data(Full* F, const Token& token, vector<Data*>& ds)
     if (d == Lexer::kAll) {
         ds = F->dk.datas();
         return;
-    }
-    else
+    } else
         ds.push_back(F->dk.data(d));
 }
 
@@ -164,15 +163,13 @@ void Runner::command_fit(const vector<Token>& args, int ds)
     if (args.empty()) {
         F_->get_fit()->fit(-1, vector1(F_->dk.data(ds)));
         F_->outdated_plot();
-    }
-    else if (args[0].type == kTokenDataset) {
+    } else if (args[0].type == kTokenDataset) {
         vector<Data*> datas;
         v_foreach(Token, i, args)
             token_to_data(F_, *i, datas);
         F_->get_fit()->fit(-1, datas);
         F_->outdated_plot();
-    }
-    else if (args[0].type == kTokenNumber) {
+    } else if (args[0].type == kTokenNumber) {
         int n_steps = iround(args[0].value.d);
         vector<Data*> datas;
         for (size_t i = 1; i < args.size(); ++i)
@@ -181,19 +178,15 @@ void Runner::command_fit(const vector<Token>& args, int ds)
             datas.push_back(F_->dk.data(ds));
         F_->get_fit()->fit(n_steps, datas);
         F_->outdated_plot();
-    }
-    else if (args[0].as_string() == "undo") {
+    } else if (args[0].as_string() == "undo") {
         F_->fit_manager()->load_param_history(-1, true);
         F_->outdated_plot();
-    }
-    else if (args[0].as_string() == "redo") {
+    } else if (args[0].as_string() == "redo") {
         F_->fit_manager()->load_param_history(+1, true);
         F_->outdated_plot();
-    }
-    else if (args[0].as_string() == "clear_history") {
+    } else if (args[0].as_string() == "clear_history") {
         F_->fit_manager()->clear_param_history();
-    }
-    else if (args[0].as_string() == "history") {
+    } else if (args[0].as_string() == "history") {
         int n = iround(args[1].value.d);
         F_->fit_manager()->load_param_history(n, false);
         F_->outdated_plot();
@@ -209,8 +202,7 @@ void Runner::command_guess(const vector<Token>& args, int ds)
     if (args[0].type == kTokenFuncname) {
         name = Lexer::get_string(args[0]);
         ignore_idx = F_->mgr.find_function_nr(name);
-    }
-    else
+    } else
         name = F_->mgr.next_func_name();
 
     // function type
@@ -304,8 +296,7 @@ void Runner::command_plot(const vector<Token>& args, int ds)
             else
                 dd.push_back(n);
         }
-    }
-    else
+    } else
         dd.push_back(ds);
     F_->view.change_view(hor, ver, dd);
     F_->ui()->draw_plot(UserInterface::kRepaintImmediately);
@@ -326,8 +317,7 @@ void Runner::command_dataset_tr(const vector<Token>& args)
         auto_ptr<Data> data_out(new Data(F_, F_->mgr.create_model()));
         run_data_transform(F_->dk, ep_.vm(), data_out.get());
         F_->dk.append(data_out.release());
-    }
-    else
+    } else
         run_data_transform(F_->dk, ep_.vm(), F_->dk.data(n));
 
 
@@ -385,8 +375,7 @@ int Runner::make_func_from_template(const string& name,
                 vd_storage[i].append_code(OP_TILDE);
                 vd_storage[i].append_number(value);
                 func_args[i] = &vd_storage[i];
-            }
-            else
+            } else
                 throw ExecuteError("missing parameter " + tp->fargs[i]);
         }
     }
@@ -419,8 +408,7 @@ void Runner::command_name_func(const vector<Token>& args, int ds)
     if (args[1].as_string() == "copy") { // copy(%f) or copy(@n.F[idx])
         string orig_name = get_func(F_, ds, args.begin()+2);
         F_->mgr.assign_func_copy(name, orig_name);
-    }
-    else                               // Foo(...)
+    } else                               // Foo(...)
         make_func_from_template(name, args, 1);
     F_->mgr.use_parameters();
     F_->outdated_plot(); //TODO only if function in @active
@@ -484,8 +472,7 @@ int get_fz_or_func(const Full *F, int ds, vector<Token>::const_iterator a,
     if (a->type == kTokenFuncname) {
         added.push_back(Lexer::get_string(*a));
         return 1;
-    }
-    else if (a->type == kTokenDataset || a->type == kTokenNop) {
+    } else if (a->type == kTokenDataset || a->type == kTokenNop) {
         int r_ds = a->type == kTokenDataset ? a->value.i : ds;
         const Model* model = F->dk.get_model(r_ds);
         assert((a+1)->type == kTokenUletter);
@@ -493,14 +480,12 @@ int get_fz_or_func(const Full *F, int ds, vector<Token>::const_iterator a,
         if ((a+2)->type == kTokenNop) {
             const FunctionSum& s = model->get_fz(c);
             added.insert(added.end(), s.names.begin(), s.names.end());
-        }
-        else {
+        } else {
             int idx = iround((a+2)->value.d);
             added.push_back(model->get_func_name(c, idx));
         }
         return 3;
-    }
-    else
+    } else
         return 0;
 }
 
@@ -555,14 +540,12 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
                 new_names.push_back(name);
             }
             i += n_tok;
-        }
-        else if (args[i].type == kTokenCname) { // Foo(1,2)
+        } else if (args[i].type == kTokenCname) { // Foo(1,2)
             string name = F_->mgr.next_func_name();
             int n_args = make_func_from_template(name, args, i);
             new_names.push_back(name);
             i += 2 * n_args;
-        }
-        else
+        } else
             assert(0);
         assert(i+1 == args.size() || args[i+1].type == kTokenPlus);
     }
@@ -586,8 +569,7 @@ void Runner::command_load(const vector<Token>& args)
         if (args.size() > 2)
             throw ExecuteError("Options can't be given when reverting data");
         F_->dk.data(dataset)->revert();
-    }
-    else { // read given file
+    } else { // read given file
         string format, options;
         if (args.size() > 2) {
             format = args[2].as_string();
@@ -650,11 +632,9 @@ void Runner::command_point_tr(const vector<Token>& args, int ds)
                     (idx+1 < (int) points.size() && val > points[idx+1].x))
                 sorted = false;
             data->find_step();
-        }
-        else if (c == 'y' || c == 'Y') {
+        } else if (c == 'y' || c == 'Y') {
             p.y = val;
-        }
-        else if (c == 's' || c == 'S')
+        } else if (c == 's' || c == 'S')
             p.sigma = val;
         else if (c == 'a' || c == 'A') {
             bool old_a = p.is_active;
@@ -805,8 +785,7 @@ void Runner::recalculate_command(Command& c, int ds, Statement& st)
             ep_.clear_vm();
             ep_.parse_expr(lex, ds);
             t->value.d = ep_.calculate(/*n=*/0, points);
-        }
-        else if (t->type == kTokenEVar) {
+        } else if (t->type == kTokenEVar) {
             Lexer lex(t->str);
             ep_.clear_vm();
             ep_.parse_expr(lex, ds, NULL, NULL, ExpressionParser::kAstMode);
@@ -858,8 +837,7 @@ void Runner::execute_statement(Statement& st)
                             F_->lua_bridge()->exec_lua_output(str);
                         else // if (c->type == kCmdLua)
                             F_->lua_bridge()->exec_lua_string("return " + str);
-                    }
-                    else {
+                    } else {
                         if (c->type == kCmdExec)
                             command_exec(tt, str);
                         else // if (c->type == kCmdLua)
@@ -869,8 +847,7 @@ void Runner::execute_statement(Statement& st)
                     st.datasets.swap(backup.datasets);
                     st.with_args.swap(backup.with_args);
                     st.commands.swap(backup.commands);
-                }
-                else
+                } else
                     execute_command(*c, *i);
             }
         }

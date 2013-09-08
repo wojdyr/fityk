@@ -526,8 +526,7 @@ void FFrame::add_recent_file(string const& filename, wxMenu* menu_recent,
     if (id_new == 0) {
         if (count < 15) {
             id_new = base_id + count + 1;
-        }
-        else {
+        } else {
             wxMenuItem *item = mlist.GetLast()->GetData();
             id_new = item->GetId();
             menu_recent->Delete(item);
@@ -1664,8 +1663,7 @@ void FFrame::SwitchToolbar(bool show)
         update_toolbar();
         update_peak_type_list();
         //toolbar_->ToggleTool(ID_T_BAR, v_splitter_->IsSplit());
-    }
-    else if (!show && GetToolBar()){
+    } else if (!show && GetToolBar()){
         SetToolBar(NULL);
         delete toolbar_;
         toolbar_ = NULL;
@@ -1685,8 +1683,7 @@ void FFrame::SwitchSideBar(bool show)
     if (show && !v_splitter_->IsSplit()) {
         sidebar_->Show(true);
         v_splitter_->SplitVertProp(main_pane_, sidebar_);
-    }
-    else if (!show && v_splitter_->IsSplit()) {
+    } else if (!show && v_splitter_->IsSplit()) {
         v_splitter_->Unsplit();
     }
     GetMenuBar()->Check(ID_G_S_SIDEB, show);
@@ -1705,8 +1702,7 @@ void FFrame::SwitchTextPane(bool show)
     if (show && !main_pane_->IsSplit()) {
         text_pane_->Show(true);
         main_pane_->SplitHorizProp(plot_pane_, text_pane_);
-    }
-    else if (!show && main_pane_->IsSplit()) {
+    } else if (!show && main_pane_->IsSplit()) {
         main_pane_->Unsplit();
     }
     GetMenuBar()->Check(ID_G_S_TEXT, show);
@@ -1839,8 +1835,7 @@ void FFrame::OnGScrollUp (wxCommandEvent&)
     if (scale.logarithm) {
         top = 10 * view.top();
         bottom = 0.1 * view.bottom();
-    }
-    else {
+    } else {
         const double factor = 2.;
         int Y0 = scale.px(0);
         int H = plot_pane_->get_plot()->GetSize().GetHeight();
@@ -2273,8 +2268,7 @@ void FFrame::DoGiveHelp(const wxString& help, bool show)
             }
         }
         text = help;
-    }
-    else {
+    } else {
         text = m_oldStatusText;
         m_oldStatusText.clear();
     }
@@ -2432,11 +2426,9 @@ void FToolBar::OnClickTool (wxCommandEvent& event)
                 if (bgm->can_strip()) {
                     bgm->strip_background();
                     frame->update_menu_recent_baselines();
-                }
-                else
+                } else
                     ToggleTool(ID_T_STRIP, false);
-            }
-            else
+            } else
                 bgm->add_background();
             break;
         }

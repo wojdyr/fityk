@@ -56,8 +56,7 @@ realt get_wssr_or_ssr(const Full* priv, int dataset, bool weigthed)
         for (int i = 0; i < priv->dk.count(); ++i)
             result += Fit::compute_wssr_for_data(priv->dk.data(i), weigthed);
         return result;
-    }
-    else {
+    } else {
         return Fit::compute_wssr_for_data(priv->dk.data(dataset), weigthed);
     }
 }
@@ -69,8 +68,7 @@ vector<Data*> get_datasets_(Full* priv, int dataset)
     if (dataset == ALL_DATASETS) {
         for (int i = 0; i < priv->dk.count(); ++i)
             dd.push_back(priv->dk.data(i));
-    }
-    else {
+    } else {
         dd.push_back(priv->dk.data(dataset));
     }
     return dd;
@@ -256,8 +254,7 @@ const Var* Fityk::get_variable(string const& name)  throw(ExecuteError)
             Function const* f = priv_->mgr.find_function(string(1, pos-1));
             string pname = name.substr(pos+1);
             vname = f->used_vars().get_name(f->get_param_nr(pname));
-        }
-        else
+        } else
             vname = name;
         return priv_->mgr.find_variable(vname);
     }
@@ -315,8 +312,7 @@ void Fityk::redir_messages(FILE *stream)
           = priv_->ui()->connect_show_message(write_message_to_file);
         if (old != write_message_to_file)
             p_->old_message_callback = old;
-    }
-    else {
+    } else {
         // note: if redir_messages() is used for the first time,
         // p_->old_message_callback is NULL and the output is just disabled
         p_->old_message_callback =
@@ -384,8 +380,7 @@ realt Fityk::get_rsquared(int dataset)  throw(ExecuteError)
                 result += Fit::compute_r_squared_for_data(priv_->dk.data(i),
                                                           NULL, NULL);
             return result;
-        }
-        else {
+        } else {
             return Fit::compute_r_squared_for_data(priv_->dk.data(dataset),
                                                    NULL, NULL);
         }

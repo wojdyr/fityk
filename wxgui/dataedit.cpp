@@ -310,8 +310,7 @@ void EditTransDlg::read_transforms(bool skip_file)
         string t_line;
         while (getline(f, t_line))
             transforms.push_back(DataTransform(t_line));
-    }
-    else {
+    } else {
         int n = sizeof(default_transforms) / sizeof(default_transforms[0]);
         for (int i = 0; i != n; ++i)
             transforms.push_back(DataTransform(default_transforms[i]));

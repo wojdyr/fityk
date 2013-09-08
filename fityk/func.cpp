@@ -103,8 +103,7 @@ void Function::calculate_value(const vector<realt> &x, vector<realt> &y) const
         int first = lower_bound(x.begin(), x.end(), left) - x.begin();
         int last = upper_bound(x.begin(), x.end(), right) - x.begin();
         this->calculate_value_in_range(x, y, first, last);
-    }
-    else
+    } else
         this->calculate_value_in_range(x, y, 0, x.size());
 }
 
@@ -127,8 +126,7 @@ void Function::calculate_value_deriv(const vector<realt> &x,
         int first = lower_bound(x.begin(), x.end(), left) - x.begin();
         int last = upper_bound(x.begin(), x.end(), right) - x.begin();
         this->calculate_value_deriv_in_range(x, y, dy_da, in_dx, first, last);
-    }
-    else
+    } else
         this->calculate_value_deriv_in_range(x, y, dy_da, in_dx, 0, x.size());
 }
 
@@ -193,8 +191,7 @@ void Function::replace_symbols_with_values(string &t, const char* num_fmt) const
                     new_word = "("+value+")";
                 t.replace(pos, k, new_word);
                 pos += new_word.size();
-            }
-            else
+            } else
                 pos++;
         }
     }
@@ -210,8 +207,7 @@ string Function::get_current_formula(const string& x, const char* num_fmt) const
             t += value;
             t += (i+1 < nv() ? ", " : ")");
         }
-    }
-    else {
+    } else {
         t = tp_->rhs;
         replace_symbols_with_values(t, num_fmt);
     }
@@ -235,17 +231,13 @@ realt Function::get_param_value(const string& param) const
         return av_[get_param_nr(param)];
     else if (param == "Center" && get_center(&a)) {
         return a;
-    }
-    else if (param == "Height" && get_height(&a)) {
+    } else if (param == "Height" && get_height(&a)) {
         return a;
-    }
-    else if (param == "FWHM" && get_fwhm(&a)) {
+    } else if (param == "FWHM" && get_fwhm(&a)) {
         return a;
-    }
-    else if (param == "Area" && get_area(&a)) {
+    } else if (param == "Area" && get_area(&a)) {
         return a;
-    }
-    else
+    } else
         throw ExecuteError("%" + name + " (" + tp_->name
                            + ") has no parameter `" + param + "'");
 }
@@ -317,8 +309,7 @@ realt Function::find_x_with_value(realt x1, realt x2, realt val,
                             || i % 20 == 19) {                 // precaution
             //bisection
             t = (x1 + x2) / 2.;
-        }
-        else {
+        } else {
             t += dx;
         }
     }

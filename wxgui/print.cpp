@@ -102,8 +102,7 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
     for (int i = 0; i < 2; ++i) {
         if (pm->plot_pane->aux_visible(i)) {
             plot_aux_cb[i]->SetValue(pm->plot_aux[i]);
-        }
-        else {
+        } else {
             plot_aux_cb[i]->SetValue(false);
             plot_aux_cb[i]->Enable(false);
         }
@@ -254,8 +253,7 @@ void PrintManager::print()
     bool r = printer.Print(plot_pane, &printout, true);
     if (r) {
         print_data = printer.GetPrintDialogData().GetPrintData();
-    }
-    else if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
+    } else if (wxPrinter::GetLastError() == wxPRINTER_ERROR)
         wxMessageBox("Printer Error.", "Printing", wxICON_ERROR|wxCANCEL);
 }
 
