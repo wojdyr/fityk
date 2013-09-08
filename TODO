@@ -96,3 +96,5 @@
   there is also a literature about so called 'maximum-likelihood method'
   in which the exact Poisson error distribution is handled.
 
+* [request] the option "view the first 64kB of file as text" for datafiles
+  that are already loaded? (ex. in the show/hide info window)
