@@ -4,14 +4,13 @@
 #ifndef FITYK_VAR_H_
 #define FITYK_VAR_H_
 
+#include <assert.h>
 #include "common.h"
 #include "vm.h"
 
 namespace fityk {
 struct OpTree;
 class Variable;
-class Function;
-class Sum;
 
 class IndexedVars
 {

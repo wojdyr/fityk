@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "common.h"
+#include "fityk.h"// for RealRange, FITYK_API
 
 namespace fityk {
 

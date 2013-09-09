@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <math.h>
-#include <string.h>
 #include <boost/math/distributions/students_t.hpp>
 
 #include "logic.h"

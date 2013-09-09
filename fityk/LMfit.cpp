@@ -6,7 +6,6 @@
 
 #include <math.h>
 #include <vector>
-#include <algorithm>
 
 #include "common.h"
 #include "ui.h"

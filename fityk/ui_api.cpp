@@ -5,6 +5,7 @@
 #include "ui_api.h"
 #include <cstring>
 #include <cstdio>
+#include <ctype.h> // for isspace
 #include "cparser.h"
 #include "mgr.h"
 #include "logic.h"

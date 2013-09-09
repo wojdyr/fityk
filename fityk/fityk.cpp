@@ -8,7 +8,6 @@
 #include "fityk.h"
 
 #include <cassert>
-#include <cctype>
 #include <cstring>
 
 #include "common.h"

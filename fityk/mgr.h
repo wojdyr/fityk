@@ -5,7 +5,7 @@
 #define FITYK__MGR__H__
 
 #include <map>
-#include "common.h"
+#include "fityk.h"
 #include "tplate.h" // Tplate::Ptr
 
 namespace fityk {

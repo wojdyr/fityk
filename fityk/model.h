@@ -6,8 +6,8 @@
 #include <vector>
 #include <string>
 #include <utility>
-#include <memory>
-#include "common.h"
+#include "fityk.h"
+#include "common.h" // DISALLOW_COPY_AND_ASSIGN
 
 namespace fityk {
 

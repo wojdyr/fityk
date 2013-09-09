@@ -13,7 +13,6 @@
 #include "frame.h" //ftk
 
 #include "fityk/logic.h"
-#include "fityk/ui.h"
 #include "fityk/model.h" // get_ff()
 
 using namespace std;

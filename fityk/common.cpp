@@ -6,8 +6,7 @@
 #include <string>
 #include <time.h>
 #include <stdlib.h>
-#include "ui.h"
-#include "logic.h"
+#include <assert.h>
 
 using namespace std;
 

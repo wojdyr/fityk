@@ -4,7 +4,6 @@
 #define BUILDING_LIBFITYK
 #include "settings.h"
 
-#include <ctype.h>
 #include <algorithm>
 #include <stdlib.h>
 #include <ctime> //time()

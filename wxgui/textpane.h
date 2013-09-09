@@ -5,10 +5,9 @@
 #define FITYK_WX_TEXTPANE_H_
 
 #include "fityk/ui.h" // UserInterface::Style
-#include "inputline.h" // InputLineObserver
+#include "inputline.h" // InputLine, InputLineObserver
 
 class wxConfigBase;
-class InputLine;
 
 class OutputWin : public wxTextCtrl
 {

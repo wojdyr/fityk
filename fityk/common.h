@@ -17,7 +17,6 @@
 #include <string>
 #include <vector>
 #include <math.h>
-#include <assert.h>
 
 #include "fityk.h" //ExecuteError
 

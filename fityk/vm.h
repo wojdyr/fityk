@@ -5,8 +5,7 @@
 #ifndef FITYK_VM_H_
 #define FITYK_VM_H_
 
-#include "fityk.h" // struct Point
-#include "common.h" // realt
+#include "fityk.h" // struct Point, realt
 
 namespace fityk {
 

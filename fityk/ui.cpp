@@ -17,7 +17,6 @@
 
 #include "settings.h"
 #include "logic.h"
-#include "data.h"
 #include "runner.h" // CommandExecutor
 
 using namespace std;

@@ -4,7 +4,6 @@
 #ifndef FITYK__FIT__H__
 #define FITYK__FIT__H__
 #include <vector>
-#include <map>
 #include <string>
 #include <time.h>
 #include "common.h"

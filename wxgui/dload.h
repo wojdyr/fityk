@@ -4,8 +4,6 @@
 #ifndef FITYK__WX_DLOAD__H__
 #define FITYK__WX_DLOAD__H__
 
-#include "cmn.h" //ProportionalSplitter, KFTextCtrl, ...
-
 namespace fityk { class Data; }
 class XyFileBrowser;
 

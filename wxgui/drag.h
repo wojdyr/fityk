@@ -6,7 +6,7 @@
 #ifndef FITYK_WX_FDRAG_H_
 #define FITYK_WX_FDRAG_H_
 
-#include "fityk/common.h"
+#include <string>
 
 namespace fityk { class Function; class ModelManager; }
 

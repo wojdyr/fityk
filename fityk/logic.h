@@ -5,17 +5,14 @@
 #define FITYK__LOGIC__H__
 
 #include <string>
-#include <boost/scoped_ptr.hpp>
-#include <algorithm>
 #include "mgr.h"
-#include "ui.h" //UserInterface::Status
+#include "ui.h" //UserInterface
 #include "view.h"
 #include "settings.h"
 #include "data.h" // Data.model()
 
 namespace fityk {
 
-class Full;
 class FitManager;
 class Fit;
 class TplateMgr;

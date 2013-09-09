@@ -7,7 +7,7 @@
 #ifndef FITYK_LMFIT_H_
 #define FITYK_LMFIT_H_
 #include <vector>
-#include "common.h"
+#include "fityk.h"
 #include "fit.h"
 
 namespace fityk {

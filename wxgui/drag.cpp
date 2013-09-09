@@ -7,6 +7,7 @@
 #include "fityk/func.h"
 #include "fityk/tplate.h"
 #include "fityk/mgr.h"
+#include "fityk/common.h" // for index_of_element, eS, etc
 
 using namespace std;
 using namespace fityk;

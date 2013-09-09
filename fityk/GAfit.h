@@ -4,7 +4,8 @@
 #ifndef FITYK__GAFIT__H__
 #define FITYK__GAFIT__H__
 #include <vector>
-#include "common.h"
+#include <map>
+#include "fityk.h" // realt
 #include "fit.h"
 
 namespace fityk {

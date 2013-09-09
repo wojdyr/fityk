@@ -5,7 +5,6 @@
 #include "mgr.h"
 
 #include <stdlib.h>
-#include <ctype.h>
 #include <algorithm>
 #include <memory>
 #include <set>
@@ -13,14 +12,11 @@
 #include "common.h"
 #include "var.h"
 #include "ast.h"
-#include "ui.h"
 #include "tplate.h"
 #include "func.h"
 #include "model.h"
 #include "settings.h"
 #include "logic.h"
-#include "lexer.h"
-#include "eparser.h"
 
 using namespace std;
 

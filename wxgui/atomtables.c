@@ -144,7 +144,7 @@ const t_pse pse_table[] = {
 const t_pse *find_in_pse(const char *label)
 {
     const t_pse  *it;
-    char buf[3] = "\0\0\0";
+    char buf[3] = { 0, 0, 0 };
 
     /* empty label */
     if (label == NULL || *label == '\0')
@@ -1003,7 +1003,7 @@ const t_nn92_record nn92_table[] =
 const t_nn92_record *find_in_nn92(const char *label)
 {
     const t_nn92_record  *it;
-    char buf[3] = "\0\0\0";
+    char buf[3] = { 0, 0, 0 };
 
     /* empty label */
     if (label == NULL || *label == '\0')

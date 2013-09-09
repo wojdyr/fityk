@@ -5,7 +5,7 @@
 #define FITYK__NUMFUNCS__H__
 
 #include <stdlib.h>
-#include "common.h"
+#include "fityk.h"
 
 namespace fityk {
 

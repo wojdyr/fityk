@@ -8,7 +8,7 @@
 #include <wx/tooltip.h>
 #include <math.h>
 #include <vector>
-#include "fityk/common.h" // realt
+#include "fityk/fityk.h" // realt
 #include "drag.h" // DraggedFuncObserver
 
 class SideBar;

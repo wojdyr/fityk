@@ -22,7 +22,6 @@
 #include "fityk/model.h"
 #include "fityk/var.h"
 #include "fityk/func.h"
-#include "fityk/ui.h"
 #include "fityk/settings.h"
 #include "fityk/ast.h"
 #include "fityk/info.h"

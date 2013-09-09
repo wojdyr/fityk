@@ -20,7 +20,6 @@
 
 #include <algorithm>
 #include <string.h>
-#include <ctype.h>
 
 #include <xylib/xylib.h>
 #include <xylib/cache.h>
@@ -57,7 +56,6 @@
 #include "fityk/data.h"
 #include "fityk/settings.h"
 #include "fityk/guess.h"
-#include "fityk/func.h"
 #include "fityk/tplate.h"
 
 #include "img/fityk.xpm"
@@ -89,7 +87,7 @@
 #include "img/editor16.h"
 #include "img/export16.h"
 #include "img/fileopen16.h"
-#include "img/filereload16.h"
+//#include "img/filereload16.h"
 #include "img/filesaveas16.h"
 #include "img/function16.h"
 #include "img/image16.h"

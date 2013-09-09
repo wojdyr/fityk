@@ -5,6 +5,8 @@
 #define FITYK_WX_XYBROWSER_H_
 
 #include <wx/filectrl.h>
+#include <wx/splitter.h>
+#include <wx/spinctrl.h>
 #include "uplot.h"
 
 class PreviewPlot : public PlotWithTics

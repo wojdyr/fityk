@@ -6,7 +6,7 @@
 
 #include <vector>
 #include <string>
-#include "common.h" // realt
+#include "fityk.h" // realt, FITYK_API
 
 namespace fityk {
 

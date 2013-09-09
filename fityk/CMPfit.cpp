@@ -4,7 +4,6 @@
 #define BUILDING_LIBFITYK
 #include "CMPfit.h"
 #include "logic.h"
-#include "data.h"
 #include "var.h"
 
 using namespace std;
@@ -12,9 +11,10 @@ using namespace std;
 namespace fityk {
 
 #ifndef NDEBUG
-bool debug_deriv_in_mpfit=false; // changed only for tests
+static bool debug_deriv_in_mpfit=false; // changed only for tests
 #endif
 
+static
 int calculate_for_mpfit(int m, int npar, double *par, double *deviates,
                         double **derivs, void *mpfit)
 {

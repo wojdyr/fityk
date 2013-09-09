@@ -7,7 +7,6 @@
 #define FITYK_CPARSER_H_
 
 #include <string>
-#include "ui.h"
 #include "lexer.h"
 #include "eparser.h"
 #include "tplate.h"

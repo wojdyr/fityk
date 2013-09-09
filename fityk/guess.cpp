@@ -5,14 +5,11 @@
 #include "guess.h"
 
 #include <algorithm>
-#include <ctype.h>
+#include <assert.h>
 
 #include "common.h"
 #include "data.h"
 #include "model.h"
-#include "logic.h"
-#include "ui.h"
-#include "func.h"
 #include "settings.h"
 
 using namespace std;

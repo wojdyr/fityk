@@ -3,12 +3,14 @@
 
 #define BUILDING_LIBFITYK
 #include "tplate.h"
+
+#include <assert.h>    // for assert
+
 #include "common.h"
 #include "func.h"
 #include "udf.h"
 #include "bfunc.h"
 #include "f_fcjasym.h"
-#include "ast.h"
 #include "lexer.h"
 #include "cparser.h"
 #include "eparser.h"

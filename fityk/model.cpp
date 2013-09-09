@@ -7,7 +7,6 @@
 #include <algorithm>
 #include <string>
 #include <vector>
-#include <ctype.h>
 
 #include "common.h"
 #include "func.h"

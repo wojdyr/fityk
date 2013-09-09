@@ -4,6 +4,7 @@
 #ifndef FITYK_WX_CERIA_H_
 #define FITYK_WX_CERIA_H_
 
+#include <stdio.h> // FILE
 #include <vector>
 #include <string>
 #include "atomtables.h"

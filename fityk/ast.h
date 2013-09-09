@@ -9,8 +9,6 @@
 
 namespace fityk {
 
-struct Tplate;
-
 struct OpTreeFormat
 {
     const char *num_format;

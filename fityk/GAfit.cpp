@@ -5,7 +5,6 @@
 #include "GAfit.h"
 
 #include <stdlib.h>
-#include <time.h>
 #include <algorithm>
 #include <numeric>
 #include <deque>

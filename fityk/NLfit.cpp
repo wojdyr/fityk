@@ -4,7 +4,6 @@
 #define BUILDING_LIBFITYK
 #include "NLfit.h"
 #include "logic.h"
-#include "data.h"
 #include "settings.h"
 #include "var.h"
 
@@ -25,6 +24,7 @@ NLfit::~NLfit()
         nlopt_destroy(opt_);
 }
 
+static
 double calculate_for_nlopt(unsigned n, const double* x,
                            double* grad, void* f_data)
 {

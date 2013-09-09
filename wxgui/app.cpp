@@ -74,11 +74,13 @@ static const wxCmdLineEntryDesc cmdLineDesc[] = {
 
 //---------------- C A L L B A C K S --------------------------------------
 
+static
 void gui_show_message(UserInterface::Style style, const string& s)
 {
     frame->output_text(style, s + "\n");
 }
 
+static
 string gui_user_input(const string& prompt)
 {
     if (contains_element(prompt, "[y/n]")) {
@@ -95,12 +97,14 @@ string gui_user_input(const string& prompt)
     }
 }
 
+static
 void gui_draw_plot(UserInterface::RepaintMode mode)
 {
     bool now = (mode == UserInterface::kRepaintImmediately);
     frame->plot_pane()->refresh_plots(now, kAllPlots);
 }
 
+static
 void gui_hint(const string& key, const string& value)
 {
     static wxWindowDisabler *wd = NULL;
@@ -121,6 +125,7 @@ void gui_hint(const string& key, const string& value)
     }
 }
 
+static
 string ui_state()
 {
     string ret;
@@ -131,6 +136,7 @@ string ui_state()
 }
 
 
+static
 UserInterface::Status gui_exec_command(const string& s)
 {
     //FIXME should I limit number of displayed lines?
@@ -155,6 +161,7 @@ UserInterface::Status gui_exec_command(const string& s)
 }
 //-------------------------------------------------------------------------
 
+static
 void interrupt_handler (int /*signum*/)
 {
     //set flag for breaking long computations

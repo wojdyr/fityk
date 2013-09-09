@@ -5,6 +5,7 @@
 #include "numfuncs.h"
 #include <algorithm>
 #include <string.h>
+#include <assert.h>
 #include "common.h"
 
 using namespace std;

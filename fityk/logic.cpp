@@ -5,9 +5,7 @@
 #include "logic.h"
 
 #include <stdio.h>
-#include <time.h>
 #include <stdlib.h>
-#include <ctype.h>
 #include <string.h>
 #include <locale.h>
 
@@ -16,11 +14,10 @@
 #include "model.h"
 #include "ui.h"
 #include "fit.h"
-#include "guess.h"
 #include "settings.h"
 #include "mgr.h"
-#include "func.h"
 #include "tplate.h"
+#include "var.h"
 #include "luabridge.h"
 #include "lexer.h" // Lexer::kNew
 #include "cparser.h"

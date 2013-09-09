@@ -3,8 +3,6 @@
 
 #ifndef FITYK__SETTINGS__H__
 #define FITYK__SETTINGS__H__
-#include <map>
-#include <utility>
 #include "common.h"
 
 namespace fityk {

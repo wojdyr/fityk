@@ -22,7 +22,7 @@
 #include <wx/generic/statbmpg.h>
 
 #include "fityk/common.h"
-#include "fityk/udf.h"
+#include "fityk/func.h"
 #include "powdifpat.h"
 #include "sgchooser.h"
 #include "atomtables.h"

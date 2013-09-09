@@ -14,10 +14,6 @@
 #include <cmath>
 
 #include "common.h"
-#include "ui.h"
-#include "var.h"
-#include "logic.h"
-#include "numfuncs.h"
 #include "voigt.h"
 #include "lexer.h"
 #include "eparser.h"

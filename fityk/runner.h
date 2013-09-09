@@ -5,10 +5,11 @@
 #define FITYK_RUNNER_H_
 
 #include <vector>
-#include "lexer.h" // Token
-#include "eparser.h"
-#include "view.h" //RealRange
-#include "cparser.h" //RealRange
+#include "lexer.h" // Token, TokenType
+#include "fityk.h" // RealRange
+#include "common.h" // DISALLOW_COPY_AND_ASSIGN
+#include "eparser.h" // for ExpressionParser
+#include "cparser.h" // Parser
 
 namespace fityk {
 

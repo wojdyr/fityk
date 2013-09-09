@@ -4,8 +4,6 @@
 #include <wx/wx.h>
 #include <wx/filename.h>
 #include <wx/cmdline.h>
-#include <wx/splitter.h>
-#include <wx/spinctrl.h>
 #include <wx/file.h>
 
 #include <xylib/xylib.h>

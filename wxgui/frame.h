@@ -5,7 +5,6 @@
 #define FITYK_WX_FRAME_H_
 
 #include <list>
-#include <wx/spinctrl.h>
 #include <wx/filename.h>
 #include "cmn.h"  // enums
 #include "plotpane.h"
@@ -13,7 +12,6 @@
 
 class TextPane;
 class SideBar;
-class ProportionalSplitter;
 class PrintManager;
 class FStatusBar;
 
