@@ -4,9 +4,6 @@
 #ifndef FITYK__FUNC__H__
 #define FITYK__FUNC__H__
 
-#include <map>
-#include <assert.h>
-
 #include "tplate.h"
 #include "var.h"
 
@@ -28,10 +25,6 @@ public:
              const Tplate::Ptr tp, const std::vector<std::string> &vars);
     virtual ~Function() {}
     virtual void init();
-
-    static Function* factory(const Settings* settings, const std::string &name,
-                             const Tplate::Ptr tp,
-                             const std::vector<std::string> &vars);
 
     const Tplate::Ptr& tp() const { return tp_; }
 

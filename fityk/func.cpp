@@ -38,42 +38,6 @@ void Function::init()
            + S(tp_->fargs.size()) + " argument(s), got " + S(av_.size()) + ".");
 }
 
-Function* Function::factory(const Settings* settings,
-                            const string &name, const Tplate::Ptr tp,
-                            const vector<string> &vars)
-{
-    if (false) {}
-
-#define FACTORY_FUNC(NAME) \
-    else if (tp->name == #NAME) \
-        return new Func##NAME(settings, name, tp, vars);
-
-    FACTORY_FUNC(Constant)
-    FACTORY_FUNC(Linear)
-    FACTORY_FUNC(Quadratic)
-    FACTORY_FUNC(Cubic)
-    FACTORY_FUNC(Polynomial4)
-    FACTORY_FUNC(Polynomial5)
-    FACTORY_FUNC(Polynomial6)
-    FACTORY_FUNC(Gaussian)
-    FACTORY_FUNC(SplitGaussian)
-    FACTORY_FUNC(Lorentzian)
-    FACTORY_FUNC(Pearson7)
-    FACTORY_FUNC(SplitPearson7)
-    FACTORY_FUNC(PseudoVoigt)
-    FACTORY_FUNC(Voigt)
-    FACTORY_FUNC(VoigtA)
-    FACTORY_FUNC(EMG)
-    FACTORY_FUNC(DoniachSunjic)
-    FACTORY_FUNC(PielaszekCube)
-    FACTORY_FUNC(LogNormal)
-    FACTORY_FUNC(Spline)
-    FACTORY_FUNC(Polyline)
-
-    else
-        return NULL;
-}
-
 void Function::do_precomputations(const vector<Variable*> &variables)
 {
     //precondition: recalculate() for all variables
