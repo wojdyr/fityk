@@ -342,7 +342,7 @@ void GAfit::stochastic_remainder_sampling(vector<int>& next)
 struct Remainder_and_ptr {
     int ind;
     realt r;
-    bool operator< (const Remainder_and_ptr &b) {
+    bool operator< (const Remainder_and_ptr &b) const {
         return r < b.r;
     }
 };
