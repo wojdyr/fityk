@@ -226,7 +226,10 @@ inline bool is_ge(double a, double b) { return a >= b - epsilon; }
 inline bool is_zero(double a) { return fabs(a) <= epsilon; }
 
 inline bool is_finite(double a)
-#if HAVE_FINITE
+#if defined(__APPLE__)
+    // OSX 10.9 has deprecated finite() and recommends isfinite()
+    { return isfinite(a); }
+#elif HAVE_FINITE
     { return finite(a); }
 #else
     { return a == a; }
