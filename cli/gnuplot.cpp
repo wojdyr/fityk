@@ -17,19 +17,14 @@
 #endif
 
 #include "fityk/fityk.h"
-#if HAVE_CONFIG_H
-#  include <config.h> // HAVE_FINITE
-#endif
-
+#include "fityk/common.h" // is_finite()
 
 #define GNUPLOT_PATH "gnuplot"
 
 using namespace std;
 using fityk::Point;
+using fityk::is_finite;
 
-#ifndef HAVE_FINITE
-static int finite(double x) { return x == x; }
-#endif
 
 GnuPlot::GnuPlot()
     : failed_(false), gnuplot_pipe_(NULL)
@@ -118,7 +113,7 @@ void GnuPlot::plot()
     // data
     if (has_points) {
         for (vector<Point>::const_iterator i = begin; i != end; ++i)
-            if (i->is_active && finite(i->x) && finite(i->y))
+            if (i->is_active && is_finite(i->x) && is_finite(i->y))
                 fprintf(gnuplot_pipe_, "%f  %f\n", double(i->x), double(i->y));
     } else
         // if there are no points, we send empty dataset to reset the plot
@@ -128,9 +123,9 @@ void GnuPlot::plot()
     // model
     if (has_points) {
         for (vector<Point>::const_iterator i = begin; i != end; ++i)
-            if (i->is_active && finite(i->x)) {
+            if (i->is_active && is_finite(i->x)) {
                 double y = ftk->get_model_value(i->x, dm_number);
-                if (finite(y))
+                if (is_finite(y))
                     fprintf(gnuplot_pipe_, "%f  %f\n", double(i->x), y);
             }
     } else
