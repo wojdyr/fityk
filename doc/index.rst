@@ -101,11 +101,11 @@ Subscribers have access to all versions of the program and to e-mail support.
 The program can be installed on many computers and can be also used
 after the end of subscription.
 
-* `1 month subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918496>`_: $115 (≈ €90)
+* `1 month subscription <https://sites.fastspring.com/nieto/instant/fityk-1M>`_: $115 (≈ €90)
 
-* `1 year subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=2918202>`_: $199 (≈ €150)
+* `1 year subscription <https://sites.fastspring.com/nieto/instant/fityk-1Y>`_: $199 (≈ €150)
 
-* `2 years subscription <https://www.plimus.com/jsp/buynow.jsp?contractId=3146878>`_: $299 (≈ €230)
+* `2 years subscription <https://sites.fastspring.com/nieto/instant/fityk-2Y>`_: $299 (≈ €225)
 
 .. raw:: html
 
