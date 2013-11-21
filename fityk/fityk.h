@@ -41,9 +41,14 @@
 
 namespace fityk {
 
+// C++ exception specifications are used by SWIG bindings.
+// They are deprecated (in this form) in C++-11.
 #ifdef _MSC_VER
-// C++ exception specifications are used by SWIG bindings
 #pragma warning( disable : 4290 ) // C++ exception specification ignored...
+#endif
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated"
 #endif
 
 /// Public C++ API of libfityk: class Fityk and helpers.
@@ -316,6 +321,10 @@ private:
 };
 
 } // namespace fityk
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #else /* !__cplusplus */
 /* C API.
