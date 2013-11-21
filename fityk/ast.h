@@ -6,6 +6,7 @@
 
 #include <assert.h>
 #include "vm.h" // opcodes
+#include "common.h" // DISALLOW_COPY_AND_ASSIGN
 
 namespace fityk {
 
@@ -52,6 +53,8 @@ struct OpTree
                && (c1 == t.c1 || (c1 && t.c1 && *c1 == *t.c1))
                && (c2 == t.c2 || (c2 && t.c2 && *c2 == *t.c2));
     }
+private:
+    DISALLOW_COPY_AND_ASSIGN(OpTree);
 };
 
 std::vector<OpTree*> prepare_ast_with_der(const VMData& vm, int len);

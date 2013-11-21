@@ -71,7 +71,8 @@ string OpTree::str(const OpTreeFormat& fmt)
 
 OpTree* OpTree::clone() const
 {
-    OpTree *t = new OpTree(*this);
+    OpTree *t = new OpTree(val);
+    t->op = op;
     if (c1) t->c1 = c1->clone();
     if (c2) t->c2 = c2->clone();
     return t;
