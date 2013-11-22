@@ -451,7 +451,7 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     toolbar_ = new FToolBar(this, -1);
     toolbar_->update_peak_type(peak_type_nr_, &peak_types_);
     SetToolBar(toolbar_);
-    // Realize() is called here (and in two other places) not in FToolBar ctor
+    // Realize() is called here and in SwitchToolbar() not in FToolBar ctor
     // as a workaround for wxOSX/Cocoa problem:
     // http://trac.wxwidgets.org/ticket/13888
     toolbar_->Realize();
@@ -1668,7 +1668,6 @@ void FFrame::SwitchToolbar(bool show)
         //toolbar_->ToggleTool(ID_T_BAR, v_splitter_->IsSplit());
     } else if (!show && GetToolBar()){
         SetToolBar(NULL);
-        toolbar_->Realize();
         delete toolbar_;
         toolbar_ = NULL;
     }
