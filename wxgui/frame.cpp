@@ -451,6 +451,10 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     toolbar_ = new FToolBar(this, -1);
     toolbar_->update_peak_type(peak_type_nr_, &peak_types_);
     SetToolBar(toolbar_);
+    // Realize() is called here (and in two other places) not in FToolBar ctor
+    // as a workaround for wxOSX/Cocoa problem:
+    // http://trac.wxwidgets.org/ticket/13888
+    toolbar_->Realize();
 
     //status bar
     status_bar_ = new FStatusBar(this);
@@ -1658,11 +1662,13 @@ void FFrame::SwitchToolbar(bool show)
     if (show && !GetToolBar()) {
         toolbar_ = new FToolBar(this, -1);
         SetToolBar(toolbar_);
+        toolbar_->Realize();
         update_toolbar();
         update_peak_type_list();
         //toolbar_->ToggleTool(ID_T_BAR, v_splitter_->IsSplit());
     } else if (!show && GetToolBar()){
         SetToolBar(NULL);
+        toolbar_->Realize();
         delete toolbar_;
         toolbar_ = NULL;
     }
@@ -2384,7 +2390,6 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     //AddTool(ID_T_BAR, wxT("SideBar"),
     //        wxBitmap(right_pane_xpm), wxNullBitmap, wxITEM_CHECK,
     //        wxT("Datasets Pane"), wxT("Show/hide datasets pane"));
-    Realize();
 }
 
 void FToolBar::OnPeakChoice(wxCommandEvent &event)
