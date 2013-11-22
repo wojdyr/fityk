@@ -5,7 +5,7 @@
 #include "fit.h"
 
 #include <algorithm>
-#include <math.h>
+#include <cmath>
 #include <boost/math/distributions/students_t.hpp>
 
 #include "logic.h"

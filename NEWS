@@ -1,4 +1,4 @@
-User-visible changes in version 1.2.2  (2013-08-  ):
+User-visible changes in version 1.2.9  (2013-11-  ):
 * fitting:
   - the default method changed to MPFIT implementation of Lev-Mar
   - a few optimization methods from the NLopt library have been added

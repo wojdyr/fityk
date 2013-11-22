@@ -16,7 +16,7 @@
 
 #include <string>
 #include <vector>
-#include <math.h>
+#include <cmath>
 
 #include "fityk.h" //ExecuteError
 
@@ -226,13 +226,13 @@ inline bool is_ge(double a, double b) { return a >= b - epsilon; }
 inline bool is_zero(double a) { return fabs(a) <= epsilon; }
 
 inline bool is_finite(double a)
-#if defined(__APPLE__)
-    // OSX 10.9 has deprecated finite() and recommends isfinite()
+// to avoid "deprecated finite()" warning on OSX 10.9 we try first isfinite()
+#if defined(HAVE_ISFINITE)
     { return isfinite(a); }
-#elif HAVE_FINITE
+#elif defined(HAVE_FINITE)
     { return finite(a); }
 #else
-    { return a == a; }
+    { return a == a; } // this checks only for NaN (better than nothing)
 #endif
 
 

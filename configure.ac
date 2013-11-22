@@ -98,6 +98,8 @@ AC_CHECK_FUNC(erf, [], [AC_MSG_ERROR([erf function not found (?).
 AC_CHECK_FUNC(erfc, [], [AC_MSG_ERROR([erfc function not found (?).
                   Please inform program developer(s) about this problem.])])
 AC_CHECK_FUNCS([finite isnan])
+# see m4/ax_cxx_have_isfinite.m4
+AX_CXX_HAVE_ISFINITE
 
 AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
  [xylib headers were not found. You may need to install xylib first.])])

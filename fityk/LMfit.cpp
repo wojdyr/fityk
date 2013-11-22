@@ -4,7 +4,7 @@
 #define BUILDING_LIBFITYK
 #include "LMfit.h"
 
-#include <math.h>
+#include <cmath>
 #include <vector>
 
 #include "common.h"

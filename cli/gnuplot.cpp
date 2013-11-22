@@ -9,7 +9,7 @@
 #include <sys/types.h>
 #include <signal.h>
 #include <errno.h>
-#include <math.h>
+#include <cmath>
 #include <string>
 #include <algorithm>
 #ifndef _WIN32

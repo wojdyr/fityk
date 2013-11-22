@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <numeric>
 #include <deque>
-#include <math.h>
+#include <cmath>
 
 #include "common.h"
 #include "logic.h"

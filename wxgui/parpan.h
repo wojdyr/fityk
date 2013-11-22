@@ -6,7 +6,6 @@
 #define FITYK_WX_PARPAN_H_
 
 #include <wx/tooltip.h>
-#include <math.h>
 #include <vector>
 #include "fityk/fityk.h" // realt
 #include "drag.h" // DraggedFuncObserver

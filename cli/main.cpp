@@ -10,7 +10,7 @@
 #include <stdlib.h>
 //#include <ctype.h>
 #include <string.h>
-#include <math.h>
+#include <cmath>
 #include <assert.h>
 #ifdef _WIN32
 # include <direct.h> // _getcwd()

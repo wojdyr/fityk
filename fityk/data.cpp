@@ -10,7 +10,7 @@
 #include "logic.h"
 #include "model.h"
 
-#include <math.h>
+#include <cmath>
 #include <string.h>
 #include <stdlib.h>
 #include <algorithm>
