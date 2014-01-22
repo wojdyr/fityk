@@ -155,7 +155,7 @@ Citing Fityk in academic papers:
 M. Wojdyr,
 `J. Appl. Cryst. 43, 1126-1128 <http://dx.doi.org/10.1107/S0021889810030499>`_
 (2010)
-[`reprint <http://www.unipress.waw.pl/fityk/fityk-JAC-10-reprint.pdf>`_]
+[`reprint <http://wojdyr.github.io/fityk-JAC-10-reprint.pdf>`_]
 
 .. _Support:
 
