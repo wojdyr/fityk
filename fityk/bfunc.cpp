@@ -502,23 +502,30 @@ bool FuncVoigt::get_nonzero_range(double level,
     return true;
 }
 
-///estimation according to
+/// estimation according to
 /// http://en.wikipedia.org/w/index.php?title=Voigt_profile&oldid=115518205
+///  fV ~= 0.5346fL + sqrt(0.2166 fL^2 + fG^2)
 ///
-/// a2 = sqrt(2) * sigma
-/// a3 = gamma / (sqrt(2) * sigma)
+/// In original paper, Olivero & Longbothum, 1977,
+/// http://dx.doi.org/10.1016/0022-4073(77)90161-3
+/// this approx. is called "modified Whiting" and is given as:
+///  alphaV = 1/2 { C1 alphaL + sqrt(C2 alphaL^2 + 4 C3 alphaD^2) }
+///   where C1=1.0692, C2=0.86639, C3=1.0
+/// Which is the same as the first formula  (C1/2=0.5346, C2/4=0.2165975).
 ///
-/// sigma = a2 / sqrt(2)
-/// gamma = a2 * a3
-static realt voigt_fwhm(realt a2, realt a3)
+/// Voigt parameters used in fityk (gwidth, shape) are equal:
+///   gwidth = sqrt(2) * sigma
+///   shape = gamma / (sqrt(2) * sigma)
+/// where sigma and gamma are defined as in the Wikipedia article.
+static realt voigt_fwhm(realt gwidth, realt shape)
 {
-    realt sigma = fabs(a2) / M_SQRT2;
-    realt gamma = fabs(a2) * a3;
+    realt sigma = fabs(gwidth) / M_SQRT2;
+    realt gamma = fabs(gwidth) * shape;
 
     realt fG = 2 * sigma * sqrt(2 * M_LN2);
     realt fL = 2 * gamma;
 
-    realt fV = 0.5346 * fL + sqrt(0.2166 * fL * fL + fG * fG);
+    realt fV = 0.5346 * fL + sqrt(0.2165975 * fL * fL + fG * fG);
     return fV;
 }
 

@@ -1,6 +1,8 @@
 
 ----  1.2.9
 
+* docs: Voigt function: more about parameters
+
 * settings: [fitting] use box-constraints=0/1
 
 * tests: fitting with constraints
