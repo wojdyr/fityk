@@ -146,7 +146,7 @@ Documentation
 * `Manual <fityk-manual.html>`_
   (chapters :ref:`intro`, :ref:`getstarted`, :ref:`lang`, :ref:`data`,
   :ref:`model`, :ref:`fit`, :ref:`ref`)
-  and the same `in PDF <http://www.unipress.waw.pl/fityk/fityk-manual.pdf>`_,
+  and the same `in PDF <https://github.com/wojdyr/fityk/releases/download/v1.2.1/fityk-manual.pdf>`_,
 
 * `Fityk Wiki <https://github.com/wojdyr/fityk/wiki>`_
   (you are welcome to contribute).
