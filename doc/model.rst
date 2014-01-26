@@ -255,6 +255,10 @@ Some formulae here have long parameter names
    y = a_0
        \exp\left[-\ln(2)\left(\frac{x-a_1}{a_2}\right)^{2}\right]
 
+:math:`a_2` here is half width at half maximum (HWHM=FWHM/2,
+where FWHM stands for full width...), which is proportional to standard
+deviation: :math:`a_2=\sqrt{2\ln2}\sigma`.
+
 **SplitGaussian:**
 
 .. math:: 
@@ -356,9 +360,10 @@ Journal of Quantitative Spectroscopy & Radiative Transfer
 (See also: http://www.atm.ox.ac.uk/user/wells/voigt.html).
 The approximation is very fast, but not very exact.
 
-FWHM is estimated using the approximation by Olivero and Longbothum
-(`JQSRT 17, 233 (1977)`__):
-:math:`0.5346 w_L + \sqrt{0.2169 w_L^2 + w_G^2}`.
+FWHM is estimated using an approximation called *modified Whiting*
+(`Olivero and Longbothum, 1977, JQSRT 17, 233`__):
+:math:`0.5346 w_L + \sqrt{0.2169 w_L^2 + w_G^2}`,
+where :math:`w_G=2\sqrt{\ln(2)} |a_2|, w_L=2 |a_2| a_3`.
 
 __ http://dx.doi.org/10.1016/0022-4073(77)90161-3
 
@@ -368,6 +373,13 @@ __ http://dx.doi.org/10.1016/0022-4073(77)90161-3
    y = \frac{a_0}{\sqrt{\pi}a_2}
        \int_{-\infty}^{+\infty}
            \frac{\exp(-t^2)}{a_3^2+(\frac{x-a_1}{a_2}-t)^2} dt
+
+**split Voigt (SplitVoigt):**
+
+.. math::
+   y(x;a_{0},a_{1},a_{2},a_{3},a_{4},a_{5}) = \begin{cases}
+    \textrm{Voigt}(x;a_0,a_1,a_2,a_4) & x\leq a_1\\
+    \textrm{Voigt}(x;a_0,a_1,a_3,a_5) & x>a_1\end{cases}
 
 **Exponentially Modified Gaussian (EMG):**
 
