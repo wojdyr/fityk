@@ -274,9 +274,10 @@ void TplateMgr::add_builtin_types(Parser* p)
         Tplate::kPeak, &create_SplitFunction, p);
 
     add("SplitVoigt",
-        "height,center,hwhm1,hwhm2,shape1,shape2", ",,hwhm,hwhm,0.5,0.5",
-        "x < center ? Voigt(height, center, hwhm1, shape1)"
-                  " : Voigt(height, center, hwhm2, shape2)",
+        "height,center,gwidth1,gwidth2,shape1,shape2",
+        ",,hwhm*0.8,hwhm*0.8,0.5,0.5",
+        "x < center ? Voigt(height, center, gwidth1, shape1)"
+                  " : Voigt(height, center, gwidth2, shape2)",
         Tplate::kPeak, &create_SplitFunction, p);
 }
 
