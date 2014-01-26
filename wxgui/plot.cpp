@@ -457,7 +457,7 @@ void FPlot::draw_data (wxDC& dc,
     // draw inactive
     wxColour icol = inactive_color.Ok() ? inactive_color : inactiveDataCol;
     dc.SetPen(wxPen(icol, pen_width));
-    dc.SetBrush(wxBrush(icol, wxSOLID));
+    dc.SetBrush(wxBrush(icol, wxBRUSHSTYLE_SOLID));
     draw_data_by_activity(dc, pp, aa, false);
     if (draw_sigma)
         for (int i = 0; i != len; ++i)
@@ -470,7 +470,7 @@ void FPlot::draw_data (wxDC& dc,
     // draw active
     wxColour acol = color.Ok() ? color : activeDataCol;
     dc.SetPen(wxPen(acol, pen_width));
-    dc.SetBrush(wxBrush(acol, wxSOLID));
+    dc.SetBrush(wxBrush(acol, wxBRUSHSTYLE_SOLID));
     draw_data_by_activity(dc, pp, aa, true);
     if (draw_sigma)
         for (int i = 0; i != len; ++i)
