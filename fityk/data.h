@@ -11,6 +11,8 @@
 
 #include "fityk.h" // struct Point, FITYK_API
 
+namespace xylib { class DataSet; }
+
 namespace fityk {
 
 class BasicContext;
@@ -100,6 +102,7 @@ private:
     std::vector<int> active_;
 
     void post_load();
+    void verify_options(const xylib::DataSet* ds, const std::string& options);
     DISALLOW_COPY_AND_ASSIGN(Data);
 };
 

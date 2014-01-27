@@ -261,6 +261,22 @@ int Data::count_columns(const string& fn,
     }
 }
 
+void Data::verify_options(const xylib::DataSet* ds, const string& options)
+{
+    std::string::size_type start_pos = options.find_first_not_of(" \t");
+    std::string::size_type pos = start_pos;
+    while (pos != std::string::npos) {
+        pos = options.find_first_of(" \t", start_pos);
+        string word = options.substr(start_pos, pos-start_pos);
+        // is_valid_option() is marked as const in since xylib 1.4
+        if (!const_cast<xylib::DataSet*>(ds)->is_valid_option(word))
+            ctx_->ui()->warn("No such option for file type " +
+                             string(ds->fi->name) + ": " + word);
+        start_pos = pos+1;
+    }
+}
+
+
 // for column indices, INT_MAX is used as not given
 void Data::load_file (const string& fn,
                       int idx_x, int idx_y, int idx_s,
@@ -272,8 +288,10 @@ void Data::load_file (const string& fn,
 
     string block_name;
     try {
+        string ds_options = tr_opt(options);
         shared_ptr<const xylib::DataSet> xyds(
-                        xylib::cached_load_file(fn, format, tr_opt(options)));
+                        xylib::cached_load_file(fn, format, ds_options));
+        verify_options(xyds.get(), ds_options);
         clear(); //removing previous file
         vector<int> bb = blocks.empty() ? vector1(0) : blocks;
 
