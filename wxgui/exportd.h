@@ -25,5 +25,16 @@ private:
     wxCheckBox *cb;
 };
 
+class Extra2CheckBoxes: public wxPanel
+{
+public:
+    Extra2CheckBoxes(wxWindow* parent, const wxString& label1, bool value1,
+                                       const wxString& label2, bool value2);
+    bool is_checked1() const { return cb1->GetValue(); }
+    bool is_checked2() const { return cb2->GetValue(); }
+private:
+    wxCheckBox *cb1, *cb2;
+};
+
 
 #endif

@@ -573,6 +573,9 @@ void Runner::command_load(const vector<Token>& args)
         string format, options;
         if (args.size() > 2) {
             format = args[2].as_string();
+            // "_" means any format (useful for passing option decimal_comma)
+            if (format == "_")
+                format.clear();
             for (size_t i = 3; i < args.size(); ++i)
                 options += (i == 3 ? "" : " ") + args[i].as_string();
         }

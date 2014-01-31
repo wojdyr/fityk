@@ -34,6 +34,27 @@ ExtraCheckBox::ExtraCheckBox(wxWindow* parent, const wxString& label,
     SetSizerAndFit(sizer);
 }
 
+Extra2CheckBoxes::Extra2CheckBoxes(wxWindow* parent,
+                                   const wxString& label1, bool value1,
+                                   const wxString& label2, bool value2)
+    : wxPanel(parent, -1)
+{
+    cb1 = new wxCheckBox(this, -1, label1);
+    cb1->SetValue(value1);
+    cb2 = new wxCheckBox(this, -1, label2);
+    cb2->SetValue(value2);
+    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
+#ifdef __WXMSW__
+    sizer->AddSpacer(100);
+    sizer->Add(cb1, 0, wxLEFT|wxBOTTOM, 5);
+    sizer->Add(cb2, 0, wxLEFT|wxBOTTOM, 5);
+#else
+    sizer->Add(cb1);
+    sizer->Add(cb2, 0, wxTOP, 5);
+#endif
+    SetSizerAndFit(sizer);
+}
+
 // helper for export_data_dlg()
 class DataExportDlg : public wxDialog
 {

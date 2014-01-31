@@ -993,9 +993,10 @@ namespace {
 wxWindow* qload_filedialog_extra(wxWindow* parent)
 {
     bool def_sqrt = (S(ftk->get_settings()->default_sigma) == "sqrt");
-    return new ExtraCheckBox(parent,
-                             wxT("data weighting: \u03C3=max(\u221Ay, 1)"),
-                             def_sqrt);
+    bool decimal_comma = wxConfig::Get()->ReadBool("decimalComma", false);
+    return new Extra2CheckBoxes(parent,
+                        wxT("data weighting: \u03C3=max(\u221Ay, 1)"), def_sqrt,
+                        "decimal comma", decimal_comma);
 }
 
 } // anonymous namespace
@@ -1068,8 +1069,12 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
     }
     wxWindow *extra = fdlg.GetExtraControl();
     if (extra != NULL) {
-        bool checked = wxDynamicCast(extra,ExtraCheckBox)->is_checked();
-        string selected = checked ? "sqrt" : "one";
+        Extra2CheckBoxes *extracb = wxDynamicCast(extra,Extra2CheckBoxes);
+        string selected = extracb->is_checked1() ? "sqrt" : "one";
+        bool decimal_comma = extracb->is_checked2();
+        if (decimal_comma)
+            cmd += " _ decimal_comma";
+        wxConfig::Get()->Write("decimalComma", decimal_comma);
         if (ftk->get_settings()->default_sigma != selected)
             cmd = "with default_sigma=" + selected + " " + cmd;
     }
