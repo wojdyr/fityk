@@ -25,6 +25,7 @@
 #include <xylib/cache.h>
 
 #include "frame.h"
+#include "recent.h"
 #include "plot.h"
 #include "mplot.h"
 #include "aplot.h"
@@ -380,41 +381,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (wxID_EXIT,        FFrame::OnQuit)
 END_EVENT_TABLE()
 
-static
-void read_recent_files(std::list<wxFileName> &recent_files,
-                       const wxString& config_group)
-{
-    recent_files.clear();
-    wxConfigBase *c = wxConfig::Get();
-    if (c && c->HasGroup(config_group)) {
-        for (int i = 0; i < 20; i++) {
-            wxString key = wxString::Format("%s/%i", config_group, i);
-            if (c->HasEntry(key))
-                recent_files.push_back(wxFileName(c->Read(key, wxT(""))));
-        }
-    }
-}
 
-static
-void save_recent_files(std::list<wxFileName> &recent_files,
-                       const wxString& config_group)
-{
-    wxConfigBase *c = wxConfig::Get();
-    if (!c)
-        return;
-    if (c->HasGroup(config_group))
-        c->DeleteGroup(config_group);
-    int counter = 0;
-    for (std::list<wxFileName>::const_iterator i = recent_files.begin();
-         i != recent_files.end() && counter < 9;
-         ++i, ++counter) {
-        wxString key = config_group + wxT("/") + s2wx(S(counter));
-        c->Write(key, i->GetFullPath());
-    }
-}
-
-
-    // Define my frame constructor
 FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
                  const long style)
     : wxFrame(parent, id, title, wxDefaultPosition, wxDefaultSize, style),
@@ -444,8 +411,6 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
     v_splitter_->Initialize(main_pane_);
     sizer->Add(v_splitter_, 1, wxEXPAND, 0);
 
-    read_recent_files(recent_data_files_, "/RecentDataFiles");
-    read_recent_files(recent_script_files_, "/RecentScriptFiles");
     set_menubar();
 
     toolbar_ = new FToolBar(this, -1);
@@ -474,9 +439,10 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 
 FFrame::~FFrame()
 {
-    save_recent_files(recent_data_files_, "/RecentDataFiles");
-    save_recent_files(recent_script_files_, "/RecentScriptFiles");
-    wxConfig::Get()->Write(wxT("/DefaultFunctionType"), peak_type_nr_);
+    wxConfigBase *common_config = wxConfig::Get();
+    recent_scripts_->save_to_config(common_config);
+    recent_data_->save_to_config(common_config);
+    common_config->Write(wxT("/DefaultFunctionType"), peak_type_nr_);
     delete print_mgr_;
 #ifdef __WXMAC__
     // On wxCarbon 2.9.2svn assertion pops up on exit
@@ -502,39 +468,9 @@ void FFrame::update_peak_type_list()
         toolbar_->update_peak_type(peak_type_nr_, &peak_types_);
 }
 
-void FFrame::add_recent_data_file(string const& filename)
+void FFrame::add_recent_data_file(const wxString& filename)
 {
-    add_recent_file(filename, data_menu_recent_, recent_data_files_,
-                    ID_D_RECENT);
-}
-
-void FFrame::add_recent_file(string const& filename, wxMenu* menu_recent,
-                             std::list<wxFileName> &recent_files,
-                             int base_id)
-{
-    int const count = menu_recent->GetMenuItemCount();
-    wxMenuItemList const& mlist = menu_recent->GetMenuItems();
-    wxFileName const fn = wxFileName(s2wx(filename));
-    recent_files.remove(fn);
-    recent_files.push_front(fn);
-    int id_new = 0;
-    for (wxMenuItemList::compatibility_iterator i = mlist.GetFirst(); i;
-                                                            i = i->GetNext())
-        if (i->GetData()->GetHelp() == fn.GetFullPath()) {
-            id_new = i->GetData()->GetId();
-            menu_recent->Delete(i->GetData());
-            break;
-        }
-    if (id_new == 0) {
-        if (count < 15) {
-            id_new = base_id + count + 1;
-        } else {
-            wxMenuItem *item = mlist.GetLast()->GetData();
-            id_new = item->GetId();
-            menu_recent->Delete(item);
-        }
-    }
-    menu_recent->Prepend(id_new, fn.GetFullName(), fn.GetFullPath());
+    recent_data_->add(filename);
 }
 
 void FFrame::read_all_settings(wxConfigBase *cf)
@@ -602,18 +538,15 @@ void FFrame::save_settings(wxConfigBase *cf) const
     //cf->Write (wxT("BotWinHeight"), bottom_window->GetClientSize().GetHeight());
 }
 
-wxMenu* FFrame::add_recent_menu(const std::list<wxFileName>& files, int id)
-{
-    wxMenu *menu = new wxMenu;
-    int n = 1;
-    for (std::list<wxFileName>::const_iterator i = files.begin();
-            i != files.end() && n < 16; i++, n++)
-        menu->Append(id + n, i->GetFullName(), i->GetFullPath());
-    return menu;
-}
-
 void FFrame::set_menubar()
 {
+    recent_data_ = new RecentFiles(ID_D_RECENT+1, "/RecentDataFiles");
+    recent_scripts_ = new RecentFiles(ID_SESSION_RECENT+1,
+                                      "/RecentScriptFiles");
+    wxConfigBase *common_config = wxConfig::Get();
+    recent_data_->load_from_config(common_config);
+    recent_scripts_->load_from_config(common_config);
+
     wxMenu* session_menu = new wxMenu;
     append_mi(session_menu, ID_SESSION_INCLUDE, GET_BMP(runmacro16),
               wxT("&Execute Script\tCtrl-X"),
@@ -625,10 +558,8 @@ void FFrame::set_menubar()
     session_menu->Append(-1, "&New Script", session_new_script_menu);
     append_mi(session_menu, ID_SCRIPT_EDIT, GET_BMP(editor16),
               wxT("E&dit Script"), wxT("Show script editor"));
-    session_menu_recent_ = add_recent_menu(recent_script_files_,
-                                           ID_SESSION_RECENT);
     session_menu->Append(ID_SESSION_RECENT, "&Recent Scripts",
-                         session_menu_recent_);
+                         recent_scripts_->menu());
 #ifdef __WXMAC__
     session_menu->Append (ID_SESSION_NEWWIN, "New Window",
                           "Open new window (new process)");
@@ -675,8 +606,7 @@ void FFrame::set_menubar()
     append_mi(data_menu, ID_D_XLOAD, GET_BMP(fileopen16),
               wxT("&Load File\tCtrl-M"),
               wxT("Load data from file, with some options"));
-    data_menu_recent_ = add_recent_menu(recent_data_files_, ID_D_RECENT);
-    data_menu->Append(ID_D_RECENT, "&Recent Files", data_menu_recent_);
+    data_menu->Append(ID_D_RECENT, "&Recent Files", recent_data_->menu());
     append_mi(data_menu, ID_D_REVERT, GET_BMP(revert16), wxT("Re&vert"),
               wxT("Reload data from file(s)"));
     data_menu->AppendSeparator();
@@ -1433,23 +1363,19 @@ void FFrame::OnInclude (wxCommandEvent&)
                       script_dir_, "", fityk_lua_wildcards,
                       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
-        string path = wx2s(fdlg.GetPath());
-        exec("exec '" + path + "'");
-        add_recent_file(path, session_menu_recent_, recent_script_files_,
-                        ID_SESSION_RECENT);
-        //last_include_path_ = path;
-        //GetMenuBar()->Enable(ID_SESSION_RECENT, true);
+        wxString path = fdlg.GetPath();
+        exec("exec '" + wx2s(path) + "'");
+        recent_scripts_->add(path);
     }
     script_dir_ = fdlg.GetDirectory();
 }
 
 void FFrame::OnRecentScript(wxCommandEvent& event)
 {
-    //exec("reset; exec '" + last_include_path_ + "'");
-    string s = wx2s(GetMenuBar()->GetHelpString(event.GetId()));
-    exec("exec '" + s + "'");
-    add_recent_file(s, session_menu_recent_, recent_script_files_,
-                    ID_SESSION_RECENT);
+    //FIXME
+    wxString s = GetMenuBar()->GetHelpString(event.GetId());
+    exec("exec '" + wx2s(s) + "'");
+    recent_scripts_->add(s);
 }
 
 void FFrame::OnNewFitykScript(wxCommandEvent&)

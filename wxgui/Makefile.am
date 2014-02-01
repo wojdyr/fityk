@@ -25,7 +25,7 @@ libceria_a_SOURCES = ceria.cpp ceria.h atomtables.c atomtables.h \
 		     sgtables.c sgtables.h
 
 fityk_SOURCES = cmn.cpp cmn.h gradient.cpp gradient.h parpan.cpp parpan.h \
-		drag.cpp drag.h \
+		drag.cpp drag.h recent.cpp recent.h \
 		inputline.cpp inputline.h listptxt.cpp listptxt.h \
 		dload.cpp dload.h xybrowser.cpp xybrowser.h \
 		plotpane.cpp plotpane.h textpane.cpp textpane.h \

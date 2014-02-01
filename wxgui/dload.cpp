@@ -107,9 +107,8 @@ void DLoadDlg::exec_command(bool replace)
     wxArrayString paths;
     browser_->filectrl->GetPaths(paths);
     for (size_t i = 0; i < paths.GetCount(); ++i) {
-        string filename = wx2s(paths[i]);
         exec(cmd + "@" + (replace ? S(data_idx_) : S("+")) +
-                  " < '" + filename + cols + "'");
+                  " < '" + wx2s(paths[i]) + cols + "'");
         if (browser_->title_tc->IsEnabled()) {
             wxString t = browser_->title_tc->GetValue().Trim();
             if (!t.IsEmpty()) {
@@ -117,7 +116,7 @@ void DLoadDlg::exec_command(bool replace)
                 exec("@" + S(slot) + ": title = '" + wx2s(t) + "'");
             }
         }
-        frame->add_recent_data_file(filename);
+        frame->add_recent_data_file(paths[i]);
     }
 }
 

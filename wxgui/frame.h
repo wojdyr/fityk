@@ -5,7 +5,6 @@
 #define FITYK_WX_FRAME_H_
 
 #include <list>
-#include <wx/filename.h>
 #include "cmn.h"  // enums
 #include "plotpane.h"
 #include "fityk/ui.h" // UserInterface::Style
@@ -14,6 +13,7 @@ class TextPane;
 class SideBar;
 class PrintManager;
 class FStatusBar;
+class RecentFiles;
 
 namespace fityk { class Full; struct RealRange; class Data; }
 extern fityk::Full *ftk;
@@ -197,7 +197,7 @@ public:
     SideBar* get_sidebar() { return sidebar_; }
     void activate_function(int n);
     void update_app_title();
-    void add_recent_data_file(std::string const& filename);
+    void add_recent_data_file(const wxString& filename);
     void update_menu_functions();
     void update_menu_saved_transforms();
     void update_menu_recent_baselines();
@@ -222,19 +222,14 @@ private:
     int peak_type_nr_;
     std::vector<std::string> peak_types_;
     PrintManager* print_mgr_;
-    std::list<wxFileName> recent_script_files_;
-    std::list<wxFileName> recent_data_files_;
-    wxMenu *data_menu_recent_, *session_menu_recent_,
-           *data_ft_menu_, *func_type_menu_;
+    RecentFiles *recent_scripts_, *recent_data_;
+    wxMenu *data_ft_menu_, *func_type_menu_;
     wxString script_dir_, data_dir_, export_dir_;
     bool antialias_;
 
     void place_plot_and_io_windows(wxWindow *parent);
     void create_io_panel(wxWindow *parent);
     void set_menubar();
-    wxMenu* add_recent_menu(const std::list<wxFileName>& files, int id);
-    void add_recent_file(std::string const& filename, wxMenu* menu_recent,
-                         std::list<wxFileName> &recent_files, int base_id);
     void update_peak_type_list();
     void change_mouse_mode(MouseModeEnum mode);
     void export_as_info(const std::string& info, const char* caption,
