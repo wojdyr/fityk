@@ -470,7 +470,7 @@ void FFrame::update_peak_type_list()
 
 void FFrame::add_recent_data_file(const wxString& filename)
 {
-    recent_data_->add(filename);
+    recent_data_->add(filename, "");
 }
 
 void FFrame::read_all_settings(wxConfigBase *cf)
@@ -949,7 +949,6 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
     wxArrayString paths;
     fdlg.GetPaths(paths);
     int count = paths.GetCount();
-    string cmd;
     if (count == 1) {
         string f = wx2s(paths[0]);
         if (endswith(f, ".fit")) {
@@ -991,23 +990,27 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
         } // ignore the exception here, it'll be thrown later
     }
 
-    for (size_t i = 0; i < paths.size(); ++i) {
-        if (i != 0)
-            cmd += " ; ";
-        cmd += "@+ <'" + wx2s(paths[i]) + "'";
-        add_recent_data_file(wx2s(paths[i]));
-    }
+    string cmd;
+    string options;
     wxWindow *extra = fdlg.GetExtraControl();
     if (extra != NULL) {
         Extra2CheckBoxes *extracb = wxDynamicCast(extra,Extra2CheckBoxes);
         string selected = extracb->is_checked1() ? "sqrt" : "one";
         bool decimal_comma = extracb->is_checked2();
         if (decimal_comma)
-            cmd += " _ decimal_comma";
+            options += " _ decimal_comma";
         wxConfig::Get()->Write("decimalComma", decimal_comma);
         if (ftk->get_settings()->default_sigma != selected)
-            cmd = "with default_sigma=" + selected + " " + cmd;
+            cmd = "with default_sigma=" + selected + " ";
     }
+
+    for (size_t i = 0; i < paths.size(); ++i) {
+        if (i != 0)
+            cmd += " ; ";
+        cmd += "@+ <'" + wx2s(paths[i]) + "'" + options;
+        recent_data_->add(wx2s(paths[i]), options.substr(1));
+    }
+
     exec(cmd);
     if (count > 1)
         SwitchSideBar(true);
@@ -1025,9 +1028,11 @@ void FFrame::OnDataXLoad (wxCommandEvent&)
 
 void FFrame::OnDataRecent (wxCommandEvent& event)
 {
-    string s = wx2s(GetMenuBar()->GetHelpString(event.GetId()));
-    exec("@+ <'" + s + "'");
-    add_recent_data_file(s);
+    const RecentFiles::Item& item = recent_data_->pull(event.GetId());
+    string cmd = "@+ <'" + wx2s(item.fn.GetFullPath()) + "'";
+    if (!item.options.empty())
+        cmd += " " + item.options;
+    exec(cmd);
 }
 
 void FFrame::OnDataRevertUpdate (wxUpdateUIEvent& event)
@@ -1365,17 +1370,15 @@ void FFrame::OnInclude (wxCommandEvent&)
     if (fdlg.ShowModal() == wxID_OK) {
         wxString path = fdlg.GetPath();
         exec("exec '" + wx2s(path) + "'");
-        recent_scripts_->add(path);
+        recent_scripts_->add(path, "");
     }
     script_dir_ = fdlg.GetDirectory();
 }
 
 void FFrame::OnRecentScript(wxCommandEvent& event)
 {
-    //FIXME
-    wxString s = GetMenuBar()->GetHelpString(event.GetId());
+    wxString s = recent_scripts_->pull(event.GetId()).fn.GetFullPath();
     exec("exec '" + wx2s(s) + "'");
-    recent_scripts_->add(s);
 }
 
 void FFrame::OnNewFitykScript(wxCommandEvent&)

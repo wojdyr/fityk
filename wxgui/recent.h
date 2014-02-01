@@ -13,18 +13,25 @@
 class RecentFiles
 {
 public:
+    struct Item {
+        int id;
+        wxFileName fn;
+        wxString options;
+    };
     RecentFiles(int first_item_id, const wxString& config_group)
         : first_item_id_(first_item_id), config_group_(config_group),
           menu_(NULL) {}
     void load_from_config(wxConfigBase *c);
     void save_to_config(wxConfigBase *c);
-    wxMenu* menu();
-    void add(const wxString& path);
+    wxMenu* menu() { return menu_; }
+    void add(const wxString& path, const wxString& options);
+    // moves the item to the top and returns file path
+    const Item& pull(int id);
 
 private:
     const int first_item_id_;
     const wxString config_group_;
-    std::list<wxFileName> filenames_;
+    std::list<Item> items_;
     wxMenu *menu_;
 };
 

@@ -3,80 +3,105 @@
 
 #include "recent.h"
 
+using std::list;
+using std::string;
+
+static const int MAX_NUMBER_OF_ITEMS = 15;
+static const char* MAGIC_SEP = "   ";
+
 void RecentFiles::load_from_config(wxConfigBase *c)
 {
-    const int MAX_ITEMS_TO_READ = 20;
-    filenames_.clear();
+    items_.clear();
+    if (menu_ != NULL)
+        delete menu_;
+
+    menu_ = new wxMenu;
     if (c && c->HasGroup(config_group_)) {
-        for (int i = 0; i < MAX_ITEMS_TO_READ; i++) {
+        // gaps shouldn't happend in the config file, but just in case...
+        int counter = 0;
+        for (int i = 0; i < MAX_NUMBER_OF_ITEMS; i++) {
             wxString key = wxString::Format("%s/%i", config_group_, i);
-            if (c->HasEntry(key))
-                filenames_.push_back(wxFileName(c->Read(key, wxT(""))));
+            if (c->HasEntry(key)) {
+                int id = first_item_id_ + counter;
+                ++counter;
+                wxString value = c->Read(key, wxT(""));
+                wxString opt;
+                string::size_type sep = value.find(MAGIC_SEP);
+                if (sep != string::npos) {
+                    opt = value.substr(sep+3);
+                    value.resize(sep);
+                }
+                wxFileName fn(value);
+                Item item = { id, fn, opt };
+                items_.push_back(item);
+                wxString hint = fn.GetFullPath();
+                if (!opt.empty())
+                    hint += " " + opt;
+                menu_->Append(id, fn.GetFullName(), hint);
+            }
         }
     }
 }
 
 void RecentFiles::save_to_config(wxConfigBase *c)
 {
-    const int MAX_ITEMS_TO_WRITE = 9;
     if (!c)
         return;
     if (c->HasGroup(config_group_))
         c->DeleteGroup(config_group_);
     int counter = 0;
-    for (std::list<wxFileName>::const_iterator i = filenames_.begin();
-         i != filenames_.end() && counter < MAX_ITEMS_TO_WRITE;
-         ++i, ++counter) {
+    for (list<Item>::const_iterator i = items_.begin(); i != items_.end(); ++i){
         wxString key = wxString::Format("%s/%i", config_group_, counter);
-        c->Write(key, i->GetFullPath());
+        counter++;
+        wxString value = i->fn.GetFullPath();
+        if (!i->options.empty())
+            value += MAGIC_SEP + i->options;
+        c->Write(key, value);
     }
 }
 
-void RecentFiles::add(const wxString& path)
+void RecentFiles::add(const wxString& path, const wxString& options)
 {
     assert(menu_ != NULL);
-    const int MAX_NUMBER_OF_ITEMS = 15;
-
-    const int count = menu_->GetMenuItemCount();
-    const wxMenuItemList& mlist = menu_->GetMenuItems();
     const wxFileName fn = wxFileName(path);
-    filenames_.remove(fn);
-    filenames_.push_front(fn);
-    int id = 0;
-    for (wxMenuItemList::compatibility_iterator i = mlist.GetFirst(); i;
-                                                            i = i->GetNext())
-        //FIXME
-        if (i->GetData()->GetHelp() == fn.GetFullPath()) {
-            id = i->GetData()->GetId();
-            menu_->Delete(i->GetData());
+
+    // avoid duplicates
+    for (list<Item>::iterator it = items_.begin(); it != items_.end(); ++it) {
+        if (it->fn == fn && it->options == options) {
+            pull(it->id);
+            return;
+        }
+    }
+
+    int id;
+    if (items_.size() < MAX_NUMBER_OF_ITEMS) {
+        id = first_item_id_ + items_.size();
+    } else {
+        id = items_.back().id;
+        items_.pop_back();
+        menu_->Destroy(id);
+    }
+
+    Item item = { id, fn, options };
+    items_.push_front(item);
+    wxString hint = fn.GetFullPath();
+    if (!options.empty())
+        hint += " " + options;
+    menu_->Prepend(id, fn.GetFullName(), hint);
+}
+
+const RecentFiles::Item& RecentFiles::pull(int id)
+{
+    for (list<Item>::iterator it = items_.begin(); it != items_.end(); ++it) {
+        if (it->id == id) {
+            if (it != items_.begin()) {
+                items_.push_front(*it); // it does not invalidate iterator
+                items_.erase(it);
+                menu_->Prepend(menu_->Remove(id));
+            }
             break;
         }
-    if (id == 0) {
-        if (count < MAX_NUMBER_OF_ITEMS) {
-            id = first_item_id_ + count;
-        } else {
-            wxMenuItem *item = mlist.GetLast()->GetData();
-            id = item->GetId();
-            menu_->Delete(item);
-        }
     }
-    menu_->Prepend(id, fn.GetFullName(), fn.GetFullPath());
+    return items_.front();
 }
 
-wxMenu* RecentFiles::menu()
-{
-    const int MAX_NUMBER_OF_ITEMS = 15;
-    if (menu_ == NULL) {
-        menu_ = new wxMenu;
-        int counter = 0;
-        for (std::list<wxFileName>::const_iterator i = filenames_.begin();
-                                                 i != filenames_.end(); ++i) {
-            menu_->Append(first_item_id_+counter,
-                          i->GetFullName(), i->GetFullPath());
-            counter++;
-            if (counter == MAX_NUMBER_OF_ITEMS)
-                break;
-        }
-    }
-    return menu_;
-}
