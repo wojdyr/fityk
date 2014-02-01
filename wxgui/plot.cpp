@@ -30,7 +30,7 @@ void Scale::set(double m, double M, int pixels)
     scale = pixels / (reversed ? -h : h);
     // small (subpixel) shift that aligns axis with pixel grid
     if (!logarithm)
-        origin = iround(origin * scale) / scale;
+        origin = round(origin * scale) / scale;
 }
 
 double Scale::valr(int px) const
