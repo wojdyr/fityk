@@ -42,7 +42,7 @@ class TestText(FileLoadBase):
     def test_load(self):
         self.ftk.execute("@0 < '%s'" % self.filename)
         self.compare(self.ftk.get_data(), 7)
-    def test_load_stric(self):
+    def test_load_strict(self):
         self.ftk.execute("@0 < '%s' text strict" % self.filename)
         self.compare(self.ftk.get_data(), 7)
     def test_load_decimal_comma(self):
