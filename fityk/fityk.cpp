@@ -211,7 +211,8 @@ const Func* Fityk::get_function(const std::string& name) const
 
 vector<Func*> Fityk::get_components(int dataset, char fz)
 {
-    const vector<int>& indexes = priv_->dk.get_model(dataset)->get_fz(fz).idx;
+    const Model *model = priv_->dk.get_model(hd(priv_, dataset));
+    const vector<int>& indexes = model->get_fz(fz).idx;
     const vector<Function*>& functions = priv_->mgr.functions();
     vector<Func*> ret(indexes.size());
     for (size_t i = 0; i != indexes.size(); ++i)
