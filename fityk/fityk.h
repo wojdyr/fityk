@@ -235,6 +235,12 @@ public:
     realt calculate_expr(std::string const& s, int dataset=DEFAULT_DATASET)
                                             throw(SyntaxError, ExecuteError);
 
+    //(planned)
+    /// returns dataset titles
+    //std::vector<std::string> all_datasets() const;
+    //or returns a new class, public API to Data (like Func and Var)
+    //std::vector<Dataset*> all_datasets() const;
+
     /// returns number of datasets n, always n >= 1
     int get_dataset_count() const;
 
