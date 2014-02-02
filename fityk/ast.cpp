@@ -740,8 +740,13 @@ string simplify_formula(string const &formula, const char* num_fmt)
     catch (SyntaxError&) {
         return formula;
     }
-    // derivatives are calculated only as a side effect
-    vector<OpTree*> trees = prepare_ast_with_der(ep.vm(), 1);
+    vector<OpTree*> trees;
+    try {
+        // derivatives are calculated only as a side effect
+        trees = prepare_ast_with_der(ep.vm(), 1);
+    } catch(ExecuteError&) {
+        return formula;
+    }
     vector<string> vars(1, "x");
     OpTreeFormat fmt = { num_fmt, &vars };
     string simplified = trees.back()->str(fmt);

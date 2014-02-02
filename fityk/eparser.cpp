@@ -938,7 +938,8 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                 break;
             case kTokenQMark:
                 // special case, for handling SplitFunction that has
-                // ... expr ":" TypeName ...
+                // ... expr "?" TypeName ":" ...
+                // (fixme: why not to throw error here?)
                 if (lex.peek_token().type == kTokenCname) {
                     finished_ = true;
                     break;
