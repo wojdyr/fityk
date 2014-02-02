@@ -209,7 +209,7 @@ const Func* Fityk::get_function(const std::string& name) const
     return priv_->mgr.functions()[n];
 }
 
-vector<Func*> Fityk::get_components(int dataset, char fz)
+vector<Func*> Fityk::get_components(int dataset, char fz)  throw(ExecuteError)
 {
     const Model *model = priv_->dk.get_model(hd(priv_, dataset));
     const vector<int>& indexes = model->get_fz(fz).idx;

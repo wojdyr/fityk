@@ -270,7 +270,8 @@ public:
     const Func* get_function(const std::string& name) const;
 
     /// returns %functions used in dataset
-    std::vector<Func*> get_components(int dataset, char fz='F');
+    std::vector<Func*> get_components(int dataset=DEFAULT_DATASET, char fz='F')
+                                                         throw(ExecuteError);
 
     /// returns the value of the model for a given dataset at x
     realt get_model_value(realt x, int dataset=DEFAULT_DATASET)
