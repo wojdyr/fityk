@@ -8,13 +8,9 @@
 #include <wx/file.h>
 #include <wx/filename.h>
 
-#include <xylib/xylib.h>
-#include <xylib/cache.h>
-
 #include "dload.h"
 #include "xybrowser.h"
 #include "frame.h"  // frame->add_recent_data_file()
-#include "plot.h" // scale_tics_step()
 #include "fityk/logic.h" // ftk->get_settings()
 #include "fityk/settings.h"
 #include "fityk/data.h" // get_file_basename()
@@ -106,9 +102,12 @@ void DLoadDlg::exec_command(bool replace)
     }
     wxArrayString paths;
     browser_->filectrl->GetPaths(paths);
+    string trailer;
+    if (browser_->comma_cb->GetValue())
+        trailer = " _ decimal_comma";
     for (size_t i = 0; i < paths.GetCount(); ++i) {
         exec(cmd + "@" + (replace ? S(data_idx_) : S("+")) +
-                  " < '" + wx2s(paths[i]) + cols + "'");
+                  " < '" + wx2s(paths[i]) + cols + "'" + trailer);
         if (browser_->title_tc->IsEnabled()) {
             wxString t = browser_->title_tc->GetValue().Trim();
             if (!t.IsEmpty()) {

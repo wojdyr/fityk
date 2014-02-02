@@ -1,8 +1,4 @@
 
-----  1.2.9
-
-* docs: Voigt function: more about parameters
-
 * settings: [fitting] use box-constraints=0/1
 
 * tests: fitting with constraints
@@ -20,7 +16,7 @@
 * GUI: plot histogram of residuals:
   http://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm
 
-* Use more exact Voigt approximation from Faddeeva Package (by SGJ)
+* Use more exact Voigt approximation from Faddeeva Package (by SGJ) or libcerf
 
 * FFT data transformation using FFTW library,
   fft[-inv]-xx, where xx is re, im, amp, e.g. @n = fft-re(@3)
@@ -90,7 +86,8 @@
 
 * "anonymous" function types: %f = ~1/(1+exp(11*(~.663-x)))  -> Anon0(a0,a1)
 
-* consider/test using PaGMO library that collects many optimisation methods
+* consider/test using PaGMO library that collects many optimisation methods,
+  and libgencurvefit (Differential Evolution)
 
 * fitting: in addition to the least squares fit, add so-called robust fit 
   (it is called robust fit in the Numerical Recipes book), i.e. optimize

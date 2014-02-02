@@ -11,6 +11,7 @@ User-visible changes in version 1.2.9  (2013-11-  ):
 * covariance matrix and standard errors are calculated using MPFIT library
 * GUI: added menu Session > Recent Scripts
 * GUI: added checkbox to Functions > Export Peak Parameters
+* GUI: added "decimal comma" option to Data > Load dialogs.
 * Lua: added F:executef()
 
 User-visible changes in version 1.2.1  (2012-11-05):

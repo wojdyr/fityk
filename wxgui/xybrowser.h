@@ -7,6 +7,9 @@
 #include <wx/filectrl.h>
 #include <wx/splitter.h>
 #include <wx/spinctrl.h>
+#include <xylib/xylib.h>
+#include <xylib/cache.h>
+
 #include "uplot.h"
 
 class PreviewPlot : public PlotWithTics
@@ -31,7 +34,7 @@ class XyFileBrowser : public wxSplitterWindow
 public:
     wxFileCtrl *filectrl;
     wxSpinCtrl *x_column, *y_column, *s_column;
-    wxCheckBox *std_dev_cb;
+    wxCheckBox *std_dev_cb, *comma_cb;
     wxChoice *block_ch;
 #ifndef XYCONVERT
     wxCheckBox *sd_sqrt_cb, *title_cb;
@@ -48,6 +51,7 @@ private:
     wxCheckBox *auto_text_cb, *auto_plot_cb;
 
     void StdDevCheckBoxChanged();
+    void OnCommaCheckBox(wxCommandEvent&);
     void OnStdDevCheckBox(wxCommandEvent&) { StdDevCheckBoxChanged(); }
     void OnAutoTextCheckBox(wxCommandEvent& event);
     void OnAutoPlotCheckBox(wxCommandEvent& event);

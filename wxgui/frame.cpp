@@ -946,6 +946,21 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
     if (ret != wxID_OK)
         return;
 
+    string cmd;
+    string options;
+    wxWindow *extra = fdlg.GetExtraControl();
+    if (extra != NULL) {
+        Extra2CheckBoxes *extracb = wxDynamicCast(extra,Extra2CheckBoxes);
+        string selected = extracb->is_checked1() ? "sqrt" : "one";
+        if (ftk->get_settings()->default_sigma != selected)
+            cmd = "with default_sigma=" + selected + " ";
+
+        bool decimal_comma = extracb->is_checked2();
+        if (decimal_comma)
+            options += "decimal_comma";
+        wxConfig::Get()->Write("decimalComma", decimal_comma);
+    }
+
     wxArrayString paths;
     fdlg.GetPaths(paths);
     int count = paths.GetCount();
@@ -990,25 +1005,14 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
         } // ignore the exception here, it'll be thrown later
     }
 
-    string cmd;
-    string options;
-    wxWindow *extra = fdlg.GetExtraControl();
-    if (extra != NULL) {
-        Extra2CheckBoxes *extracb = wxDynamicCast(extra,Extra2CheckBoxes);
-        string selected = extracb->is_checked1() ? "sqrt" : "one";
-        bool decimal_comma = extracb->is_checked2();
-        if (decimal_comma)
-            options += " _ decimal_comma";
-        wxConfig::Get()->Write("decimalComma", decimal_comma);
-        if (ftk->get_settings()->default_sigma != selected)
-            cmd = "with default_sigma=" + selected + " ";
-    }
-
     for (size_t i = 0; i < paths.size(); ++i) {
         if (i != 0)
             cmd += " ; ";
-        cmd += "@+ <'" + wx2s(paths[i]) + "'" + options;
-        recent_data_->add(wx2s(paths[i]), options.substr(1));
+        cmd += "@+ <'" + wx2s(paths[i]) + "'";
+        if (!options.empty())
+           cmd += " _ " + options;
+        recent_data_->add(wx2s(paths[i]),
+                          options.empty() ? "" : "_ "+options);
     }
 
     exec(cmd);

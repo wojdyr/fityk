@@ -131,19 +131,26 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     y_column = new SpinCtrl(columns_panel, wxID_ANY, 2, 0, 999, 50);
     h2a_sizer->Add (y_column, 0, wxALL|wxALIGN_LEFT, 5);
-    std_dev_cb = new wxCheckBox(columns_panel, -1, wxT("std.dev."));
+    std_dev_cb = new wxCheckBox(columns_panel, -1, wxT("\u03C3"));
     std_dev_cb->SetValue(false);
     h2a_sizer->Add(std_dev_cb, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL,5);
     s_column = new SpinCtrl(columns_panel, wxID_ANY, 3, 1, 999, 50);
     h2a_sizer->Add(s_column, 0, wxALL|wxALIGN_LEFT, 5);
+#ifndef XYCONVERT
+    h2a_sizer->Add(new wxStaticText(columns_panel, wxID_ANY, "or"),
+                   0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sd_sqrt_cb = new wxCheckBox(columns_panel, wxID_ANY,
+                                wxT("\u03C3 = max{\u221Ay, 1}"));
+    h2a_sizer->Add(sd_sqrt_cb, 0, wxALL|wxEXPAND, 5);
+#endif
     columns_panel->SetSizer(h2a_sizer);
     left_sizer->Add (columns_panel, 0, wxALL|wxEXPAND, 5);
 
-#ifndef XYCONVERT
-    sd_sqrt_cb = new wxCheckBox(left_panel, wxID_ANY,
-                                wxT("std. dev. = max(sqrt(y), 1)"));
-    left_sizer->Add (sd_sqrt_cb, 0, wxALL|wxEXPAND, 5);
+    comma_cb = new wxCheckBox(left_panel, wxID_ANY, "decimal comma");
+    comma_cb->SetValue(false);
+    left_sizer->Add(comma_cb, 0, wxALL|wxEXPAND, 5);
 
+#ifndef XYCONVERT
     wxBoxSizer *dt_sizer = new wxBoxSizer(wxHORIZONTAL);
     title_cb = new wxCheckBox(left_panel, wxID_ANY,
                               wxT("data title:"));
@@ -184,6 +191,8 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
 
     Connect(std_dev_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
             wxCommandEventHandler(XyFileBrowser::OnStdDevCheckBox));
+    Connect(comma_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(XyFileBrowser::OnCommaCheckBox));
     Connect(auto_text_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
             wxCommandEventHandler(XyFileBrowser::OnAutoTextCheckBox));
     Connect(auto_plot_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
@@ -257,6 +266,11 @@ void XyFileBrowser::update_title_from_file()
 #endif
 }
 
+void XyFileBrowser::OnCommaCheckBox(wxCommandEvent&)
+{
+    update_plot_preview();
+}
+
 void XyFileBrowser::OnAutoTextCheckBox (wxCommandEvent& event)
 {
     if (event.IsChecked())
@@ -315,7 +329,10 @@ void XyFileBrowser::update_plot_preview()
             plot_preview->idx_x = x_column->GetValue();
             plot_preview->idx_y = y_column->GetValue();
             plot_preview->block_nr = block_ch->GetSelection();
-            plot_preview->load_dataset(wx2s(path), get_filetype(), "");
+            string options;
+            if (comma_cb->GetValue())
+                options = "decimal-comma";
+            plot_preview->load_dataset(wx2s(path), get_filetype(), options);
         }
     } else
         plot_preview->make_outdated();
@@ -489,10 +506,13 @@ void App::OnConvert(wxCommandEvent&)
     int idx_y = browser->y_column->GetValue();
     bool has_err = browser->std_dev_cb->GetValue();
     int idx_err = browser->s_column->GetValue();
+    bool dec_comma = browser->comma_cb->GetValue();
 
     wxArrayString paths;
     browser->filectrl->GetPaths(paths);
     string options;
+    if (dec_comma)
+        options = "decimal-comma";
 
     for (size_t i = 0; i < paths.GetCount(); ++i) {
         wxFileName old_filename(paths[i]);
