@@ -37,9 +37,12 @@ int MPfit::on_iteration()
 int MPfit::calculate(int /*m*/, int npar, double *par, double *deviates,
                      double **derivs)
 {
-    int stop = on_iteration();
-    if (stop)
-        return -1; // error code reserved for user function
+    // MP_NO_ITER is used only to calculate covariance matrix
+    if (mp_conf_.maxiter != MP_NO_ITER) {
+        int stop = on_iteration();
+        if (stop)
+            return -1; // error code reserved for user function
+    }
 
     vector<realt> A(par, par+npar);
     if (F_->get_verbosity() >= 1)
