@@ -200,6 +200,32 @@ void stroke_line(wxDC& dc, const vector<double>& YY, int from=0, int to=-1)
     }
 }
 
+static
+void stroke_line(wxDC& dc, const vector<double>& XX, const vector<double>& YY)
+{
+    assert(XX.size() == YY.size());
+    int n = XX.size();
+    if (n == 0)
+        return;
+    wxGCDC* gdc = wxDynamicCast(&dc, wxGCDC);
+    if (gdc) {
+        wxGraphicsContext *gc = gdc->GetGraphicsContext();
+        wxGraphicsPath path = gc->CreatePath();
+        path.MoveToPoint(XX[0], YY[0]);
+        for (int i = 1; i < n; ++i)
+            path.AddLineToPoint(XX[i], YY[i]);
+        gc->StrokePath(path);
+    } else {
+        wxPoint *points = new wxPoint[n];
+        for (int i = 0; i < n; ++i) {
+            points[i].x = iround(XX[i]);
+            points[i].y = iround(YY[i]);
+        }
+        dc.DrawLines(n, points);
+        delete [] points;
+    }
+}
+
 //===============================================================
 //                MainPlot (plot with data and fitted curves)
 //===============================================================
@@ -352,19 +378,65 @@ void MainPlot::draw_y_axis (wxDC& dc, bool set_pen)
     dc.DrawLine (X0, 0, X0, get_pixel_height(dc));
 }
 
+// one point for every pixel and extra points for function centers
+// The latter is to avoid plots like here:
+// https://groups.google.com/d/msg/fityk-users/9tHeKQ37rbg/4H6VUD9iTu8J
+static
+vector<realt> get_x_points_for_model_line(const Model *model, const Scale& xs,
+                                          int width)
+{
+    vector<realt> centers;
+    v_foreach(int, k, model->get_ff().idx) {
+        realt ctr;
+        if (ftk->mgr.get_function(*k)->get_center(&ctr)) {
+            realt X = xs.px_d(ctr);
+            if (X > 0 && X < width-1)
+                centers.push_back(ctr);
+        }
+    }
+    sort(centers.begin(), centers.end());
+
+    vector<realt> xx(width + centers.size());
+    if (xs.scale >= 0) {
+        reverse(centers.begin(), centers.end());
+        for (int i = 0, pos = 0; i < width; ++i) {
+            realt x = xs.val(i);
+            while (!centers.empty() && centers.back() < x) {
+                xx[pos++] = centers.back();
+                centers.pop_back();
+            }
+            xx[pos++] = x;
+        }
+    } else {
+        for (int i = 0, pos = 0; i < width; ++i) {
+            realt x = xs.val(i);
+            while (!centers.empty() && centers.back() > x) {
+                xx[pos++] = centers.back();
+                centers.pop_back();
+            }
+            xx[pos++] = x;
+        }
+    }
+
+    return xx; // counting on RVO
+}
+
 void MainPlot::draw_model(wxDC& dc, const Model* model, bool set_pen)
 {
     if (set_pen)
         dc.SetPen(wxPen(modelCol, model_line_width_ * pen_width));
-    int n = get_pixel_width(dc);
-    vector<realt> xx(n), yy(n);
-    vector<double> YY(n);
-    for (int i = 0; i < n; ++i)
-        xx[i] = xs.val(i);
+    int width = get_pixel_width(dc);
+    vector<realt> xx = get_x_points_for_model_line(model, xs, width);
+
+    vector<realt> yy(xx.size());
+    vector<double> YY(xx.size());
     model->compute_model(xx, yy);
-    for (int i = 0; i < n; ++i)
+    for (size_t i = 0; i != yy.size(); ++i)
         YY[i] = ys.px_d(yy[i]);
-    stroke_line(dc, YY);
+    vm_foreach(realt, x, xx) // in-place conversion to screen coords
+        *x = xs.px_d(*x);
+    for (size_t i = 0; i != yy.size(); ++i)
+    stroke_line(dc, xx, YY);
 }
 
 
