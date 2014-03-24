@@ -341,6 +341,7 @@ Option "-h" ("/h" on MS Windows) gives the full listing::
     -V, --version         output version information and exit
     -c, --cmd=<str>       script passed in as string
     -I, --no-init         don't process $HOME/.fityk/init file
+    -n, --no-plot         disable plotting (gnuplot)
     -q, --quit            don't enter interactive shell
 
 The example of non-interactive using CLI version on Linux::

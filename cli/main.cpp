@@ -255,6 +255,7 @@ int main (int argc, char **argv)
 
     // process command-line arguments
     bool exec_init_file = true;
+    bool enable_plot = true;
     bool quit = false;
     string script_string;
     for (int i = 1; i < argc; ++i) {
@@ -265,6 +266,7 @@ int main (int argc, char **argv)
               "  -V, --version         output version information and exit\n"
               "  -c, --cmd=<str>       script passed in as string\n"
               "  -I, --no-init         don't process $HOME/.fityk/init file\n"
+              "  -n, --no-plot         disable plotting (gnuplot)\n"
               "  -q, --quit            don't enter interactive shell\n");
             return 0;
         } else if (!strcmp(argv[i], "-V") || !strcmp(argv[i], "--version")) {
@@ -289,6 +291,9 @@ int main (int argc, char **argv)
         } else if (!strcmp(argv[i], "-I") || !strcmp(argv[i], "--no-init")) {
             argv[i] = 0;
             exec_init_file = false;
+        } else if (!strcmp(argv[i], "-n") || !strcmp(argv[i], "--no-plot")) {
+            argv[i] = 0;
+            enable_plot = false;
         } else if (!strcmp(argv[i], "-q") || !strcmp(argv[i], "--quit")) {
             argv[i] = 0;
             quit = true;
@@ -300,7 +305,8 @@ int main (int argc, char **argv)
 
     ftk = new Fityk;
     // set callbacks
-    ftk->get_ui_api()->connect_draw_plot(cli_draw_plot);
+    if (enable_plot)
+        ftk->get_ui_api()->connect_draw_plot(cli_draw_plot);
 
     if (exec_init_file) {
         // file with initial commands is executed first (if exists)
