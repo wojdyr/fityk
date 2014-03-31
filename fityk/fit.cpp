@@ -250,10 +250,15 @@ void Fit::compute_derivatives_for(const Data* data,
         realt inv_sig = 1.0 / data->get_sigma(i);
         realt dy_sig = (data->get_y(i) - yy[i]) * inv_sig;
         vector<realt>::iterator t = dy_da.begin() + i*dyn;
+        // The program spends here a lot of time.
+        // Testing on GCC 4.8 with -O3 on x64 i7 processor:
+        //  the first loop (j) is faster when iterating upward,
+        //  and the other one (k) is faster downward.
+        // Removing par_usage_ only slows down this loop (!?).
         for (int j = 0; j != na_; ++j) {
             if (par_usage_[j]) {
                 *(t+j) *= inv_sig;
-                for (int k = 0; k <= j; ++k)    //half of alpha[]
+                for (int k = j; k != -1; --k)    //half of alpha[]
                     alpha[na_ * j + k] += *(t+j) * *(t+k);
                 beta[j] += dy_sig * *(t+j);
             }
