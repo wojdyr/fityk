@@ -14,14 +14,14 @@ namespace fityk {
 
 /// returns position pos in sorted vector of points, *pos and *(pos+1) are
 /// required segment for interpolation
-/// optimized for sequenced calling with slowly increasing x's
+/// optimized for sequential calls with slowly increasing x's
 template<typename T>
 typename vector<T>::iterator
 get_interpolation_segment(vector<T> &bb,  double x)
 {
-    //optimized for sequence of x = x1, x2, x3, x1 < x2 < x3...
     static typename vector<T>::iterator pos = bb.begin();
     assert (size(bb) > 1);
+    // when outside of the range, use the first or the last segment
     if (x <= bb.front().x)
         return bb.begin();
     if (x >= bb.back().x)
@@ -42,6 +42,10 @@ get_interpolation_segment(vector<T> &bb,  double x)
     // pos >= bb.begin() because x > bb.front().x
     return pos;
 }
+
+// explicit instantiation for use in bfunc.cpp in FuncPolyline
+template vector<PointD>::iterator
+get_interpolation_segment<PointD>(vector<PointD> &bb,  double x);
 
 void prepare_spline_interpolation (vector<PointQ> &bb)
 {
