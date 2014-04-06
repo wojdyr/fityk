@@ -79,7 +79,7 @@ TEST_CASE("linear-guess", "test Guess::estimate_linear_parameters()") {
     REQUIRE(is_vector_sorted(data->points()));
     Guess g(ftk->get_settings());
     g.set_data(ftk->dk.data(0), RealRange(), -1);
-    boost::array<double,3> lin_est = g.estimate_linear_parameters();
+    vector<double> lin_est = g.estimate_linear_parameters();
     //printf("slope %.14f\nintercept %.14f\n", lin_est[0], lin_est[1]);
     REQUIRE(lin_est[0] == Approx(norris::cert_b1));
     REQUIRE(lin_est[1] == Approx(norris::cert_b0));
