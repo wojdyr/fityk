@@ -357,7 +357,6 @@ Voigt is computed according to R.J.Wells,
 *Rapid approximation to the Voigt/Faddeeva function and its derivatives*,
 Journal of Quantitative Spectroscopy & Radiative Transfer
 62 (1999) 29-48.
-(See also: http://www.atm.ox.ac.uk/user/wells/voigt.html).
 The approximation is very fast, but not very exact.
 
 FWHM is estimated using an approximation called *modified Whiting*
