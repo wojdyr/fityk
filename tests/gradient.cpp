@@ -5,7 +5,6 @@
 #include "fityk/data.h"
 #include "fityk/fit.h"
 
-#define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
 using namespace std;
@@ -102,7 +101,7 @@ TEST_CASE("set-throws", "test Fityk::set_throws()") {
 }
 
 
-TEST_CASE("set-get-option", "test Fityk::?et_option_as_*()") {
+TEST_CASE("set-get-option", "test Fityk::[gs]et_option_as_*()") {
     boost::scoped_ptr<Fityk> fik(new Fityk);
 
     REQUIRE(fik->get_option_as_string("numeric_format") == "%g"); // string

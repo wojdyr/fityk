@@ -6,7 +6,6 @@
 #include "fityk/logic.h"
 #include "fityk/model.h"
 
-#define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
 using namespace std;

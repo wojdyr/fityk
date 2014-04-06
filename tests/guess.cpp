@@ -5,7 +5,6 @@
 #include "fityk/guess.h"
 #include "fityk/data.h"
 
-#define CATCH_CONFIG_MAIN
 #include "catch.hpp"
 
 using namespace std;
