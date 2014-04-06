@@ -11,7 +11,7 @@ using namespace std;
 namespace fityk {
 
 #ifndef NDEBUG
-static bool debug_deriv_in_mpfit=false; // changed only for tests
+bool debug_deriv_in_mpfit=false; // changed only for tests (must be non-static)
 #endif
 
 static
