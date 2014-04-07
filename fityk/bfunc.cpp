@@ -493,11 +493,20 @@ bool FuncVoigt::get_nonzero_range(double level,
 {
     if (level == 0)
         return false;
-    else if (fabs(level) >= fabs(av_[0]))
+    realt t = fabs(av_[0]/level);
+    if (t <= 1) {
         left = right = 0;
-    else {
-        //TODO estimate Voigt's non-zero range
-        return false;
+    } else {
+        // I couldn't find ready-to-use approximation of the Voigt inverse.
+        // This estimation is used instead.
+        // width of Lorentzian (exact width when shape -> inf)
+        realt w_l = av_[3] * sqrt(t - 1);
+        // width of Gaussian (exact width when shape=0)
+        realt w_g = sqrt(log(t));
+        // The sum should do as upper bound of the width at given level.
+        realt w = (w_l + w_g) * av_[2];
+        left = av_[1] - w;
+        right = av_[1] + w;
     }
     return true;
 }
