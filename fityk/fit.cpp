@@ -240,27 +240,36 @@ void Fit::compute_derivatives(const vector<realt> &A,
 void Fit::compute_derivatives_for(const Data* data,
                                   vector<realt>& alpha, vector<realt>& beta)
 {
-    int n = data->get_n();
-    vector<realt> xx = data->get_xx();
-    vector<realt> yy(n, 0.);
-    const int dyn = na_+1;
-    vector<realt> dy_da(n*dyn, 0.);
-    data->model()->compute_model_with_derivs(xx, yy, dy_da);
-    for (int i = 0; i != n; ++i) {
-        realt inv_sig = 1.0 / data->get_sigma(i);
-        realt dy_sig = (data->get_y(i) - yy[i]) * inv_sig;
-        vector<realt>::iterator t = dy_da.begin() + i*dyn;
-        // The program spends here a lot of time.
-        // Testing on GCC 4.8 with -O3 on x64 i7 processor:
-        //  the first loop (j) is faster when iterating upward,
-        //  and the other one (k) is faster downward.
-        // Removing par_usage_ only slows down this loop (!?).
-        for (int j = 0; j != na_; ++j) {
-            if (par_usage_[j] && *(t+j) != 0) {
-                *(t+j) *= inv_sig;
-                for (int k = j; k != -1; --k)    //half of alpha[]
-                    alpha[na_ * j + k] += *(t+j) * *(t+k);
-                beta[j] += dy_sig * *(t+j);
+    // Iterating over points is tiled to limit memory usage. It's also a little
+    // faster than a single loop over all points for large number of points.
+    const int kMaxTileSize = 1024;
+    vector<realt> dy_da;
+    for (int tstart = 0; tstart < data->get_n(); tstart += kMaxTileSize) {
+        const int dyn = na_+1;
+        int tsize = min(data->get_n() - tstart, kMaxTileSize);
+        vector<realt> xx(tsize);
+        for (int j = 0; j != tsize; ++j)
+            xx[j] = data->get_x(tstart+j);
+        vector<realt> yy(tsize, 0.);
+        dy_da.resize(tsize*dyn);
+        fill(dy_da.begin(), dy_da.end(), 0.);
+        data->model()->compute_model_with_derivs(xx, yy, dy_da);
+        for (int i = 0; i != tsize; ++i) {
+            realt inv_sig = 1.0 / data->get_sigma(tstart+i);
+            realt dy_sig = (data->get_y(tstart+i) - yy[i]) * inv_sig;
+            vector<realt>::iterator t = dy_da.begin() + i*dyn;
+            // The program spends here a lot of time.
+            // Testing on GCC 4.8 with -O3 on x64 i7 processor:
+            //  the first loop (j) is faster when iterating upward,
+            //  and the other one (k) is faster downward.
+            // Removing par_usage_ only slows down this loop (!?).
+            for (int j = 0; j != na_; ++j) {
+                if (par_usage_[j] && *(t+j) != 0) {
+                    *(t+j) *= inv_sig;
+                    for (int k = j; k != -1; --k)    //half of alpha[]
+                        alpha[na_ * j + k] += *(t+j) * *(t+k);
+                    beta[j] += dy_sig * *(t+j);
+                }
             }
         }
     }
