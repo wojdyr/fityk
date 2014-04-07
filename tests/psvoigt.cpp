@@ -5,6 +5,8 @@
 // derivatives need private API
 #include "fityk/logic.h"
 #include "fityk/model.h"
+// get_nonzero_range() needs private API
+#include "fityk/func.h"
 
 #include "catch.hpp"
 
@@ -64,4 +66,60 @@ TEST_CASE("pseudo-voigt", "") {
         for (int j = 0; j != 5; ++j)
             REQUIRE(deriv[j] == Approx(expected_deriv[j]));
     }
+}
+
+
+// test Function::get_nonzero_range() implementations
+
+static double nonzero_left(double level, const string& func) {
+    boost::scoped_ptr<fityk::Fityk> fik(new fityk::Fityk);
+    fik->set_option_as_number("verbosity", -1);
+    fik->execute("%f = " + func);
+    const fityk::Func *f = fik->get_function("f");
+    double left, right;
+    const fityk::Function *fpriv = dynamic_cast<const fityk::Function*>(f);
+    bool r = fpriv->get_nonzero_range(level, left, right);
+    REQUIRE(r == true);
+    double y_left = f->value_at(left);
+    return y_left;
+}
+
+TEST_CASE("Gaussian::get_nonzero_range()", "") {
+    REQUIRE(nonzero_left(0.01, "Gaussian(0.9, 11.8, 1.08)") == Approx(0.01));
+    REQUIRE(nonzero_left(1e-5, "Gaussian(-20.2, -0.8, 6.7)") == Approx(-1e-5));
+}
+
+TEST_CASE("Lorentzian::get_nonzero_range()", "") {
+    REQUIRE(nonzero_left(0.01, "Lorentzian(0.9, 11.8, 1.08)") == Approx(0.01));
+    REQUIRE(nonzero_left(1e-5, "Lorentzian(-20, -0.8, 6.7)") == Approx(-1e-5));
+}
+
+TEST_CASE("Pearson7::get_nonzero_range()", "") {
+    REQUIRE(nonzero_left(0.01, "Pearson7(0.9, 11.8, 1.08, 1.3)") ==
+            Approx(0.01));
+    REQUIRE(nonzero_left(1e-5, "Pearson7(-20.2, -0.8, 6.7, 1.3)") ==
+            Approx(-1e-5));
+}
+
+TEST_CASE("PseudoVoigt::get_nonzero_range()", "") {
+    // PseudoVoigt::get_nonzero_range() uses rough estimation
+    double b = nonzero_left(0.01, "PseudoVoigt(0.9, 11.8, 1.08, 0.7)");
+    REQUIRE(b > 0.004);
+    REQUIRE(b < 0.01);
+    REQUIRE(nonzero_left(1e-5, "PseudoVoigt(-20, -0.8, 6.7, 0.7)") ==
+            Approx(-1e-5));
+}
+
+TEST_CASE("Voigt::get_nonzero_range()", "") {
+    // Voigt::get_nonzero_range() also uses rough estimation
+    double b1 = nonzero_left(0.04, "Voigt(0.9, 11.8, 1.08, 0.4)");
+    REQUIRE(b1 > 0.026);
+    REQUIRE(b1 < 0.04);
+    double b2 = nonzero_left(0.8, "Voigt(0.9, 11.8, 1.08, 1.8)");
+    REQUIRE(b2 > 0.7);
+    REQUIRE(b2 < 0.8);
+    double b3 = nonzero_left(0.2, "Voigt(0.9, 11.8, 1.08, 1.8)");
+    REQUIRE(b3 > 0.14);
+    REQUIRE(b3 < 0.2);
+    REQUIRE(nonzero_left(1e-5, "Voigt(-20, -0.8, 6.7, 1.1)") == Approx(-1e-5));
 }
