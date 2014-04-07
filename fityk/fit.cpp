@@ -246,7 +246,7 @@ void Fit::compute_derivatives_for(const Data* data,
     const int dyn = na_+1;
     vector<realt> dy_da(n*dyn, 0.);
     data->model()->compute_model_with_derivs(xx, yy, dy_da);
-    for (int i = 0; i != n; i++) {
+    for (int i = 0; i != n; ++i) {
         realt inv_sig = 1.0 / data->get_sigma(i);
         realt dy_sig = (data->get_y(i) - yy[i]) * inv_sig;
         vector<realt>::iterator t = dy_da.begin() + i*dyn;
@@ -256,7 +256,7 @@ void Fit::compute_derivatives_for(const Data* data,
         //  and the other one (k) is faster downward.
         // Removing par_usage_ only slows down this loop (!?).
         for (int j = 0; j != na_; ++j) {
-            if (par_usage_[j]) {
+            if (par_usage_[j] && *(t+j) != 0) {
                 *(t+j) *= inv_sig;
                 for (int k = j; k != -1; --k)    //half of alpha[]
                     alpha[na_ * j + k] += *(t+j) * *(t+k);
