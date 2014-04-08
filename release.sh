@@ -12,6 +12,7 @@ if [ $# -eq 0 ]; then
  echo Version in this script is set to $version
  echo usage: $0 step_nr
  echo steps:
+ echo a. update m4 scripts from autoconf-archive
  echo 0. prepare new version and increase version number 
  echo 1. run samples
  echo "2. cd builds/ && make all"
@@ -33,8 +34,14 @@ echo
 echo -n '===>' 
 
 
+if [ $1 = "a" ]; then
+ echo update m4 scripts from autoconf-archive...
+ ac_scripts="ax_lua.m4 ax_python_devel.m4 ax_lib_readline.m4 ax_pkg_swig.m4"
+ for i in $ac_scripts; do
+     echo curl "http://git.savannah.gnu.org/gitweb/?p=autoconf-archive.git;a=blob_plain;f=m4/$i" -o m4/$i
+ done
 
-if [ $1 -eq 0 ]; then
+elif [ $1 -eq 0 ]; then
  echo now the version in this script is: $version
  echo configure.ac:
  grep AC_INIT configure.ac
@@ -45,7 +52,6 @@ if [ $1 -eq 0 ]; then
  echo NEWS:
  head -4 NEWS | grep version
  echo
-
 
 elif [ $1 -eq 1 ]; then
  echo run tests and samples...
