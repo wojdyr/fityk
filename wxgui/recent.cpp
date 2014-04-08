@@ -74,7 +74,7 @@ void RecentFiles::add(const wxString& path, const wxString& options)
     }
 
     int id;
-    if (items_.size() < MAX_NUMBER_OF_ITEMS) {
+    if (items_.size() < (size_t) MAX_NUMBER_OF_ITEMS) {
         id = first_item_id_ + items_.size();
     } else {
         id = items_.back().id;
