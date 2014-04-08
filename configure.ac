@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([fityk],[1.2.1])
+AC_INIT([fityk],[1.2.9])
 LIBRARY_VERSION_FLAG="-version-info 4:0:0"
 
 AC_CONFIG_SRCDIR([fityk/voigt.h])
@@ -115,7 +115,7 @@ AC_COMPILE_IFELSE(
 
 # Checks for version specific libraries and headers.
 AS_IF([test "x$enable_GUI" != "xno"], [
-    AM_PATH_WXCONFIG([2.9.2], [wxWin=1], [wxWin=0], [adv,core,base,stc])
+    AM_PATH_WXCONFIG([3.0.0], [wxWin=1], [wxWin=0], [adv,core,base,stc])
     if test "$wxWin" != 1; then
     	AC_MSG_ERROR([
 	      wxWindows must be installed on your system

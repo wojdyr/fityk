@@ -24,8 +24,8 @@ source_suffix = '.rst'
 source_encoding = 'utf-8'
 master_doc = 'fityk-manual'
 project = 'Fityk'
-copyright = '2001-2013, Fityk Developers'
-version = '1.2.1'
+copyright = '2001-2014, Fityk Developers'
+version = '1.2.9'
 release = version
 default_role = None
 

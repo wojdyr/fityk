@@ -127,7 +127,7 @@ and Linux (Ubuntu PPA_ and RPMs from OBS_).
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 :html:`<a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://fityk.nieto.pl"></a>`
 
-Version 1.2.1 was released on 2012-11-05
+Version 1.2.9 was released on 2014-04-09
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
 New version `notifications <http://fityk-announce.nieto.pl/>`_
 are delivered via email and feeds.
@@ -146,7 +146,7 @@ Documentation
 * `Manual <fityk-manual.html>`_
   (chapters :ref:`intro`, :ref:`getstarted`, :ref:`lang`, :ref:`data`,
   :ref:`model`, :ref:`fit`, :ref:`ref`)
-  and the same `in PDF <https://github.com/wojdyr/fityk/releases/download/v1.2.1/fityk-manual.pdf>`_,
+  and the same `in PDF <https://github.com/wojdyr/fityk/releases/download/v1.2.9/fityk-manual.pdf>`_,
 
 * `Fityk Wiki <https://github.com/wojdyr/fityk/wiki>`_
   (you are welcome to contribute).
