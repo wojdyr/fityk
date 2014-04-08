@@ -66,6 +66,10 @@ Building manual (html version): cd doc && make html
 This requires Sphinx >= 1.0 (http://sphinx.pocoo.org/), LaTeX and dvipng.
 If you prefer to skip this step do "mkdir -p doc/html/placeholder".
 
+To compile tests (make check) download
+https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
+and put it into tests/
+
 Configuration Options
 =====================
 
