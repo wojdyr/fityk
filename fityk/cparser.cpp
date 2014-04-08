@@ -558,6 +558,8 @@ void Parser::parse_one_info_arg(Lexer& lex, vector<Token>& args)
                 args.push_back(lex.get_token());
             args.push_back(nop()); // separator
         } else if (word == "confidence") {
+            while (lex.peek_token().type == kTokenNop)
+                lex.throw_syntax_error("specify level, e.g. confidence 95");
             args.push_back(lex.get_expected_token(kTokenNumber));
             while (lex.peek_token().type == kTokenDataset)
                 args.push_back(lex.get_token());
