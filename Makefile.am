@@ -30,7 +30,7 @@ cli_cfityk_LDADD = fityk/libfityk.la $(READLINE_LIBS)
 
 # ---  tests/ ---
 TESTS = tests/gradient tests/guess tests/psvoigt
-noinst_LIBRARIES = tests/libcatch.a
+check_LIBRARIES = tests/libcatch.a
 tests_libcatch_a_SOURCES = tests/catch.cpp tests/catch.hpp
 tests_gradient_SOURCES = tests/gradient.cpp
 tests_gradient_LDADD = fityk/libfityk.la tests/libcatch.a
