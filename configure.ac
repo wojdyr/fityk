@@ -113,6 +113,20 @@ AC_COMPILE_IFELSE(
   [], [AC_MSG_ERROR([xylib >= 0.6 is not installed])])
 
 
+AC_CHECK_HEADERS([lua.h lualib.h], [], [AC_MSG_ERROR(
+  [Lua headers not found. If they are installed,
+   you may need to specify the path, e.g. CPPFLAGS="-I/usr/include/lua5.1"])])
+
+# macro AX_LUA_HEADERS_VERSION does not support cross-compiling
+if test "$cross_compiling" != "yes"; then
+    AX_LUA_HEADERS_VERSION(501, 503)
+fi
+AX_LUA_LIBS
+if test x"$LUA_LIB" = x; then
+    AC_MSG_ERROR([Lua library not found. You may try option --with-lua-suffix.])
+fi
+
+
 # Checks for version specific libraries and headers.
 AS_IF([test "x$enable_GUI" != "xno"], [
     AM_PATH_WXCONFIG([3.0.0], [wxWin=1], [wxWin=0], [adv,core,base,stc])
@@ -180,19 +194,6 @@ AM_CONDITIONAL([CLI_DIR], [test "x$enable_CLI" != xno])
 AM_CONDITIONAL([PYTHON_ENABLED], [test "x$enable_python" = xyes])
 #AM_CONDITIONAL([PERL_ENABLED], [test "x$enable_perl" = xyes])
 AM_CONDITIONAL([NLOPT_ENABLED], [test "x$enable_nlopt" = xyes])
-
-AC_CHECK_HEADERS([lua.h lualib.h], [], [AC_MSG_ERROR(
-  [Lua headers not found. If they are installed,
-   you may need to specify the path, e.g. CPPFLAGS="-I/usr/include/lua5.1"])])
-
-# macro AX_LUA_HEADERS_VERSION does not support cross-compiling
-if test "$cross_compiling" != "yes"; then
-    AX_LUA_HEADERS_VERSION(501, 503)
-fi
-AX_LUA_LIBS
-if test x"$LUA_LIB" = x; then
-    AC_MSG_ERROR([Lua library not found. You may try option --with-lua-suffix.])
-fi
 
 #if test "x$enable_perl" = "xyes"; then
 #    AC_CHECK_PROG(PERL, perl, "yes")
