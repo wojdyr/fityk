@@ -519,8 +519,8 @@ string Fit::iteration_info(realt wssr)
 // keep sync with to FitManager ctor
 const char* FitManager::method_list[][3] =
 {
- { "mpfit", "Lev-Mar (from MPFIT)", "Levenberg-Marquardt" },
  { "levenberg_marquardt", "Lev-Mar (own)", "Levenberg-Marquardt" },
+ { "mpfit", "Lev-Mar (from MPFIT)", "Levenberg-Marquardt" },
 #if HAVE_LIBNLOPT
  { "nlopt_nm", "Nelder-Mead (from NLopt)","Nelder-Mead Simplex" },
  { "nlopt_lbfgs", "BFGS (from NLopt)", "L-BFGS" },
@@ -547,22 +547,22 @@ FitManager::FitManager(Full *F_)
 
 {
     // these methods correspond to method_list[]
-    methods_.push_back(new MPfit(F_, method_list[0][0]));
-    methods_.push_back(new LMfit(F_, method_list[1][0]));
+    methods_.push_back(new LMfit(F_, next_method()));
+    methods_.push_back(new MPfit(F_, next_method()));
 #if HAVE_LIBNLOPT
-    methods_.push_back(new NLfit(F_, method_list[2][0], NLOPT_LN_NELDERMEAD));
-    methods_.push_back(new NLfit(F_, method_list[3][0], NLOPT_LD_LBFGS));
-    methods_.push_back(new NLfit(F_, method_list[4][0], NLOPT_LD_VAR2));
-    methods_.push_back(new NLfit(F_, method_list[5][0], NLOPT_LN_PRAXIS));
-    methods_.push_back(new NLfit(F_, method_list[6][0], NLOPT_LN_BOBYQA));
-    methods_.push_back(new NLfit(F_, method_list[7][0], NLOPT_LN_SBPLX));
-    //methods_.push_back(new NLfit(F_, method_list[8][0], NLOPT_LD_MMA));
-    //methods_.push_back(new NLfit(F_, method_list[9][0], NLOPT_LD_SLSQP));
-    //methods_.push_back(new NLfit(F_, method_list[10][0], NLOPT_LN_COBYLA));
-    //methods_.push_back(new NLfit(F_, method_list[11][0], NLOPT_GN_CRS2_LM));
+    methods_.push_back(new NLfit(F_, next_method(), NLOPT_LN_NELDERMEAD));
+    methods_.push_back(new NLfit(F_, next_method(), NLOPT_LD_LBFGS));
+    methods_.push_back(new NLfit(F_, next_method(), NLOPT_LD_VAR2));
+    methods_.push_back(new NLfit(F_, next_method(), NLOPT_LN_PRAXIS));
+    methods_.push_back(new NLfit(F_, next_method(), NLOPT_LN_BOBYQA));
+    methods_.push_back(new NLfit(F_, next_method(), NLOPT_LN_SBPLX));
+    //methods_.push_back(new NLfit(F_, next_method(), NLOPT_LD_MMA));
+    //methods_.push_back(new NLfit(F_, next_method(), NLOPT_LD_SLSQP));
+    //methods_.push_back(new NLfit(F_, next_method(), NLOPT_LN_COBYLA));
+    //methods_.push_back(new NLfit(F_, next_method(), NLOPT_GN_CRS2_LM));
 #endif
-    methods_.push_back(new NMfit(F_, method_list[methods_.size()][0]));
-    methods_.push_back(new GAfit(F_, method_list[methods_.size()][0]));
+    methods_.push_back(new NMfit(F_, next_method()));
+    methods_.push_back(new GAfit(F_, next_method()));
 }
 
 

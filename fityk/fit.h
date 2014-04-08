@@ -137,6 +137,7 @@ private:
     mutable std::vector<double> errors_cache_;
     bool dirty_error_cache_;
 
+    const char* next_method() { return method_list[methods_.size()][0]; }
     DISALLOW_COPY_AND_ASSIGN(FitManager);
 };
 
