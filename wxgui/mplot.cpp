@@ -175,6 +175,7 @@ private:
         { mp_->y_tic_size = event.GetPosition(); mp_->refresh(); }
 };
 
+// horizontal pixel range (from - to) is used for X values
 static
 void stroke_line(wxDC& dc, const vector<double>& YY, int from=0, int to=-1)
 {
@@ -435,7 +436,6 @@ void MainPlot::draw_model(wxDC& dc, const Model* model, bool set_pen)
         YY[i] = ys.px_d(yy[i]);
     vm_foreach(realt, x, xx) // in-place conversion to screen coords
         *x = xs.px_d(*x);
-    for (size_t i = 0; i != yy.size(); ++i)
     stroke_line(dc, xx, YY);
 }
 
