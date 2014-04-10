@@ -826,6 +826,18 @@ void FFrame::set_menubar()
     SetMenuBar(menu_bar);
 }
 
+static void clear_menu(wxMenu *menu)
+{
+    for (int i = menu->GetMenuItemCount()-1; i >= 0; --i) {
+#ifndef __WXOSX__
+        wxMenuItem *item = menu->FindItemByPosition(i);
+#else
+        // workaround for http://trac.wxwidgets.org/ticket/15956
+        wxMenuItem *item = menu->FindItemByPosition(0);
+#endif
+        menu->Destroy(item);
+    }
+}
 
 //construct GUI->Previous Zooms menu
 void FFrame::update_menu_previous_zooms()
@@ -835,8 +847,7 @@ void FFrame::update_menu_previous_zooms()
     if (old_pos == pos)
         return;
     wxMenu *menu = GetMenuBar()->FindItem(ID_G_V_ZOOM_PREV)->GetSubMenu();
-    while (menu->GetMenuItemCount() > 0) // clear
-        menu->Delete(menu->GetMenuItems().GetLast()->GetData());
+    clear_menu(menu);
     const vector<string>& items = zoom_hist_.items();
     int last = std::min(items.size() - 1, pos + 5);
     for (int i = last; i >= 0 && i > last - 10; i--)
@@ -849,10 +860,7 @@ void FFrame::update_menu_previous_zooms()
 void FFrame::update_menu_recent_baselines()
 {
     wxMenu *menu = GetMenuBar()->FindItem(ID_G_BG_RECENT)->GetSubMenu();
-    // clear menu
-    while (menu->GetMenuItemCount() > 0)
-        menu->Delete(menu->GetMenuItems().GetLast()->GetData());
-
+    clear_menu(menu);
     for (int i = 0; i < 10; ++i) {
         wxString name = get_main_plot()->bgm()->get_recent_bg_name(i);
         if (name.empty())
