@@ -55,7 +55,7 @@ double rand_cauchy();
 
 // very simple matrix utils
 void jordan_solve(std::vector<realt>& A, std::vector<realt>& b, int n);
-void reverse_matrix(std::vector<realt>&A, int n);
+void invert_matrix(std::vector<realt>&A, int n);
 // format (for printing) matrix m x n stored in vec. `mname' is name/comment.
 std::string format_matrix(const std::vector<realt>& vec,
                           int m, int n, const char *mname);

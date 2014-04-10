@@ -175,7 +175,7 @@ string format_matrix(const vector<realt>& vec, int m, int n,
 }
 
 /// This function solves a set of linear algebraic equations using
-/// Jordan elimination with partial pivoting.
+/// Gauss-Jordan elimination with partial pivoting.
 ///
 /// A * x = b
 ///
@@ -190,14 +190,16 @@ void jordan_solve(vector<realt>& A, vector<realt>& b, int n)
 {
     assert (size(A) == n*n && size(b) == n);
     for (int i = 0; i < n; i++) {
-        realt amax = 0;                    // looking for a pivot element
+        // looking for a pivot element
         int maxnr = -1;
+        realt amax = 0;
         for (int j = i; j < n; j++)
             if (fabs (A[n*j+i]) > amax) {
                 maxnr = j;
                 amax = fabs (A[n * j + i]);
             }
-        if (maxnr == -1) {    // singular matrix
+        // handle singular matrix
+        if (maxnr == -1) {
             // i-th column has only zeros.
             // If it's the same about i-th row, and b[i]==0, let x[i]==0.
             for (int j = i; j < n; j++)
@@ -209,15 +211,18 @@ void jordan_solve(vector<realt>& A, vector<realt>& b, int n)
                 }
             continue; // x[i]=b[i], b[i]==0
         }
-        if (maxnr != i) {                            // interchanging rows
+        // interchanging rows
+        if (maxnr != i) {
             for (int j = i; j < n; j++)
                 swap (A[n*maxnr+j], A[n*i+j]);
             swap (b[i], b[maxnr]);
         }
+        // divide by a_ii -- to get a_ii=1
         realt c = 1.0 / A[i*n+i];
         for (int j = i; j < n; j++)
             A[i*n+j] *= c;
         b[i] *= c;
+        // subtract -- to zero all remaining elements of this row
         for (int k = 0; k < n; k++)
             if (k != i) {
                 realt d = A[k * n + i];
@@ -230,19 +235,63 @@ void jordan_solve(vector<realt>& A, vector<realt>& b, int n)
 
 /// A - matrix n x n; returns A^(-1) in A
 // warning: slow, to be used only for small matrices
-void reverse_matrix (vector<realt>&A, int n)
+void invert_matrix(vector<realt>&A, int n)
 {
-    assert (size(A) == n*n);
-    vector<realt> A_result(n*n);
-    for (int i = 0; i < n; i++) {
-        vector<realt> A_copy = A;
-        vector<realt> v(n, 0);
-        v[i] = 1;
-        jordan_solve(A_copy, v, n);
-        for (int j = 0; j < n; j++)
-            A_result[j * n + i] = v[j];
+    assert(size(A) == n*n);
+
+    vector<int> row_swaps(n);
+    for (int i = 0; i != n; ++i) {
+        // looking for a pivot element
+        int maxnr = -1;
+        realt amax = 0;
+        for (int j = i; j != n; ++j)
+            if (fabs(A[j*n+i]) > amax) {
+                maxnr = j;
+                amax = fabs(A[j*n+i]);
+            }
+        row_swaps[i] = maxnr;
+        // handle singular matrix
+        if (maxnr == -1) {
+            // As a special exception we allow singular matrix if both
+            // i-th column and i-th row are completely zeroed.
+            // Such row and column are ignored and unchanged.
+            // (Pivoting doesn't move such column+row.)
+            // Actually this exception is not be necessary.
+            for (int j = i; j != n; ++j)
+                if (A[i*n+j] != 0.) {
+                    // changed wording from jordan_solve() - to tell them apart
+                    throw ExecuteError("Singular matrix cannot be reversed."
+                                       " (zeroed column " + S(i) + ").");
+                }
+            continue;
+        }
+        // interchanging rows
+        if (maxnr != i) {
+            for (int j = 0; j != n; j++)
+                swap(A[maxnr*n+j], A[i*n+j]);
+        }
+        realt inv_piv = 1. / A[i*n+i];
+        for (int k = 0; k != n; ++k)
+            if (k != i) {
+                realt d = A[k*n+i] * inv_piv;
+                for (int j = 0; j != n; ++j) {
+                    if (j == i)
+                        A[k*n+j] = -d;
+                    else
+                        A[k*n+j] -= A[i*n+j] * d;
+                }
+            }
+        for (int j = 0; j != n; ++j)
+            A[i*n+j] *= inv_piv;
+        A[i*n+i] = inv_piv;
     }
-    A = A_result;
+    // apply the swaps in reverse order - row swap becomes a column swap
+    for (int i = n-1; i >= 0; --i) {
+        int p = row_swaps[i];
+        if (p != -1 && p != i)
+            for (int j = 0; j != n; ++j)
+                swap(A[j*n+p], A[j*n+i]);
+    }
 }
 
 
