@@ -29,7 +29,7 @@ cli_cfityk_SOURCES = cli/gnuplot.cpp cli/main.cpp cli/gnuplot.h
 cli_cfityk_LDADD = fityk/libfityk.la $(READLINE_LIBS)
 
 # ---  tests/ ---
-TESTS = tests/gradient tests/guess tests/psvoigt
+TESTS = tests/gradient tests/guess tests/psvoigt tests/num
 check_LIBRARIES = tests/libcatch.a
 tests_libcatch_a_SOURCES = tests/catch.cpp tests/catch.hpp
 tests_gradient_SOURCES = tests/gradient.cpp
@@ -38,6 +38,8 @@ tests_guess_SOURCES = tests/guess.cpp
 tests_guess_LDADD = fityk/libfityk.la tests/libcatch.a
 tests_psvoigt_SOURCES = tests/psvoigt.cpp
 tests_psvoigt_LDADD = fityk/libfityk.la tests/libcatch.a
+tests_num_SOURCES = tests/num.cpp
+tests_num_LDADD = fityk/libfityk.la tests/libcatch.a
 check_PROGRAMS = $(TESTS) tests/mpfit_deriv
 tests_mpfit_deriv_SOURCES = tests/mpfit_deriv.cpp
 tests_mpfit_deriv_LDADD = fityk/libfityk.la
