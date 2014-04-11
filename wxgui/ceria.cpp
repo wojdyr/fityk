@@ -721,8 +721,7 @@ const char* default_cel_files[][2] = {
 
 CelFile read_cel_file(FILE *f)
 {
-    CelFile cel;
-    cel.sgs = NULL;
+    CelFile cel = { 0., 0., 0., 0., 0., 0., NULL, vector<AtomInCell>() };
     if (!f)
         return cel;
     char s[20];

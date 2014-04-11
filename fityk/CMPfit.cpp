@@ -226,6 +226,7 @@ vector<double> MPfit::get_covariance_matrix(const vector<Data*>& datas)
     result_.covar = &alpha[0]; // that's legal, vectors use contiguous storage
     int status = run_mpfit(datas, F_->mgr.parameters(), par_usage());
     soft_assert(status == MP_MAXITER);
+    result_.covar = NULL;
     return alpha;
 }
 
@@ -243,6 +244,7 @@ vector<double> MPfit::get_standard_errors(const vector<Data*>& datas)
 
     int status = run_mpfit(datas, F_->mgr.parameters(), par_usage());
     soft_assert(status == MP_MAXITER || status == MP_OK_DIR);
+    result_.xerror = NULL;
 
     for (int i = 0; i < na_; ++i)
         errors[i] *= err_factor;
