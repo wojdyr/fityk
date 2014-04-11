@@ -729,12 +729,10 @@ CelFile read_cel_file(FILE *f)
     int r = fscanf(f, "%4s %lf %lf %lf %lf %lf %lf",
                s, &cel.a, &cel.b, &cel.c, &cel.alpha, &cel.beta, &cel.gamma);
     if (r != 7) {
-        fclose(f);
         return cel;
     }
     if (strcmp(s, "cell") != 0 && strcmp(s, "CELL") != 0
             && strcmp(s, "Cell") != 0) {
-        fclose(f);
         return cel;
     }
     while (1) {
@@ -745,7 +743,6 @@ CelFile read_cel_file(FILE *f)
         AtomInCell atom;
         r = fscanf(f, "%d %lf %lf %lf", &atom.Z, &atom.x, &atom.y, &atom.z);
         if (r != 4) {
-            fclose(f);
             return cel;
         }
         cel.atoms.push_back(atom);
@@ -756,7 +753,6 @@ CelFile read_cel_file(FILE *f)
     int sgn;
     r = fscanf(f, "%d", &sgn);
     if (r != 1) {
-        fclose(f);
         return cel;
     }
     if (sgn < 1 || sgn > 230) {
