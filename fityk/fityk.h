@@ -103,6 +103,7 @@ public:
 
 protected:
     Var(const std::string &name_, int gpos) : name(name_), gpos_(gpos) {}
+    ~Var() {}
     int gpos_; /// see description of this class in var.h
     realt value_;
 };
