@@ -22,6 +22,7 @@ class CommandExecutor;
 class FITYK_API DataKeeper
 {
 public:
+    DataKeeper() : default_idx_(0) {}
     void append(Data *data) { datas_.push_back(data); }
     void remove(int d);
     void clear() { purge_all_elements(datas_); }

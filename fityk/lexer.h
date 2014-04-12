@@ -102,7 +102,7 @@ public:
     static std::string get_string(const Token& token);
 
     Lexer(const char* input)
-        : input_(input), cur_(input), peeked_(false) {}
+        : input_(input), cur_(input), peeked_(false), tok_() {}
 
     Token get_token();
 

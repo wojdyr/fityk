@@ -135,7 +135,7 @@ string UserInterface::get_history_summary() const
 
 
 UserInterface::UserInterface(BasicContext* ctx, CommandExecutor* ce)
-        : ctx_(ctx), cmd_executor_(ce), cmd_count_(0)
+        : ctx_(ctx), cmd_executor_(ce), cmd_count_(0), dirty_plot_(false)
 {
 }
 
@@ -221,6 +221,7 @@ protected:
 class NormalFileOpener : public FileOpener
 {
 public:
+    NormalFileOpener() : f_(NULL) {}
     virtual ~NormalFileOpener() { if (f_) fclose(f_); }
     virtual bool open(const char* fn) { f_=fopen(fn, "r"); return f_!=NULL; }
     virtual char* read_line() { return reader.next(f_); }
@@ -231,6 +232,7 @@ private:
 class GzipFileOpener : public FileOpener
 {
 public:
+    GzipFileOpener() : f_(NULL) {}
     virtual ~GzipFileOpener() { if (f_) gzclose(f_); }
     virtual bool open(const char* fn) { f_=gzopen(fn, "rb"); return f_!=NULL; }
     virtual char* read_line() { return reader.gz_next(f_); }

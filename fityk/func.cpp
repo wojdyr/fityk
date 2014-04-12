@@ -24,7 +24,8 @@ Function::Function(const Settings* settings,
       used_vars_(vars),
       settings_(settings),
       tp_(tp),
-      av_(vars.size())
+      av_(vars.size()),
+      center_idx_(-1)
 {
 }
 

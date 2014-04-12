@@ -38,7 +38,8 @@ string get_file_basename(const string& path)
 
 Data::Data(BasicContext* ctx, Model *model)
         : ctx_(ctx), model_(model),
-          given_x_(INT_MAX), given_y_(INT_MAX), given_s_(INT_MAX), x_step_(0.)
+          given_x_(INT_MAX), given_y_(INT_MAX), given_s_(INT_MAX),
+          x_step_(0.), has_sigma_(false)
 {
 }
 

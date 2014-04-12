@@ -206,7 +206,8 @@ CustomFunction::CustomFunction(const Settings* settings,
                                const vector<string> &vars)
     : Function(settings, name, tp, vars),
       // don't use nv() here, it's not set until init()
-      derivatives_(vars.size()+1)
+      derivatives_(vars.size()+1),
+      value_offset_(0)
 {
 }
 
@@ -297,7 +298,7 @@ SplitFunction::SplitFunction(const Settings* settings,
                              const string &name,
                              const Tplate::Ptr tp,
                              const vector<string> &vars)
-    : Function(settings, name, tp, vars)
+    : Function(settings, name, tp, vars), left_(NULL), right_(NULL)
 {
 }
 

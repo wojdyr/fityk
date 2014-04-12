@@ -77,7 +77,8 @@ UiApi::UiApi()
       draw_plot_callback_(NULL),
       exec_command_callback_(NULL),
       hint_ui_callback_(NULL),
-      user_input_callback_(simple_user_input)
+      user_input_callback_(simple_user_input),
+      ui_state_callback_(NULL)
 {
 }
 

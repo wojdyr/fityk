@@ -24,7 +24,7 @@ void token_to_data(Full* F, const Token& token, std::vector<Data*>& dms);
 class Runner
 {
 public:
-    Runner(Full* F) : F_(F), ep_(F) {}
+    Runner(Full* F) : F_(F), vdlist_(NULL), ep_(F) {}
 
     // Execute the last parsed string.
     // Throws ExecuteError, ExitRequestedException.
