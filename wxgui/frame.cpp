@@ -854,6 +854,8 @@ void FFrame::update_menu_previous_zooms()
         menu->AppendRadioItem(ID_G_V_ZOOM_FIRST + i, s2wx(items[i]));
     menu->Check(ID_G_V_ZOOM_FIRST + pos, true);
     old_pos = pos;
+    if (toolbar_)
+        toolbar_->EnableTool(ID_T_PZ, zoom_hist_.pos() > 0);
 }
 
 // construct GUI -> Baseline Handling -> Previous menu
@@ -2097,7 +2099,6 @@ void FFrame::update_toolbar()
     toolbar_->ToggleTool(ID_T_STRIP, bgm->has_fn() && bgm->stripped());
     toolbar_->EnableTool(ID_T_RUN, !ftk->mgr.parameters().empty());
     toolbar_->EnableTool(ID_T_UNDO, ftk->fit_manager()->can_undo());
-    toolbar_->EnableTool(ID_T_PZ, zoom_hist_.pos() > 0);
 }
 
 int FFrame::get_focused_data_index()
