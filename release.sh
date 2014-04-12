@@ -56,10 +56,10 @@ elif [ $1 -eq 0 ]; then
 elif [ $1 -eq 1 ]; then
  echo run tests and samples...
  make check || exit
- ./hello
  cd ./tests
  ../cli/cfityk test_syntax.fit || exit
  cd ../samples
+ ./hello
  ../cli/cfityk nacl01.fit
  ../wxgui/fityk nacl01.fit
  ../wxgui/fityk SiC_Zn.fit
@@ -75,21 +75,20 @@ elif [ $1 -eq 3 ]; then
  #make daily
 
 elif [ $1 -eq 4 ]; then
- echo Building MS Windows version
+ echo Building MS Windows version in $MINGW_DIR
  MDIR=$HOME/local/mingw32
  BOOST_DIR=$HOME/local/src/boost_1_50_0
-# rm -rf $MINGW_DIR
-# mkdir -p $MINGW_DIR
- cd $MINGW_DIR
- # host: MinGW from .deb: i586-mingw32msvc, built locally: i586-pc-mingw32
- #       from Fedora: i686-w64-mingw32
-# ../configure --host=i686-w64-mingw32 \
-#   CPPFLAGS="-I$BOOST_DIR -I$MDIR/include/" \
-#   CXXFLAGS="-O3" LDFLAGS="-s -fno-keep-inline-dllexport -L$MDIR/lib" \
-#   --without-readline --with-wx-config=$MDIR/bin/wx-config \
-#   --disable-static --enable-shared
-#   #--enable-static --disable-shared
-
+ if [ -d "$MINGW_DIR" ]; then
+     cd $MINGW_DIR
+ else
+     mkdir -p $MINGW_DIR
+     cd $MINGW_DIR
+     ../configure --host=i686-w64-mingw32 \
+       CPPFLAGS="-I$BOOST_DIR -I$MDIR/include/" \
+       CXXFLAGS="-O3" LDFLAGS="-s -fno-keep-inline-dllexport -L$MDIR/lib" \
+       --without-readline --with-wx-config=$MDIR/bin/wx-config \
+       --disable-static --enable-shared --enable-nlopt
+ fi
  make -j2 || exit
  mkdir -p all_files/samples all_files/fityk
  cp fityk.iss ../fityk.url ../COPYING ../TODO ../NEWS all_files/

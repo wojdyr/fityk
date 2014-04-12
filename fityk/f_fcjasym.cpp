@@ -1,6 +1,7 @@
 // Author: James Hester
 // Licence: GNU General Public License ver. 2+
 
+#define BUILDING_LIBFITYK
 #include "f_fcjasym.h"
 
 using namespace std;

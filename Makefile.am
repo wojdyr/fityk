@@ -43,7 +43,7 @@ tests_num_LDADD = fityk/libfityk.la tests/libcatch.a
 check_PROGRAMS = $(TESTS) tests/mpfit_deriv
 tests_mpfit_deriv_SOURCES = tests/mpfit_deriv.cpp
 tests_mpfit_deriv_LDADD = fityk/libfityk.la
-noinst_SCRIPTS = tests/test_syntax.fit tests/test_nist.py
+dist_noinst_SCRIPTS = tests/test_syntax.fit tests/test_nist.py
 
 # --- samples/ ---
 

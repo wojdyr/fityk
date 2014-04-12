@@ -1,4 +1,5 @@
 
+#define BUILDING_LIBFITYK
 #include "luabridge.h"
 #include "logic.h"
 #include "ui.h"

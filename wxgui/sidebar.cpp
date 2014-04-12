@@ -6,6 +6,7 @@
 #include <wx/wx.h>
 #include <wx/imaglist.h>
 #include <wx/tglbtn.h>
+#include <wx/filename.h>
 
 #include "sidebar.h"
 #include "parpan.h"

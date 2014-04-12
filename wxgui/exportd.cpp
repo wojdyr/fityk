@@ -7,6 +7,7 @@
 #include <wx/wx.h>
 #include <wx/config.h>
 #include <wx/statline.h>
+#include <wx/filename.h>
 
 #include "exportd.h"
 #include "cmn.h"

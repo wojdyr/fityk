@@ -13,7 +13,7 @@ namespace fityk {
 class Full;
 class BasicContext;
 
-class LuaBridge
+class FITYK_API LuaBridge
 {
 public:
     LuaBridge(Full *F);
