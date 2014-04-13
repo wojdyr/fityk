@@ -96,7 +96,8 @@ latex_elements = {
   \origendnotice%
   }
 }
-"""
+""",
+  'printindex' : ''
 }
 
 #latex_show_pagerefs = True
