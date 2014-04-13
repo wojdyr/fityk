@@ -15,7 +15,7 @@ if [ $# -eq 0 ]; then
  echo a. update m4 scripts from autoconf-archive
  echo 0. prepare new version and increase version number 
  echo 1. run samples
- echo "2. cd builds/ && make all"
+ echo "2. cd doc && make && make pdf"
  echo 3. make tarball: make dist-bzip2
  echo 4. compile windows version and make installer
  echo 5. https://build.opensuse.org/project/show?project=home%3Awojdyr
@@ -66,7 +66,7 @@ elif [ $1 -eq 1 ]; then
 
 
 elif [ $1 -eq 2 ]; then
- cd builds/ && make all
+ cd doc && make && make pdf
  
 elif [ $1 -eq 3 ]; then
  echo  make tarball
@@ -85,7 +85,8 @@ elif [ $1 -eq 4 ]; then
      cd $MINGW_DIR
      ../configure --host=i686-w64-mingw32 \
        CPPFLAGS="-I$BOOST_DIR -I$MDIR/include/" \
-       CXXFLAGS="-O3" LDFLAGS="-s -fno-keep-inline-dllexport -L$MDIR/lib" \
+       CFLAGS="-O3" CXXFLAGS="-O3" \
+       LDFLAGS="-s -fno-keep-inline-dllexport -L$MDIR/lib" \
        --without-readline --with-wx-config=$MDIR/bin/wx-config \
        --disable-static --enable-shared --enable-nlopt
  fi
