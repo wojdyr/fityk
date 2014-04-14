@@ -12,7 +12,7 @@ if [ $# -eq 0 ]; then
  echo Version in this script is set to $version
  echo usage: $0 step_nr
  echo steps:
- echo a. update m4 scripts from autoconf-archive
+ echo a. update autotools files and m4 scripts from autoconf-archive
  echo 0. prepare new version and increase version number 
  echo 1. run samples
  echo "2. cd doc && make && make pdf"
@@ -40,6 +40,9 @@ if [ $1 = "a" ]; then
  for i in $ac_scripts; do
      echo curl "http://git.savannah.gnu.org/gitweb/?p=autoconf-archive.git;a=blob_plain;f=m4/$i" -o m4/$i
  done
+ rm -r m4/libtool.m4 m4/lt* build-aux/* aclocal.m4
+ autoreconf -iv
+
 
 elif [ $1 -eq 0 ]; then
  echo now the version in this script is: $version
@@ -76,6 +79,8 @@ elif [ $1 -eq 3 ]; then
 
 elif [ $1 -eq 4 ]; then
  echo Building MS Windows version in $MINGW_DIR
+ unset GREP_OPTIONS # http://debbugs.gnu.org/cgi/bugreport.cgi?bug=16259
+ set -e
  MDIR=$HOME/local/mingw32
  BOOST_DIR=$HOME/local/src/boost_1_50_0
  if [ -d "$MINGW_DIR" ]; then
@@ -96,14 +101,22 @@ elif [ $1 -eq 4 ]; then
  cp -r ../doc/html/ all_files/
  cp ../samples/*.fit ../samples/*.dat ../samples/*.lua \
     ../samples/README all_files/samples/
- #cp wxgui/fityk.exe cli/cfityk.exe all_files/fityk/
- cp wxgui/.libs/fityk.exe cli/.libs/cfityk.exe fityk/.libs/libfityk-*.dll \
-    $MDIR/bin/libxy-*.dll $MDIR/bin/xyconv.exe $MDIR/bin/lua5*.dll \
+ cp wxgui/.libs/*.exe cli/.libs/cfityk.exe \
+    fityk/.libs/libfityk-*.dll \
+    $MDIR/bin/libxy-*.dll $MDIR/bin/xyconv.exe \
+    $MDIR/bin/lua5*.dll \
+    $MDIR/bin/libnlopt*.dll \
+    $MDIR/lib/wxbase30u_gcc_custom.dll \
+    $MDIR/lib/wxmsw30u_adv_gcc_custom.dll \
+    $MDIR/lib/wxmsw30u_core_gcc_custom.dll \
+    $MDIR/lib/wxmsw30u_stc_gcc_custom.dll \
     all_files/fityk/
  cp /usr/i686-w64-mingw32/sys-root/mingw/bin/libgcc_s_sjlj-1.dll \
     /usr/i686-w64-mingw32/sys-root/mingw/bin/libstdc++-6.dll \
     /usr/i686-w64-mingw32/sys-root/mingw/bin/zlib1.dll \
+    /usr/i686-w64-mingw32/sys-root/mingw/bin/libpng16-16.dll \
     all_files/fityk/
+ i686-w64-mingw32-strip all_files/fityk/*
  echo everything is in: `pwd`/all_files
  
 
