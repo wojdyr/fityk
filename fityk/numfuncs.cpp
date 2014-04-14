@@ -233,8 +233,9 @@ void jordan_solve(vector<realt>& A, vector<realt>& b, int n)
     }
 }
 
+/// Invert matrix using Gauss-Jordan elimination with partial pivoting,
+/// based on http://www.isical.ac.in/~arnabc/matalgop1.pdf
 /// A - matrix n x n; returns A^(-1) in A
-// warning: slow, to be used only for small matrices
 void invert_matrix(vector<realt>&A, int n)
 {
     assert(size(A) == n*n);
