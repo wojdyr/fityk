@@ -31,6 +31,7 @@ Source: fityk.url; DestDir: {app}
 [Icons]
 Name: {group}\Fityk; Filename: {app}\fityk.exe; WorkingDir: {app}; IconFilename: {app}\fityk.exe; IconIndex: 0
 Name: {group}\Fityk CLI; Filename: {app}\cfityk.exe; WorkingDir: {app};
+Name: {group}\xyConvert; Filename: {app}\xyconvert.exe; WorkingDir: {app};
 Name: {group}\Fityk Manual; Filename: {app}\html\fityk-manual.html; WorkingDir: {app}; Flags: useapppaths
 Name: "{group}\Fityk Web Site"; Filename: {app}\fityk.url
 ;Name: {group}\Uninstall Fityk; Filename: {uninstallexe}
