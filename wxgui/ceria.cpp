@@ -727,9 +727,8 @@ CelFile read_cel_file(FILE *f)
     char s[20];
     int r = fscanf(f, "%4s %lf %lf %lf %lf %lf %lf",
                s, &cel.a, &cel.b, &cel.c, &cel.alpha, &cel.beta, &cel.gamma);
-    if (r != 7) {
+    if (r != 7)
         return cel;
-    }
     if (strcmp(s, "cell") != 0 && strcmp(s, "CELL") != 0
             && strcmp(s, "Cell") != 0) {
         return cel;
@@ -751,13 +750,10 @@ CelFile read_cel_file(FILE *f)
     }
     int sgn;
     r = fscanf(f, "%d", &sgn);
-    if (r != 1) {
+    if (r != 1)
         return cel;
-    }
-    if (sgn < 1 || sgn > 230) {
-        fclose(f);
+    if (sgn < 1 || sgn > 230)
         return cel;
-    }
     cel.sgs = find_first_sg_with_number(sgn);
     for (int c = fgetc(f); c != '\n' && c != EOF; c = fgetc(f)) {
         if (c == ':') {
