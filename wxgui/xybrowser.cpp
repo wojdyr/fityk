@@ -417,9 +417,9 @@ bool App::OnInit()
 
     wxFrame *frame = new wxFrame(NULL, wxID_ANY, "xyConvert");
 
-    //frame->SetIcon(wxICON(xyconvert));
 #ifdef __WXMSW__
-    frame->SetIcon(wxIcon("xyconvert")); // load from a resource
+    // use icon resource, the name is assigned in xyconvert.rc
+    frame->SetIcon(wxIcon("a_xyconvert"));
 #else
     wxIconBundle ib;
     ib.AddIcon(wxIcon(xyconvert48_xpm));
