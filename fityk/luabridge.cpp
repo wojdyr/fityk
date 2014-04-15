@@ -110,7 +110,7 @@ LuaBridge::LuaBridge(Full *F)
     // SWIG keeps class methods in ".fn" table in metatable
     luaL_getmetafield(L_, -1, ".fn");
     lua_getglobal(L_, "string");
-    lua_getfield(L_, -3, "out"); // F.out
+    lua_getfield(L_, -3, "execute"); // F.execute
     lua_getfield(L_, -2, "format"); // string.format
     lua_pushcclosure(L_, lua_nested_call, 2);
     lua_setfield(L_, -3, "executef"); // .fn[executef] = closure
