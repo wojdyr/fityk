@@ -32,16 +32,22 @@ int our_getline(char **lineptr, size_t *n, FILE *stream)
 {
     int c;
     int counter = 0;
-    while ((c = getc (stream)) != EOF && c != '\n') {
+    while ((c = getc (stream)) != EOF) {
         if (counter >= (int) *n - 1) {
             *n = 2 * (*n) + 80;
-            *lineptr = (char *) realloc (*lineptr, *n); // let's hope it worked
+            *lineptr = (char *) realloc (*lineptr, *n);
+            if (lineptr == NULL)
+                return -1;
         }
         (*lineptr)[counter] = c;
         ++counter;
+        if (c == '\n')
+            break;
     }
+    if (counter == 0)
+        return -1;
     (*lineptr)[counter] = '\0';
-    return c == EOF ? -1 : counter;
+    return counter;
 }
 #endif //!HAVE_GETLINE
 
@@ -52,16 +58,22 @@ int gzipped_getline(char **lineptr, size_t *n, gzFile stream)
 {
     int c;
     int counter = 0;
-    while ((c = gzgetc (stream)) != EOF && c != '\n') {
+    while ((c = gzgetc (stream)) != EOF) {
         if (counter >= (int) *n - 1) {
             *n = 2 * (*n) + 80;
-            *lineptr = (char *) realloc (*lineptr, *n); // let's hope it worked
+            *lineptr = (char *) realloc (*lineptr, *n);
+            if (lineptr == NULL)
+                return -1;
         }
         (*lineptr)[counter] = c;
         ++counter;
+        if (c == '\n')
+            break;
     }
+    if (counter == 0)
+        return -1;
     (*lineptr)[counter] = '\0';
-    return c == EOF ? -1 : counter;
+    return counter;
 }
 
 // buffer for reading lines from file, with minimalistic interface
