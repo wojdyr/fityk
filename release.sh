@@ -96,11 +96,12 @@ elif [ $1 -eq 4 ]; then
        --disable-static --enable-shared --enable-nlopt
  fi
  make -j2 || exit
- mkdir -p all_files/samples all_files/fityk
- cp fityk.iss ../fityk.url ../COPYING ../TODO ../NEWS all_files/
- cp -r ../doc/html/ all_files/
+ outdir=all_files
+ mkdir -p $outdir/samples $outdir/fityk
+ cp fityk.iss ../fityk.url ../COPYING ../TODO ../NEWS $outdir/
+ cp -r ../doc/html/ $outdir/
  cp ../samples/*.fit ../samples/*.dat ../samples/*.lua \
-    ../samples/README all_files/samples/
+    ../samples/README $outdir/samples/
  cp wxgui/.libs/*.exe cli/.libs/cfityk.exe \
     fityk/.libs/libfityk-*.dll \
     $MDIR/bin/libxy-*.dll $MDIR/bin/xyconv.exe \
@@ -110,14 +111,14 @@ elif [ $1 -eq 4 ]; then
     $MDIR/lib/wxmsw30u_adv_gcc_custom.dll \
     $MDIR/lib/wxmsw30u_core_gcc_custom.dll \
     $MDIR/lib/wxmsw30u_stc_gcc_custom.dll \
-    all_files/fityk/
+    $outdir/fityk/
  cp /usr/i686-w64-mingw32/sys-root/mingw/bin/libgcc_s_sjlj-1.dll \
     /usr/i686-w64-mingw32/sys-root/mingw/bin/libstdc++-6.dll \
     /usr/i686-w64-mingw32/sys-root/mingw/bin/zlib1.dll \
     /usr/i686-w64-mingw32/sys-root/mingw/bin/libpng16-16.dll \
-    all_files/fityk/
- i686-w64-mingw32-strip all_files/fityk/*
- echo everything is in: `pwd`/all_files
+    $outdir/fityk/
+ i686-w64-mingw32-strip $outdir/fityk/*
+ echo everything is in: `pwd`/$outdir
  
 
 elif [ $1 -eq 8 ]; then
