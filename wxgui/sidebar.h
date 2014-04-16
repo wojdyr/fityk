@@ -97,7 +97,7 @@ private:
     ParameterPanel *param_panel_;
     DataListPlusText *d;
     ListPlusText *f, *v;
-    wxChoice *data_look, *filter_ch;
+    wxChoice *data_look;
     wxSpinCtrl *shiftup_sc, *dpsize_sc;
     wxCheckBox *dpline_cb, *dpsigma_cb;
     int active_function_;

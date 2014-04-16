@@ -28,7 +28,6 @@
 #include "img/close.xpm"
 #include "img/colorsel.xpm"
 #include "img/editf.xpm"
-#include "img/filter.xpm"
 #include "img/shiftup.xpm"
 #include "img/dpsize.xpm"
 //#include "img/convert.xpm"
@@ -219,17 +218,6 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     //-----  functions page  -----
     func_page = new wxPanel(nb, -1);
     wxBoxSizer *func_sizer = new wxBoxSizer(wxVERTICAL);
-
-    wxBoxSizer *func_filter_sizer = new wxBoxSizer(wxHORIZONTAL);
-    func_filter_sizer->Add(new wxStaticBitmap(func_page, -1,
-                                              wxBitmap(filter_xpm)),
-                           0, wxALIGN_CENTER_VERTICAL);
-    filter_ch = new wxChoice(func_page, ID_FP_FILTER,
-                             wxDefaultPosition, wxDefaultSize, 0, 0);
-    filter_ch->Append(wxT("list all functions"));
-    filter_ch->Select(0);
-    func_filter_sizer->Add(filter_ch, 1, wxEXPAND);
-    func_sizer->Add(func_filter_sizer, 0, wxEXPAND);
 
     vector<pair<string,int> > fdata;
     fdata.push_back( pair<string,int>("Name", 54) );
@@ -538,22 +526,12 @@ void SideBar::update_func_list(bool nondata_changed)
     MainPlot const* mplot = frame->get_main_plot();
     wxColour const& bg_col = mplot->get_bg_color();
 
-    //functions filter
-    while ((int) filter_ch->GetCount() > ftk->dk.count() + 1)
-        filter_ch->Delete(filter_ch->GetCount()-1);
-    for (int i = filter_ch->GetCount() - 1; i < ftk->dk.count(); ++i)
-        filter_ch->Append(wxString::Format(wxT("only functions from @%i"), i));
-
     //functions
     static vector<int> func_col_id;
     static int old_func_size;
     vector<string> func_data;
     vector<int> new_func_col_id;
     Model const* model = ftk->dk.get_model(frame->get_focused_data_index());
-    // if filter is selected, only functions in `filter_model' are listed
-    Model const* filter_model = NULL;
-    if (filter_ch->GetSelection() > 0)
-        filter_model = ftk->dk.get_model(filter_ch->GetSelection()-1);
     int func_size = ftk->mgr.functions().size();
     if (active_function_ == -1)
         active_function_ = func_size - 1;
@@ -571,9 +549,6 @@ void SideBar::update_func_list(bool nondata_changed)
 
     int pos = -1;
     for (int i = 0; i < func_size; ++i) {
-        if (filter_model && !contains_element(filter_model->get_ff().idx, i)
-                           && !contains_element(filter_model->get_zz().idx, i))
-            continue;
         if (i == active_function_)
             pos = new_func_col_id.size();
         Function const* fun = ftk->mgr.get_function(i);
@@ -743,20 +718,12 @@ void SideBar::activate_function(int n)
     active_function_ = n;
     do_activate_function();
 
-    int pos;
-    if (filter_ch->GetSelection() > 0)
-        pos = f->list->FindItem(-1, s2wx(active_function_name_));
-    else if (n < f->list->GetItemCount())
-        pos = n;
-    else
-        pos = -1;
-
-    if (pos != -1) {
+    if (n < f->list->GetItemCount()) {
         skipOnFuncFocusChanged_ = true;
-        f->list->Focus(pos);
+        f->list->Focus(n);
         skipOnFuncFocusChanged_ = false;
         for (int i = 0; i != f->list->GetItemCount(); ++i)
-            f->list->Select(i, i == pos);
+            f->list->Select(i, i == n);
     }
 }
 
