@@ -11,7 +11,6 @@
 
 #include "setdlg.h"
 #include "fityk/settings.h"
-#include "fityk/ui.h"  //startup_commands_filename
 #include "fityk/logic.h" // settings_mgr()
 #include "frame.h"  //ftk
 
