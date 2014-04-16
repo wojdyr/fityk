@@ -7,6 +7,7 @@ import os
 import sys
 import random
 import tempfile
+import gzip
 import unittest
 import fityk
 
@@ -65,6 +66,48 @@ class TestTextComma(FileLoadBase):
         self.ftk.execute("@0 < '%s'" % self.filename)
         self.assertNotEqual([i.x for i in self.ftk.get_data()],
                             [round(i[0], 7) for i in self.data])
+
+
+class TestSimpleScript(unittest.TestCase):
+    def setUp(self):
+        self.ftk = fityk.Fityk()
+        self.ftk.set_option_as_number("verbosity", -1)
+        f = tempfile.NamedTemporaryFile(delete=False)
+        f.write("M=1\n X[0]=1.1, Y[0]=-5, S[0]=0.8")
+        f.close()
+        self.filename = f.name
+
+    def tearDown(self):
+        os.unlink(self.filename)
+
+    def test_simple_script(self):
+        self.ftk.get_ui_api().exec_fityk_script(self.filename)
+        data = self.ftk.get_data()
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0].x, 1.1)
+        self.assertEqual(data[0].y, -5)
+        self.assertEqual(data[0].sigma, 0.8)
+
+class TestGzippedScript(unittest.TestCase):
+    def setUp(self):
+        self.ftk = fityk.Fityk()
+        self.ftk.set_option_as_number("verbosity", -1)
+        f = tempfile.NamedTemporaryFile(suffix='.gz', delete=False)
+        self.filename = f.name
+        gf = gzip.GzipFile(fileobj=f)
+        gf.write("M=1\n X[0]=1.1, Y[0]=-5, S[0]=0.8")
+        gf.close()
+
+    def tearDown(self):
+        os.unlink(self.filename)
+
+    def test_gzipped_script(self):
+        self.ftk.get_ui_api().exec_fityk_script(self.filename)
+        data = self.ftk.get_data()
+        self.assertEqual(len(data), 1)
+        self.assertEqual(data[0].x, 1.1)
+        self.assertEqual(data[0].y, -5)
+        self.assertEqual(data[0].sigma, 0.8)
 
 
 if __name__ == '__main__':
