@@ -553,7 +553,7 @@ void FFrame::set_menubar()
               wxT("Execute commands from a file"));
     wxMenu *session_new_script_menu = new wxMenu;
     session_new_script_menu->Append(ID_SESSION_NEW_F, "&Blank Fityk Script");
-    session_new_script_menu->Append(ID_SESSION_NEW_L, "&Blank Lua Script");
+    session_new_script_menu->Append(ID_SESSION_NEW_L, "Blank &Lua Script");
     session_new_script_menu->Append(ID_SESSION_NEW_H, "&From Command History");
     session_menu->Append(-1, "&New Script", session_new_script_menu);
     append_mi(session_menu, ID_SCRIPT_EDIT, GET_BMP(editor16),
