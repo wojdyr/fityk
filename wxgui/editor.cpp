@@ -267,6 +267,8 @@ int EditorDlg::exec_lua_line(int n)
     if (s.empty())
         return counter;
     while (ftk->lua_bridge()->is_lua_line_incomplete(s.c_str())) {
+        if (n+counter >= ed_->GetLineCount())
+            break;
         s += "\n    " + get_editor_line(n+counter);
         ++counter;
     }
