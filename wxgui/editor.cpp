@@ -47,6 +47,63 @@ BEGIN_EVENT_TABLE(EditorDlg, wxDialog)
     EVT_CLOSE(EditorDlg::OnCloseDlg)
 END_EVENT_TABLE()
 
+
+// compare with
+// http://sourceforge.net/p/scintilla/scite/ci/default/tree/src/lua.properties
+// http://git.geany.org/geany/tree/data/filetypes.lua
+static const char* kLuaMostOfKeywords =
+"and break do else elseif end for function goto if in local not"
+" or repeat return then until while";
+
+static const char* kLuaValueKeywords = "false nil true";
+
+// constants and functions
+static const char* kLuaFunctions =
+"_G _VERSION _ENV "
+" assert collectgarbage dofile error getmetatable ipairs load loadfile"
+" next pairs pcall print rawequal rawget rawlen rawset require"
+" select setmetatable tonumber tostring type xpcall"
+" bit32.arshift bit32.band bit32.bnot bit32.bor bit32.btest bit32.bxor"
+" bit32.extract bit32.lrotate bit32.lshift bit32.replace bit32.rrotate"
+" bit32.rshift"
+" coroutine.create coroutine.resume coroutine.running"
+" coroutine.status coroutine.wrap coroutine.yield"
+" debug.debug debug.getfenv debug.gethook debug.getinfo debug.getlocal"
+" debug.getmetatable debug.getregistry debug.getupvalue"
+" debug.getuservalue debug.setfenv debug.sethook debug.setlocal"
+" debug.setmetatable debug.setupvalue debug.setuservalue debug.traceback"
+" debug.upvalueid debug.upvaluejoin "
+" io.close io.flush io.input io.lines io.open io.output io.popen io.read"
+" io.stderr io.stdin io.stdout io.tmpfile io.type io.write"
+" math.abs math.acos math.asin math.atan math.atan2 math.ceil math.cos"
+" math.cosh math.deg math.exp math.floor math.fmod math.frexp math.huge"
+" math.ldexp math.log math.log10 math.max math.min math.modf math.pi"
+" math.pow math.rad math.random math.randomseed math.sin math.sinh"
+" math.sqrt math.tan math.tanh"
+" os.clock os.date os.difftime os.execute os.exit os.getenv os.remove"
+" os.rename os.setlocale os.time os.tmpname"
+" package.config package.cpath package.loaded package.loadlib package.path"
+" package.preload package.searchers package.searchpath"
+" string.byte string.char string.dump string.find"
+" string.format string.gmatch string.gsub string.len string.lower"
+" string.match string.rep string.reverse string.sub string.upper"
+" table.concat table.insert table.maxn table.pack table.remove"
+" table.sort table.unpack";
+
+static const char* kLuaMethods =
+"close flush lines read seek setvbuf write"
+" byte find format gmatch gsub len lower match rep reverse sub upper";
+
+static const char* kLuaTableF =
+"F:add_point F:all_functions F:all_parameters F:all_variables"
+" F:calculate_expr F:execute F:executef F:get_components"
+" F:get_covariance_matrix F:get_data F:get_dataset_count"
+" F:get_default_dataset F:get_dof F:get_function F:get_info"
+" F:get_model_value F:get_option_as_number F:get_option_as_string"
+" F:get_parameter_count F:get_rsquared F:get_ssr F:get_variable"
+" F:get_view_boundary F:get_wssr F:input F:load_data F:out"
+" F:set_option_as_number F:set_option_as_string";
+
 #if wxUSE_STC
 class FitykEditor : public wxStyledTextCtrl
 {
@@ -62,18 +119,53 @@ public:
 #else
         const int font_size = 11;
 #endif
-        wxFont mono(font_size, wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL,
-                    wxFONTWEIGHT_NORMAL);
+        wxFont mono(wxFontInfo(font_size).Family(wxFONTFAMILY_TELETYPE));
         StyleSetFont(wxSTC_STYLE_DEFAULT, mono);
+        SetIndent(2);
+        SetUseTabs(false);
+        SetTabIndents(true);
+        SetBackSpaceUnIndents(true);
+        AutoCompSetAutoHide(false);
+        AutoCompSetCancelAtStart(false);
+        SetIndentationGuides(3 /*SC_IV_LOOKBOTH*/);
+        wxFont bold(StyleGetFont(wxSTC_STYLE_DEFAULT).Bold());
+        StyleSetFont(wxSTC_STYLE_BRACELIGHT, bold);
+        StyleSetForeground(wxSTC_STYLE_BRACELIGHT, wxColour(0, 0, 255));
+        StyleSetFont(wxSTC_STYLE_BRACEBAD, bold);
+        StyleSetForeground(wxSTC_STYLE_BRACEBAD, wxColour(144, 0, 0));
+        Connect(wxID_ANY, wxEVT_STC_CHARADDED,
+                wxStyledTextEventHandler(FitykEditor::OnCharAdded));
+        Connect(wxID_ANY, wxEVT_STC_UPDATEUI,
+                wxStyledTextEventHandler(FitykEditor::OnUpdateUI));
     }
 
     void set_filetype(bool lua)
     {
         wxColour comment_col(10, 150, 10);
         if (lua) {
+            // use similar colors as in Lua wiki
             SetLexer(wxSTC_LEX_LUA);
+            //SetProperty("fold", "1");
             StyleSetForeground(wxSTC_LUA_COMMENT, comment_col);
             StyleSetForeground(wxSTC_LUA_COMMENTLINE, comment_col);
+            StyleSetForeground(wxSTC_LUA_COMMENTDOC, comment_col);
+            wxColour string_col(0, 144, 144);
+            StyleSetForeground(wxSTC_LUA_STRING, string_col);
+            StyleSetForeground(wxSTC_LUA_CHARACTER, string_col);
+            StyleSetForeground(wxSTC_LUA_LITERALSTRING, string_col);
+            StyleSetForeground(wxSTC_LUA_NUMBER, wxColour(32, 80, 96));
+            SetKeyWords(0, kLuaMostOfKeywords);
+            wxFont bold(StyleGetFont(wxSTC_STYLE_DEFAULT).Bold());
+            StyleSetFont(wxSTC_LUA_WORD, bold);
+            StyleSetForeground(wxSTC_LUA_WORD, wxColour(0, 0, 128));
+            SetKeyWords(1, kLuaValueKeywords);
+            StyleSetForeground(wxSTC_LUA_WORD2, wxColour(0, 0, 128));
+            SetKeyWords(2, kLuaFunctions);
+            StyleSetForeground(wxSTC_LUA_WORD3, wxColour(144, 0, 144));
+            SetKeyWords(3, kLuaMethods);
+            StyleSetForeground(wxSTC_LUA_WORD4, wxColour(144, 0, 144));
+            SetKeyWords(4, "F");
+            StyleSetFont(wxSTC_LUA_WORD5, bold);
         } else {
             // actually we set filetype to apache config, but since
             // we only customize colors of comments it works fine.
@@ -81,7 +173,69 @@ public:
             StyleSetForeground(wxSTC_CONF_COMMENT, comment_col);
         }
     }
+
+    void OnCharAdded(wxStyledTextEvent& event)
+    {
+        // auto-indentation (the same as previous line)
+        if (event.GetKey() == '\n') {
+            int line = GetCurrentLine();
+            if (line > 0) { // just in case
+                int indent = GetLineIndentation(line-1);
+                if (indent > 0) {
+                    SetLineIndentation(line, indent);
+                    LineEnd();
+                }
+            }
+        }
+        // auto-completion
+        if (GetLexer() == wxSTC_LEX_LUA && !AutoCompActive())
+            LuaAutocomp();
+    }
+
+    void LuaAutocomp()
+    {
+        int pos = GetCurrentPos() - 1; // GetCurrentPos() returns
+        if (pos < 1)
+            return;
+        char key = GetCharAt(pos);
+        if (key == ':' && GetStyleAt(pos-1) == wxSTC_LUA_WORD5) {
+            // wxSTC_LUA_WORD5 is only "F", so other checks are redundant:
+            //      GetCharAt(pos-1) == 'F' &&
+            //      WordStartPosition(pos-1, true) == pos-1)
+            AutoCompShow(2, kLuaTableF);
+        }
+        else if (key == '.' && GetStyleAt(pos-1) == wxSTC_LUA_IDENTIFIER) {
+            int start = WordStartPosition(pos-1, true);
+            wxString word = GetTextRange(start, pos);
+            if (word == "bit32" || word == "coroutine" || word == "debug" ||
+                    word == "io" || word == "math" || word == "os" ||
+                    word == "package" || word == "string" || word == "table") {
+                AutoCompShow(pos-start+1, kLuaFunctions);
+            }
+        }
+    }
+
+    void OnUpdateUI(wxStyledTextEvent&)
+    {
+        const char* braces = "(){}[]";
+        int p = GetCurrentPos();
+        int brace_pos = -1;
+        if (p > 1 && strchr(braces, GetCharAt(p-1)))
+            brace_pos = p - 1;
+        else if (strchr(braces, GetCharAt(p)))
+            brace_pos = p;
+        if (brace_pos != -1) {
+            int match_pos = BraceMatch(brace_pos);
+            if (match_pos == wxSTC_INVALID_POSITION)
+                BraceBadLight(brace_pos);
+            else
+                BraceHighlight(brace_pos, match_pos);
+        } else {
+            BraceBadLight(wxSTC_INVALID_POSITION); // remove brace light
+        }
+    }
 };
+
 #else
 class FitykEditor : public wxTextCtrl
 {
