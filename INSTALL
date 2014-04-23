@@ -30,7 +30,7 @@ wxWidgets
 If you compile wxWidgets only to build fityk, you may use the following
 configure flags to disable unused features and make the compilation faster.
 
---disable-compat26 --disable-compat28 \
+--disable-compat28 \
 --without-regex --without-expat --without-opengl \
 --without-libjpeg --without-libtiff \
 --disable-threads --disable-html --disable-htmlhelp --enable-stc \
