@@ -432,7 +432,7 @@ bool App::OnInit()
     sizer->Add(browser, wxSizerFlags(1).Expand());
 
     wxStaticBoxSizer *outsizer = new wxStaticBoxSizer(wxVERTICAL, frame,
-                                                      "TSV output");
+                                                      "text output");
     wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
     dir_cb = new wxCheckBox(frame, wxID_ANY, "directory:");
     hsizer->Add(dir_cb, wxSizerFlags().Centre().Border());
