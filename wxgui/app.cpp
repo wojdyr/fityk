@@ -368,6 +368,13 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
             exit(1);
         }
     }
+#ifdef __WXMAC__
+    // I'm not sure if it's a bug or undocumented feature:
+    // on Mac the last argv is handled also in MacOpenFile()
+    // Here is workaround:
+    if (!p.empty())
+        OSXStoreOpenFiles(wxArrayString());
+#endif
     if (ftk->dk.count() > 1) {
         frame->SwitchSideBar(true);
         // zoom to show all loaded datafiles
