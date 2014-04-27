@@ -88,7 +88,7 @@ developed in the future,
 
 |ico-win| MS Windows: :download:`-setup.exe`  $
 
-|ico-osx| Mac OS X (10.4 or later): :download:`-osx.zip`  $
+|ico-osx| Mac OS X (10.6 or later): :download:`-osx.zip`  $
 
 |ico-tux| Linux: binary `RPM and deb packages </subscribers>`_
 :smallfont:`for about 10 distros (incl. Ubuntu, Fedora, Suse), 32- and 64-bit.`
@@ -125,6 +125,7 @@ for `Windows <https://github.com/wojdyr/fityk/downloads>`_
 and Linux (Ubuntu PPA_ and RPMs from OBS_).
 
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
+(`releases <https://github.com/wojdyr/fityk/releases>`_)
 :html:`<a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://fityk.nieto.pl"></a>`
 
 Version 1.2.9 was released on 2014-04-13
@@ -146,7 +147,7 @@ Documentation
 * `Manual <fityk-manual.html>`_
   (chapters :ref:`intro`, :ref:`getstarted`, :ref:`lang`, :ref:`data`,
   :ref:`model`, :ref:`fit`, :ref:`ref`)
-  and the same `in PDF <https://github.com/wojdyr/fityk/releases/download/v1.2.9/fityk-manual.pdf>`_,
+  and the same `in PDF <https://github.com/wojdyr/fityk/releases/download/v1.2.9/fityk-1.2.9-manual.pdf>`_,
 
 * `Fityk Wiki <https://github.com/wojdyr/fityk/wiki>`_
   (you are welcome to contribute).
