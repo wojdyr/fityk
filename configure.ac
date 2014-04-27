@@ -18,8 +18,6 @@ LT_INIT([disable-static win32-dll])
 
 AC_ARG_ENABLE(GUI, AS_HELP_STRING([--disable-GUI], [do not build the GUI]))
 AC_ARG_ENABLE(CLI, AS_HELP_STRING([--disable-CLI], [do not build the CLI]))
-AC_ARG_ENABLE(xyconvert, AS_HELP_STRING([--disable-xyconvert],
-                              [do not build xyconvert program]))
 AC_ARG_ENABLE(powdifpat, AS_HELP_STRING([--enable-powdifpat],
                               [build (not working) powdifpat program]))
 AC_ARG_ENABLE(python, AS_HELP_STRING([--enable-python],
@@ -187,7 +185,6 @@ if test "x$enable_nlopt" = "xyes"; then
     AC_CHECK_HEADER(nlopt.h, , AC_MSG_ERROR([nlopt.h header not found.]))
 fi
 
-AM_CONDITIONAL([XYCONVERT], [test x$enable_xyconvert != xno])
 AM_CONDITIONAL([POWDIFPAT], [test x$enable_powdifpat = xyes])
 AM_CONDITIONAL([GUI_DIR], [test "x$enable_GUI" != xno])
 AM_CONDITIONAL([CLI_DIR], [test "x$enable_CLI" != xno])

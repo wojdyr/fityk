@@ -1,20 +1,19 @@
 // Author: Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
+// (It is also part of xyconvert and can be distributed under LGPL2.1)
 
 #include <wx/wx.h>
-#include <wx/filename.h>
-#include <wx/cmdline.h>
 #include <wx/file.h>
 
-#include <xylib/xylib.h>
-#include <xylib/cache.h>
+#include "xylib/xylib.h"
+#include "xylib/cache.h"
 
 #include "xybrowser.h"
-#include "cmn.h" // SpinCtrl, pchar2wx, wx2s, updateControlWithItems
 
 using namespace std;
 
 #ifndef XYCONVERT
+#include "cmn.h"
 #include "fityk/data.h"
 using fityk::get_file_basename;
 #else
@@ -29,6 +28,19 @@ std::string format1(const char* fmt, T t)
 }
 inline std::string S(int n) { return format1<int, 16>("%d", n); }
 inline std::string S(double d) { return format1<double, 16>("%g", d); }
+
+// copied from cmn.h
+class SpinCtrl: public wxSpinCtrl
+{
+public:
+    SpinCtrl(wxWindow* parent, wxWindowID id, int val,
+             int min, int max, int width=50)
+        : wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
+                      wxDefaultPosition, wxSize(width, -1),
+                      wxSP_ARROW_KEYS, min, max, val)
+    {}
+};
+
 #endif // XYCONVERT
 
 
@@ -106,7 +118,7 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
     // ----- left panel -----
     wxString all(wxFileSelectorDefaultWildcardStr);
     wxString wild = "All Files (" + all + ")|" + all
-                    + "|" + s2wx(xylib::get_wildcards_string());
+                    + "|" + wxString(xylib::get_wildcards_string());
     filectrl = new wxFileCtrl(left_panel, -1, wxEmptyString, wxEmptyString,
                               wild, wxFC_OPEN|wxFC_MULTIPLE|wxFC_NOSHOWHIDDEN);
     left_sizer->Add(filectrl, 1, wxALL|wxEXPAND, 5);
@@ -165,11 +177,11 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
 
     // ----- right upper panel -----
     text_preview =  new wxTextCtrl(rupper_panel, -1, wxT(""),
-                                   wxDefaultPosition, wxDefaultSize,
+                                   wxDefaultPosition, wxSize(200, -1),
                                    wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
     rupper_sizer->Add(text_preview, 1, wxEXPAND|wxALL, 5);
     auto_text_cb = new wxCheckBox(rupper_panel, -1,
-                                  wxT("view the first 64kB of file as text"));
+                                  wxT("file preview (64kB)"));
     auto_text_cb->SetValue(false);
     rupper_sizer->Add(auto_text_cb, 0, wxALL, 5);
 
@@ -241,7 +253,17 @@ void XyFileBrowser::update_block_list()
         } else {
         bb.push_back("<default block>");
     }
-    updateControlWithItems(block_ch, bb);
+
+    if (bb.size() != (size_t) block_ch->GetCount()) {
+        block_ch->Clear();
+        for (size_t i = 0; i < bb.size(); ++i)
+            block_ch->Append(wxString(bb[i]));
+    } else {
+        for (size_t i = 0; i < bb.size(); ++i)
+            if (block_ch->GetString(i) != wxString(bb[i]))
+                block_ch->SetString(i, wxString(bb[i]));
+    }
+
     block_ch->SetSelection(0);
     block_ch->Enable(block_ch->GetCount() > 1);
 }
@@ -255,14 +277,14 @@ void XyFileBrowser::update_title_from_file()
     filectrl->GetPaths(paths);
     string title;
     if (paths.GetCount() >= 1) {
-        title = get_file_basename(wx2s(paths[0]));
+        title = get_file_basename(paths[0].ToStdString());
         int x_idx = x_column->GetValue();
         int y_idx = y_column->GetValue();
         if (x_idx != 1 || y_idx != 2 || std_dev_cb->GetValue())
             title += ":" + S(x_idx) + ":" + S(y_idx);
     }
 
-    title_tc->ChangeValue(s2wx(title));
+    title_tc->ChangeValue(wxString(title));
 #endif
 }
 
@@ -316,8 +338,15 @@ void XyFileBrowser::update_text_preview()
     text_preview->Clear();
     wxString path = get_one_path();
     if (!path.empty() && wxFileExists(path)) {
-        wxFile(path).Read(buffer, buf_size-1);
-        text_preview->SetValue(pchar2wx(buffer));
+        int bytes_read = wxFile(path).Read(buffer, buf_size-1);
+        text_preview->SetValue(wxString(buffer));
+        if (bytes_read == buf_size-1) {
+            text_preview->SetDefaultStyle(wxTextAttr(*wxBLACK, *wxYELLOW));
+            text_preview->AppendText(
+                    "\nThis preview shows only the first 64kb of file.\n");
+            text_preview->SetDefaultStyle(wxTextAttr());
+            text_preview->ShowPosition(0);
+        }
     }
 }
 
@@ -332,7 +361,8 @@ void XyFileBrowser::update_plot_preview()
             string options;
             if (comma_cb->GetValue())
                 options = "decimal-comma";
-            plot_preview->load_dataset(wx2s(path), get_filetype(), options);
+            plot_preview->load_dataset(path.ToStdString(), get_filetype(),
+                                       options);
         }
     } else
         plot_preview->make_outdated();
@@ -359,248 +389,4 @@ void XyFileBrowser::update_file_options()
     update_title_from_file();
 }
 
-#ifdef XYCONVERT
-
-#include <wx/aboutdlg.h>
-#include <wx/filepicker.h>
-#include "img/xyconvert16.xpm"
-#include "img/xyconvert48.xpm"
-
-class App : public wxApp
-{
-public:
-    bool OnInit();
-    void OnAbout(wxCommandEvent&);
-    void OnConvert(wxCommandEvent&);
-    void OnClose(wxCommandEvent&) { GetTopWindow()->Close(); }
-    void OnDirCheckBox(wxCommandEvent&);
-    void OnFolderChanged(wxFileCtrlEvent& event);
-private:
-    wxCheckBox *dir_cb, *overwrite, *header;
-    wxDirPickerCtrl *dirpicker;
-    XyFileBrowser *browser;
-    wxTextCtrl *ext_tc;
-};
-
-DECLARE_APP(App)
-IMPLEMENT_APP(App)
-
-
-static const wxCmdLineEntryDesc cmdLineDesc[] = {
-    { wxCMD_LINE_SWITCH, "V", "version",
-          "output version information and exit", wxCMD_LINE_VAL_NONE, 0 },
-    { wxCMD_LINE_PARAM,  0, 0, "default-path", wxCMD_LINE_VAL_STRING,
-                                                wxCMD_LINE_PARAM_OPTIONAL},
-    { wxCMD_LINE_NONE, 0, 0, 0,  wxCMD_LINE_VAL_NONE, 0 }
-};
-
-
-bool App::OnInit()
-{
-    // to make life simpler, use the same version number as xylib
-    wxString version = xylib_get_version();
-
-    // reading numbers won't work with decimal points different than '.'
-    setlocale(LC_NUMERIC, "C");
-
-    SetAppName("xyConvert");
-    wxCmdLineParser cmdLineParser(cmdLineDesc, argc, argv);
-    if (cmdLineParser.Parse(false) != 0) {
-        cmdLineParser.Usage();
-        return false;
-    }
-    if (cmdLineParser.Found(wxT("V"))) {
-        wxMessageOutput::Get()->Printf("xyConvert, powered by xylib "
-                                       + version + "\n");
-        return false;
-    }
-
-    wxFrame *frame = new wxFrame(NULL, wxID_ANY, "xyConvert");
-
-#ifdef __WXMSW__
-    // use icon resource, the name is assigned in xyconvert.rc
-    frame->SetIcon(wxIcon("a_xyconvert"));
-#else
-    wxIconBundle ib;
-    ib.AddIcon(wxIcon(xyconvert48_xpm));
-    ib.AddIcon(wxIcon(xyconvert16_xpm));
-    frame->SetIcons(ib);
-#endif
-
-    wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    browser = new XyFileBrowser(frame);
-    sizer->Add(browser, wxSizerFlags(1).Expand());
-
-    wxStaticBoxSizer *outsizer = new wxStaticBoxSizer(wxVERTICAL, frame,
-                                                      "text output");
-    wxBoxSizer *hsizer = new wxBoxSizer(wxHORIZONTAL);
-    dir_cb = new wxCheckBox(frame, wxID_ANY, "directory:");
-    hsizer->Add(dir_cb, wxSizerFlags().Centre().Border());
-    dirpicker = new wxDirPickerCtrl(frame, wxID_ANY);
-    hsizer->Add(dirpicker, wxSizerFlags(1));
-    hsizer->AddSpacer(10);
-    hsizer->Add(new wxStaticText(frame, wxID_ANY, "extension:"),
-                  wxSizerFlags().Centre().Border());
-    ext_tc = new wxTextCtrl(frame, wxID_ANY, "xy");
-    ext_tc->SetMinSize(wxSize(50, -1));
-    hsizer->Add(ext_tc, wxSizerFlags().Centre());
-    hsizer->AddSpacer(10);
-    overwrite = new wxCheckBox(frame, wxID_ANY, "allow overwrite");
-    hsizer->Add(overwrite, wxSizerFlags().Centre());
-    outsizer->Add(hsizer, wxSizerFlags().Expand());
-    header = new wxCheckBox(frame, wxID_ANY, "add header");
-    outsizer->Add(header, wxSizerFlags().Border());
-    sizer->Add(outsizer, wxSizerFlags().Expand().Border());
-
-    wxBoxSizer *btn_sizer = new wxBoxSizer(wxHORIZONTAL);
-    wxButton *about = new wxButton(frame, wxID_ABOUT);
-    wxButton *convert = new wxButton(frame, wxID_CONVERT);
-    wxButton *close = new wxButton(frame, wxID_EXIT);
-    btn_sizer->Add(about, wxSizerFlags().Border());
-    btn_sizer->AddStretchSpacer();
-    btn_sizer->Add(convert, wxSizerFlags().Border());
-    btn_sizer->Add(close, wxSizerFlags().Border());
-    sizer->Add(btn_sizer, wxSizerFlags().Expand().Border());
-
-    if (cmdLineParser.GetParamCount() > 0) {
-        wxFileName fn(cmdLineParser.GetParam(0));
-        if (fn.FileExists()) {
-            browser->filectrl->SetPath(fn.GetFullPath());
-            browser->update_file_options();
-        }
-    }
-    dirpicker->SetPath(browser->filectrl->GetDirectory());
-    dirpicker->Enable(false);
-
-    frame->SetSizerAndFit(sizer);
-#ifdef __WXGTK__
-    frame->SetSize(-1, 550);
-#endif
-
-#ifdef __WXMSW__
-    // wxMSW bug workaround
-    frame->SetBackgroundColour(browser->GetBackgroundColour());
-#endif
-
-    frame->Show();
-
-    Connect(dir_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
-            (wxObjectEventFunction) &App::OnDirCheckBox);
-    browser->Connect(browser->filectrl->GetId(), wxEVT_FILECTRL_FOLDERCHANGED,
-            (wxObjectEventFunction) &App::OnFolderChanged, NULL, this);
-
-    Connect(about->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
-            (wxObjectEventFunction) &App::OnAbout);
-    Connect(convert->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
-            (wxObjectEventFunction) &App::OnConvert);
-    Connect(close->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
-            (wxObjectEventFunction) &App::OnClose);
-    return true;
-}
-
-void App::OnConvert(wxCommandEvent&)
-{
-    bool with_header = header->GetValue();
-    int block_nr = browser->block_ch->GetSelection();
-    int idx_x = browser->x_column->GetValue();
-    int idx_y = browser->y_column->GetValue();
-    bool has_err = browser->std_dev_cb->GetValue();
-    int idx_err = browser->s_column->GetValue();
-    bool dec_comma = browser->comma_cb->GetValue();
-
-    wxArrayString paths;
-    browser->filectrl->GetPaths(paths);
-    string options;
-    if (dec_comma)
-        options = "decimal-comma";
-
-    for (size_t i = 0; i < paths.GetCount(); ++i) {
-        wxFileName old_filename(paths[i]);
-        wxString fn = old_filename.GetName() + "." + ext_tc->GetValue();
-        wxString new_filename = dirpicker->GetPath() + wxFILE_SEP_PATH + fn;
-        if (!overwrite->GetValue() && wxFileExists(new_filename)) {
-            int answer = wxMessageBox("File " + fn + " exists.\n"
-                                      "Overwrite?",
-                                      "Overwrite?",
-                                      wxYES|wxNO|wxCANCEL|wxICON_QUESTION);
-            if (answer == wxCANCEL)
-                break;
-            if (answer != wxYES)
-                continue;
-
-        }
-        FILE *f = fopen(new_filename.mb_str(), "w");
-        try {
-            wxBusyCursor wait;
-            xylib::DataSet const *ds = xylib::load_file(wx2s(paths[i]),
-                                            browser->get_filetype(), options);
-            xylib::Block const *block = ds->get_block(block_nr);
-            xylib::Column const& xcol = block->get_column(idx_x);
-            xylib::Column const& ycol = block->get_column(idx_y);
-            xylib::Column const* ecol = (has_err ? &block->get_column(idx_err)
-                                                 : NULL);
-            const int np = block->get_point_count();
-
-            if (with_header) {
-                fprintf(f, "# converted by xyConvert %s from file:\n# %s\n",
-                        xylib_get_version(),
-                        wx2s(new_filename).c_str());
-                if (ds->get_block_count() > 1)
-                    fprintf(f, "# (block %d) %s\n", block_nr,
-                                                    block->get_name().c_str());
-                if (block->get_column_count() > 2) {
-                    string xname = (xcol.get_name().empty() ? string("x")
-                                                            : xcol.get_name());
-                    string yname = (ycol.get_name().empty() ? string("y")
-                                                            : ycol.get_name());
-                    fprintf(f, "#%s\t%s", xname.c_str(), yname.c_str());
-                    if (has_err) {
-                        string ename = (ecol->get_name().empty() ? string("err")
-                                                            : ecol->get_name());
-                        fprintf(f, "\t%s", ename.c_str());
-                    }
-                    fprintf(f, "\n");
-                }
-            }
-
-            for (int j = 0; j < np; ++j) {
-                fprintf(f, "%.9g\t%.9g", xcol.get_value(j), ycol.get_value(j));
-                if (has_err)
-                    fprintf(f, "\t%.9g", ecol->get_value(j));
-                fprintf(f, "\n");
-            }
-        } catch (runtime_error const& e) {
-            wxMessageBox(e.what(), "Error", wxCANCEL|wxICON_ERROR);
-        }
-        fclose(f);
-    }
-}
-
-void App::OnAbout(wxCommandEvent&)
-{
-    wxAboutDialogInfo adi;
-    adi.SetVersion(xylib_get_version());
-    wxString desc = "A simple converter of files supported by xylib library\n"
-                    "to two- or three-column text format.\n";
-    adi.SetDescription(desc);
-    adi.SetWebSite("http://www.nieto.pl/xyconvert/");
-    adi.SetCopyright("(C) 2008-2013 Marcin Wojdyr <wojdyr@gmail.com>");
-    wxAboutBox(adi);
-}
-
-void App::OnDirCheckBox(wxCommandEvent& event)
-{
-    bool checked = event.IsChecked();
-    dirpicker->Enable(checked);
-    if (!checked)
-        dirpicker->SetPath(browser->filectrl->GetDirectory());
-}
-
-void App::OnFolderChanged(wxFileCtrlEvent& event)
-{
-    if (!dir_cb->GetValue())
-        dirpicker->SetPath(event.GetDirectory());
-}
-
-#endif
 

@@ -9,9 +9,6 @@ RC_FLAGS=`echo $(RC_FLAGS_ALL) | sed -e 's/-mthreads//g' `
 fityk_res = winres.o
 $(fityk_res): winres.rc img/fityk.ico
 	$(RC) -o $@ $(RC_FLAGS) $<
-xyconvert_res = xyconvertres.o
-$(xyconvert_res): xyconvert.rc img/xyconvert.ico
-	$(RC) -o $@ $(RC_FLAGS) $<
 
 powdifpat_res = powdifpatres.o
 $(powdifpat_res): powdifpat.rc img/powdifpat.ico
@@ -45,12 +42,6 @@ fityk_CPPFLAGS = -I$(top_srcdir) $(WX_CPPFLAGS) $(HELP_DEF)
 fityk_CXXFLAGS = $(WX_CXXFLAGS_ONLY)
 fityk_LDADD = ../fityk/libfityk.la libceria.a -lxy $(WX_LIBS) $(fityk_res)
 
-if XYCONVERT
-bin_PROGRAMS += xyconvert
-xyconvert_SOURCES = xybrowser.cpp xybrowser.h uplot.cpp uplot.h cmn.cpp cmn.h
-xyconvert_CPPFLAGS = $(WX_CPPFLAGS) -DXYCONVERT
-xyconvert_LDADD = $(WX_LIBS) -lxy $(xyconvert_res)
-endif
 
 inputline: sample_inputline.cpp inputline.cpp inputline.h
 	`wx-config --cxx` `wx-config --cxxflags` -g -Wall -W -O0 -o $@ \
@@ -64,16 +55,11 @@ powdifpat_CPPFLAGS = $(WX_CPPFLAGS) -DSTANDALONE_POWDIFPAT
 powdifpat_LDADD = libceria.a $(WX_LIBS) -lxy $(powdifpat_res)
 endif
 
-#stylesheet from https://xylib.svn.sourceforge.net/svnroot/xylib/trunk/web.css
-xyconvert.html: xyconvert.rst
-	rst2html --stylesheet-path=$$HOME/xylib/web.css $< $@
-
-
 ## to find icons not listed here use (in bash):
 ## for i in img/*.xpm img/*.h; do [ `grep -c $i Makefile.am` -eq 0 ] && ls $i; done
 
 EXTRA_DIST = \
-winres.rc xyconvert.rc powdifpat.rc \
+winres.rc powdifpat.rc \
 \
 img/active_mode.xpm \
 img/addpeak_mode.xpm \
@@ -160,10 +146,6 @@ img/sizes32.h \
 img/fityk96.h \
 \
 img/fityk.ico \
-\
-img/xyconvert16.xpm \
-img/xyconvert48.xpm \
-img/xyconvert.ico \
 \
 img/powdifpat16.xpm \
 img/powdifpat48.xpm \

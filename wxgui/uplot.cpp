@@ -1,5 +1,6 @@
 // This file is part of fityk program. Copyright 2001-2013 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
+// (It is also part of xyconvert and can be distributed under LGPL2.1)
 
 /// utilities for making plot (BufferedPanel, scale_tics_step())
 
@@ -7,7 +8,7 @@
 #include <wx/dcgraph.h>
 
 #include "uplot.h"
-#include "cmn.h"
+//#include "cmn.h"
 
 #if !defined(XYCONVERT) && !defined(STANDALONE_POWDIFPAT)
 #include "frame.h" // frame->antialias()
@@ -169,13 +170,13 @@ void PlotWithTics::draw_axis_labels(wxDC& dc, string const& x_name,
     int H = dc.GetSize().GetHeight();
     if (!x_name.empty()) {
         wxCoord tw, th;
-        dc.GetTextExtent (s2wx(x_name), &tw, &th);
-        dc.DrawText (s2wx(x_name), (W - tw)/2, 2);
+        dc.GetTextExtent(x_name, &tw, &th);
+        dc.DrawText(x_name, (W - tw)/2, 2);
     }
     if (!y_name.empty()) {
         wxCoord tw, th;
-        dc.GetTextExtent (s2wx(y_name), &tw, &th);
-        dc.DrawRotatedText (s2wx(y_name), W - 2, (H - tw)/2, 270);
+        dc.GetTextExtent(y_name, &tw, &th);
+        dc.DrawRotatedText(y_name, W - 2, (H - tw)/2, 270);
     }
 }
 

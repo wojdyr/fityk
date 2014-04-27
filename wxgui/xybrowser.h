@@ -1,5 +1,6 @@
 // This file is part of fityk program. Copyright 2001-2013 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
+// (It is also part of xyconvert and can be distributed under LGPL2.1)
 
 #ifndef FITYK_WX_XYBROWSER_H_
 #define FITYK_WX_XYBROWSER_H_
@@ -7,8 +8,8 @@
 #include <wx/filectrl.h>
 #include <wx/splitter.h>
 #include <wx/spinctrl.h>
-#include <xylib/xylib.h>
-#include <xylib/cache.h>
+#include "xylib/xylib.h"
+#include "xylib/cache.h"
 
 #include "uplot.h"
 

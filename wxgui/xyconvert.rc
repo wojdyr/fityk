@@ -1,8 +1,0 @@
-// This file is used only on MS Windows platform.
-// It can be compiled by windres.
-
-// wxWidgets resource definitions
-#include <wx/msw/wx.rc>
-
-// program icon (the name must be before wxICON_AAA in lexicographical order)
-a_xyconvert ICON "img/xyconvert.ico"

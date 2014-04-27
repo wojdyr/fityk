@@ -23,7 +23,6 @@ if [ $# -eq 0 ]; then
  echo 9. put docs on www
  echo "10. http://freshmeat.net/projects/fityk/releases/new "
  echo "    http://www.gnomefiles.org/devs/index.php?login    "
- echo "11. (optional) update xyconvert"
  echo "12. git tag -a v$version -m 'version $version'; git push --tags"
  exit
 fi
@@ -104,7 +103,7 @@ elif [ $1 -eq 4 ]; then
     ../samples/README $outdir/samples/
  cp wxgui/.libs/*.exe cli/.libs/cfityk.exe \
     fityk/.libs/libfityk-*.dll \
-    $MDIR/bin/libxy-*.dll $MDIR/bin/xyconv.exe \
+    $MDIR/bin/libxy-*.dll $MDIR/bin/xyconv.exe $MDIR/bin/xyconvert.exe \
     $MDIR/bin/lua5*.dll \
     $MDIR/bin/libnlopt*.dll \
     $MDIR/lib/wxbase30u_gcc_custom.dll \
@@ -157,17 +156,6 @@ elif [ $1 -eq 9 ]; then
 elif [ $1 -eq 10 ]; then
  echo announce: freshmeat.net gnomefiles.com
  
-elif [ $1 -eq 11 ]; then
- echo "11. (optional) update xyconvert"
- xylib_version=0.6
- cp -f $MINGW_DIR/wxgui/xyconvert.exe . || exit 1
- rm -f xyconvert-$xylib_version.zip
- zip xyconvert-$xylib_version.zip xyconvert.exe
- rm -f xyconvert.exe
- (cd wxgui/ && make xyconvert.html)
- scp wxgui/xyconvert.html $WEB/xyconvert/index.html
- scp xyconvert-$xylib_version.zip $WEB/xyconvert/
-
 else
  echo unexpected step number: $1
 fi
