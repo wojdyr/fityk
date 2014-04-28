@@ -10,11 +10,9 @@ User-visible changes in version 1.2.9  (2014-04-13):
       WSSR evaluations can be used instead.
     - removed fit continuation (fit +N)
 * new function Sigmoid and new category of functions (S-shaped/step/sigmoidal)
-* covariance matrix and standard errors are calculated using MPFIT library
 * GUI: added menu Session > Recent Scripts
 * GUI: added checkbox to Functions > Export Peak Parameters
 * GUI: added "decimal comma" option to Data > Load dialogs.
-* Lua: added F:executef()
 
 User-visible changes in version 1.2.1  (2012-11-05):
 * added commands '=' and 'exec=' - shorthands 'lua return' and 'lua F:execute'
