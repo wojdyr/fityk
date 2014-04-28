@@ -105,9 +105,7 @@ void models_as_script(const Full* F, string& r, bool commented_defines)
 }
 
 
-namespace {
-
-string info_compiler()
+string build_info()
 {
 #if HAVE_LIBNLOPT
     int nl_ver[3];
@@ -154,6 +152,8 @@ string info_compiler()
 #endif
         ;
 }
+
+namespace {
 
 string get_variable_info(const Full* F, const Variable* v)
 {
@@ -360,7 +360,7 @@ int eval_one_info_arg(const Full* F, int ds, const vector<Token>& args, int n,
         if (word == "version")
             result += "Fityk " VERSION;
         else if (word == "compiler")
-            result += info_compiler();
+            result += build_info();
         else if (word == "variables")
             for (size_t i = 0; i < F->mgr.variables().size(); ++i)
                 result += (i > 0 ? " $" : "$") + F->mgr.get_variable(i)->name;

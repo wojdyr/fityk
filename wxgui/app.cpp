@@ -28,6 +28,7 @@
 #include "mplot.h" // MainPlot::bgm()
 #include "bgm.h" // [gs]et_bg_subtracted()
 #include "fityk/logic.h"
+#include "fityk/info.h" // build_info()
 
 using namespace std;
 using fityk::UserInterface;
@@ -38,11 +39,12 @@ IMPLEMENT_APP(FApp)
 
 /// command line options
 static const wxCmdLineEntryDesc cmdLineDesc[] = {
-#if wxCHECK_VERSION(2, 9, 0)
     { wxCMD_LINE_SWITCH, "h", "help", "show this help message",
                                 wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
     { wxCMD_LINE_SWITCH, "V", "version",
           "output version information and exit", wxCMD_LINE_VAL_NONE, 0 },
+    { wxCMD_LINE_SWITCH, "", "full-version",
+        "print version with additional info and exit", wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_OPTION, "c", "cmd", "script passed in as string",
                                                    wxCMD_LINE_VAL_STRING, 0 },
     { wxCMD_LINE_OPTION, "g", "config",
@@ -53,22 +55,6 @@ static const wxCmdLineEntryDesc cmdLineDesc[] = {
           "reorder data (50.xy before 100.xy)", wxCMD_LINE_VAL_NONE, 0 },
     { wxCMD_LINE_PARAM,  0, 0, "script or data file", wxCMD_LINE_VAL_STRING,
                         wxCMD_LINE_PARAM_OPTIONAL|wxCMD_LINE_PARAM_MULTIPLE },
-#else
-    { wxCMD_LINE_SWITCH, wxT("h"), wxT("help"), wxT("show this help message"),
-                                wxCMD_LINE_VAL_NONE, wxCMD_LINE_OPTION_HELP },
-    { wxCMD_LINE_SWITCH, wxT("V"), wxT("version"),
-          wxT("output version information and exit"), wxCMD_LINE_VAL_NONE, 0 },
-    { wxCMD_LINE_OPTION, wxT("c"),wxT("cmd"), wxT("script passed in as string"),
-                                                   wxCMD_LINE_VAL_STRING, 0 },
-    { wxCMD_LINE_OPTION, wxT("g"),wxT("config"),
-               wxT("choose GUI configuration"), wxCMD_LINE_VAL_STRING, 0 },
-    { wxCMD_LINE_SWITCH, wxT("I"), wxT("no-init"),
-          wxT("don't process $HOME/.fityk/init file"), wxCMD_LINE_VAL_NONE, 0 },
-    { wxCMD_LINE_SWITCH, wxT("r"), wxT("reorder"),
-          wxT("reorder data (50.xy before 100.xy)"), wxCMD_LINE_VAL_NONE, 0 },
-    { wxCMD_LINE_PARAM,  0, 0, wxT("script or data file"),wxCMD_LINE_VAL_STRING,
-                        wxCMD_LINE_PARAM_OPTIONAL|wxCMD_LINE_PARAM_MULTIPLE },
-#endif
     { wxCMD_LINE_NONE, 0, 0, 0,  wxCMD_LINE_VAL_NONE, 0 }
 };
 
@@ -208,7 +194,13 @@ bool FApp::OnInit(void)
     } else if (cmdLineParser.Found(wxT("V"))) {
         wxMessageOutput::Get()->Printf(wxT("fityk version %s\n"), wxT(VERSION));
         return false; //false = exit the application
-    } //the rest of options will be processed in process_argv()
+    } else if (cmdLineParser.Found("full-version")) {
+        wxMessageOutput::Get()->Printf("fityk version %s\n%s\n%s\n", VERSION,
+                                       fityk::build_info().c_str(),
+                                       wxVERSION_STRING);
+        return false; //false = exit the application
+    }
+    //the rest of options will be processed in process_argv()
 
     ftk = new fityk::Full;
 
