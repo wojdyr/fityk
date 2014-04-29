@@ -34,12 +34,14 @@ Full::Full()
     setlocale(LC_NUMERIC, "C");
     cmd_executor_ = new CommandExecutor(this);
     ui_ = new UserInterface(this, cmd_executor_);
+    lua_bridge_ = new LuaBridge(this);
     initialize();
 }
 
 Full::~Full()
 {
     destroy();
+    delete lua_bridge_;
     delete ui_;
     delete cmd_executor_;
 }
@@ -47,7 +49,6 @@ Full::~Full()
 // initializations common for ctor and reset()
 void Full::initialize()
 {
-    lua_bridge_ = new LuaBridge(this);
     fit_manager_ = new FitManager(this);
     // Settings ctor is using FitManager
     settings_mgr_ = new SettingsMgr(this);
@@ -68,7 +69,6 @@ void Full::destroy()
     delete fit_manager_;
     delete settings_mgr_;
     delete tplate_mgr_;
-    delete lua_bridge_;
 }
 
 // reset everything but UserInterface (and related settings)
