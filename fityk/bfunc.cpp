@@ -557,16 +557,19 @@ const vector<string>& FuncVoigt::get_other_prop_names() const
     return p;
 }
 
-realt FuncVoigt::get_other_prop(string const& name) const
+bool FuncVoigt::get_other_prop(string const& name, realt* a) const
 {
     if (name == "GaussianFWHM") {
         realt sigma = fabs(av_[2]) / M_SQRT2;
-        return 2 * sigma * sqrt(2 * M_LN2);
+        *a = 2 * sigma * sqrt(2 * M_LN2);
+        return true;
     } else if (name == "LorentzianFWHM") {
         realt gamma = fabs(av_[2]) * av_[3];
-        return 2 * gamma;
-    } else
-        return 0.;
+        *a = 2 * gamma;
+        return true;
+    } else {
+        return false;
+    }
 }
 
 ///////////////////////////////////////////////////////////////////////

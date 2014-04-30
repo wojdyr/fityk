@@ -202,6 +202,8 @@ realt Function::get_param_value(const string& param) const
         return a;
     } else if (param == "Area" && get_area(&a)) {
         return a;
+    } else if (get_other_prop(param, &a)) {
+        return a;
     } else
         throw ExecuteError("%" + name + " (" + tp_->name
                            + ") has no parameter `" + param + "'");

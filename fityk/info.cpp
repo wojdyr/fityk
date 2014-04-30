@@ -227,8 +227,10 @@ string info_func_props(const Full* F, const string& name)
         s += "\nFWHM: " + S(a);
     if (f->get_area(&a) && !contains_element(fargs, string("area")))
         s += "\nArea: " + S(a);
-    v_foreach (string, i, f->get_other_prop_names())
-        s += "\n" + *i + ": " + S(f->get_other_prop(*i));
+    v_foreach (string, i, f->get_other_prop_names()) {
+        f->get_other_prop(*i, &a);
+        s += "\n" + *i + ": " + S(a);
+    }
     return s;
 }
 

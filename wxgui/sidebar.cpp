@@ -869,8 +869,10 @@ void SideBar::update_func_inf()
         inf->AppendText(wxT("\nFWHM: ") + s2wx(S(a)));
     if (func->get_iwidth(&a))
         inf->AppendText(wxT("\nInt. Width: ") + s2wx(S(a)));
-    v_foreach (string, i, func->get_other_prop_names())
-        inf->AppendText(s2wx("\n" + *i + ": " + S(func->get_other_prop(*i))));
+    v_foreach (string, i, func->get_other_prop_names()) {
+        func->get_other_prop(*i, &a);
+        inf->AppendText(s2wx("\n" + *i + ": " + S(a)));
+    }
 
     vector<string> in;
     for (int i = 0; i < ftk->dk.count(); ++i) {

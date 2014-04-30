@@ -18,6 +18,10 @@ class TestFormula(unittest.TestCase):
         self.ftk.execute("F = " + self.voigt)
         formula = self.ftk.get_info("formula")
         self.assertEqual(formula, self.voigt)
+        gaussian_fwhm=self.ftk.calculate_expr
+        f_voigt = self.ftk.get_components(0)[0]
+        gauss_fwhm = f_voigt.get_param_value('GaussianFWHM')
+        self.assertEqual(gauss_fwhm, 0.2397757280134) # not verified
     def test_voigt_s(self):
         self.ftk.execute("F = " + self.voigt)
         formula = self.ftk.get_info("simplified_formula")

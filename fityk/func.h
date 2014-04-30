@@ -65,8 +65,8 @@ public:
     /// get list of other properties (e.g. like Lorentzian-FWHM of Voigt)
     virtual const std::vector<std::string>& get_other_prop_names() const
                 { static const std::vector<std::string> empty; return empty; }
-    /// returns value of the property, or 0 if not defined
-    virtual realt get_other_prop(const std::string&) const { return 0; }
+    /// if defined, returns true and sets second parameter to the value
+    virtual bool get_other_prop(const std::string&, realt*) const { return 0; }
 
     const std::vector<realt>& av() const { return av_; }
     std::string get_basic_assignment() const;

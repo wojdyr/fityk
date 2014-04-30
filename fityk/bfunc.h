@@ -150,7 +150,7 @@ class FuncVoigt : public Function
     bool get_fwhm(realt* a) const;
     bool get_area(realt* a) const;
     const std::vector<std::string>& get_other_prop_names() const;
-    realt get_other_prop(std::string const& name) const;
+    bool get_other_prop(std::string const& name, realt* a) const;
 };
 
 class FuncVoigtA : public Function
