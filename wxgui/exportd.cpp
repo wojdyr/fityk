@@ -250,7 +250,7 @@ void export_peak_parameters(const vector<int>& sel, wxWindow *parent,
                       "parameters of functions (*.peaks)|*.peaks|all files|*",
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     // on wxOSX/Carbon SetExtraControlCreator() is unreliable
-#ifndef __WXMAC__
+#ifndef __WXOSX_CARBON__
     fdlg.SetExtraControlCreator(&peakparam_extra);
 #endif
     if (fdlg.ShowModal() == wxID_OK) {

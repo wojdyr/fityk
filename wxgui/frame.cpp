@@ -948,7 +948,7 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
                                        + s2wx(xylib::get_wildcards_string()),
                        wxFD_OPEN | wxFD_FILE_MUST_EXIST | wxFD_MULTIPLE);
     // on wxOSX/Carbon SetExtraControlCreator() is unreliable
-#ifndef __WXMAC__
+#ifndef __WXOSX_CARBON__
     fdlg.SetExtraControlCreator(&qload_filedialog_extra);
 #endif
     int ret = fdlg.ShowModal();
@@ -1314,7 +1314,7 @@ void FFrame::OnLogStart (wxCommandEvent&)
                        wxT("Fityk script file (*.fit)|*.fit;*.FIT")
                        wxT("|All files |*"),
                        wxFD_SAVE);
-#ifndef __WXMAC__
+#ifndef __WXOSX_CARBON__
     fdlg.SetExtraControlCreator(&log_filedialog_extra);
 #endif
     const string& logfile = ftk->get_settings()->logfile;
@@ -2009,7 +2009,7 @@ void FFrame::OnSaveAsImage(wxCommandEvent&)
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     wxSize size = get_main_plot()->get_bitmap().GetSize();
     SaveImageDlgExtra::size = size;
-#ifndef __WXMAC__
+#ifndef __WXOSX_CARBON__
     fdlg.SetExtraControlCreator(&save_image_filedialog_extra);
 #endif
     if (fdlg.ShowModal() == wxID_OK) {

@@ -142,7 +142,7 @@ int PowderBook::xaxis_sel = 0;
 
 PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
     : wxToolbook(parent, id, wxDefaultPosition, wxDefaultSize,
-#ifdef __WXMAC__
+#ifdef __WXOSX_CARBON__
                  wxTBK_BUTTONBAR
 #else
                  wxBK_LEFT
@@ -1197,7 +1197,7 @@ wxPanel* PowderBook::PrepareActionPanel()
     // apparently Mac/Carbon does not like multi-line static texts
     wxStaticText *text = new wxStaticText(panel, -1,
      wxT("Press OK to execute the script above and close this window.")
-#ifndef __WXMAC__
+#ifndef __WXOSX_CARBON__
      wxT("\nIf the initial model is good, fit it to the data.")
      wxT("\nOtherwise, reopen this window and correct the model.")
 #endif
