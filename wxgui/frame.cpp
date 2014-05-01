@@ -1298,13 +1298,13 @@ void FFrame::OnMenuLogStopUpdate (wxUpdateUIEvent& event)
 void FFrame::OnMenuLogOutputUpdate (wxUpdateUIEvent& event)
 {
     if (!ftk->get_settings()->logfile.empty())
-        event.Check(ftk->get_settings()->log_full);
+        event.Check(ftk->get_settings()->log_output);
 }
 
 static
 wxWindow* log_filedialog_extra(wxWindow* parent)
 {
-    bool init_value = ftk->get_settings()->log_full;
+    bool init_value = ftk->get_settings()->log_output;
     return new ExtraCheckBox(parent, "log also output", init_value);
 }
 
@@ -1325,8 +1325,8 @@ void FFrame::OnLogStart (wxCommandEvent&)
         wxWindow *extra = fdlg.GetExtraControl();
         if (extra != NULL) {
             bool checked = wxDynamicCast(extra,ExtraCheckBox)->is_checked();
-            if (checked != ftk->get_settings()->log_full)
-                cmd += ", log_full=" + S(checked ? "1" : "0");
+            if (checked != ftk->get_settings()->log_output)
+                cmd += ", log_output=" + S(checked ? "1" : "0");
         }
         exec(cmd);
     }
@@ -1342,7 +1342,7 @@ void FFrame::OnLogWithOutput (wxCommandEvent& event)
 {
     bool checked = event.IsChecked();
     GetMenuBar()->Check(ID_LOG_WITH_OUTPUT, checked);
-    exec("set log_full=" + S((int)checked));
+    exec("set log_output=" + S((int)checked));
 }
 
 void FFrame::OnSaveHistory (wxCommandEvent&)

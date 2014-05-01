@@ -76,11 +76,11 @@ height_correction
 lm_*
     Setting to tune the :ref:`Levenberg-Marquardt <levmar>` fitting method.
 
-log_full
-    Log output together with input (0/1).
-
 logfile
     String. File where the commands are logged. Empty -- no logging.
+
+log_output
+    When logfile is set, log output together with input (0/1).
 
 max_fitting_time
     Stop fitting when this number of seconds of processor time is exceeded.

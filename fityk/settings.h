@@ -21,7 +21,7 @@ struct FITYK_API Settings
     int pseudo_random_seed;
     std::string numeric_format;
     std::string logfile;
-    bool log_full;
+    bool log_output;
     double function_cutoff;
     std::string cwd; // current working directory
 

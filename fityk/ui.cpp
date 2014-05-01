@@ -199,7 +199,7 @@ void UserInterface::output_message(Style style, const string& s) const
     show_message(style, s);
 
     if (!ctx_->get_settings()->logfile.empty() &&
-            ctx_->get_settings()->log_full) {
+            ctx_->get_settings()->log_output) {
         FILE* f = fopen(ctx_->get_settings()->logfile.c_str(), "a");
         if (f) {
             // insert "# " at the beginning of string and before every new line

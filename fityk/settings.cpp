@@ -72,7 +72,7 @@ static const Option options[] = {
     OPT(pseudo_random_seed, kInt, 0, NULL),
     OPT(numeric_format, kString, "%g", NULL),
     OPT(logfile, kString, "", NULL),
-    OPT(log_full, kBool, false, NULL),
+    OPT(log_output, kBool, false, NULL),
     OPT(function_cutoff, kDouble, 0., NULL),
     OPT(cwd, kString, "", NULL),
 
@@ -109,6 +109,8 @@ const Option& find_option(const string& name)
     for (size_t i = 0; i != len; ++i)
         if (options[i].name == name)
             return options[i];
+    if (name == "log_full") // old name used in fityk 1.2.9 and older
+        return find_option("log_output");
     throw ExecuteError("Unknown option: " +  name);
 }
 
