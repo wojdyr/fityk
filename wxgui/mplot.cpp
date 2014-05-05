@@ -263,6 +263,7 @@ MainPlot::MainPlot (wxWindow *parent)
       auto_freeze_(false)
 {
     set_cursor();
+    SetMinSize(wxSize(200, 200));
 }
 
 MainPlot::~MainPlot()
