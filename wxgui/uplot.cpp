@@ -71,6 +71,8 @@ void BufferedPanel::update_buffer_and_blit()
     // check size
     wxCoord w, h;
     pdc.GetSize(&w, &h);
+    if (w == 0 || h == 0)
+        return;
     if (!buffer_.Ok() || w != buffer_.GetWidth() || h != buffer_.GetHeight()) {
         memory_dc_.SelectObject(wxNullBitmap);
         buffer_ = wxBitmap(w, h);
