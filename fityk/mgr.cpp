@@ -287,6 +287,7 @@ string ModelManager::assign_variable_copy(const Variable* orig,
             new_op_trees.push_back((*i)->clone());
         var = new Variable(name, vars, new_op_trees);
     }
+    var->domain = orig->domain;
     add_variable(var);
     return name;
 }
