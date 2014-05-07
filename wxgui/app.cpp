@@ -283,7 +283,12 @@ bool FApp::OnInit(void)
         }
     }
 
-    process_argv(cmdLineParser);
+    try {
+        process_argv(cmdLineParser);
+    }
+    catch(fityk::ExitRequestedException) {
+        return false;
+    }
 
     frame->after_cmd_updates();
     return true;
