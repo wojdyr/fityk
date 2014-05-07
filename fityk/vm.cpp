@@ -119,7 +119,7 @@ string op2str(int op)
 string vm2str(vector<int> const& code, vector<realt> const& data)
 {
     string s;
-    v_foreach (int, i, code) {
+    for (vector<int>::const_iterator i = code.begin(); i < code.end(); ++i) {
         s += op2str(*i);
         if (*i == OP_NUMBER) {
             ++i;
@@ -145,7 +145,7 @@ void VMData::append_number(realt d)
 
 void VMData::replace_symbols(const vector<realt>& vv)
 {
-    vm_foreach (int, op, code_) {
+    for (vector<int>::iterator op = code_.begin(); op < code_.end(); ++op) {
         if (*op == OP_SYMBOL) {
             *op = OP_NUMBER;
             ++op;
@@ -168,7 +168,7 @@ void VMData::replace_symbols(const vector<realt>& vv)
 /// The same transformation is used in OpTree. 
 void VMData::flip_indices()
 {
-    vm_foreach (int, i, code_)
+    for (vector<int>::iterator i = code_.begin(); i < code_.end(); ++i)
         if (has_idx(*i)) {
             ++i;
             *i = -1 - *i;
@@ -177,7 +177,7 @@ void VMData::flip_indices()
 
 bool VMData::has_op(int op) const
 {
-    v_foreach (int, i, code_) {
+    for (vector<int>::const_iterator i = code_.begin(); i < code_.end(); ++i) {
         if (*i == op)
             return true;
         if (has_idx(*i))

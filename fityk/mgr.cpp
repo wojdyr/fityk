@@ -140,7 +140,7 @@ int ModelManager::make_variable(const string &name, VMData* vd)
     else {
         // OP_TILDE -> new variable
         vector<int>& mcode = vd->get_mutable_code();
-        vm_foreach (int, op, mcode) {
+        for (vector<int>::iterator op = mcode.begin(); op < mcode.end(); ++op) {
             if (*op == OP_TILDE) {
                 *op = OP_SYMBOL;
                 ++op;
