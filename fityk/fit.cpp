@@ -6,6 +6,23 @@
 
 #include <algorithm>
 #include <cmath>
+
+// Valgrind may not like the way boost::math::erfc_inv is initialized, see
+// https://svn.boost.org/trac/boost/ticket/10005
+// If you get:
+//  terminate called after throwing an instance of
+//  'boost::exception_detail::clone_impl<
+//     boost::exception_detail::error_info_injector<std::overflow_error> >'
+//   what():  Error in function boost::math::erfc_inv<e>(e, e): Overflow Error
+// try this ugly workaround.
+#ifdef VALGRIND_WORKAROUND
+#include <float.h>
+#undef LDBL_MAX_10_EXP
+// not very correct, but seems harmless - LDBL_MAX_10_EXP is not used much
+#define LDBL_MAX_10_EXP 799
+#include <boost/math/special_functions/erf.hpp>
+#endif
+
 #include <boost/math/distributions/students_t.hpp>
 
 #include "logic.h"
@@ -77,16 +94,11 @@ vector<double> Fit::get_confidence_limits(const vector<Data*>& datas,
     vector<double> v = get_standard_errors(datas);
     int dof = get_dof(datas);
     double level = 1. - level_percent / 100.;
-#if 1
-    // for unknown reasons this crashes when the program is run under valgrind
-    // (Boost 1.50, Valgrind 3.8.1, Fedora 18) with message:
-    // terminate called after throwing an instance of 'boost::exception_detail::clone_impl<boost::exception_detail::error_info_injector<std::overflow_error> >'
-    //   what():  Error in function boost::math::erfc_inv<e>(e, e): Overflow Error
+    // If Fityk run under valgrind gives
+    //  Error in function boost::math::erfc_inv<e>(e, e): Overflow Error
+    // see VALGRIND_WORKAROUND above.
     boost::math::students_t dist(dof);
     double t = boost::math::quantile(boost::math::complement(dist, level/2));
-#else
-    double t = 0;
-#endif
     vm_foreach (double, i, v)
         *i *= t;
     return v;
