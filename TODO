@@ -1,15 +1,25 @@
+* Lua: instead of F:executef provide getmetatable("").__mod
+
+* Lua: package.path and ~/.fityk/init.lua
+
+* [GUI, Windows] bad layout of Quick Load File dialog
+
+* increase default windows size; lighter grey background of output window
+
 * settings: [fitting] use box-constraints=0/1
+
+* parameter bounds:
+   new syntax - %f = Linear(~3[2:5], ~10)
+   new syntax - $b = copy($a) - copy with domain
+   keep domain when assigning a value ($a={$a}, $a=~20.1, but also $a=$c)
+   new syntax - domain in default parameters (...shape=~0.5 [0:1],...),
+   adjust definitions of Voigt, PseudoVoigt, Pearson7
+   tests for domains
 
 * tests: fitting with constraints
 
-* fitting: box-constrained parameters (simple-variables)
-  syntax for domain in deault parameters (...shape=~0.5 [0:1],...),
-  adjust definitions of Voigt, PseudoVoigt, Pearson7
-
 * API: add all_datasets(): for n, title in F:all_datasets() do ...
 * API: access to confidence intervals
-
-* polynomials such as Chebyshev and Legendre
 
 * GUI: when loading large number of points ask in pop-up dialog:
   switch off antialiasing and change point size to 1?
@@ -30,6 +40,7 @@
 
 * convolution and deconvolution of two datasets or a dataset with Gaussian:
   convolve(@0, @1); convolve(@0, 2.3); deconvolve(@0,3.4)
+  OR                conv(@0, gauss(2.3))
 
 * GUI: draw points (handles) for dragging peak width at half height
 
@@ -74,8 +85,6 @@
 * GUI: constraining parameters of two peak using the peak-top menu
 
 * splines: fitting, guessing, handling knots in the GUI
-
-* GUI: add alpha channel to the toolbar icons
 
 * user defined functions:
       - calculating limits, width, area, etc. for UDF
