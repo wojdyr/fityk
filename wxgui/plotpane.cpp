@@ -136,15 +136,17 @@ wxBitmap PlotPane::prepare_bitmap_for_export(int W, int H, bool include_aux)
     // bitmap depth is given explicitely - which is also a workaround for
     // http://trac.wxwidgets.org/ticket/13328
     const int depth = 32;
-    int my = get_plot()->get_bitmap().GetSize().y;
     int th = H;
     int ah[2] = { 0, 0 };
-    for (int i = 0; i != 2; ++i)
-        if (include_aux && aux_visible(i)) {
-            int ay = get_aux_plot(i)->GetClientSize().y;
-            ah[i] = iround(ay * H / my);
-            th += 5 + ah[i];
-        }
+    if (include_aux) {
+        int my = get_plot()->get_bitmap().GetSize().y;
+        for (int i = 0; i != 2; ++i)
+            if (aux_visible(i)) {
+                int ay = get_aux_plot(i)->GetClientSize().y;
+                ah[i] = iround(ay * H / my);
+                th += 5 + ah[i];
+            }
+    }
 
     wxBitmap bmp(W, th, depth);
     wxMemoryDC memory_dc(bmp);

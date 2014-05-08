@@ -174,7 +174,8 @@ namespace std {
     }
 
     PyObject *_py_draw_plot_func = NULL;
-    static void PythonDrawPlotCallBack(fityk::UiApi::RepaintMode mode)
+    static void PythonDrawPlotCallBack(fityk::UiApi::RepaintMode mode,
+                                       const char* /*filename*/)
     {
         PyObject *arglist = Py_BuildValue("(i)", mode);
         PyEval_CallObject(_py_draw_plot_func, arglist);

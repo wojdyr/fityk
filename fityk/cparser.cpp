@@ -862,6 +862,7 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
             parse_real_range(lex, cmd.args);
             while (lex.peek_token().type == kTokenDataset)
                 cmd.args.push_back(lex.get_token());
+            parse_redir(lex, cmd.args);
         } else if (is_command(token, "p","rint")) {
             cmd.type = kCmdPrint;
             parse_print_args(lex, cmd.args);

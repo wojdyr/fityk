@@ -287,19 +287,22 @@ void Runner::command_plot(const vector<Token>& args, int ds)
     RealRange hor = args2range(args[0], args[1]);
     RealRange ver = args2range(args[2], args[3]);
     vector<int> dd;
-    if (args.size() > 4) {
-        for (size_t i = 4; i < args.size(); ++i) {
-            int n = args[i].value.i;
-            if (n == Lexer::kAll)
-                for (int j = 0; j != F_->dk.count(); ++j)
-                    dd.push_back(j);
-            else
-                dd.push_back(n);
-        }
-    } else
+    for (size_t i = 4; i < args.size() && args[i].type == kTokenDataset; ++i) {
+        int n = args[i].value.i;
+        if (n == Lexer::kAll)
+            for (int j = 0; j != F_->dk.count(); ++j)
+                dd.push_back(j);
+        else
+            dd.push_back(n);
+    }
+    if (dd.empty())
         dd.push_back(ds);
     F_->view.change_view(hor, ver, dd);
-    F_->ui()->draw_plot(UserInterface::kRepaintImmediately);
+    string filename;
+    if (args.back().type == kTokenFilename || args.back().type == kTokenString)
+        filename = Lexer::get_string(args.back());
+    F_->ui()->draw_plot(UserInterface::kRepaintImmediately,
+                        filename.empty() ? NULL : filename.c_str());
 }
 
 void Runner::command_dataset_tr(const vector<Token>& args)

@@ -30,7 +30,7 @@ public:
     UserInterface(BasicContext* ctx, CommandExecutor* ce);
 
     /// Redraw the plot.
-    void draw_plot(RepaintMode mode);
+    void draw_plot(RepaintMode mode, const char* filename=NULL);
 
     void mark_plot_dirty() { dirty_plot_ = true; }
 

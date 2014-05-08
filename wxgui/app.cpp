@@ -84,10 +84,22 @@ string gui_user_input(const string& prompt)
 }
 
 static
-void gui_draw_plot(UserInterface::RepaintMode mode)
+void gui_draw_plot(UserInterface::RepaintMode mode, const char* filename)
 {
-    bool now = (mode == UserInterface::kRepaintImmediately);
-    frame->plot_pane()->refresh_plots(now, kAllPlots);
+    if (filename == NULL) {
+        bool now = (mode == UserInterface::kRepaintImmediately);
+        frame->plot_pane()->refresh_plots(now, kAllPlots);
+    } else {
+        wxString path(filename);
+        wxBitmap bmp =
+            frame->plot_pane()->prepare_bitmap_for_export(640, 480, false);
+        if (path.Lower().EndsWith(".bmp"))
+            bmp.SaveFile(path, wxBITMAP_TYPE_BMP);
+        else if (path.Lower().EndsWith(".png"))
+            bmp.ConvertToImage().SaveFile(path, wxBITMAP_TYPE_PNG);
+        else
+            ftk->ui()->warn("Plot path must end with .bmp or .png");
+    }
 }
 
 static

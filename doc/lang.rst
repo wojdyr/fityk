@@ -158,7 +158,7 @@ The kCmd* names in the comments correspond to constants in the code.
     : "i:nfo" `info_arg` % "," [`redir`]   | (*kCmdInfo*)
     : "l:ua" RestOfLine                | (*kCmdLua*)
     : "=" RestOfLine                   | (*kCmdLua*)
-    : "pl:ot" [`range`] [`range`] Dataset* | (*kCmdPlot*)
+    : "pl:ot" [`range`] [`range`] Dataset* [`redir`] | (*kCmdPlot*)
     : "p:rint" `print_args` [`redir`]      | (*kCmdPrint*)
     : "quit"                           | (*kCmdQuit*)
     : "reset"                          | (*kCmdReset*)

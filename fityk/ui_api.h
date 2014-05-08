@@ -44,7 +44,7 @@ public:
     // Callbacks. connect_*() returns old callback.
 
     // Callback for plotting.
-    typedef void t_draw_plot_callback(RepaintMode mode);
+    typedef void t_draw_plot_callback(RepaintMode mode, const char* filename);
     t_draw_plot_callback* connect_draw_plot(t_draw_plot_callback *func);
 
     // Callback for text output. Initially, a callback suitable for CLI

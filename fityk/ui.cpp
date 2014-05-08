@@ -353,11 +353,12 @@ void UserInterface::exec_string_as_script(const char* s)
     }
 }
 
-void UserInterface::draw_plot(RepaintMode mode)
+void UserInterface::draw_plot(RepaintMode mode, const char* filename)
 {
     if (draw_plot_callback_)
-        (*draw_plot_callback_)(mode);
-    dirty_plot_ = false;
+        (*draw_plot_callback_)(mode, filename);
+    if (filename == NULL)
+        dirty_plot_ = false;
 }
 
 

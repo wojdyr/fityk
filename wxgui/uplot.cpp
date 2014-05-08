@@ -58,8 +58,10 @@ wxBitmap BufferedPanel::draw_on_bitmap(int w, int h, int depth)
     memory_dc_.SetBackground(wxBrush(bg_color_));
     memory_dc_.Clear();
     gc_draw(memory_dc_);
-    memory_dc_.SelectObject(buffer_);
-    memory_dc_.SetBackground(wxBrush(bg_color_));
+    if (buffer_.Ok()) {
+        memory_dc_.SelectObject(buffer_);
+        memory_dc_.SetBackground(wxBrush(bg_color_));
+    }
     return bmp;
 }
 

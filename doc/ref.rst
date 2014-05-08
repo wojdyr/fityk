@@ -162,6 +162,13 @@ refreshed automatically after changing the data or the model (``autoplot=1``).
 It is also possible to replot the model when fitting, to show the progress
 (see the options :option:`fit_replot` and :option:`refresh_period`).
 
+Redirecting the plot command to a file saves a plot as an image::
+
+    plot [20.4:50] [10:20] > myplot.png
+
+For now, it works only in fityk (not cfityk) and is less flexible than
+:menuselection:`Session --> Save as Image`.
+
 .. _info:
 
 Information Display

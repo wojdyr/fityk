@@ -53,9 +53,13 @@ Fityk* ftk = 0;
 //------ implementation of CLI specific methods for UiApi callbacks ------
 
 static
-void cli_draw_plot (UiApi::RepaintMode /*mode*/)
+void cli_draw_plot (UiApi::RepaintMode /*mode*/, const char* filename)
 {
     static GnuPlot my_gnuplot;
+    if (filename) {
+        fprintf(stderr, "Saving plot to file is not implemented.\n");
+        return;
+    }
     my_gnuplot.plot();
 }
 
