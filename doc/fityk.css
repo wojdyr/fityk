@@ -236,7 +236,7 @@ tt {
     color: #222;
 }
 
-pre a tt {
+pre a tt, pre tt {
     font-size: 1em;
 }
 
