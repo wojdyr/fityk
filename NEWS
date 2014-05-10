@@ -2,6 +2,7 @@ User-visible changes in version 1.3.0  ():
 * GUI: added auto-completion to Lua script editor
 * xyConvert is now part of xylib (removed flag --disable-xyconvert)
 * command "reset" does not reset Lua VM (to allow "reset" from Lua scripts)
+* Lua: add Python-style formatting (e.g."%d pigs" % 3) using __mod for strings
 
 User-visible changes in version 1.2.9  (2014-04-13):
 * fitting:

@@ -1,5 +1,3 @@
-* Lua: instead of F:executef provide getmetatable("").__mod
-
 * Lua: package.path and ~/.fityk/init.lua
 
 * [GUI, Windows] bad layout of Quick Load File dialog

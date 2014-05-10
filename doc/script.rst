@@ -61,7 +61,7 @@ Now the first example that can be useful. For each dataset write output
 of the ``info peaks`` command to a file named after the data file,
 with appended ".out"::
 
-    =-> @*: lua F:executef("info peaks >'%s.out'", F:get_info("filename"))
+    =-> @*: lua F:execute("info peaks >'%s.out'" % F:get_info("filename"))
 
 This and other methods of ``F`` are documented in the next section.
 
@@ -71,7 +71,7 @@ Here is an example of Lua-Fityk interactions::
 
     -- load data from files file01.dat, file02.dat, ... file13.dat
     for i=1,13 do
-        F:executef("@+ < file%02d.dat:0:1::", i)
+        F:execute("@+ < file%02d.dat:0:1::" % i)
     end
 
     -- print some statistics about the loaded data
@@ -144,13 +144,11 @@ Here is the most general function:
 
     Executes a fityk command. Example: ``F:execute("fit")``.
 
-and its variant that may save some typing:
+The ``%`` operator for the string type is pre-set to support Python-like
+formatting::
 
-.. method:: Fityk.executef(fmt, ...)
-
-    The same as ``F:execute(string.format(fmt, ...))``.
-    Example: ``F:executef("@+ < '%s:0:1::'", filename)``.
-
+    = "%d pigs" % 3
+    = "%d %s" % {3, "pigs"}
 
 Input / output
 --------------

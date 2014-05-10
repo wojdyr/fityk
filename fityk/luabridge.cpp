@@ -63,18 +63,6 @@ static int lua_vector_iterator(lua_State* L)
     return 2;
 }
 
-// calls f(obj, g(arg1, ...)), where f and g are upvalues and obj is arg
-static int lua_nested_call(lua_State *L)
-{
-    lua_pushvalue(L, lua_upvalueindex(2)); // get inner function
-    lua_insert(L, 2);                      // put it under arguments (exc. obj)
-    lua_call(L, lua_gettop(L)-2, 1);       // call inner function
-    lua_pushvalue(L, lua_upvalueindex(1)); // get outer function
-    lua_insert(L, 1);                      // put it under argument
-    lua_call(L, 2, 0);                     // call outer function
-    return 0;
-}
-
 namespace fityk {
 
 LuaBridge::LuaBridge(Full *F)
@@ -105,22 +93,29 @@ LuaBridge::LuaBridge(Full *F)
     SWIG_NewPointerObj(L_, f, type_info, owned);
     lua_setglobal(L_, "F");
 
-    // add method F.executef()
-    lua_getglobal(L_, "F");
-    // SWIG keeps class methods in ".fn" table in metatable
-    luaL_getmetafield(L_, -1, ".fn");
-    lua_getglobal(L_, "string");
-    lua_getfield(L_, -3, "execute"); // F.execute
-    lua_getfield(L_, -2, "format"); // string.format
-    lua_pushcclosure(L_, lua_nested_call, 2);
-    lua_setfield(L_, -3, "executef"); // .fn[executef] = closure
-    lua_pop(L_, 3); // pop string, .fn and F tables
-
     // redefine print
     UserInterface *ui = ctx_->ui();
     lua_pushlightuserdata(L_, ui);
     lua_pushcclosure(L_, fityk_lua_print, 1);
     lua_setglobal(L_, "print");
+
+    // Python-like string formatting with % operator, based on
+    // http://lua-users.org/wiki/StringInterpolation
+    const char *lua_init_str =
+     "getmetatable('').__mod = function(a, b)\n"
+     "  if not b then return a\n"
+     "  elseif type(b) == 'table' then return string.format(a, "
+#if LUA_VERSION_NUM >= 502
+         "table."
+#endif
+         "unpack(b))\n"
+     "  else return string.format(a, b)\n"
+     "  end\n"
+     "end\n";
+
+    int status = luaL_dostring(L_, lua_init_str);
+    if (status != 0) // just in case, should not happen
+        handle_lua_error();
 }
 
 

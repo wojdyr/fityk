@@ -96,7 +96,7 @@ static const char* kLuaMethods =
 
 static const char* kLuaTableF =
 "F:add_point F:all_functions F:all_parameters F:all_variables"
-" F:calculate_expr F:execute F:executef F:get_components"
+" F:calculate_expr F:execute F:get_components"
 " F:get_covariance_matrix F:get_data F:get_dataset_count"
 " F:get_default_dataset F:get_dof F:get_function F:get_info"
 " F:get_model_value F:get_option_as_number F:get_option_as_string"
