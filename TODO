@@ -1,8 +1,4 @@
-* Lua: package.path and ~/.fityk/init.lua
-
 * [GUI, Windows] bad layout of Quick Load File dialog
-
-* increase default windows size; lighter grey background of output window
 
 * settings: [fitting] use box-constraints=0/1
 

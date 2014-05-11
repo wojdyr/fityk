@@ -24,7 +24,7 @@ private:
     wxColour bg_color_;
     wxString selection_; // string passed to OnEditLine()
 
-    void show_fancy_dashes();
+    void add_initial_text();
     void set_bg_color(wxColour const &color);
     void OnRightDown (wxMouseEvent& event);
     void OnEditLine(wxCommandEvent&);

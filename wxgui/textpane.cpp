@@ -102,33 +102,35 @@ OutputWin::OutputWin (wxWindow *parent, wxWindowID id)
                  wxTE_MULTILINE|wxTE_RICH|wxNO_BORDER|wxTE_READONLY)
 {}
 
-void OutputWin::show_fancy_dashes() {
-    for (int i = 0; i < 16; i++) {
-        SetDefaultStyle (wxTextAttr (wxColour(i * 16, i * 16, i * 16)));
-        AppendText (wxT("-"));
-    }
-    AppendText (wxT("\n"));
+void OutputWin::add_initial_text()
+{
+    SetDefaultStyle(wxTextAttr(text_color_[UserInterface::kNormal]));
+    AppendText("This window shows your ");
+    SetDefaultStyle(wxTextAttr(text_color_[UserInterface::kInput]));
+    AppendText("commands");
+    SetDefaultStyle(wxTextAttr(text_color_[UserInterface::kNormal]));
+    AppendText(".\n");
 }
 
 void OutputWin::read_settings(wxConfigBase *cf)
 {
     cf->SetPath(wxT("/OutputWin/Colors"));
-    bg_color_ = cfg_read_color(cf, wxT("bg"), wxColour(28, 28, 28));
+    bg_color_ = cfg_read_color(cf, wxT("bg"), wxColour(0, 43, 54));
     text_color_[UserInterface::kNormal] =
-        cfg_read_color(cf, wxT("normal"), wxColour(160, 160, 160));
+        cfg_read_color(cf, wxT("normal"), wxColour(131, 148, 150));
     text_color_[UserInterface::kInput] =
-        cfg_read_color(cf, wxT("input"), wxColour(64, 133, 73));
+        cfg_read_color(cf, wxT("input"), wxColour(133, 153, 0));
     text_color_[UserInterface::kQuoted] =
-        cfg_read_color(cf, wxT("quot"), wxColour(122, 142, 220));
+        cfg_read_color(cf, wxT("quot"), wxColour(38, 139, 210));
     text_color_[UserInterface::kWarning] =
-        cfg_read_color(cf, wxT("warn"), wxColour(192, 64, 64));
+        cfg_read_color(cf, wxT("warn"), wxColour(220, 50, 47));
 
     cf->SetPath(wxT("/OutputWin"));
     wxFont font = cfg_read_font(cf, wxT("font"), wxNullFont);
     SetDefaultStyle(wxTextAttr(bg_color_, bg_color_, font));
     SetBackgroundColour(bg_color_);
     if (IsEmpty())
-        show_fancy_dashes();
+        add_initial_text();
     Refresh();
 }
 
@@ -173,7 +175,7 @@ void OutputWin::show_preferences_dialog()
 void OutputWin::OnClear (wxCommandEvent&)
 {
     Clear();
-    show_fancy_dashes();
+    add_initial_text();
 }
 
 void OutputWin::OnEditLine (wxCommandEvent&)
