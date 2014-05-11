@@ -165,7 +165,7 @@ UiApi::Status UserInterface::exec_and_log(const string& c)
         }
     }
 
-    UiApi::Status r = this->exec_command(c);
+    UiApi::Status r = execute_line_via_callback(c);
     cmds_.push_back(Cmd(c, r));
     ++cmd_count_;
     return r;
@@ -362,7 +362,7 @@ void UserInterface::draw_plot(RepaintMode mode, const char* filename)
 }
 
 
-UiApi::Status UserInterface::exec_command(const string& s)
+UiApi::Status UserInterface::execute_line_via_callback(const string& s)
 {
     return exec_command_callback_ ? (*exec_command_callback_)(s)
                                   : execute_line(s);

@@ -51,6 +51,7 @@ public:
     void exec_stream(FILE *fp);
     void exec_string_as_script(const char* s);
 
+    // logs the command and calls execute_line_via_callback()
     UiApi::Status exec_and_log(const std::string& c);
 
     // Calls raw_execute_line(), catches exceptions and returns status code.
@@ -84,9 +85,8 @@ private:
     void show_message(Style style, const std::string& s) const
         { if (show_message_callback_) (*show_message_callback_)(style, s); }
 
-    /// Execute command(s) from string
-    /// It can finish the program (eg. if s=="quit").
-    UiApi::Status exec_command(const std::string& s);
+    // It can finish the program (eg. if s=="quit").
+    UiApi::Status execute_line_via_callback(const std::string& s);
 
     DISALLOW_COPY_AND_ASSIGN(UserInterface);
 };
