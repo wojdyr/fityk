@@ -10,7 +10,7 @@
 #include "dataedit.h"
 
 #include "frame.h"
-#include "app.h" // get_full_path_of_help_file()
+#include "app.h" // get_help_url()
 #include "fityk/data.h" // Data, Point
 #include "fityk/logic.h" // ui()
 

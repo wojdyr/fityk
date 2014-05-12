@@ -4,11 +4,12 @@
 
 #include <wx/wx.h>
 #include <wx/statline.h>
-//#include <wx/msgdlg.h>
+#include <wx/hyperlink.h>
 
 #include "defmgr.h"
 #include "cmn.h" //s2wx, wx2s
 #include "frame.h" // ftk
+#include "app.h" // get_help_url()
 #include "fityk/logic.h"
 #include "fityk/func.h"
 #include "fityk/lexer.h"
@@ -49,8 +50,13 @@ DefinitionMgrDlg::DefinitionMgrDlg(wxWindow* parent)
 
     desc_tc = new wxTextCtrl(this, -1, wxT(""),
                wxDefaultPosition, wxDefaultSize, wxTE_MULTILINE|wxTE_READONLY);
-    vsizer->Add(new wxStaticText(this, -1, wxT("Description:")),
-                0, wxALL, 5);
+    wxBoxSizer *link_sizer = new wxBoxSizer(wxHORIZONTAL);
+    link_sizer->Add(new wxStaticText(this, -1, wxT("Description:")), 0);
+    link_sizer->AddStretchSpacer();
+    base_url_ = get_help_url("model.html");
+    link = new wxHyperlinkCtrl(this, -1, "documentation", base_url_);
+    link_sizer->Add(link, 0);
+    vsizer->Add(link_sizer, 0, wxALL|wxEXPAND, 5);
     vsizer->Add(desc_tc, 1, wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
     desc_tc->SetBackgroundColour(GetBackgroundColour());
 
@@ -200,6 +206,16 @@ void DefinitionMgrDlg::select_function()
     def_label_st->SetLabel(tp.is_coded() ? wxT("definition (equivalent):")
                                          : wxT("definition:"));
     remove_btn->Enable(!used);
+    link->Enable(tp.docs_fragment != NULL);
+    if (tp.docs_fragment != NULL)
+    // wxMSW converts URI back to filename, and it can't handle #fragment
+#ifndef __WXMSW__
+        link->SetURL(base_url_ + "#" + tp.docs_fragment);
+#else
+        link->SetURL(base_url_);
+#endif
+    else
+        link->SetURL("no docs for " + s2wx(tp.name));
     update_desc(tp);
 }
 

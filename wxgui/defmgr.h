@@ -9,6 +9,7 @@
 #include "fityk/func.h"
 #include "fityk/cparser.h"
 
+class wxHyperlinkCtrl;
 
 class DefinitionMgrDlg : public wxDialog
 {
@@ -23,12 +24,14 @@ public:
 
 private:
     int selected_;
+    wxString base_url_;
     std::vector<fityk::Tplate> modified_;
     fityk::Parser parser_;
     wxListBox *lb;
     wxTextCtrl *def_tc, *desc_tc;
     wxStaticText *def_label_st;
     wxButton *remove_btn, *ok_btn;
+    wxHyperlinkCtrl *link;
 
     void select_function();
     void parse_definition();
