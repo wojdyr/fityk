@@ -47,6 +47,7 @@ struct FITYK_API Tplate
     create_type create;
     std::vector<Component> components; // kSum, kSplit
     std::vector<OpTree*> op_trees;     // kCustom
+    const char* docs_fragment;
 
     std::string as_formula() const;
     bool is_coded() const;
@@ -86,7 +87,8 @@ private:
 
     void add(const char* name, const char* cs_fargs, const char* cs_dv,
              const char* rhs, int traits,
-             Tplate::create_type create, Parser* parser=NULL);
+             Tplate::create_type create, Parser* parser=NULL,
+             bool documented=false);
 
     DISALLOW_COPY_AND_ASSIGN(TplateMgr);
 };
