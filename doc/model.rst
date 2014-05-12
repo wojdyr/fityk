@@ -249,7 +249,7 @@ The list of all functions can be obtained using ``i types``.
 Some formulae here have long parameter names
 (like "height", "center" and "hwhm") replaced with :math:`a_i`
 
-**Gaussian:**
+:ftype:`Gaussian`:
 
 .. math::
    y = a_0
@@ -259,50 +259,50 @@ Some formulae here have long parameter names
 where FWHM stands for full width...), which is proportional to standard
 deviation: :math:`a_2=\sqrt{2\ln2}\sigma`.
 
-**SplitGaussian:**
+:ftype:`SplitGaussian`:
 
 .. math:: 
    y(x;a_0,a_1,a_2,a_3) = \begin{cases}
    \textrm{Gaussian}(x;a_0,a_1,a_2) & x\leq a_1\\
    \textrm{Gaussian}(x;a_0,a_1,a_3) & x>a_1\end{cases}
 
-**GaussianA:**
+:ftype:`GaussianA`:
 
 .. math:: 
    y = \sqrt{\frac{\ln(2)}{\pi}}\frac{a_0}{a_2}
        \exp\left[-\ln(2)\left(\frac{x-a_1}{a_2}\right)^{2}\right]
 
-**Lorentzian:**
+:ftype:`Lorentzian`:
 
 .. math:: 
    y = \frac{a_0}{1+\left(\frac{x-a_1}{a_2}\right)^2}
 
-**SplitLorentzian:**
+:ftype:`SplitLorentzian`:
 
 .. math:: 
    y(x;a_0,a_1,a_2,a_3) = \begin{cases}
    \textrm{Lorentzian}(x;a_0,a_1,a_2) & x\leq a_1\\
    \textrm{Lorentzian}(x;a_0,a_1,a_3) & x>a_1\end{cases}
 
-**LorentzianA:**
+:ftype:`LorentzianA`:
 
 .. math:: 
    y = \frac{a_0}{\pi a_2\left[1+\left(\frac{x-a_1}{a_2}\right)^2\right]}
 
-**Pearson VII (Pearson7):**
+:ftype:`Pearson VII (Pearson7)`:
 
 .. math:: 
    y = \frac{a_0} {\left[1+\left(\frac{x-a_1}{a_2}\right)^2
                            \left(2^{\frac{1}{a_3}}-1\right)\right]^{a_3}}
 
-**split Pearson VII (SplitPearson7):**
+:ftype:`split Pearson VII (SplitPearson7)`:
 
 .. math:: 
    y(x;a_{0},a_{1},a_{2},a_{3},a_{4},a_{5}) = \begin{cases}
     \textrm{Pearson7}(x;a_0,a_1,a_2,a_4) & x\leq a_1\\
     \textrm{Pearson7}(x;a_0,a_1,a_3,a_5) & x>a_1\end{cases}
 
-**Pearson VII Area (Pearson7A):**
+:ftype:`Pearson VII Area (Pearson7A)`:
 
 .. math:: 
    y = \frac{a_0\Gamma(a_3)\sqrt{2^{\frac{1}{a_3}}-1}}
@@ -311,7 +311,7 @@ deviation: :math:`a_2=\sqrt{2\ln2}\sigma`.
                    \left(2^{\frac{1}{a_3}}-1\right)
             \right]^{a_3}}
 
-**Pseudo-Voigt (PseudoVoigt):**
+:ftype:`Pseudo-Voigt (PseudoVoigt)`:
 
 .. math:: 
    y = a_0 \left[(1-a_3)\exp\left(-\ln(2)\left(\frac{x-a_1}{a_2}\right)^2\right)
@@ -322,14 +322,14 @@ Pseudo-Voigt is a name given to the sum of Gaussian and Lorentzian.
 :math:`a_3` parameters in Pearson VII and Pseudo-Voigt
 are not related.
 
-**split Pseudo-Voigt (SplitPseudoVoigt):**
+:ftype:`split Pseudo-Voigt (SplitPseudoVoigt)`:
 
 .. math:: 
    y(x;a_{0},a_{1},a_{2},a_{3},a_{4},a_{5}) = \begin{cases}
     \textrm{PseudoVoigt}(x;a_0,a_1,a_2,a_4) & x\leq a_1\\
     \textrm{PseudoVoigt}(x;a_0,a_1,a_3,a_5) & x>a_1\end{cases}
 
-**Pseudo-Voigt Area (PseudoVoigtA):**
+:ftype:`Pseudo-Voigt Area (PseudoVoigtA)`:
 
 .. math:: 
    y = a_0 \left[\frac{(1-a_3)\sqrt{\ln(2)}}{a_2\sqrt{\pi}}
@@ -338,7 +338,7 @@ are not related.
                               \left[1+\left(\frac{x-a_1}{a_2}\right)^2\right]}
            \right]
 
-**Voigt:**
+:ftype:`Voigt`:
 
 .. math:: 
    y = \frac
@@ -366,21 +366,21 @@ where :math:`w_G=2\sqrt{\ln(2)} |a_2|, w_L=2 |a_2| a_3`.
 
 __ http://dx.doi.org/10.1016/0022-4073(77)90161-3
 
-**VoigtA:**
+:ftype:`VoigtA`:
 
 .. math:: 
    y = \frac{a_0}{\sqrt{\pi}a_2}
        \int_{-\infty}^{+\infty}
            \frac{\exp(-t^2)}{a_3^2+(\frac{x-a_1}{a_2}-t)^2} dt
 
-**split Voigt (SplitVoigt):**
+:ftype:`split Voigt (SplitVoigt)`:
 
 .. math::
    y(x;a_{0},a_{1},a_{2},a_{3},a_{4},a_{5}) = \begin{cases}
     \textrm{Voigt}(x;a_0,a_1,a_2,a_4) & x\leq a_1\\
     \textrm{Voigt}(x;a_0,a_1,a_3,a_5) & x>a_1\end{cases}
 
-**Exponentially Modified Gaussian (EMG):**
+:ftype:`Exponentially Modified Gaussian (EMG)`:
 
 .. math:: 
    y = \frac{ac\sqrt{2\pi}}{2d}
@@ -397,31 +397,31 @@ exponential probability density.
 *c* = Gaussian width,
 *d* = distortion parameter (a.k.a. modification factor or time constant).
 
-**LogNormal:**
+:ftype:`LogNormal`:
 
 .. math::
    y = h \exp\left\{ -\ln(2) \left[
                                    \frac{\ln\left(1+2b\frac{x-c}{w}\right)}{b}
                             \right]^{2} \right\}
 
-**Doniach-Sunjic (DoniachSunjic):**
+:ftype:`Doniach-Sunjic (DoniachSunjic)`:
 
 .. math:: 
    y = \frac{h\left[\frac{\pi a}{2} 
                     + (1-a)\arctan\left(\frac{x-E}{F}\right)\right]}
             {F+(x-E)^2}
 
-**Polynomial5:**
+:ftype:`Polynomial5`:
 
 .. math:: 
    y = a_0 + a_1 x +a_2 x^2 + a_3 x^3 + a_4 x^4 + a_5 x^5
 
-**Sigmoid:**
+:ftype:`Sigmoid`:
 
 .. math::
    y = L + \frac{U-L}{1+\exp\left(-\frac{x-x_{mid}}{w}\right)}
 
-**FCJAsymm:**
+:ftype:`FCJAsymm`:
 
 Axial asymmetry peak shape in the Finger, Cox and Jephcoat model, see
 `J. Appl. Cryst. (1994) 27, 892 <http://dx.doi.org/10.1107/S0021889894004218>`_
