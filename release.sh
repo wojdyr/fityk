@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-version=1.2.9
+version=1.3.0
 WEB="iris.unipress.waw.pl:www/fityk2/"
 
 MINGW_DIR=mingw-build

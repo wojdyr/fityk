@@ -15,9 +15,6 @@
 * API: add all_datasets(): for n, title in F:all_datasets() do ...
 * API: access to confidence intervals
 
-* GUI: when loading large number of points ask in pop-up dialog:
-  switch off antialiasing and change point size to 1?
-
 ----  1.3.0
 
 * GUI: Tools > Macros

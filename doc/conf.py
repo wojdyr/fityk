@@ -25,7 +25,7 @@ source_encoding = 'utf-8'
 master_doc = 'fityk-manual'
 project = 'Fityk'
 copyright = '2001-2014, Fityk Developers'
-version = '1.2.9'
+version = '1.3.0'
 release = version
 default_role = None
 
