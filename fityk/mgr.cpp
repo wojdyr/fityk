@@ -256,6 +256,11 @@ int ModelManager::add_variable(Variable* new_var)
         if (var->used_vars().depends_on(pos, variables_)) { //check for loops
             throw ExecuteError("loop in dependencies of $" + var->name);
         }
+
+        // Keep domain from old variable. It doesn't matter in most cases,
+        // but in "$a={$a}; $a=~{$a}" keep original domain
+        var->domain = variables_[pos]->domain;
+
         delete variables_[pos];
         variables_[pos] = var.release();
         if (variables_[pos]->used_vars().get_max_idx() > pos)
