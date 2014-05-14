@@ -31,12 +31,6 @@ public:
 
     //int assign_variable(const std::string &name, const std::string &rhs);
     int make_variable(const std::string &name, VMData* vd);
-    int add_variable(Variable* new_var);
-
-    void sort_variables();
-
-    std::string assign_variable_copy(const Variable* orig,
-                                     const std::map<int,std::string>& varmap);
 
     void delete_variables(const std::vector<std::string> &name);
 
@@ -100,8 +94,12 @@ private:
     int var_autoname_counter_; ///for names for "anonymous" variables
     int func_autoname_counter_; ///for names for "anonymous" functions
 
+    int add_variable(Variable* new_var);
+    void sort_variables();
+    void assign_variable_copy(const std::string& name,
+                              const Variable* orig,
+                              const std::map<int,std::string>& varmap);
     int add_func(Function* func);
-    //Variable *create_variable(const std::string &name, const std::string &rhs);
     //std::string get_or_make_variable(const std::string& func);
     bool is_variable_referred(int i, std::string *first_referrer = NULL);
     void reindex_all();

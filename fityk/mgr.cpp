@@ -265,16 +265,16 @@ int ModelManager::add_variable(Variable* new_var)
     return pos;
 }
 
-string ModelManager::assign_variable_copy(const Variable* orig,
-                                             const map<int,string>& varmap)
+void ModelManager::assign_variable_copy(const string& newname,
+                                        const Variable* orig,
+                                        const map<int,string>& varmap)
 {
-    string name = name_var_copy(orig);
     Variable *var;
     if (orig->is_simple()) {
         realt val = orig->value();
         parameters_.push_back(val);
         int gpos = parameters_.size() - 1;
-        var = new Variable(name, gpos);
+        var = new Variable(newname, gpos);
     } else {
         vector<string> vars;
         for (int i = 0; i != orig->used_vars().get_count(); ++i) {
@@ -285,11 +285,10 @@ string ModelManager::assign_variable_copy(const Variable* orig,
         vector<OpTree*> new_op_trees;
         v_foreach (OpTree*, i, orig->get_op_trees())
             new_op_trees.push_back((*i)->clone());
-        var = new Variable(name, vars, new_op_trees);
+        var = new Variable(newname, vars, new_op_trees);
     }
     var->domain = orig->domain;
     add_variable(var);
-    return name;
 }
 
 // names can contains '*' wildcards
@@ -477,7 +476,9 @@ int ModelManager::assign_func_copy(const string &name, const string &orig)
     for (int i = 0; i < size(variables_); ++i) {
         if (of->used_vars().depends_on(i, variables_)) {
             const Variable* var_orig = variables_[i];
-            var_copies[i] = assign_variable_copy(var_orig, var_copies);
+            string newname = name_var_copy(var_orig);
+            assign_variable_copy(newname, var_orig, var_copies);
+            var_copies[i] = newname;
         }
     }
     vector<string> varnames;
