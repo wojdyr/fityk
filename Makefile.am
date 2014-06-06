@@ -3,7 +3,7 @@ EXTRA_DIST = fityk.iss fityk.url fityk.svg \
              doc/fityk-manual.rst  doc/index.rst       doc/intro.rst \
              doc/getstarted.rst    doc/lang.rst        doc/data.rst \
              doc/model.rst         doc/fit.rst         doc/ref.rst \
-             doc/conf.py \
+             doc/script.rst        doc/conf.py         doc/editlink.html \
              doc/layout.html       doc/fityk_ext.py    doc/fityk.css \
              doc/Makefile \
              doc/html
