@@ -173,6 +173,7 @@ The kCmd* names in the comments correspond to constants in the code.
     : Funcname "=" `func_rhs`            | (*kCmdNameFunc*)
     : `param_lhs` "=" `v_expr`             | (*kCmdAssignParam*)
     : Varname "=" `v_expr`               | (*kCmdNameVar*)
+    : Varname "=" "copy" "(" `var_id` ")" | (*kCmdNameVar*)
     : `model_id` ("="|"+=") `model_rhs`    | (*kCmdChangeModel*)
     : (`p_attr` "[" `expr` "]" "=" `p_expr`) % "," | (*kCmdPointTr*)
     : (`p_attr` "=" `p_expr`) % ","        | (*kCmdAllPointsTr*)

@@ -270,7 +270,7 @@ int ModelManager::add_variable(Variable* new_var)
     return pos;
 }
 
-void ModelManager::assign_variable_copy(const string& newname,
+int ModelManager::copy_and_add_variable(const string& newname,
                                         const Variable* orig,
                                         const map<int,string>& varmap)
 {
@@ -293,8 +293,25 @@ void ModelManager::assign_variable_copy(const string& newname,
         var = new Variable(newname, vars, new_op_trees);
     }
     var->domain = orig->domain;
-    add_variable(var);
+    return add_variable(var);
 }
+
+int ModelManager::assign_var_copy(const string &name, const string &orig)
+{
+    assert(!name.empty());
+    const Variable* ov = find_variable(orig);
+    map<int,string> var_copies;
+    for (int i = 0; i < size(variables_); ++i) {
+        if (ov->used_vars().depends_on(i, variables_)) {
+            const Variable* var_orig = variables_[i];
+            string newname = name_var_copy(var_orig);
+            copy_and_add_variable(newname, var_orig, var_copies);
+            var_copies[i] = newname;
+        }
+    }
+    return copy_and_add_variable(name, ov, var_copies);
+}
+
 
 // names can contains '*' wildcards
 void ModelManager::delete_variables(const vector<string> &names)
@@ -482,7 +499,7 @@ int ModelManager::assign_func_copy(const string &name, const string &orig)
         if (of->used_vars().depends_on(i, variables_)) {
             const Variable* var_orig = variables_[i];
             string newname = name_var_copy(var_orig);
-            assign_variable_copy(newname, var_orig, var_copies);
+            copy_and_add_variable(newname, var_orig, var_copies);
             var_copies[i] = newname;
         }
     }

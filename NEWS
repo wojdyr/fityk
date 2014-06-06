@@ -1,4 +1,8 @@
 User-visible changes in version 1.3.0  ():
+* if variable has a domain (example: $a = ~1.2 [-3:4]) then
+   "$a = ~3" keeps domain of $a (also "a={$a}; $a=~{a}" preserves domain)
+   "$a = ~3 [:]" unsets domain
+   "$a = copy($x) - copy $x with domain
 * GUI: added auto-completion to Lua script editor
 * xyConvert is now part of xylib (removed flag --disable-xyconvert)
 * command "reset" does not reset Lua VM (to allow "reset" from Lua scripts)

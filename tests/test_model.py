@@ -38,6 +38,12 @@ class TestCopy(unittest.TestCase):
         self.assertEqual(d2_funcs[0].get_param_value('center'), 0)
         self.assertEqual(d2_funcs[1].get_param_value('center'), 2.4)
 
+    def test_copy_var(self):
+        self.ftk.execute("%f = Gaussian(~10, ~0, 0.5)")
+        self.ftk.execute("$v = copy(%f.height)")
+        v = self.ftk.get_variable("v")
+        self.assertEqual(v.value(), 10)
+
 class TestBounds(unittest.TestCase):
     def setUp(self):
         self.ftk = fityk.Fityk()
@@ -83,7 +89,6 @@ class TestBounds(unittest.TestCase):
         self.assertTrue(b.domain.hi_inf())
 
     def test_copy_var(self):
-        return
         self.ftk.execute("$b = copy($a)")
         b = self.ftk.get_variable("b")
         self.assertEqual(b.value(), 3.14)

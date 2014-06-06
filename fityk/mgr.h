@@ -30,6 +30,7 @@ public:
     void delete_model(Model *m);
 
     //int assign_variable(const std::string &name, const std::string &rhs);
+    int assign_var_copy(const std::string &name, const std::string &orig);
     int make_variable(const std::string &name, VMData* vd);
 
     void delete_variables(const std::vector<std::string> &name);
@@ -96,7 +97,7 @@ private:
 
     int add_variable(Variable* new_var);
     void sort_variables();
-    void assign_variable_copy(const std::string& name,
+    int copy_and_add_variable(const std::string& name,
                               const Variable* orig,
                               const std::map<int,std::string>& varmap);
     int add_func(Function* func);

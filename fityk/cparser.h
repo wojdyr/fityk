@@ -109,6 +109,7 @@ private:
                           std::vector<std::string> *new_names);
     Token read_default_value(Lexer& lex);
     void parse_fz(Lexer& lex, Command &cmd);
+    void parse_assign_var(Lexer& lex, std::vector<Token>& args);
     void parse_assign_func(Lexer& lex, std::vector<Token>& args);
     void parse_command(Lexer& lex, Command& cmd);
     void parse_component(Lexer& lex, const std::vector<std::string>& lhs_vars,

@@ -664,6 +664,26 @@ CommandType Parser::parse_xysa_args(Lexer& lex, vector<Token>& args)
     }
 }
 
+void Parser::parse_assign_var(Lexer& lex, vector<Token>& args)
+{
+    if (lex.peek_token().as_string() == "copy") {
+        args.push_back(lex.get_token());  // "copy"
+        lex.get_expected_token(kTokenOpen);  // discard '('
+        if (lex.peek_token().type == kTokenVarname) {
+            args.push_back(lex.get_token()); // $orig
+        } else {
+            parse_func_id(lex, args, false);
+            lex.get_expected_token(kTokenDot);  // discard '.'
+            args.push_back(lex.get_expected_token(kTokenLname));
+        }
+        lex.get_expected_token(kTokenClose);  // discard ')'
+    } else {
+        args.push_back(read_var(lex));
+    }
+    if (lex.peek_token().type == kTokenLSquare)
+        parse_real_range(lex, args); // domain
+}
+
 void Parser::parse_assign_func(Lexer& lex, vector<Token>& args)
 {
     Token f = lex.get_expected_token(kTokenCname, "copy");
@@ -935,9 +955,7 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
         cmd.type = kCmdNameVar;
         cmd.args.push_back(token);
         lex.get_token(); // discard '='
-        cmd.args.push_back(read_var(lex));
-        if (lex.peek_token().type == kTokenLSquare)
-            parse_real_range(lex, cmd.args); // domain
+        parse_assign_var(lex, cmd.args);
     }
     // %func=...
     else if (token.type == kTokenFuncname &&

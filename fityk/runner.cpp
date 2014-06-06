@@ -387,15 +387,20 @@ int Runner::make_func_from_template(const string& name,
 }
 
 static
-string get_func(const Full *F, int ds, vector<Token>::const_iterator a)
+string get_func(const Full *F, int ds, vector<Token>::const_iterator a,
+                int *n_args=NULL)
 {
-    if (a->type == kTokenFuncname)
+    if (a->type == kTokenFuncname) {
+        if (n_args)
+            *n_args += 1;
         return Lexer::get_string(*a);
+    }
     else {
         assert (a->type == kTokenDataset || a->type == kTokenNop);
         assert((a+1)->type == kTokenUletter);
         assert((a+2)->type == kTokenExpr);
-        assert((a+1)->type == kTokenUletter);
+        if (n_args)
+            *n_args += 3;
         if (a->type == kTokenDataset)
             ds = a->value.i;
         char c = *(a+1)->str;
@@ -451,15 +456,33 @@ void Runner::command_assign_all(const vector<Token>& args, int ds)
     F_->outdated_plot();
 }
 
-void Runner::command_name_var(const vector<Token>& args)
+void Runner::command_name_var(const vector<Token>& args, int ds)
 {
-    assert(args.size() == 2 || args.size() == 4);
-    assert(args[0].type == kTokenVarname);
+    assert(args.size() >= 2 && args[0].type == kTokenVarname);
     string name = Lexer::get_string(args[0]);
-    VMData* vd = get_vm_from_token(args[1]);
-    int pos = F_->mgr.make_variable(name, vd);
-    if (args.size() == 4) {
-        RealRange domain = args2range(args[2], args[3]);
+    int pos;
+    int n_args;
+    if (args[1].as_string() == "copy") {
+        assert(args.size() > 2);
+        string orig_name;
+        if (args[2].type == kTokenVarname) {  // $v = copy($orig)
+            orig_name = Lexer::get_string(args[2]);
+            n_args = 3;
+        } else {  // $v = copy(%f.height)
+            n_args = 3; // $v "copy" [...] param
+            string func_name = get_func(F_, ds, args.begin()+2, &n_args);
+            string param = args[n_args-1].as_string();
+            orig_name = F_->mgr.find_function(func_name)->var_name(param);
+        }
+        pos = F_->mgr.assign_var_copy(name, orig_name);
+    } else {
+        assert(args.size() == 2 || args.size() == 4);
+        VMData* vd = get_vm_from_token(args[1]);
+        pos = F_->mgr.make_variable(name, vd);
+        n_args = 2;
+    }
+    if (args.size() == (size_t)n_args+2) {
+        RealRange domain = args2range(args[n_args], args[n_args+1]);
         F_->mgr.set_domain(pos, domain);
     }
     F_->mgr.use_parameters();
@@ -766,7 +789,7 @@ void Runner::execute_command(Command& c, int ds)
         //    command_assign_all(c.args, ds);
         //    break;
         case kCmdNameVar:
-            command_name_var(c.args);
+            command_name_var(c.args, ds);
             break;
         case kCmdChangeModel:
             command_change_model(c.args, ds);
