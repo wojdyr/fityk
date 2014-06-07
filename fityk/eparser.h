@@ -103,6 +103,7 @@ private:
     void put_variable_sth(Lexer& lex, const std::string& name, bool ast_mode);
     void put_func_sth(Lexer& lex, const std::string& name, bool ast_mode);
     void put_fz_sth(Lexer& lex, char fz, int ds, bool ast_mode);
+    void put_tilde_var(Lexer& lex, int ds);
 
     void pop_onto_que();
     void pop_until_bracket();

@@ -569,6 +569,30 @@ void ExpressionParser::put_name(Lexer& lex,
     lex.throw_syntax_error("unknown name: " + word);
 }
 
+
+void ExpressionParser::put_tilde_var(Lexer& lex, int ds)
+{
+    if (expected_ == kOperator)
+        lex.throw_syntax_error("unexpected `~'");
+    vm_.append_code(OP_TILDE);
+    const Token token = lex.get_token();
+    if (token.type == kTokenNumber) {
+        put_number(token.value.d);
+    } else if (token.type == kTokenMinus) {
+        Token num = lex.get_token();
+        if (num.type != kTokenNumber)
+            lex.throw_syntax_error("expecting number after ~-");
+        // let's make ~-NUM^NUM illegal to make parsing precedence clear
+        if (lex.peek_token().type == kTokenPower)
+            lex.throw_syntax_error("use ~{-NUM}^NUM instead of  ~-NUM^NUM");
+        put_number(-num.value.d);
+    } else if (token.type == kTokenLCurly) {
+        put_value_from_curly(lex, ds);
+    } else {
+        lex.throw_syntax_error("unexpected token after `~'");
+    }
+}
+
 void ExpressionParser::pop_until_bracket()
 {
     while (!opstack_.empty()) {
@@ -895,9 +919,9 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                     {} // do nothing for unary +
                 break;
             case kTokenMinus:
-                if (expected_ == kOperator)
+                if (expected_ == kOperator) {
                     put_binary_op(OP_SUB);
-                else if (lex.peek_token().type == kTokenNumber) {
+                } else if (lex.peek_token().type == kTokenNumber) {
                     // In '-3', '-3+5', '-3*5', 5*-3', etc. '-3' is parsed
                     // as a number. The exception is '-3^5', where '-3'
                     // is parsed as OP_NEG and number, because '^' has higher
@@ -909,8 +933,9 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                         put_unary_op(OP_NEG);
                         put_number(num.value.d);
                     }
-                } else
+                } else {
                     put_unary_op(OP_NEG);
+                }
                 break;
             case kTokenGT:
                 // This token can be outside of the expression.
@@ -971,9 +996,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                 break;
 
             case kTokenTilde:
-                if (expected_ == kOperator)
-                    lex.throw_syntax_error("unexpected `~'");
-                vm_.append_code(OP_TILDE);
+                put_tilde_var(lex, default_ds);
                 break;
 
             case kTokenLCurly:

@@ -60,7 +60,11 @@ class TestBounds(unittest.TestCase):
 
     def test_change_value(self):
         a = self.ftk.get_variable("a")
-        self.ftk.execute("$a = ~3.15")
+        self.assertRaises(fityk.SyntaxError, self.ftk.execute, "$a = ~")
+        self.assertRaises(fityk.SyntaxError, self.ftk.execute, "$a = ~~9")
+        self.assertRaises(fityk.SyntaxError, self.ftk.execute, "$a = ~-sin(2)")
+        self.ftk.execute("$a = ~{-sin(2)}")
+        self.ftk.execute("$a = ~-0.15")
         self.assertEqual(a.domain.lo, -1)
         self.assertEqual(a.domain.hi, 4.5)
         self.ftk.execute("$a = ~3.15 [:]") # invalidates a, i.e.
