@@ -259,14 +259,7 @@ void Runner::command_guess(const vector<Token>& args, int ds)
         if (func_args[i] != NULL)
             continue;
         string dv = tp->defvals[i].empty() ? tp->fargs[i] : tp->defvals[i];
-        ep_.clear_vm();
-        Lexer lex(dv.c_str());
-        bool r = ep_.parse_full(lex, 0, &gkeys);
-        if (!r)
-            throw ExecuteError("Cannot guess `" + dv + "' in " + tp->name);
-        double value = ep_.calculate_custom(gvals);
-        vd_storage[i].append_code(OP_TILDE);
-        vd_storage[i].append_number(value);
+        defval_to_vm(dv, gkeys, gvals, vd_storage[i]);
         func_args[i] = &vd_storage[i];
     }
 
@@ -327,6 +320,27 @@ void Runner::command_dataset_tr(const vector<Token>& args)
     F_->outdated_plot();
 }
 
+// Default values (example: "0.5*height") are evaluated.
+// Vectors 'names' and 'values' have corresponding items, such as
+// names=[center, height], values=[20.4, 300].
+// Returns vm code that creates simple-variable with obtained value.
+// This code is simply: TILDE NUMBER. In this example NUMBER would be 150.
+void Runner::defval_to_vm(const string& dv,
+                          const vector<string>& names,
+                          const vector<realt>& values,
+                          VMData& output)
+{
+    assert(names.size() == values.size());
+    ep_.clear_vm();
+    Lexer lex(dv.c_str());
+    bool r = ep_.parse_full(lex, 0, &names);
+    if (!r)
+        throw ExecuteError("Cannot guess or calculate `" + dv + "'");
+    double value = ep_.calculate_custom(values);
+    output.append_code(OP_TILDE);
+    output.append_number(value);
+}
+
 // returns the number of given args
 int Runner::make_func_from_template(const string& name,
                                     const vector<Token>& args, int pos)
@@ -364,19 +378,8 @@ int Runner::make_func_from_template(const string& name,
         for (size_t i = 0; i != tp->fargs.size(); ++i) {
             if (func_args[i] != NULL)
                 continue;
-            // Default values are calculated as values
-            // and converted to the "TILDE NUMBER" code.
             if (!tp->defvals.empty() && !tp->defvals[i].empty()) {
-                string dv = tp->defvals[i];
-                ep_.clear_vm();
-                Lexer lex(dv.c_str());
-                bool r = ep_.parse_full(lex, 0, &par_names);
-                if (!r)
-                    throw ExecuteError("Cannot calculate `" + dv + "' in "
-                                       + tp->name);
-                double value = ep_.calculate_custom(cvals);
-                vd_storage[i].append_code(OP_TILDE);
-                vd_storage[i].append_number(value);
+                defval_to_vm(tp->defvals[i], par_names, cvals, vd_storage[i]);
                 func_args[i] = &vd_storage[i];
             } else
                 throw ExecuteError("missing parameter " + tp->fargs[i]);

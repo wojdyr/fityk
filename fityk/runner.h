@@ -61,6 +61,10 @@ private:
     int make_func_from_template(const std::string& name,
                                 const std::vector<Token>& args, int pos);
     VMData* get_vm_from_token(const Token& t) const;
+    void defval_to_vm(const std::string& dv,
+                      const std::vector<std::string>& names,
+                      const std::vector<realt>& values,
+                      VMData& output);
 };
 
 class CommandExecutor
