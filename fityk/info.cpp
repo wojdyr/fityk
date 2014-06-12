@@ -670,11 +670,28 @@ void command_debug(const Full* F, int ds, const Token& key, const Token& rest)
     }
 
     else if (word == "expr") {
+        // Possible options: dt|ast, new. Example: debug expr ast new a*x^2
         Lexer lex(rest.str);
         try {
             ExpressionParser parser(F);
-            parser.parse_expr(lex, -1);
+            ExpressionParser::ParseMode mode = ExpressionParser::kNormalMode;
+            if (lex.peek_token().as_string() == "ast") {
+                mode = ExpressionParser::kAstMode;
+                lex.get_token();
+            } else if (lex.peek_token().as_string() == "dt") {
+                mode = ExpressionParser::kDatasetTrMode;
+                lex.get_token();
+            }
+            vector<string> *new_names = NULL;
+            vector<string> names;
+            if (lex.peek_token().as_string() == "new") {
+                new_names = &names;
+                lex.get_token();
+            }
+            parser.parse_expr(lex, -1, NULL, new_names, mode);
             r += vm2str(parser.vm());
+            if (new_names != NULL)
+                r += "\nnew names: " + join_vector(*new_names, ", ");
         }
         catch (SyntaxError& e) {
             r += "ERROR at " + S(lex.scanned_chars()) + ": " + e.what();
