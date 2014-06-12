@@ -34,17 +34,23 @@ check_LIBRARIES = tests/libcatch.a
 tests_libcatch_a_SOURCES = tests/catch.cpp tests/catch.hpp
 tests_gradient_SOURCES = tests/gradient.cpp
 tests_gradient_LDADD = fityk/libfityk.la tests/libcatch.a
+tests_gradient_LDFLAGS = -no-install
 tests_guess_SOURCES = tests/guess.cpp
 tests_guess_LDADD = fityk/libfityk.la tests/libcatch.a
+tests_guess_LDFLAGS = -no-install
 tests_psvoigt_SOURCES = tests/psvoigt.cpp
 tests_psvoigt_LDADD = fityk/libfityk.la tests/libcatch.a
+tests_psvoigt_LDFLAGS = -no-install
 tests_num_SOURCES = tests/num.cpp
 tests_num_LDADD = fityk/libfityk.la tests/libcatch.a
+tests_num_LDFLAGS = -no-install
 tests_lua_SOURCES = tests/lua.cpp
 tests_lua_LDADD = fityk/libfityk.la tests/libcatch.a
+tests_lua_LDFLAGS = -no-install
 check_PROGRAMS = $(TESTS) tests/mpfit_deriv
 tests_mpfit_deriv_SOURCES = tests/mpfit_deriv.cpp
 tests_mpfit_deriv_LDADD = fityk/libfityk.la
+tests_mpfit_deriv_LDFLAGS = -no-install
 dist_noinst_SCRIPTS = tests/test_syntax.fit tests/test_nist.py
 
 # --- samples/ ---
