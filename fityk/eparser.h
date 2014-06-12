@@ -10,11 +10,9 @@
 #include <string>
 
 #include "vm.h"
+#include "lexer.h" // TokenType, Token, Lexer
 
 namespace fityk {
-
-struct Token;
-class Lexer;
 
 /// base class used to implement aggregate functions (sum, min, avg, etc.)
 class AggregFunc
@@ -94,7 +92,7 @@ private:
     void put_binary_op(Op op);
     void put_function(Op op);
     void put_ag_function(Lexer& lex, int ds, AggregFunc& ag);
-    void put_value_from_curly(Lexer& lex, int ds);
+    double get_value_from(Lexer& lex, int ds, TokenType trailer);
     void put_array_var(bool has_index, Op op);
     void put_name(Lexer& lex, const std::string& word,
                   const std::vector<std::string>* custom_vars,

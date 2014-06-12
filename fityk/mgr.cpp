@@ -114,26 +114,66 @@ Variable* make_compound_variable(const string &name, VMData* vd,
     return new Variable(name, used_vars, op_trees);
 }
 
+void ModelManager::eval_tilde(vector<int>::iterator op,
+                              vector<int>& code, const vector<realt>& nums)
+{
+    assert(*op == OP_TILDE);
+    // the first two ops are overwritten
+    *op = OP_SYMBOL;
+    ++op;
+    assert(*op == OP_NUMBER);
+    *op = variables_.size();
+    ++op;
+    // the rest of ops is to be deleted after reading
+    double value = nums[*op];
+    Variable *tilde_var = new Variable(next_var_name(), parameters_.size());
+    if (*(op+1) == OP_TILDE) {  // TILDE,NUMBER,N1,TILDE -> SYMBOL,N2
+        code.erase(op, op+2);
+    } else {  // TILDE,NUMBER,N1,NUMBER,N2,NUMBER,N3 -> SYMBOL,N4
+        assert(*(op+1) == OP_NUMBER);
+        tilde_var->domain.lo = nums[*(op+2)];
+        assert(*(op+3) == OP_NUMBER);
+        tilde_var->domain.hi = nums[*(op+4)];
+        code.erase(op, op+5);
+    }
+    parameters_.push_back(value);
+    variables_.push_back(tilde_var);
+}
+
 int ModelManager::make_variable(const string &name, VMData* vd)
 {
-    Variable *var;
     assert(!name.empty());
     const std::vector<int>& code = vd->code();
+    const vector<realt>& nums = vd->numbers();
 
-    // simple variable [OP_TILDE OP_NUMBER idx]
-    if (code.size() == 3 && code[0] == OP_TILDE && code[1] == OP_NUMBER) {
-        realt val = vd->numbers()[code[2]];
+    // simple variable [OP_TILDE OP_NUMBER idx OP_TILDE] or
+    //                 [OP_TILDE OP_NUMBER idx OP_NUMBER idx OP_NUMBER idx]
+    if (code.size() >= 4 && code[0] == OP_TILDE && code[1] == OP_NUMBER &&
+            code.size() == (code[3] == OP_TILDE ? 4 : 7)) {
+        realt val = nums[code[2]];
         // avoid changing order of parameters in case of "$var = ~1.23"
         int old_pos = find_variable_nr(name);
+        Variable *var;
         if (old_pos != -1 && variables_[old_pos]->is_simple()) {
             int gpos = variables_[old_pos]->gpos();
             // variable at old_pos will be deleted soon
             parameters_[gpos] = val;
+            var = variables_[old_pos];
+        } else {
+            old_pos = -1;
+            var = new Variable(name, parameters_.size());
+        }
+        bool old_domain = true;
+        if (code.size() == 7) {
+            var->domain = RealRange(nums[code[4]], nums[code[6]]);
+            old_domain = false;
+        }
+        if (old_pos == -1) {
+            parameters_.push_back(val);
+            return add_variable(var, old_domain);
+        } else {
             return old_pos;
         }
-
-        var = new Variable(name, parameters_.size());
-        parameters_.push_back(val);
     }
 
     // compound variable
@@ -142,24 +182,15 @@ int ModelManager::make_variable(const string &name, VMData* vd)
         vector<int>& mcode = vd->get_mutable_code();
         for (vector<int>::iterator op = mcode.begin(); op < mcode.end(); ++op) {
             if (*op == OP_TILDE) {
-                *op = OP_SYMBOL;
+                eval_tilde(op, mcode, nums);
                 ++op;
-                assert(*op == OP_NUMBER);
-                *op = variables_.size();
-                int num_index = *(op+1);
-                double value = vd->numbers()[num_index];
-                mcode.erase(op+1);
-                string tname = next_var_name();
-                Variable *tilde_var = new Variable(tname, parameters_.size());
-                parameters_.push_back(value);
-                variables_.push_back(tilde_var);
             } else if (VMData::has_idx(*op))
                 ++op;
         }
 
-        var = make_compound_variable(name, vd, variables_);
+        Variable *var = make_compound_variable(name, vd, variables_);
+        return add_variable(var, true);
     }
-    return add_variable(var);
 }
 
 bool ModelManager::is_variable_referred(int i, string *first_referrer)
@@ -244,7 +275,7 @@ void ModelManager::remove_unreferred()
 }
 
 /// puts Variable into `variables_' vector, checking dependencies
-int ModelManager::add_variable(Variable* new_var)
+int ModelManager::add_variable(Variable* new_var, bool old_domain)
 {
     auto_ptr<Variable> var(new_var);
     var->set_var_idx(variables_);
@@ -259,7 +290,8 @@ int ModelManager::add_variable(Variable* new_var)
 
         // Keep domain from old variable. It doesn't matter in most cases,
         // but in "$a={$a}; $a=~{$a}" keep original domain
-        var->domain = variables_[pos]->domain;
+        if (old_domain)
+            var->domain = variables_[pos]->domain;
 
         delete variables_[pos];
         variables_[pos] = var.release();
@@ -293,7 +325,7 @@ int ModelManager::copy_and_add_variable(const string& newname,
         var = new Variable(newname, vars, new_op_trees);
     }
     var->domain = orig->domain;
-    return add_variable(var);
+    return add_variable(var, false);
 }
 
 int ModelManager::assign_var_copy(const string &name, const string &orig)

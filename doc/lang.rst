@@ -125,7 +125,7 @@ The grammar is expressed in EBNF-like notation:
 * ``A % B`` means ``A (B A)*`` and the ``%`` operator has the highest
   precedence. For example: ``term % "+" comment`` is the same as
   ``term ("+" term)* comment``.
-* The colon ':' in quoted string means that the string can be shortened, e.g.
+* The colon ``:`` in quoted string means that the string can be shortened, e.g.
   ``"del:ete"`` means that any of ``del``, ``dele``, ``delet`` and ``delete``
   can be used.
 
@@ -253,10 +253,11 @@ but they use additional variables in the ``atom`` rule.
 ``S`` and ``A``. All of them but ``n`` and ``M`` can be indexed
 (e.g.  ``x[4]``).  Example: ``(x+x[n-1])/2``.
 
-``v_expr`` uses all unknown names (``Lname``) as variables. The tilde (``~``)
-can be used to create simple-variables.
+``v_expr`` uses all unknown names (``Lname``) as variables
+(example: ``a+b*x^2``).
 Only a subset of functions (``math_func``) from ``expr`` is supported.
-Examples: ``a+b*x^2``, ``~5``.
+The tilde (``~``) can be used to create simple-variables (``~5``),
+optionally with a domain in square brackets (``~5[1:6]``).
 
 Since ``v_expr`` is used to define variables and user-defined functions,
 the program calculates symbolically derivatives of ``v_expr``.

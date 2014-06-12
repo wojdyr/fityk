@@ -339,6 +339,13 @@ void Runner::defval_to_vm(const string& dv,
     double value = ep_.calculate_custom(values);
     output.append_code(OP_TILDE);
     output.append_number(value);
+    if (0) {
+        RealRange domain;
+        output.append_number(domain.lo);
+        output.append_number(domain.hi);
+    } else {
+        output.append_code(OP_TILDE);
+    }
 }
 
 // returns the number of given args
@@ -483,10 +490,6 @@ void Runner::command_name_var(const vector<Token>& args, int ds)
         VMData* vd = get_vm_from_token(args[1]);
         pos = F_->mgr.make_variable(name, vd);
         n_args = 2;
-    }
-    if (args.size() == (size_t)n_args+2) {
-        RealRange domain = args2range(args[n_args], args[n_args+1]);
-        F_->mgr.set_domain(pos, domain);
     }
     F_->mgr.use_parameters();
     F_->outdated_plot(); // TODO: only for replacing old variable

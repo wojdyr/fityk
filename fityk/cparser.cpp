@@ -680,8 +680,6 @@ void Parser::parse_assign_var(Lexer& lex, vector<Token>& args)
     } else {
         args.push_back(read_var(lex));
     }
-    if (lex.peek_token().type == kTokenLSquare)
-        parse_real_range(lex, args); // domain
 }
 
 void Parser::parse_assign_func(Lexer& lex, vector<Token>& args)

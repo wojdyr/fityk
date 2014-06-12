@@ -1,4 +1,5 @@
 User-visible changes in version 1.3.0  ():
+* simple-variable ~NUM can be followed by domain, e.g.: %f=Linear(~3[2:5], ~8)
 * if variable has a domain (example: $a = ~1.2 [-3:4]) then
    "$a = ~3" keeps domain of $a (also "a={$a}; $a=~{a}" preserves domain)
    "$a = ~3 [:]" unsets domain

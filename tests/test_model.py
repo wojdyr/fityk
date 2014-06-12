@@ -67,8 +67,10 @@ class TestBounds(unittest.TestCase):
         self.ftk.execute("$a = ~-0.15")
         self.assertEqual(a.domain.lo, -1)
         self.assertEqual(a.domain.hi, 4.5)
-        self.ftk.execute("$a = ~3.15 [:]") # invalidates a, i.e.
-        a2 = self.ftk.get_variable("a")    # a2 != a
+        self.ftk.execute("$a = ~3.15 [:77]")
+        self.assertTrue(a.domain.lo_inf())
+        self.assertEqual(a.domain.hi, 77)
+        self.ftk.execute("$a = ~3.15 [:]")
         self.assertTrue(a2.domain.lo_inf())
         self.assertTrue(a2.domain.hi_inf())
 

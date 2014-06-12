@@ -95,7 +95,7 @@ private:
     int var_autoname_counter_; ///for names for "anonymous" variables
     int func_autoname_counter_; ///for names for "anonymous" functions
 
-    int add_variable(Variable* new_var);
+    int add_variable(Variable* new_var, bool old_domain);
     void sort_variables();
     int copy_and_add_variable(const std::string& name,
                               const Variable* orig,
@@ -106,6 +106,8 @@ private:
     void reindex_all();
     std::string name_var_copy(const Variable* v);
     void update_indices(FunctionSum& sum);
+    void eval_tilde(std::vector<int>::iterator op,
+                    std::vector<int>& code, const std::vector<realt>& nums);
 
 };
 

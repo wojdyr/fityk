@@ -370,13 +370,13 @@ void ExpressionParser::put_ag_function(Lexer& lex, int ds, AggregFunc& ag)
     put_number(ag.value());
 }
 
-void ExpressionParser::put_value_from_curly(Lexer& lex, int ds)
+double ExpressionParser::get_value_from(Lexer& lex, int ds, TokenType trailer)
 {
     ExpressionParser ep(F_);
     ep.parse_expr(lex, ds);
-    lex.get_expected_token(kTokenRCurly); // discard '}'
+    lex.get_expected_token(trailer); // discard '}' or another token
     double x = ep.calculate(0, F_->dk.data(ds)->points());
-    put_number(x);
+    return x;
 }
 
 void ExpressionParser::put_array_var(bool has_index, Op op)
@@ -569,15 +569,15 @@ void ExpressionParser::put_name(Lexer& lex,
     lex.throw_syntax_error("unknown name: " + word);
 }
 
-
 void ExpressionParser::put_tilde_var(Lexer& lex, int ds)
 {
     if (expected_ == kOperator)
         lex.throw_syntax_error("unexpected `~'");
     vm_.append_code(OP_TILDE);
     const Token token = lex.get_token();
+    double val = 0;
     if (token.type == kTokenNumber) {
-        put_number(token.value.d);
+        val = token.value.d;
     } else if (token.type == kTokenMinus) {
         Token num = lex.get_token();
         if (num.type != kTokenNumber)
@@ -585,12 +585,39 @@ void ExpressionParser::put_tilde_var(Lexer& lex, int ds)
         // let's make ~-NUM^NUM illegal to make parsing precedence clear
         if (lex.peek_token().type == kTokenPower)
             lex.throw_syntax_error("use ~{-NUM}^NUM instead of  ~-NUM^NUM");
-        put_number(-num.value.d);
+        val = -num.value.d;
     } else if (token.type == kTokenLCurly) {
-        put_value_from_curly(lex, ds);
+        val = get_value_from(lex, ds, kTokenRCurly);
     } else {
         lex.throw_syntax_error("unexpected token after `~'");
     }
+    put_number(val);
+    if (lex.peek_token().type == kTokenLSquare) {
+        RealRange range; // default lo/hi values correspond to [:]
+        // read tokens to ':' (discarding ':'), set range.lo
+        lex.get_token(); // discard '['
+        if (lex.peek_token().type == kTokenColon) {
+            // leave default value for range.lo
+            lex.get_token(); // discard ':'
+        } else if (lex.peek_token().type == kTokenRSquare) {
+            // omitted ':', never mind
+        } else {
+            range.lo = get_value_from(lex, ds, kTokenColon); // discards ':'
+        }
+        // read the rest, set range.hi
+        if (lex.peek_token().type == kTokenRSquare) {
+            lex.get_token(); // discard ']'
+            // leave default value for range.hi
+        } else {
+            range.hi = get_value_from(lex, ds, kTokenRSquare); // discards ']'
+        }
+        vm_.append_number(range.lo);
+        vm_.append_number(range.hi);
+    } else {
+        // artificial mark that there is no domain
+        vm_.append_code(OP_TILDE);
+    }
+    assert(expected_ == kOperator);
 }
 
 void ExpressionParser::pop_until_bracket()
@@ -1000,7 +1027,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                 break;
 
             case kTokenLCurly:
-                put_value_from_curly(lex, default_ds);
+                put_number(get_value_from(lex, default_ds, kTokenRCurly));
                 break;
 
             case kTokenString:

@@ -3,7 +3,6 @@
 * settings: [fitting] use box-constraints=0/1
 
 * parameter bounds:
-   new syntax - %f = Linear(~3[2:5], ~10)
    new syntax - domain in default parameters (...shape=~0.5 [0:1],...),
    adjust definitions of Voigt, PseudoVoigt, Pearson7
 
