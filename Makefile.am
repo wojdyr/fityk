@@ -77,7 +77,7 @@ samples_helloc_LDADD = fityk/libfityk.la
 nodist_EXTRA_samples_helloc_SOURCES = dummy.cxx
 
 check-scripts:
-	cli/cfityk -q $(srcdir)/tests/test_syntax.fit
+	cli/cfityk -n -q $(srcdir)/tests/test_syntax.fit
 	PYTHONPATH=fityk/swig/.libs:$(srcdir)/fityk/swig/ \
 	   python -m unittest discover -s $(srcdir)/tests/
 
