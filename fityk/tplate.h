@@ -45,8 +45,8 @@ struct FITYK_API Tplate
     std::string rhs; // used in info only, not in calculations
     int traits; // 0 or combination of kLinear, kPeak and kSigmoid
     create_type create;
-    std::vector<Component> components; // kSum, kSplit
-    std::vector<OpTree*> op_trees;     // kCustom
+    std::vector<Component> components; // CompoundFunction, SplitFunction
+    std::vector<OpTree*> op_trees;     // CustomFunction
     const char* docs_fragment;
 
     std::string as_formula() const;
