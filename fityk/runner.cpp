@@ -334,13 +334,15 @@ void Runner::defval_to_vm(const string& dv,
     ep_.clear_vm();
     Lexer lex(dv.c_str());
     bool r = ep_.parse_full(lex, 0, &names);
-    if (!r)
+    bool has_domain = (lex.peek_token().type == kTokenLSquare);
+    if (!r && !has_domain) {
         throw ExecuteError("Cannot guess or calculate `" + dv + "'");
+    }
     double value = ep_.calculate_custom(values);
     output.append_code(OP_TILDE);
     output.append_number(value);
-    if (0) {
-        RealRange domain;
+    if (has_domain) {
+        RealRange domain = ep_.parse_domain(lex, 0);
         output.append_number(domain.lo);
         output.append_number(domain.hi);
     } else {
@@ -479,7 +481,7 @@ void Runner::command_name_var(const vector<Token>& args, int ds)
             orig_name = Lexer::get_string(args[2]);
             n_args = 3;
         } else {  // $v = copy(%f.height)
-            n_args = 3; // $v "copy" [...] param
+            n_args = 3; // $v "copy" [...] param  -- increased in the next line
             string func_name = get_func(F_, ds, args.begin()+2, &n_args);
             string param = args[n_args-1].as_string();
             orig_name = F_->mgr.find_function(func_name)->var_name(param);
@@ -491,6 +493,7 @@ void Runner::command_name_var(const vector<Token>& args, int ds)
         pos = F_->mgr.make_variable(name, vd);
         n_args = 2;
     }
+    assert(F_->mgr.get_variable(pos)->name == name);
     F_->mgr.use_parameters();
     F_->outdated_plot(); // TODO: only for replacing old variable
 }

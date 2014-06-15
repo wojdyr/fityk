@@ -69,6 +69,8 @@ public:
     bool parse_full(Lexer& lex, int default_ds,
                     const std::vector<std::string> *custom_vars=NULL);
 
+    RealRange parse_domain(Lexer& lex, int ds);
+
     /// adds OP_ASSIGN_? to the code
     void push_assign_lhs(const Token& t);
 

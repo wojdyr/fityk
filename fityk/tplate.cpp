@@ -183,7 +183,7 @@ void TplateMgr::add_builtin_types(Parser* p)
                   " : Pearson7(height, center, hwhm2, shape2)",
         Tplate::kPeak, &create_FuncSplitPearson7, NULL, true);
 
-    add("PseudoVoigt", "height,center,hwhm,shape", ",,,0.5",
+    add("PseudoVoigt", "height,center,hwhm,shape", ",,,0.5[0:1]",
         "height*((1-shape)*exp(-ln(2)*((x-center)/hwhm)^2)"
                             "+shape/(1+((x-center)/hwhm)^2))",
         Tplate::kPeak, &create_FuncPseudoVoigt, NULL, true);
@@ -192,11 +192,11 @@ void TplateMgr::add_builtin_types(Parser* p)
         "Finger-Cox-Jephcoat asymmetry with PseudoVoight peakshape",
         Tplate::kPeak, &create_FuncFCJAsymm, NULL, true);
 
-    add("Voigt", "height,center,gwidth,shape", ",,hwhm*0.8,0.1",
+    add("Voigt", "height,center,gwidth,shape", ",,hwhm*0.8,0.1[0:1]",
         "convolution of Gaussian and Lorentzian #",
         Tplate::kPeak, &create_FuncVoigt, NULL, true);
 
-    add("VoigtA", "area,center,gwidth,shape", ",,hwhm*0.8,0.1",
+    add("VoigtA", "area,center,gwidth,shape", ",,hwhm*0.8,0.1[0:1]",
         "convolution of Gaussian and Lorentzian #",
         Tplate::kPeak, &create_FuncVoigtA, NULL, true);
 
@@ -255,7 +255,7 @@ void TplateMgr::add_builtin_types(Parser* p)
 
     add("PseudoVoigtA",
         "area,center,hwhm,shape",
-        ",,,0.5",
+        ",,,0.5[0:1]",
         "GaussianA(area*(1-shape), center, hwhm)"
          " + LorentzianA(area*shape, center, hwhm)",
         Tplate::kPeak, &create_CompoundFunction, p, true);
@@ -270,14 +270,15 @@ void TplateMgr::add_builtin_types(Parser* p)
         Tplate::kPeak, &create_SplitFunction, p, true);
 
     add("SplitPseudoVoigt",
-        "height,center,hwhm1,hwhm2,shape1,shape2", ",,hwhm,hwhm,0.5,0.5",
+        "height,center,hwhm1,hwhm2,shape1,shape2",
+        ",,hwhm,hwhm,0.5[0:1],0.5[0:1]",
         "x < center ? PseudoVoigt(height, center, hwhm1, shape1)"
                   " : PseudoVoigt(height, center, hwhm2, shape2)",
         Tplate::kPeak, &create_SplitFunction, p, true);
 
     add("SplitVoigt",
         "height,center,gwidth1,gwidth2,shape1,shape2",
-        ",,hwhm*0.8,hwhm*0.8,0.5,0.5",
+        ",,hwhm*0.8,hwhm*0.8,0.1[0:1],0.1[0:1]",
         "x < center ? Voigt(height, center, gwidth1, shape1)"
                   " : Voigt(height, center, gwidth2, shape2)",
         Tplate::kPeak, &create_SplitFunction, p, true);

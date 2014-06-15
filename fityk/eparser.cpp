@@ -569,6 +569,29 @@ void ExpressionParser::put_name(Lexer& lex,
     lex.throw_syntax_error("unknown name: " + word);
 }
 
+RealRange ExpressionParser::parse_domain(Lexer& lex, int ds)
+{
+    RealRange range; // default lo/hi values correspond to [:]
+    // read tokens to ':' (discarding ':'), set range.lo
+    lex.get_token(); // discard '['
+    if (lex.peek_token().type == kTokenColon) {
+        // leave default value for range.lo
+        lex.get_token(); // discard ':'
+    } else if (lex.peek_token().type == kTokenRSquare) {
+        // omitted ':', never mind
+    } else {
+        range.lo = get_value_from(lex, ds, kTokenColon); // discards ':'
+    }
+    // read the rest, set range.hi
+    if (lex.peek_token().type == kTokenRSquare) {
+        lex.get_token(); // discard ']'
+        // leave default value for range.hi
+    } else {
+        range.hi = get_value_from(lex, ds, kTokenRSquare); // discards ']'
+    }
+    return range;
+}
+
 void ExpressionParser::put_tilde_var(Lexer& lex, int ds)
 {
     if (expected_ == kOperator)
@@ -593,24 +616,7 @@ void ExpressionParser::put_tilde_var(Lexer& lex, int ds)
     }
     put_number(val);
     if (lex.peek_token().type == kTokenLSquare) {
-        RealRange range; // default lo/hi values correspond to [:]
-        // read tokens to ':' (discarding ':'), set range.lo
-        lex.get_token(); // discard '['
-        if (lex.peek_token().type == kTokenColon) {
-            // leave default value for range.lo
-            lex.get_token(); // discard ':'
-        } else if (lex.peek_token().type == kTokenRSquare) {
-            // omitted ':', never mind
-        } else {
-            range.lo = get_value_from(lex, ds, kTokenColon); // discards ':'
-        }
-        // read the rest, set range.hi
-        if (lex.peek_token().type == kTokenRSquare) {
-            lex.get_token(); // discard ']'
-            // leave default value for range.hi
-        } else {
-            range.hi = get_value_from(lex, ds, kTokenRSquare); // discards ']'
-        }
+        RealRange range = parse_domain(lex, ds);
         vm_.append_number(range.lo);
         vm_.append_number(range.hi);
     } else {

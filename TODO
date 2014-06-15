@@ -2,15 +2,13 @@
 
 * settings: [fitting] use box-constraints=0/1
 
-* parameter bounds:
-   new syntax - domain in default parameters (...shape=~0.5 [0:1],...),
-   adjust definitions of Voigt, PseudoVoigt, Pearson7
-
 * tests: fitting with constraints
 
-* API: add all_datasets(): for n, title in F:all_datasets() do ...
+* tests: try to guess all functions
 
 ----  1.3.0
+
+* API: add all_datasets(): for n, title in F:all_datasets() do ...
 
 * API: access to confidence intervals
 

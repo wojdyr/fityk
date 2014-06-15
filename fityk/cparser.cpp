@@ -385,10 +385,17 @@ Tplate::Ptr Parser::parse_define_args(Lexer& lex)
         }
         tp->fargs.push_back(name);
         string default_value;
-        if (lex.discard_token_if(kTokenAssign))
-            default_value = read_define_arg(lex, empty, &new_vars).as_string();
-        else
+        if (lex.discard_token_if(kTokenAssign)) {
+            Token dv = read_define_arg(lex, empty, &new_vars);
+            if (lex.peek_token().type == kTokenLSquare) {
+                vector<Token> dummy_args;
+                parse_real_range(lex, dummy_args);
+                dv.length = lex.pchar() - dv.str;
+            }
+            default_value = dv.as_string();
+        } else {
             new_vars.push_back(name);
+        }
         tp->defvals.push_back(default_value);
     }
 

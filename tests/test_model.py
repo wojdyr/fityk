@@ -71,8 +71,8 @@ class TestBounds(unittest.TestCase):
         self.assertTrue(a.domain.lo_inf())
         self.assertEqual(a.domain.hi, 77)
         self.ftk.execute("$a = ~3.15 [:]")
-        self.assertTrue(a2.domain.lo_inf())
-        self.assertTrue(a2.domain.hi_inf())
+        self.assertTrue(a.domain.lo_inf())
+        self.assertTrue(a.domain.hi_inf())
 
     def test_assign_var(self):
         self.ftk.execute("$b = $a") # b is compound variable
@@ -100,6 +100,28 @@ class TestBounds(unittest.TestCase):
         self.assertEqual(b.value(), 3.14)
         self.assertEqual(b.domain.lo, -1)
         self.assertEqual(b.domain.hi, 4.5)
+
+
+class TestDefaultValues(unittest.TestCase):
+    def setUp(self):
+        self.ftk = fityk.Fityk()
+        self.ftk.set_option_as_number("verbosity", -1)
+
+    def test_pseudovoigt_shape_domain(self):
+        self.ftk.execute("%f = PseudoVoigt(height=~11, center=~12, hwhm=~13)")
+        f = self.ftk.get_function('f')
+        shape = self.ftk.get_variable(f.var_name('shape'))
+        self.assertEqual(shape.value(), 0.5)
+        self.assertEqual(shape.domain.lo, 0)
+        self.assertEqual(shape.domain.hi, 1)
+
+    def test_defval_bounds(self):
+        self.ftk.execute("define My(a=3, b=0.1[-1:1]) = a*exp(b*x)")
+        self.ftk.execute("%f=My(a=3)")
+        a = self.ftk.get_variable("_2")
+        self.assertEqual(a.value(), 0.1)
+        self.assertEqual(a.domain.lo, -1)
+        self.assertEqual(a.domain.hi, 1)
 
 if __name__ == '__main__':
     unittest.main()
