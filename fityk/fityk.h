@@ -118,8 +118,10 @@ public:
 
     virtual const std::string& get_template_name() const = 0;
     virtual std::string get_param(int n) const = 0;
-    virtual const std::string& var_name(const std::string& param) const = 0;
-    virtual realt get_param_value(const std::string& param) const = 0;
+    virtual const std::string& var_name(const std::string& param) const
+                                                    throw(ExecuteError) = 0;
+    virtual realt get_param_value(const std::string& param) const
+                                                    throw(ExecuteError) = 0;
     virtual realt value_at(realt x) const = 0;
 protected:
     Func(const std::string name_) : name(name_) {}
