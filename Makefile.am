@@ -51,7 +51,9 @@ check_PROGRAMS = $(TESTS) tests/mpfit_deriv
 tests_mpfit_deriv_SOURCES = tests/mpfit_deriv.cpp
 tests_mpfit_deriv_LDADD = fityk/libfityk.la
 tests_mpfit_deriv_LDFLAGS = -no-install
-dist_noinst_SCRIPTS = tests/test_syntax.fit tests/test_nist.py
+dist_noinst_SCRIPTS = tests/test_syntax.fit \
+      tests/test_nist.py tests/test_guess.py tests/test_model.py \
+      tests/test_tranform.py tests/test_data_load.py tests/test_info.py
 
 # --- samples/ ---
 
