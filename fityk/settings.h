@@ -37,6 +37,7 @@ struct FITYK_API Settings
     int refresh_period;
     bool fit_replot;
     double domain_percent;
+    bool box_constraints;
     // fitting - LM
     double lm_lambda_start;
     double lm_lambda_up_factor;

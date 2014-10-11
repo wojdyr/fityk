@@ -86,6 +86,7 @@ static const Option options[] = {
     OPT(refresh_period, kInt, 4, NULL),
     OPT(fit_replot, kBool, false, NULL),
     OPT(domain_percent, kDouble, 30., NULL),
+    OPT(box_constraints, kBool, true, NULL),
 
     OPT(lm_lambda_start, kDouble, 0.001, NULL),
     OPT(lm_lambda_up_factor, kDouble, 10, NULL),

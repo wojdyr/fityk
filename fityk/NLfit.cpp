@@ -89,17 +89,19 @@ double NLfit::run_method(vector<realt>* best_a)
     nlopt_set_ftol_rel(opt_, F_->get_settings()->ftol_rel);
     nlopt_set_xtol_rel(opt_, F_->get_settings()->xtol_rel);
 
-    double *lb = new double[na_];
-    double *ub = new double[na_];
-    for (int i = 0; i < na_; ++i) {
-        const RealRange& d = F_->mgr.get_variable(i)->domain;
-        lb[i] = d.lo;
-        ub[i] = d.hi;
+    if (F_->get_settings()->box_constraints) {
+        double *lb = new double[na_];
+        double *ub = new double[na_];
+        for (int i = 0; i < na_; ++i) {
+            const RealRange& d = F_->mgr.get_variable(i)->domain;
+            lb[i] = d.lo;
+            ub[i] = d.hi;
+        }
+        nlopt_set_lower_bounds(opt_, lb);
+        nlopt_set_upper_bounds(opt_, ub);
+        delete [] lb;
+        delete [] ub;
     }
-    nlopt_set_lower_bounds(opt_, lb);
-    nlopt_set_upper_bounds(opt_, ub);
-    delete [] lb;
-    delete [] ub;
 
     double opt_f;
     double *a = new double[na_];

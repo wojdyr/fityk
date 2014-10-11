@@ -156,15 +156,17 @@ int MPfit::run_mpfit(const vector<Data*>& datas,
 
     mp_par *pars = allocate_and_init_mp_par(param_usage);
 
-    for (size_t i = 0; i < parameters.size(); ++i) {
-        const Var* var = F_->mgr.gpos_to_var(i);
-        if (!var->domain.lo_inf()) {
-            pars[i].limited[0] = 1;
-            pars[i].limits[0] = var->domain.lo;
-        }
-        if (!var->domain.hi_inf()) {
-            pars[i].limited[1] = 1;
-            pars[i].limits[1] = var->domain.hi;
+    if (F_->get_settings()->box_constraints) {
+        for (size_t i = 0; i < parameters.size(); ++i) {
+            const Var* var = F_->mgr.gpos_to_var(i);
+            if (!var->domain.lo_inf()) {
+                pars[i].limited[0] = 1;
+                pars[i].limits[0] = var->domain.lo;
+            }
+            if (!var->domain.hi_inf()) {
+                pars[i].limited[1] = 1;
+                pars[i].limits[1] = var->domain.hi;
+            }
         }
     }
 

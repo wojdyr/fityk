@@ -1,10 +1,6 @@
 * [GUI, Windows] bad layout of Quick Load File dialog
 
-* settings: [fitting] use box-constraints=0/1
-
 * tests: fitting with constraints
-
-* tests: try to guess all functions
 
 ----  1.3.0
 
@@ -15,6 +11,10 @@
 * GUI: Tools > Macros
 
 * info cov/errors - do not specify dataset
+
+* samples: add CeO2 from http://mysite.du.edu/~balzar/s-s_rr.htm
+
+* XRPD - db of popular materials? but which are the most popular?
 
 * GUI: plot histogram of residuals:
   http://www.itl.nist.gov/div898/handbook/eda/section3/normprpl.htm
@@ -86,7 +86,7 @@
                        http://dx.doi.org/10.1002/cem.1005
                        http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631518/
 
-* "anonymous" function types: %f = ~1/(1+exp(11*(~.663-x)))  -> Anon0(a0,a1)
+* "anonymous" function types: %f = ~1/(1+exp(11*(~0.663-x)))  -> Anon0(a0,a1)
 
 * fitting - external libraries to be considered/tested:
   - libgencurvefit (Differential Evolution),
