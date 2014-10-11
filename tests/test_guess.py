@@ -1,8 +1,5 @@
 #!/usr/bin/env python
 
-# run tests with: python -m unittest test_model
-#             or  python -m unittest discover
-
 import os
 import sys
 import math
@@ -11,13 +8,11 @@ import fityk
 
 class TestGuessability(unittest.TestCase):
     def setUp(self):
-        self.x = [(n-5)/2. for n in range(25)]
-        self.y = [11.2/(1+(x-3.3)**2) + math.sin(40*x)/40 - x/10.
-                  for x in self.x]
-        self.sigma = [1]*len(self.x)
+        xx = [(n-5)/2. for n in range(25)]
+        yy = [11.2/(1+(x-3.3)**2) + math.sin(40*x)/40 - x/10. for x in xx]
         self.ftk = fityk.Fityk()
         self.ftk.set_option_as_number("verbosity", -1)
-        self.ftk.load_data(0, self.x, self.y, self.sigma, "loren")
+        self.ftk.load_data(0, xx, yy, [1]*len(xx), "loren")
         #self.ftk.execute("info state > debug.fit")
 
 def create_guessability_test(func_type):

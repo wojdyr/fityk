@@ -123,5 +123,37 @@ class TestDefaultValues(unittest.TestCase):
         self.assertEqual(a.domain.lo, -1)
         self.assertEqual(a.domain.hi, 1)
 
+
+class TestBoxConstraints(unittest.TestCase):
+    def setUp(self):
+        self.ftk = fityk.Fityk()
+        self.ftk.set_option_as_number("verbosity", -1)
+        xx = [(n-5)/2. for n in range(25)]
+        yy = [-7+3*x for x in xx]
+        self.ftk = fityk.Fityk()
+        self.ftk.set_option_as_number("verbosity", -1)
+        self.ftk.load_data(0, xx, yy, [1]*len(xx), "line")
+        self.ftk.execute("F = Linear(~0, ~0[:2.5])")
+        self.methods = ["mpfit"]
+        if self.ftk.get_info("compiler"):
+            self.methods += ["nlopt_lbfgs", "nlopt_nm", "nlopt_bobyqa",
+                             "nlopt_sbplx"]
+
+    def fit(self, fitting_method):
+        self.ftk.set_option_as_string("fitting_method", fitting_method)
+        self.ftk.execute("fit")
+        return self.ftk.calculate_expr("F[0].a1")
+
+    def test_box(self):
+        for m in self.methods:
+            self.assertAlmostEqual(self.fit(m), 2.5)
+
+    def test_no_box(self):
+        self.ftk.set_option_as_number("box_constraints", 0)
+        for m in self.methods:
+            self.assertAlmostEqual(self.fit(m), 3.0)
+
+
+
 if __name__ == '__main__':
     unittest.main()
