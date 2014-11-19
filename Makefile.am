@@ -94,7 +94,7 @@ install-data-hook:
 	@$(NORMAL_INSTALL)
 	$(MKDIR_P) "$(DESTDIR)$(pkgdatadir)/html"
 	cp -fR $(srcdir)/doc/html/* "$(DESTDIR)$(pkgdatadir)/html" && \
-	    chmod -R u+w "$(DESTDIR)$(pkgdatadir)/html"
+	    chmod -R u+w "$(DESTDIR)$(pkgdatadir)/html" ||:
 
 uninstall-local:
 	@$(NORMAL_UNINSTALL)
