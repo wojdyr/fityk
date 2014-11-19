@@ -1,5 +1,5 @@
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = fityk.iss fityk.url fityk.svg \
+EXTRA_DIST = fityk.iss fityk.url \
              doc/fityk-manual.rst  doc/index.rst       doc/intro.rst \
              doc/getstarted.rst    doc/lang.rst        doc/data.rst \
              doc/model.rst         doc/fit.rst         doc/ref.rst \
@@ -16,11 +16,14 @@ if CLI_DIR
 bin_PROGRAMS = cli/cfityk
 endif
 
-icondir = $(datadir)/pixmaps
+# for Linux desktop
+icon32dir = $(datadir)/icons/hicolor/32x32/apps
+iconscdir = $(datadir)/icons/hicolor/scalable/apps
 desktopdir = $(datadir)/applications
 mimepkgdir = $(datadir)/mime/packages
 
-dist_icon_DATA = fityk.png
+dist_icon32_DATA = fityk.png
+dist_iconsc_DATA = fityk.svg
 dist_desktop_DATA = fityk.desktop
 dist_mimepkg_DATA = fityk.xml
 
