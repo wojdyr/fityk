@@ -1,7 +1,7 @@
 [Desktop Entry]
 Type=Application
 Name=fityk
-Comment=Peak fitting and data analysis
+Comment=Curve fitting (esp. peak fitting) and data analysis
 GenericName=Curve Fitter
 Icon=fityk
 Exec=fityk %F
@@ -13,5 +13,7 @@ MimeType=application/x-fityk;
 # Office and Education. Education is not the best category for fityk, but
 # Science is a subcategory of Education and that's were scientific software
 # is usually put.
-Categories=Education;Science;DataVisualization;GTK;
+#Categories=Education;Science;DataVisualization;GTK;
+# Update (2014): Now Science is in the Main Categories
+Categories=Science;DataVisualization;Chemistry;Physics;Engineering;GTK;
 
