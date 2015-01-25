@@ -80,6 +80,12 @@ public:
         { return is_index(n, tp_->fargs) ? tp_->fargs[n] : std::string(); }
 
     int get_param_nr(const std::string& param) const;
+// C++ exception specifications are used by SWIG bindings.
+// They are deprecated (in this form) in C++-11.
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated"
+#endif
     virtual realt get_param_value(const std::string& param) const
                             throw(ExecuteError); // exc. spec. is used by SWIG
 
@@ -100,6 +106,9 @@ public:
     virtual const std::string& var_name(const std::string& param) const
                         throw(ExecuteError) // exc. spec. is used by SWIG
                         { return used_vars_.get_name(get_param_nr(param)); }
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
     virtual realt value_at(realt x) const { return calculate_value(x); }
 
