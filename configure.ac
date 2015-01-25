@@ -111,19 +111,9 @@ AC_COMPILE_IFELSE(
   [], [AC_MSG_ERROR([xylib >= 1.0 is not installed])])
 
 
-AC_CHECK_HEADERS([lua.h lualib.h], [], [AC_MSG_ERROR(
-  [Lua headers not found. If they are installed,
-   you may need to specify the path, e.g. CPPFLAGS="-I/usr/include/lua5.1"])])
-
-# macro AX_LUA_HEADERS_VERSION does not support cross-compiling
-if test "$cross_compiling" != "yes"; then
-    AX_LUA_HEADERS_VERSION(501, 503)
-fi
+AX_PROG_LUA(5.1, 5.4)
+AX_LUA_HEADERS
 AX_LUA_LIBS
-if test x"$LUA_LIB" = x; then
-    AC_MSG_ERROR([Lua library not found. You may try option --with-lua-suffix.])
-fi
-
 
 # Checks for version specific libraries and headers.
 AS_IF([test "x$enable_GUI" != "xno"], [

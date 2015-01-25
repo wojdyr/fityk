@@ -37,10 +37,10 @@ if [ $1 = "a" ]; then
  echo update m4 scripts from autoconf-archive...
  ac_scripts="ax_lua.m4 ax_python_devel.m4 ax_lib_readline.m4 ax_pkg_swig.m4"
  for i in $ac_scripts; do
-     echo curl "http://git.savannah.gnu.org/gitweb/?p=autoconf-archive.git;a=blob_plain;f=m4/$i" -o m4/$i
+     curl "http://git.savannah.gnu.org/gitweb/?p=autoconf-archive.git;a=blob_plain;f=m4/$i" -o m4/$i
  done
  rm -r m4/libtool.m4 m4/lt* build-aux/* aclocal.m4
- autoreconf -iv
+ autoreconf -ifv
 
 
 elif [ $1 -eq 0 ]; then

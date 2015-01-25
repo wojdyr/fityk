@@ -72,12 +72,8 @@ Configuration Options
 
 ./configure --help shows all the options.
 
-On some systems Lua headers are in non-default location (say, in
-/usr/include/lua5.2), and the Lua library has a suffix (say, liblua5.2.so
-instead of liblua.so). In such case the suffix and the header directory
-need to be specified:
-
-./configure --with-lua-suffix=5.2 CPPFLAGS=-I/usr/include/lua5.2
+Variables LUA, LUA_INCLUDE and LUA_LIB are useful when Lua is in non-default
+location or if it is suffixed (say, liblua5.2.so instead of liblua.so).
 
 To build python bindings, use --enable-python option.
 
