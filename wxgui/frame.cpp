@@ -1021,8 +1021,7 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
         cmd += "@+ <'" + wx2s(paths[i]) + "'";
         if (!options.empty())
            cmd += " _ " + options;
-        recent_data_->add(wx2s(paths[i]),
-                          options.empty() ? "" : "_ "+options);
+        recent_data_->add(paths[i], options.empty() ? "" : "_ "+options);
     }
 
     exec(cmd);
