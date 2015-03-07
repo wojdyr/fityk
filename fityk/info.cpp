@@ -140,7 +140,6 @@ string build_info()
         " " __VERSION__
 #endif
 
-        "\nCompilation date: " __DATE__
         "\nWith libraries: "
         "\nBoost " + S(BOOST_VERSION / 100000)
                    + "." + S(BOOST_VERSION / 100 % 1000)
