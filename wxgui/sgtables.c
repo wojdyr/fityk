@@ -1385,7 +1385,7 @@ const SpaceGroupSetting* get_sg_from_powdercell_rgnr(int sgn, int setting)
 {
     const PowderCellSgSetting *i;
     const SpaceGroupSetting *sgs0 = find_first_sg_with_number(sgn);
-    if (setting == 0 || (sgs0+1)->sgnumber != sgn)
+    if (setting == 0 || sgs0 == NULL || (sgs0+1)->sgnumber != sgn)
         return sgs0;
     for (i = powdercell_settings; i->sg != 0; ++i)
         if (i->sg == sgn && i->pc_setting)

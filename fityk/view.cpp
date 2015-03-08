@@ -133,7 +133,7 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
             for (vector<Point>::const_iterator j = f; j < l; ++j) {
                 if (!is_finite(j->y))
                     continue;
-                min_max_set = true;
+                // min_max_set = true;
                 if (j->y > y_max)
                     y_max = j->y;
                 if (j->y < y_min)
