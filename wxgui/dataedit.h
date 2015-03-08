@@ -17,21 +17,10 @@ struct DataTransform
     wxString code;
     bool in_menu;
     bool is_changed;
-
-    DataTransform(const wxString& name_, const wxString& description_,
-                  const wxString& code_, bool in_menu_=false)
-        : name(name_), description(description_),
-          code(code_), in_menu(in_menu_), is_changed(false) {}
-    DataTransform(const std::string& line);
-    std::string as_fileline();
-    wxString get_display_name() const
-        { return is_changed ? wxT("*") + name : name; }
 };
-
 
 class EditTransDlg : public wxDialog
 {
-    friend class DataTable;
     typedef std::vector<std::pair<int,fityk::Data*> > ndnd_type;
 public:
     EditTransDlg (wxWindow* parent, wxWindowID id, ndnd_type const& dd);
@@ -47,7 +36,7 @@ private:
     wxTextCtrl *name_tc, *description_tc, *code_tc;
     wxButton *add_btn, *remove_btn, *up_btn, *down_btn,
              *save_btn, *revert_btn, *todefault_btn,
-             *apply_btn, *rezoom_btn, *undo_btn, *help_btn;
+             *apply_btn, *rezoom_btn, *undo_btn/*, *help_btn*/;
 
     void OnAdd(wxCommandEvent& event);
     void OnRemove(wxCommandEvent& event);
@@ -69,6 +58,7 @@ private:
     void initialize_checklist();
     bool update_apply_button();
     void update_right_side();
+    void update_menu_name(int item);
     static std::string conv_code_to_one_line(std::string const& code);
 };
 

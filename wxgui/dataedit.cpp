@@ -4,7 +4,9 @@
 #include <wx/wx.h>
 #include <wx/statline.h>
 #include <wx/hyperlink.h>
-#include <fstream>
+#include <wx/ffile.h>
+#include <wx/textfile.h>
+#include <wx/tokenzr.h>
 #include <algorithm>
 
 #include "dataedit.h"
@@ -112,32 +114,36 @@ static const char *default_transforms[] = {
 "|N"
 };
 
-DataTransform::DataTransform(const string& line)
-     : in_menu(false), is_changed(false)
+static
+DataTransform line_to_datatran(const wxString& line)
 {
-    vector<string> tokens = split_string(line, '|');
-    if (tokens.size() < 4)
-        return;
-    for (vector<string>::iterator i = tokens.begin(); i != tokens.end(); ++i)
-        replace(i->begin(), i->end(), ';', '\n');
-    name = s2wx(tokens[0]);
-    //category = tokens[1]; // category field has been removed
-    description = s2wx(tokens[2]);
-    code = s2wx(tokens[3]);
-    in_menu = (tokens[4] == "Y");
+    DataTransform t = { "", "", "", false, false };
+    wxStringTokenizer tokenizer(line, "|");
+    if (tokenizer.CountTokens() < 4)
+        return t;
+    t.name = tokenizer.GetNextToken();
+    (void) tokenizer.GetNextToken(); // "category" field has been removed
+    t.description = tokenizer.GetNextToken();
+    t.description.Replace(";", "\n");
+    t.code = tokenizer.GetNextToken();
+    t.code.Replace(";", "\n");
+    t.in_menu = (tokenizer.GetNextToken() == "Y");
+    return t;
 }
 
-// as a side effect, | is changed to / in all string members
-string DataTransform::as_fileline()
+// side effect: changes | to / in strings
+static
+wxString datatran_to_line(DataTransform& tr)
 {
-    name.Replace(wxT("|"), wxT("/"));
-    description.Replace(wxT("|"), wxT("/"));
-    code.Replace(wxT("|"), wxT("/"));
+    // don't bother with quoting, what are |'s doing here anyway
+    tr.name.Replace("|", "/");
+    tr.description.Replace("|", "/");
+    tr.code.Replace("|", "/");
     // The second field is reserved. It used to be "category".
-    wxString s = name + wxT("||") + description + wxT("|") + code
-               + wxT("|") + (in_menu ? wxT("Y") : wxT("N"));
-    s.Replace(wxT("\n"), wxT(";"));
-    return wx2s(s);
+    wxString s = tr.name + "||" + tr.description + "|" + tr.code
+               + "|" + (tr.in_menu ? "Y" : "N");
+    s.Replace("\n", ";");
+    return s;
 }
 
 
@@ -304,16 +310,20 @@ void EditTransDlg::init()
 void EditTransDlg::read_transforms(bool skip_file)
 {
     transforms.clear();
-    wxString transform_path = get_conf_file("transform");
-    if (wxFileExists(transform_path) && !skip_file) {
-        ifstream f((const char*) transform_path.mb_str());
-        string t_line;
-        while (getline(f, t_line))
-            transforms.push_back(DataTransform(t_line));
+    wxTextFile f(get_conf_file("transform"));
+    if (!skip_file && f.Open()) {
+        for (wxString s = f.GetFirstLine(); !f.Eof(); s = f.GetNextLine()) {
+            DataTransform tr = line_to_datatran(s);
+            if (!tr.name.empty())
+                transforms.push_back(tr);
+        }
     } else {
         int n = sizeof(default_transforms) / sizeof(default_transforms[0]);
-        for (int i = 0; i != n; ++i)
-            transforms.push_back(DataTransform(default_transforms[i]));
+        transforms.reserve(n);
+        for (int i = 0; i != n; ++i) {
+            DataTransform tr = line_to_datatran(default_transforms[i]);
+            transforms.push_back(tr);
+        }
     }
 }
 
@@ -345,7 +355,8 @@ void EditTransDlg::OnAdd(wxCommandEvent&)
         if (uniq)
             break;
     }
-    DataTransform new_transform(name, wxEmptyString, wxEmptyString);
+    DataTransform new_transform = { name, wxEmptyString, wxEmptyString,
+                                    false, false };
     int pos = trans_list->GetSelection() + 1;
     transforms.insert(transforms.begin() + pos, new_transform);
     trans_list->Insert(name, pos);
@@ -399,11 +410,19 @@ void EditTransDlg::OnDown(wxCommandEvent&)
 
 void EditTransDlg::OnSave(wxCommandEvent&)
 {
-    wxString transform_path = get_conf_file("transform");
-    ofstream f((const char*) transform_path.mb_str());
+    wxFFile f(get_conf_file("transform"), "w");
+    if (!f.IsOpened()) {
+        wxMessageBox("Cannot open file" + f.GetName(), "Error",
+                     wxOK|wxICON_ERROR);
+        return;
+    }
     for (vector<DataTransform>::iterator i = transforms.begin();
                                             i != transforms.end(); ++i) {
-        f << i->as_fileline() << endl;
+        i->name.Trim();
+        if (i->name.empty())
+            wxMessageBox("A transform without a name will not be saved.",
+                         "Warning", wxOK);
+        f.Write(datatran_to_line(*i) + "\n");
         i->is_changed = false;
     }
     for (size_t i = 0; i != transforms.size(); ++i) {
@@ -444,13 +463,20 @@ void EditTransDlg::OnUndo(wxCommandEvent& event)
     // @n.mark, @n.rollback
 }
 
+void EditTransDlg::update_menu_name(int item)
+{
+    DataTransform& tr = transforms[item];
+    wxString s = tr.is_changed ? "*" + tr.name : tr.name;
+    trans_list->SetString(item, s);
+}
+
 void EditTransDlg::OnNameText(wxCommandEvent&)
 {
     int item = trans_list->GetSelection();
     if (item == wxNOT_FOUND)
         return;
     transforms[item].name = name_tc->GetValue();
-    trans_list->SetString(item, transforms[item].get_display_name());
+    update_menu_name(item);
     trans_list->Check(item, transforms[item].in_menu);
 }
 
@@ -462,7 +488,7 @@ void EditTransDlg::OnDescText(wxCommandEvent&)
     transforms[item].description = description_tc->GetValue();
     if (!transforms[item].is_changed) {
         transforms[item].is_changed = true;
-        trans_list->SetString(item, transforms[item].get_display_name());
+        update_menu_name(item);
         trans_list->Check(item, transforms[item].in_menu);
     }
 }
@@ -476,7 +502,7 @@ void EditTransDlg::OnCodeText(wxCommandEvent&)
     transforms[item].code = code_tc->GetValue();
     if (!transforms[item].is_changed) {
         transforms[item].is_changed = true;
-        trans_list->SetString(item, transforms[item].get_display_name());
+        update_menu_name(item);
         trans_list->Check(item, transforms[item].in_menu);
     }
 }
