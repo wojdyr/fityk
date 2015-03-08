@@ -56,7 +56,7 @@ TextPane::TextPane(wxWindow *parent)
     // readline and editline (libedit) use different history format,
     // we like to use the same file file format as CLI, but it's not easy
     // with libedit. If it's libedit history we use a different file.
-    FILE *f = fopen(hist_file.mb_str(), "r");
+    FILE *f = wxFopen(hist_file, "r");
     if (f) {
         char buf[10];
         fgets(buf, 10, f);
