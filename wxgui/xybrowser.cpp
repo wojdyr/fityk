@@ -18,6 +18,9 @@ using namespace std;
 using fityk::get_file_basename;
 #else
 // copied from common.h
+#ifdef _MSC_VER
+#define snprintf sprintf_s
+#endif
 template <typename T, int N>
 std::string format1(const char* fmt, T t)
 {
@@ -177,7 +180,7 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
 
     // ----- right upper panel -----
     text_preview =  new wxTextCtrl(rupper_panel, -1, wxT(""),
-                                   wxDefaultPosition, wxSize(200, -1),
+                                   wxDefaultPosition, wxSize(300, -1),
                                    wxTE_RICH|wxTE_READONLY|wxTE_MULTILINE);
     rupper_sizer->Add(text_preview, 1, wxEXPAND|wxALL, 5);
     auto_text_cb = new wxCheckBox(rupper_panel, -1,
@@ -339,8 +342,16 @@ void XyFileBrowser::update_text_preview()
     wxString path = get_one_path();
     if (!path.empty() && wxFileExists(path)) {
         int bytes_read = wxFile(path).Read(buffer, buf_size-1);
-        text_preview->SetValue(wxString(buffer));
-        if (bytes_read == buf_size-1) {
+        wxString str(buffer); // implicit conversion using current locale
+        if (str.empty())
+            str = wxString::From8BitData(buffer, bytes_read);
+        // remove nulls to display binary files (it looks better than randomly
+        // truncated binary file)
+        for (wxString::iterator i = str.begin(); i != str.end(); ++i)
+            if (*i == '\0')
+                *i = '\1';
+        text_preview->SetValue(str);
+        if (!str.empty() && bytes_read == buf_size-1) {
             text_preview->SetDefaultStyle(wxTextAttr(*wxBLACK, *wxYELLOW));
             text_preview->AppendText(
                     "\nThis preview shows only the first 64kb of file.\n");
@@ -361,7 +372,8 @@ void XyFileBrowser::update_plot_preview()
             string options;
             if (comma_cb->GetValue())
                 options = "decimal-comma";
-            plot_preview->load_dataset(path.ToStdString(), get_filetype(),
+            plot_preview->load_dataset((const char*) path.ToUTF8(),
+                                       get_filetype(),
                                        options);
         }
     } else
