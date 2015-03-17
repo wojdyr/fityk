@@ -3,14 +3,14 @@ compiler:
   - gcc
 # - clang
 before_install:
-  - curl http://download.opensuse.org/repositories/home:wojdyr/xUbuntu_12.04/Release.key | sudo apt-key add -
+  - curl http://download.opensuse.org/repositories/home:/wojdyr/xUbuntu_12.04/Release.key | sudo apt-key add -
   - echo 'deb http://download.opensuse.org/repositories/home:/wojdyr/xUbuntu_12.04/ /' | sudo tee -a /etc/apt/sources.list.d/obs.list
   - sudo apt-get update -qq
-  - sudo apt-get install -y libboost-dev liblua5.1-0-dev
+  - sudo apt-get install -y libboost-dev liblua5.1-0-dev lua5.1
   - sudo apt-get install -y libxy-dev wxgtk-for-fityk-devel
 before_script:
   - autoreconf -i
-script: ./configure --disable-GUI LUA=/usr/bin/lua5.1 LUA_INCLUDE=-I/usr/include/lua5.1 LUA_LIB=-llua5.1 && make
+script: ./configure LUA=/usr/bin/lua5.1 LUA_INCLUDE=-I/usr/include/lua5.1 LUA_LIB=-llua5.1 && make
 branches:
   only:
     - master
