@@ -1,5 +1,5 @@
 ACLOCAL_AMFLAGS = -I m4
-EXTRA_DIST = fityk.iss fityk.url \
+EXTRA_DIST = README.md fityk.iss fityk.url \
              doc/fityk-manual.rst  doc/index.rst       doc/intro.rst \
              doc/getstarted.rst    doc/lang.rst        doc/data.rst \
              doc/model.rst         doc/fit.rst         doc/ref.rst \
