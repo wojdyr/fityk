@@ -186,8 +186,11 @@ AM_CONDITIONAL([NLOPT_ENABLED], [test "x$enable_nlopt" = xyes])
 #    AC_CHECK_PROG(PERL, perl, "yes")
 #fi
 
-# 2.0.11 has critical bug in Lua generator (missing return statement)
-AX_PKG_SWIG(2.0.12, [], [SWIG=swig_not_found])
+# 2.0.12 is required here b/c 2.0.11 has a critical bug in Lua generator
+AS_IF([test -z "$SWIG"],
+      [AX_PKG_SWIG(2.0.12, [], [SWIG=swig_not_found])],
+      [AC_MSG_NOTICE([Using SWIG=$SWIG without checking])])
+AC_ARG_VAR([SWIG], [the SWIG program])
 
 AC_SUBST(LIBRARY_VERSION_FLAG)
 AC_SUBST(LUA_INCLUDE)
