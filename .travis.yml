@@ -8,12 +8,12 @@ before_install:
   - sudo add-apt-repository ppa:teward/swig3.0 -y
   - sudo apt-get update -qq
   - sudo apt-get install -y libboost-dev liblua5.1-0-dev lua5.1
-  - sudo apt-get install -y swig
+  - sudo apt-get install -y swig3.0
   - sudo apt-get install -y libxy-dev wxgtk-for-fityk-devel
 before_script:
   -  curl -o tests/catch.hpp https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
   - autoreconf -i
-script: ./configure LUA=/usr/bin/lua5.1 LUA_INCLUDE=-I/usr/include/lua5.1 LUA_LIB=-llua5.1 && make check
+script: ./configure LUA=/usr/bin/lua5.1 LUA_INCLUDE=-I/usr/include/lua5.1 LUA_LIB=-llua5.1 SWIG=swig3.0 && make check
 branches:
   only:
     - master
