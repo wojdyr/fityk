@@ -6,7 +6,7 @@ User-visible changes in version 1.3.0  ():
    "$a = ~3" keeps domain of $a (also "a={$a}; $a=~{a}" preserves domain)
    "$a = ~3 [:]" unsets domain
    "$a = copy($x) - copy $x with domain
-* new boolean box_constraints options decides if domains are used as box
+* new boolean box_constraints option decides if domains are used as box
   constraints in fitting methods that support it (default: on)
 * GUI: added auto-completion to Lua script editor
 * xyConvert is now part of xylib (removed flag --disable-xyconvert)

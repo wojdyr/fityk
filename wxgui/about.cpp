@@ -8,15 +8,8 @@
 
 #include "cmn.h" // pchar2wx, s2wx, GET_BMP
 #include "fityk/common.h" // VERSION
+#include "fityk/info.h" // embedded_lua_version()
 #include "img/fityk96.h"
-
-extern "C" {
-#include <lua.h> // LUA_RELEASE
-}
-
-#ifndef LUA_RELEASE // LUA_RELEASE was added in Lua 5.1.1
-#define LUA_RELEASE LUA_VERSION
-#endif
 
 AboutDlg::AboutDlg(wxWindow* parent)
     : wxDialog(parent, -1, wxT("About Fityk"), wxDefaultPosition,
@@ -61,11 +54,11 @@ AboutDlg::AboutDlg(wxWindow* parent)
                                      BOOST_VERSION / 100000,
                                      BOOST_VERSION / 100 % 1000,
                                      BOOST_VERSION % 100));
-    txt->AppendText(pchar2wx(", " LUA_RELEASE));
+    txt->AppendText(wxString(", ") + fityk::embedded_lua_version());
     txt->AppendText(wxT(" and xylib ") + pchar2wx(xylib_get_version())
                     + wxT("\n"));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxNORMAL_FONT));
-    txt->AppendText(wxT("\nCopyright 2001 - 2014 Marcin Wojdyr\n\n"));
+    txt->AppendText(wxT("\nCopyright 2001 - 2015 Marcin Wojdyr\n\n"));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxSMALL_FONT));
     txt->AppendText(
    wxT("This program is free software; you can redistribute it and/or modify ")

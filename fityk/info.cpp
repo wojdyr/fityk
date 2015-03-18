@@ -37,11 +37,16 @@ extern "C" {
 
 using namespace std;
 
-#ifndef LUA_RELEASE // LUA_RELEASE was added in Lua 5.1.1
-#define LUA_RELEASE LUA_VERSION
-#endif
-
 namespace fityk {
+
+const char* embedded_lua_version()
+{
+#ifdef LUA_RELEASE // LUA_RELEASE was added in Lua 5.1.1
+    return LUA_RELEASE;
+#else
+    return LUA_VERSION;
+#endif
+}
 
 // get standard formula and make it parsable by the gnuplot program
 string& gnuplotize_formula(string& formula)
@@ -145,7 +150,7 @@ string build_info()
                    + "." + S(BOOST_VERSION / 100 % 1000)
                    + "." + S(BOOST_VERSION % 100)
         + "\nxylib " + xylib_get_version()
-        + "\n" LUA_RELEASE
+        + "\n" + embedded_lua_version()
 #if HAVE_LIBNLOPT
         + "\nNLopt " + S(nl_ver[0]) + "." + S(nl_ver[1]) + "." + S(nl_ver[2])
 #endif
