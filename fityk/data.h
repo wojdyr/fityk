@@ -24,10 +24,10 @@ FITYK_API std::string get_file_basename(std::string const& path);
 class FITYK_API Data
 {
 public :
-    static int count_blocks(const std::string& fn,
+    static int count_blocks(const std::string& filename,
                             const std::string& format,
                             const std::string& options);
-    static int count_columns(const std::string& fn,
+    static int count_columns(const std::string& filename,
                              const std::string& format,
                              const std::string& options,
                              int first_block);
@@ -36,7 +36,7 @@ public :
     ~Data();
     std::string get_info() const;
 
-    void load_file(const std::string& fn,
+    void load_file(const std::string& filename,
                    int idx_x, int idx_y, int idx_s,
                    const std::vector<int>& blocks,
                    const std::string& format, const std::string& options);

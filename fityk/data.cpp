@@ -237,25 +237,25 @@ static string tr_opt(string options)
     return options;
 }
 
-int Data::count_blocks(const string& fn,
+int Data::count_blocks(const string& filename,
                        const string& format, const string& options)
 {
     try {
-        shared_ptr<const xylib::DataSet> xyds(
-                        xylib::cached_load_file(fn, format, tr_opt(options)));
+        shared_ptr<const xylib::DataSet> xyds(xylib::cached_load_file(filename,
+                                                     format, tr_opt(options)));
         return xyds->get_block_count();
     } catch (const std::runtime_error& e) {
         throw ExecuteError(e.what());
     }
 }
 
-int Data::count_columns(const string& fn,
+int Data::count_columns(const string& filename,
                         const string& format, const string& options,
                         int first_block)
 {
     try {
-        shared_ptr<const xylib::DataSet> xyds(
-                        xylib::cached_load_file(fn, format, tr_opt(options)));
+        shared_ptr<const xylib::DataSet> xyds(xylib::cached_load_file(filename,
+                                                     format, tr_opt(options)));
         return xyds->get_block(first_block)->get_column_count();
     } catch (const std::runtime_error& e) {
         throw ExecuteError(e.what());
@@ -279,19 +279,19 @@ void Data::verify_options(const xylib::DataSet* ds, const string& options)
 
 
 // for column indices, INT_MAX is used as not given
-void Data::load_file (const string& fn,
+void Data::load_file (const string& filename,
                       int idx_x, int idx_y, int idx_s,
                       const vector<int>& blocks,
                       const string& format, const string& options)
 {
-    if (fn.empty())
+    if (filename.empty())
         return;
 
     string block_name;
     try {
         string ds_options = tr_opt(options);
         shared_ptr<const xylib::DataSet> xyds(
-                        xylib::cached_load_file(fn, format, ds_options));
+                        xylib::cached_load_file(filename, format, ds_options));
         verify_options(xyds.get(), ds_options);
         clear(); //removing previous file
         vector<int> bb = blocks.empty() ? vector1(0) : blocks;
@@ -346,7 +346,7 @@ void Data::load_file (const string& fn,
     if (!block_name.empty())
         title_ = block_name;
     else {
-        title_ = get_file_basename(fn);
+        title_ = get_file_basename(filename);
         if (idx_x != INT_MAX && idx_y != INT_MAX)
             title_ += ":" + S(idx_x) + ":" + S(idx_y);
     }
@@ -356,7 +356,7 @@ void Data::load_file (const string& fn,
         find_step();
     }
 
-    filename_ = fn;
+    filename_ = filename;
     given_x_ = idx_x;
     given_y_ = idx_y;
     given_s_ = idx_s;
