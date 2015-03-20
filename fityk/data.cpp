@@ -307,16 +307,16 @@ void Data::load_file (const string& filename,
             if (n < 5 && bb.size() == 1)
                 ctx_->ui()->warn("Only "+S(n)+" data points found in file.");
 
+            p_.reserve(p_.size() + n);
             if (idx_s == INT_MAX) {
                 for (int i = 0; i < n; ++i) {
                     p_.push_back(Point(xcol.get_value(i), ycol.get_value(i)));
                 }
             } else {
-                const xylib::Column& scol
-                    = block->get_column(idx_s != INT_MAX ?  idx_s : 2);
+                const xylib::Column& scol = block->get_column(idx_s);
                 for (int i = 0; i < n; ++i) {
                     p_.push_back(Point(xcol.get_value(i), ycol.get_value(i),
-                                      scol.get_value(i)));
+                                       scol.get_value(i)));
                 }
                 has_sigma_ = true;
             }
@@ -392,6 +392,7 @@ void Data::update_active_p()
     // post: active_ sorted
 {
     active_.clear();
+    active_.reserve(p_.size());
     for (int i = 0; i < size(p_); i++)
         if (p_[i].is_active)
             active_.push_back(i);
