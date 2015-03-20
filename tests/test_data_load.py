@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# -*- coding: utf-8 -*-
 
 # run tests with: python -m unittest test_data_load
 #             or  python -m unittest discover
@@ -17,7 +18,8 @@ class FileLoadBase(unittest.TestCase):
     def setUp(self):
         self.ftk = fityk.Fityk()
         self.ftk.set_option_as_number("verbosity", -1)
-        f = tempfile.NamedTemporaryFile(delete=False)
+        prefix = getattr(self, 'file_prefix', 'tmp')
+        f = tempfile.NamedTemporaryFile(prefix=prefix, delete=False)
         self.data = [(random.uniform(-100, 100), random.gauss(10, 20))
                      for _ in range(30)]
         for d in self.data:
@@ -36,13 +38,20 @@ class FileLoadBase(unittest.TestCase):
         self.assertEqual([i.y for i in out],
                          [round(i[1], ndigits) for i in self.data])
 
-class TestText(FileLoadBase):
+class TextFileLoadBase(FileLoadBase):
     def line_format(self, t):
         return " %.7f %.7f\n" % t
-
     def test_load(self):
         self.ftk.execute("@0 < '%s'" % self.filename)
         self.compare(self.ftk.get_data(), 7)
+    def test_load_with_lua(self):
+        self.ftk.execute("lua F:load(0, [[%s]])" % self.filename)
+        self.compare(self.ftk.get_data(), 7)
+    def test_load_with_py(self):
+        self.ftk.load(0, self.filename)
+        self.compare(self.ftk.get_data(), 7)
+
+class TestText(TextFileLoadBase):
     def test_load_strict(self):
         self.ftk.execute("@0 < '%s' text strict" % self.filename)
         self.compare(self.ftk.get_data(), 7)
@@ -52,10 +61,20 @@ class TestText(FileLoadBase):
         self.ftk.execute("@0 < '%s' text decimal_comma" % self.filename)
         self.compare(self.ftk.get_data(), 7)
 
+class TestUtf8Filename(TextFileLoadBase):
+    def setUp(self):
+        self.file_prefix = 'tmp_Zażółć_gęślą_jaźń' # string, not u''
+        FileLoadBase.setUp(self)
+
+class TestFilenameWithQuotes(TextFileLoadBase):
+    def setUp(self):
+        self.file_prefix = """tmp'"!@#"""
+        FileLoadBase.setUp(self)
+    def test_load(self): pass # would fail
+
 class TestTextComma(FileLoadBase):
     def line_format(self, t):
         return (" %.7f %.7f\n" % t).replace('.', ',')
-
     def test_load(self):
         self.ftk.execute("@0 < '%s' text decimal_comma" % self.filename)
         self.compare(self.ftk.get_data(), 7)
