@@ -79,12 +79,13 @@ void DLoadDlg::exec_command(bool replace)
     int x = browser_->x_column->GetValue();
     int y = browser_->y_column->GetValue();
     bool has_s = browser_->std_dev_cb->GetValue();
+    int sig = browser_->s_column->GetValue();
     int b = browser_->block_ch->GetSelection();
     // default parameter values are not passed explicitely
     if (x != 1 || y != 2 || has_s || b != 0) {
         cols = ":" + S(x) + ":" + S(y) + ":";
         if (has_s)
-            cols += S(browser_->s_column->GetValue());
+            cols += S(sig);
         cols += ":";
         if (b != 0)
             cols += S(b);
@@ -103,11 +104,20 @@ void DLoadDlg::exec_command(bool replace)
     wxArrayString paths;
     browser_->filectrl->GetPaths(paths);
     string trailer;
-    if (browser_->comma_cb->GetValue())
+    string lua_trailer;
+    if (browser_->comma_cb->GetValue()) {
         trailer = " _ decimal_comma";
+        lua_trailer = ", '', 'decimal_comma'";
+    }
     for (size_t i = 0; i < paths.GetCount(); ++i) {
-        exec(cmd + "@" + (replace ? S(data_idx_) : S("+")) +
-                  " < '" + wx2s(paths[i]) + cols + "'" + trailer);
+        if (paths[i].Find('\'') == wxNOT_FOUND)
+            cmd += "@" + (replace ? S(data_idx_) : S("+")) +
+                   " < '" + wx2s(paths[i]) + cols + "'" + trailer;
+        else // very special case
+            cmd += "lua F:load(" + S(replace ? data_idx_ : -1) +
+                   ", [[" + wx2s(paths[i]) + "]], " + S(b) + ", " +
+                   S(x) + ", " + S(y) + ", " + S(sig) + lua_trailer + ")";
+        exec(cmd);
         if (browser_->title_tc->IsEnabled()) {
             wxString t = browser_->title_tc->GetValue().Trim();
             if (!t.IsEmpty()) {

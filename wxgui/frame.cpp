@@ -1015,12 +1015,23 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
         } // ignore the exception here, it'll be thrown later
     }
 
+    bool has_single_quote = false;
     for (size_t i = 0; i < paths.size(); ++i) {
         if (i != 0)
             cmd += " ; ";
-        cmd += "@+ <'" + wx2s(paths[i]) + "'";
-        if (!options.empty())
-           cmd += " _ " + options;
+        if (!has_single_quote)
+            if (paths[i].Find('\'') != wxNOT_FOUND) {
+                has_single_quote = true;
+                cmd += "lua ";
+            }
+        if (has_single_quote) { // very special case
+            cmd += "F:load(-1, [[" + wx2s(paths[i]) + "]], 0, 1, 2, 0, '', '"
+                + options + "')";
+        } else {
+            cmd += "@+ <'" + wx2s(paths[i]) + "'";
+            if (!options.empty())
+               cmd += " _ " + options;
+        }
         recent_data_->add(paths[i], options.empty() ? "" : "_ "+options);
     }
 
@@ -1042,10 +1053,16 @@ void FFrame::OnDataXLoad (wxCommandEvent&)
 void FFrame::OnDataRecent (wxCommandEvent& event)
 {
     const RecentFiles::Item& item = recent_data_->pull(event.GetId());
-    string cmd = "@+ <'" + wx2s(item.fn.GetFullPath()) + "'";
-    if (!item.options.empty())
-        cmd += " " + item.options;
-    exec(cmd);
+    wxString path = item.fn.GetFullPath();
+    if (path.Find('\'') == wxNOT_FOUND) {
+        string cmd = "@+ <'" + wx2s(path) + "'";
+        if (!item.options.empty())
+            cmd += " " + item.options;
+        exec(cmd);
+    } else { // very special case
+        // ignoring options
+        exec("lua F:load(-1, [[" + wx2s(path) + "]])");
+    }
 }
 
 void FFrame::OnDataRevertUpdate (wxUpdateUIEvent& event)
