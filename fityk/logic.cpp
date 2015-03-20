@@ -148,50 +148,50 @@ vector<int> parse_int_range(string const& s, int maximum)
 }
 } //anonymous namespace
 
-void DataKeeper::import_dataset(int slot, string const& filename,
-                                string const& format, string const& options,
+void DataKeeper::import_dataset(int slot, const string& data_path,
+                                const string& format, const string& options,
                                 BasicContext* ctx, ModelManager &mgr)
 {
     const bool new_dataset = (slot == Lexer::kNew);
-
-    // split "filename" (e.g. "foo.dat:1:2,3::") into real filename
+    // split "data_path" (e.g. "foo.dat:1:2,3::") into filename
     // and colon-separated indices
-    int count_colons = ::count(filename.begin(), filename.end(), ':');
-    string fn;
+    int count_colons = ::count(data_path.begin(), data_path.end(), ':');
+    string filename;
     vector<int> indices[3];
     vector<int> block_range;
     if (count_colons >= 4) {
         // take filename
         string::size_type fn_end = string::npos;
         for (int i = 0; i < 4; ++i)
-            fn_end = filename.rfind(':', fn_end - 1);
-        fn = filename.substr(0, fn_end);
+            fn_end = data_path.rfind(':', fn_end - 1);
+        filename = data_path.substr(0, fn_end);
 
         // blocks
-        string::size_type end_pos = filename.size();
-        string::size_type bpos = filename.rfind(':', end_pos - 1);
+        string::size_type end_pos = data_path.size();
+        string::size_type bpos = data_path.rfind(':', end_pos - 1);
         string::size_type blen = end_pos - bpos - 1;
         if (blen > 0) {
-            int block_count = Data::count_blocks(fn, format, options);
-            string range = filename.substr(bpos+1, blen);
+            int block_count = Data::count_blocks(filename, format, options);
+            string range = data_path.substr(bpos+1, blen);
             block_range = parse_int_range(range, block_count-1);
         }
         end_pos = bpos;
 
         int first_block = block_range.empty() ? 0 : block_range[0];
-        int col_count = Data::count_columns(fn, format, options, first_block);
+        int col_count = Data::count_columns(filename, format, options,
+                                            first_block);
         for (int i = 2; i >= 0; --i) {
-            string::size_type pos = filename.rfind(':', end_pos - 1);
+            string::size_type pos = data_path.rfind(':', end_pos - 1);
             string::size_type len = end_pos - pos - 1;
             if (len > 0) {
-                string range = filename.substr(pos+1, len);
+                string range = data_path.substr(pos+1, len);
                 indices[i] = parse_int_range(range, col_count);
             }
             end_pos = pos;
         }
         assert(fn_end == end_pos);
     } else {
-        fn = filename;
+        filename = data_path;
     }
 
     if (indices[0].size() > 1)
@@ -206,20 +206,32 @@ void DataKeeper::import_dataset(int slot, string const& filename,
         indices[1].push_back(INT_MAX);
     int idx_s = indices[2].empty() ? INT_MAX : indices[2][0];
 
-    for (size_t i = 0; i < indices[1].size(); ++i) {
-        if (new_dataset && (count() != 1 || !data(0)->completely_empty())) {
-            // load data into new slot
-            auto_ptr<Data> d(new Data(ctx, mgr.create_model()));
-            d->load_file(fn, idx_x, indices[1][i], idx_s,
-                         block_range, format, options);
-            append(d.release());
-        } else {
-            // if new_dataset is true, there is only one dataset
-            Data *d = data(new_dataset ? 0 : slot);
-            d->load_file(fn, idx_x, indices[1][i], idx_s,
-                         block_range, format, options);
-        }
+    for (size_t i = 0; i < indices[1].size(); ++i)
+        do_import_dataset(new_dataset, slot,
+                          filename, idx_x, indices[1][i], idx_s, block_range,
+                          format, options, ctx, mgr);
+}
+
+void DataKeeper::do_import_dataset(bool new_dataset, int slot,
+                                   const string& filename,
+                                   int idx_x, int idx_y, int idx_s,
+                                   const vector<int>& block_range,
+                                   const string& format, const string& options,
+                                   BasicContext* ctx, ModelManager &mgr)
+{
+    Data *d;
+    auto_ptr<Data> auto_d;
+    if (!new_dataset)
+        d = data(slot);
+    else if (count() == 1 && data(0)->completely_empty()) // reusable slot 0
+        d = data(0);
+    else { // new slot
+        auto_d.reset(new Data(ctx, mgr.create_model()));
+        d = auto_d.get();
     }
+    d->load_file(filename, idx_x, idx_y, idx_s, block_range, format, options);
+    if (auto_d.get())
+        append(auto_d.release());
 }
 
 void Full::outdated_plot()

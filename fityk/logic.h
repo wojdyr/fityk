@@ -40,7 +40,13 @@ public:
     void set_default_idx(int n) { index_check(n); default_idx_ = n; }
 
     /// import dataset (or multiple datasets, in special cases)
-    void import_dataset(int slot, const std::string& filename,
+    void import_dataset(int slot, const std::string& data_path,
+                        const std::string& format, const std::string& options,
+                        BasicContext* ctx, ModelManager &mgr);
+    void do_import_dataset(bool new_dataset, int slot,
+                        const std::string& filename,
+                        int idx_x, int idx_y, int idx_s,
+                        const std::vector<int>& block_range,
                         const std::string& format, const std::string& options,
                         BasicContext* ctx, ModelManager &mgr);
 
