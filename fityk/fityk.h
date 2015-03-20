@@ -165,7 +165,14 @@ public:
     void execute(std::string const& s) throw(SyntaxError, ExecuteError,
                                              ExitRequestedException);
 
-    /// load data
+
+    /// load data from file (path should be ascii or utf8, col=0 is index)
+    void load(int dataset, std::string const& path,
+              int block=0, int x_col=1, int y_col=2, int sig_col=0,
+              std::string const& format="", std::string const& options="")
+                  throw(ExecuteError);
+
+    /// load data from arrays
     void load_data(int dataset,
                    std::vector<realt> const& x,
                    std::vector<realt> const& y,

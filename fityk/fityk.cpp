@@ -273,6 +273,20 @@ double Fityk::get_view_boundary(char side)
     }
 }
 
+void Fityk::load(int dataset, string const& path,
+                 int block, int x_col, int y_col, int sig_col,
+                 string const& format, string const& options)
+                     throw(ExecuteError)
+{
+    try {
+        priv_->dk.do_import_dataset(dataset < 0, dataset,
+                    path, x_col, y_col, sig_col == 0 ? INT_MAX : sig_col,
+                    vector1(block), format, options,
+                    priv_, priv_->mgr);
+    }
+    CATCH_EXECUTE_ERROR
+}
+
 void Fityk::load_data(int dataset,
                       vector<realt> const& x,
                       vector<realt> const& y,
