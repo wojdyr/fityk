@@ -47,7 +47,7 @@ void View::change_view(const RealRange& hor_r, const RealRange& ver_r,
             x_max += 0.1;
         }
         if (log_x_) {
-            x_min = max(epsilon, x_min);
+            x_min = max(epsilon, x_min); // 'max' is intentional
             x_max = max(epsilon, x_max);
             double margin = log(x_max / x_min) * relative_x_margin;
             if (hor.lo_inf())
@@ -71,7 +71,7 @@ void View::change_view(const RealRange& hor_r, const RealRange& ver_r,
             y_max += 0.1;
         }
         if (log_y_) {
-            y_min = max(epsilon, y_min);
+            y_min = max(epsilon, y_min); // 'max' is intentional
             y_max = max(epsilon, y_max);
             double margin = log(y_max / y_min) * relative_y_margin;
             if (ver.lo_inf())
@@ -108,7 +108,6 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
 {
     if (datas.empty())
         throw ExecuteError("Can't find x-y axes ranges for plot");
-    y_min = y_max = (datas.front()->get_n() > 0 ? datas.front()->get_y(0) : 0);
     bool min_max_set = false;
     v_foreach (Data const*, i, datas) {
         vector<Point>::const_iterator f = (*i)->get_point_at(hor.lo);
@@ -116,11 +115,15 @@ void View::get_y_range(vector<Data const*> datas, vector<Model const*> models,
         //first we are searching for minimal and max. y in active points
         for (vector<Point>::const_iterator j = f; j < l; ++j) {
             if (j->is_active && is_finite(j->y)) {
-                min_max_set = true;
-                if (j->y > y_max)
-                    y_max = j->y;
-                if (j->y < y_min)
-                    y_min = j->y;
+                if (min_max_set) {
+                    if (j->y > y_max)
+                        y_max = j->y;
+                    if (j->y < y_min)
+                        y_min = j->y;
+                } else {
+                    y_min = y_max= j->y;
+                    min_max_set = true;
+                }
             }
         }
     }
