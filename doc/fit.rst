@@ -169,7 +169,7 @@ Parameter uncertainties and related values can be shown using:
 * ``info confidence 95`` -- confidence limits for confidence level 95%
   (any level can be choosen)
 * ``info cov`` -- the *C*:sup:`--1` matrix.
-* ``print $variable.error`` -- symmetric error of specified simple-variable,
+* ``print $variable.error`` -- standard error of specified simple-variable,
   ``print %func.height.error`` also works.
 
 .. admonition:: In the GUI
