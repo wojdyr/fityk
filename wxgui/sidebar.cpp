@@ -1063,7 +1063,7 @@ void SideBar::update_param_panel()
     // don't show too many parameters of vararg functions
     // (but if user defined function with large number of arguments
     // let him see all parameters)
-    if (new_count > 8 && !pp_func_->tp()->fargs.empty())
+    if (new_count > 8 && pp_func_->tp()->fargs.empty())
         new_count = 8;
     if (new_count < old_count)
         param_panel_->delete_row_range(new_count, old_count);
