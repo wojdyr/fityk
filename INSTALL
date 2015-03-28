@@ -43,7 +43,7 @@ configure flags to disable unused features and make the compilation faster.
 --disable-tipdlg --disable-wizarddlg --disable-miniframe --disable-joystick \
 --disable-gif --disable-pcx --disable-tga --disable-iff --disable-pnm \
 --disable-mdi --disable-richtext --disable-rearrangectrl --disable-fswatcher \
---disable-ribbon --disable-propgrid --disable-infobar --disable-arcstream \
+--disable-ribbon --disable-propgrid --disable-arcstream \
 --disable-dataviewctrl --disable-detect_sm --disable-treelist \
 --disable-baseevtloop
 
