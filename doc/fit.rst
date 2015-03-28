@@ -61,6 +61,8 @@ is superior.
 Uncertainty of Parameters
 -------------------------
 
+(It is easier for me to find a quote than to express it myself).
+
 From the book J. Wolberg, *Data Analysis Using the Method of Least Squares: Extracting the Most Information from Experiments*, Springer, 2006, p.50:
 
    (...) we turn to the task of determining the uncertainties associated
@@ -84,7 +86,8 @@ Terms of the *C* matrix are given as (p. 47 in the same book):
   C_{jk}=\sum_{i=1}^n w_i \frac{\partial f}{\partial a_j} \frac{\partial f}{\partial a_k}
 
 :math:`\sigma_{a_k}` above is often called a *standard error*.
-Having standard errors, it is easy to calculate confidence intervals.
+Having standard errors, it is easy to calculate *confidence intervals*.
+But all these values should be used with care.
 Now another book will be cited: H. Motulsky and A. Christopoulos,
 *Fitting Models to Biological Data Using Linear and Nonlinear Regression:
 A Practical Guide to Curve Fitting*, Oxford University Press, 2004.
@@ -107,6 +110,44 @@ __ http://www.graphpad.com/manuals/prism4/RegressionBook.pdf
    sensible fit. If the regression converged on a false minimum, then the
    sum-of-squares as well as the parameter values will be wrong, so the
    reported standard error and confidence intervals won’t be helpful.
+
+
+.. _bound_constraints:
+
+Bound Constraints
+-----------------
+
+*Simple-variables* can have a :ref:`domain <domain>`.
+Fitting method ``mpfit`` (Lev-Mar implementation) and the methods
+from the NLOpt library use domains to constrain the parameters
+-- they never let the parameters go outside of the domain during fitting.
+
+In the literature, bound constraints are also called box constraints or,
+more generally, inequality constraints.
+Now a quotation discouraging the use of constraints. Peter Gans,
+*Data Fitting in the Chemical Sciences by the Method of Least Squares*,
+John Wiley & Sons, 1992, chapter 5.2.2:
+
+   Before looking at ways of dealing with inequality constraints we must ask a
+   fundamental question: are they necessary? In the physical sciences and in
+   least-squares minimizations in particular, inequality constraints are not
+   always justified. The most common inequality constraint is that some number
+   that relates to a physical quantity should be positive, *p*:sub:`j` > 0. If
+   an unconstrained minimalization leads to a negative value, what are we to
+   conclude? There are three possibilities; (a) the refinement has converged
+   to a false minimum; (b) the model is wrong; (c) the parameter is not well
+   defined by the data and is not significantly different from zero. In each
+   of these three cases a remedy is at hand that does not involve constrained
+   minimization: (a) start the refinement from good first estimates of the
+   parameters; (b) change the model; (c) improve the quality of the data by
+   further experimental work. If none of these remedies cure the problem of
+   non-negativity constraints, then something is seriously wrong with the
+   patient, and constrained minimization will probably not help.
+
+Setting the domain is described in the section :ref:`domain`.
+
+For a convenience, the :option:`box_constraints` option can globally disable
+(and re-enable) the constraints.
 
 
 .. _fitting_cmd:

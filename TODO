@@ -89,6 +89,7 @@
 * "anonymous" function types: %f = ~1/(1+exp(11*(~0.663-x)))  -> Anon0(a0,a1)
 
 * fitting - external libraries to be considered/tested:
+  - ceres-solver (or http://dlib.net/optimization.html)
   - libgencurvefit (Differential Evolution),
   - PaGMO library that collects many optimisation methods.
 

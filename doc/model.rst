@@ -159,26 +159,39 @@ Variables can be deleted using the command::
 
    delete $variable
 
+
 .. _domain:
 
-Some fitting algorithms randomize the parameters of the model
-(i.e. they randomize simple variables). To effectively use such algorithms,
-the user should specify a :dfn:`domain` for each simple-variable,
-i.e. the minimum and maximum value.
-The domain does not imply any constraints on the value
-the variable can have -- it is only a hint for fitting algorithms.
+Domains
+-------
 
-The default algorithm (Lev-Mar) does not need it, so in most cases you
-do not need to worry about domains.
+Simple-variables may have a :dfn:`domain`,
+which is used for two things when fitting.
 
-Domains are used by the Nelder-Mead method and Genetic Algorithms.
+Most importantly, fitting methods that support bound constraints
+use the domain as lower and/or upper bounds.
+See the section :ref:`bound_constraints` for details.
+
+The other use is for randomizing parameters (simple-variables) of the model.
+Methods that stochastically initialize or modify parameters
+(usually generating a set of initial points) need well-defined
+domains (minimum and maximum values for parameters) to work effectively.
+Such methods include Nelder-Mead simplex and Genetic Algorithms,
+but not the default Lev-Mar method, so in most cases you
+do not need to worry about it.
+
 The syntax is as follows::
 
     $a = ~12.3 [0:20] # initial values are drawn from the (0, 20) range
+    $a = ~12.3 [0:]   # only lower bound
+    $a = ~12.3 [:20]  # only upper bound
+    $a = ~15.0        # domain stays the same
+    $a = ~15.0 []     # no domain
+    $a = ~{$a} [0:20] # domain is set again
 
-If the domain is not specified, the default domain is used, which is
-±\ *p*\ % of the current value, where *p* can be set using the
-:option:`domain_percent` option.
+If the domain is not specified but it is required (for the latter use)
+by the fitting method, we assume it to be ±\ *p*\ % of the current value,
+where *p* can be set using the :option:`domain_percent` option.
 
 Function Types and Functions
 ----------------------------
