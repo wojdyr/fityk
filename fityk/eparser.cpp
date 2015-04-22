@@ -92,6 +92,10 @@ const char* function_name(int op)
         case OP_FUNC: return "%function";
         case OP_SUM_F: return "F";
         case OP_SUM_Z: return "Z";
+        // "methods" of %f/F/Z
+        case OP_NUMAREA: return "numarea";
+        case OP_FINDX: return "findx";
+        case OP_FIND_EXTR: return "extremum";
         default: return "";
     }
 }
@@ -450,7 +454,7 @@ void ExpressionParser::put_func_sth(Lexer& lex, const string& name,
             else if (word == "extremum")
                 put_function(OP_FIND_EXTR);
             else
-                lex.throw_syntax_error("unknown method of F/Z");
+                lex.throw_syntax_error("unknown method: " + word);
         } else { // property of %function (= $variable)
             const Function *f = F_->mgr.find_function(name);
             string v = f->used_vars().get_name(f->get_param_nr(word));
