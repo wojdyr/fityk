@@ -28,7 +28,9 @@
 #include "fityk/fityk.h"
 #include "fityk/ui_api.h"
 #include "gnuplot.h"
-#include <config.h> // VERSION, HAVE_LIBREADLINE, etc
+#if HAVE_CONFIG_H
+#  include <config.h> // VERSION, HAVE_LIBREADLINE, etc
+#endif
 
 #if HAVE_LIBREADLINE
 # if defined(HAVE_READLINE_READLINE_H)
