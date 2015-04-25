@@ -487,9 +487,9 @@ void FPlot::set_scale(int pixel_width, int pixel_height)
 {
     Rect const &v = ftk->view;
     if (pixel_width > 0)
-	xs.set(v.left(), v.right(), pixel_width);
+        xs.set(v.left(), v.right(), pixel_width);
     if (pixel_height > 0)
-	ys.set(v.top(), v.bottom(), pixel_height);
+        ys.set(v.top(), v.bottom(), pixel_height);
 }
 
 int FPlot::get_special_point_at_pointer(wxMouseEvent& event)

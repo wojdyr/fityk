@@ -350,14 +350,14 @@ realt u = 0.5*dfunc_int(twopsimin,cent_rad)/av_[4];
 realt v = 0.5*dfunc_int(twopsiinfl,cent_rad)/av_[4];
 denom_unscaled = 2.0 * min(av_[5],av_[4]) * (M_PI/(4.0*av_[4]) - v) + (av_[4] + av_[5])* (v - u) -
    (1.0/(2*av_[4]))*0.5*(log(fabs(sin(twopsiinfl) + 1)) - log(fabs(sin(twopsiinfl)-1)) -
-		     log(fabs(sin(twopsimin) + 1)) + log(fabs(sin(twopsimin)-1)));
+                     log(fabs(sin(twopsimin) + 1)) + log(fabs(sin(twopsimin)-1)));
 denom = denom_unscaled * 2.0/fabs(cent_rad-twopsimin);     //Scale to [-1,1] interval of G-L integration
 // The following two factors are the analytic derivatives of the integral of D with respect to
 // h_l and s_l.
 df_dh_factor = (1.0/(2*av_[4]))*(dfunc_int(twopsiinfl,cent_rad) - dfunc_int(twopsimin,cent_rad)) -
-					     (1.0/av_[4])*denom_unscaled;
+                                             (1.0/av_[4])*denom_unscaled;
 df_ds_factor = (1.0/(2*av_[4]))*(dfunc_int(twopsiinfl,cent_rad) - dfunc_int(twopsimin,cent_rad)) +
-					    (1.0/av_[4])*(M_PI/2 - dfunc_int(twopsiinfl,cent_rad));
+                                            (1.0/av_[4])*(M_PI/2 - dfunc_int(twopsiinfl,cent_rad));
 // Precalculate the x and hfunc coefficients
 for(int pt=0;pt<512;pt++) {
     delta_n_neg[pt] = (cent_rad + twopsimin)/2.0 - (cent_rad-twopsimin)*x1024[pt]/2;
@@ -477,7 +477,7 @@ CALCULATE_DERIV_BEGIN(FuncFCJAsymm)
     // degrees, but our calculations use radians,so we remember to scale at the end.
     realt dRdg = ex/fwhm_rad * (-1.0 + -2.0*facta*xa1a2);  //gaussian part:checked
     dRdg = av_[0] * ((1-av_[3])* dRdg + av_[3]*(-1.0*lor/fwhm_rad +
-						16*xa1a2*xa1a2/(M_PI*(fwhm_rad*fwhm_rad))*1.0/pow(1.0+4*xa1a2*xa1a2,2)));
+                                                16*xa1a2*xa1a2/(M_PI*(fwhm_rad*fwhm_rad))*1.0/pow(1.0+4*xa1a2*xa1a2,2)));
     realt dRde =  av_[0] * (lor - ex);           //with respect to mixing
     realt dRdtt = -1.0* av_[0] * ((1.0-av_[3])*2.0*ex*facta/fwhm_rad - av_[3]*lor*8*xa1a2/(fwhm_rad*(1+4*xa1a2*xa1a2)));
     if(side==0) {
