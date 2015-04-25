@@ -119,7 +119,7 @@ static
 void change_current_working_dir(const char* path)
 {
 #ifdef _WIN32
-    bool ok = SetCurrentDirectoryA(path);
+    BOOL ok = SetCurrentDirectoryA(path);
 #else
     bool ok = (chdir(path) == 0);
 #endif

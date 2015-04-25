@@ -126,7 +126,8 @@ protected:
     int center_idx_;
 
 private:
-    static std::vector<realt> calc_val_xx, calc_val_yy;
+    static std::vector<realt> calc_val_xx;
+    static std::vector<realt> calc_val_yy;
 };
 
 } // namespace fityk

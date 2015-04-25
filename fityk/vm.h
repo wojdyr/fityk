@@ -108,7 +108,7 @@ enum Op
 };
 
 /// handles VM (virtual machine) data and provides low-level access to it
-class VMData
+class FITYK_API VMData
 {
 public:
     static bool has_idx(int op)

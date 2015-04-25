@@ -15,7 +15,7 @@ class Data;
 class Model;
 class DataKeeper;
 
-struct Rect
+struct FITYK_API Rect
 {
     RealRange hor, ver;
 
@@ -35,7 +35,8 @@ struct Rect
 class FITYK_API View: public Rect
 {
 public:
-    static const double relative_x_margin, relative_y_margin;
+    static const double relative_x_margin;
+    static const double relative_y_margin;
 
     View(const DataKeeper* dk)
         : Rect(0, 180., -50, 1e3), dk_(dk),
