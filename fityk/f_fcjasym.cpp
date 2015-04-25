@@ -348,7 +348,7 @@ extra_int is the integral of 1/cos(psi).
 */
 realt u = 0.5*dfunc_int(twopsimin,cent_rad)/av_[4];
 realt v = 0.5*dfunc_int(twopsiinfl,cent_rad)/av_[4];
-denom_unscaled = 2.0 * fmin(av_[5],av_[4]) * (M_PI/(4.0*av_[4]) - v) + (av_[4] + av_[5])* (v - u) -
+denom_unscaled = 2.0 * min(av_[5],av_[4]) * (M_PI/(4.0*av_[4]) - v) + (av_[4] + av_[5])* (v - u) -
    (1.0/(2*av_[4]))*0.5*(log(fabs(sin(twopsiinfl) + 1)) - log(fabs(sin(twopsiinfl)-1)) -
 		     log(fabs(sin(twopsimin) + 1)) + log(fabs(sin(twopsimin)-1)));
 denom = denom_unscaled * 2.0/fabs(cent_rad-twopsimin);     //Scale to [-1,1] interval of G-L integration
