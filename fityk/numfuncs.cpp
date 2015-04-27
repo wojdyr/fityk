@@ -12,34 +12,41 @@ using namespace std;
 
 namespace fityk {
 
-/// returns position pos in sorted vector of points, *pos and *(pos+1) are
-/// required segment for interpolation
-/// optimized for sequential calls with slowly increasing x's
+/// Returns position pos in sorted vector of points: points *pos and *(pos+1)
+/// can be used for interpolation of a value at x.
+/// Optimized for sequential calls with slowly increasing x's.
 template<typename T>
 typename vector<T>::iterator
 get_interpolation_segment(vector<T> &bb,  double x)
 {
-    static typename vector<T>::iterator pos = bb.begin();
+    static size_t hint = 0;
     assert (size(bb) > 1);
     // when outside of the range, use the first or the last segment
-    if (x <= bb.front().x)
+    if (x <= bb[1].x) {
+        hint = 0;
         return bb.begin();
+    }
     if (x >= bb.back().x)
         return bb.end() - 2;
-    if (pos < bb.begin() || pos >= bb.end())
-        pos = bb.begin();
-    // check if current pos is ok
+    if (hint >= bb.size())
+        hint = 0;
+    // check if hinted position is good
+    typename vector<T>::iterator pos = bb.begin() + hint;
     if (pos->x <= x) {
         //pos->x <= x and x < bb.back().x and bb is sorted  => pos < bb.end()-1
-        if (x <= (pos+1)->x)
+        if (x <= (pos+1)->x) {
             return pos;
-        // try again
-        ++pos;
-        if (pos->x <= x && (pos+1 == bb.end() || x <= (pos+1)->x))
-            return pos;
+        // nope, try the next position
+        } if (pos+2 == bb.end() || x <= (pos+2)->x) {
+            ++hint;
+            return pos+1;
+        }
     }
+    // nope, use general search
     pos = lower_bound(bb.begin(), bb.end(), T(x, 0)) - 1;
-    // pos >= bb.begin() because x > bb.front().x
+    //printf("DEBUG: get_interpolation_segment %zu -> %zu / %zu (%g)\n",
+    //        hint, size_t(pos-bb.begin()), bb.size(), x);
+    hint = pos - bb.begin();
     return pos;
 }
 
