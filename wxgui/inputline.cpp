@@ -21,10 +21,10 @@
 /// This control was originally written for Fityk (http://fityk.sf.net)
 
 #include <wx/wx.h>
-#include <wx/ffile.h>
 #include <stdio.h>  // fgets()
 
 #include "inputline.h"
+#include "cmn.h"
 
 
 InputLine::InputLine(wxWindow *parent, wxWindowID id,
@@ -58,7 +58,7 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
                       NULL, this);
     // read history
     if (!hist_file.IsEmpty()) {
-        wxFFile f(hist_file, "r");
+        FFile f(hist_file, "r");
         if (f.IsOpened()) {
             char line[512];
             while (fgets(line, 512, f.fp())) {
@@ -78,7 +78,7 @@ InputLine::~InputLine()
     // write history
     if (hist_file.IsEmpty())
         return;
-    wxFFile f(hist_file, "w");
+    FFile f(hist_file, "w");
     if (!f.IsOpened())
         return;
     for (size_t i = 0; i < m_history.GetCount(); ++i)

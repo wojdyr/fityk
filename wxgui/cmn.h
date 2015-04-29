@@ -10,6 +10,7 @@
 #include <wx/arrstr.h>
 #include <wx/spinctrl.h>
 #include <wx/mstream.h>
+#include <wx/ffile.h>
 
 // input mode, changes functions of left and right clicks
 enum MouseModeEnum {
@@ -213,6 +214,17 @@ public:
     TextComboDlg(wxWindow *parent, const wxString& message,
                  const wxString& caption);
     wxComboBox *combo;
+};
+
+// this wrapper is only to avoid wxLogSysError when the file can't be open
+class FFile: public wxFFile
+{
+public:
+    FFile(const wxString& filename, const wxString& mode) {
+        FILE* fp = wxFopen(filename, mode);
+        if (fp)
+            Attach(fp, filename);
+    }
 };
 
 #endif // FITYK_WX_CMN_H_

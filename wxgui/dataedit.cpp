@@ -4,7 +4,6 @@
 #include <wx/wx.h>
 #include <wx/statline.h>
 #include <wx/hyperlink.h>
-#include <wx/ffile.h>
 #include <wx/textfile.h>
 #include <wx/tokenzr.h>
 #include <algorithm>
@@ -12,6 +11,7 @@
 #include "dataedit.h"
 
 #include "frame.h"
+#include "cmn.h"
 #include "app.h" // get_help_url()
 #include "fityk/data.h" // Data, Point
 #include "fityk/logic.h" // ui()
@@ -311,7 +311,7 @@ void EditTransDlg::read_transforms(bool skip_file)
 {
     transforms.clear();
     wxTextFile f(get_conf_file("transform"));
-    if (!skip_file && f.Open()) {
+    if (!skip_file && f.Exists() && f.Open()) {
         for (wxString s = f.GetFirstLine(); !f.Eof(); s = f.GetNextLine()) {
             DataTransform tr = line_to_datatran(s);
             if (!tr.name.empty())
@@ -410,7 +410,7 @@ void EditTransDlg::OnDown(wxCommandEvent&)
 
 void EditTransDlg::OnSave(wxCommandEvent&)
 {
-    wxFFile f(get_conf_file("transform"), "w");
+    FFile f(get_conf_file("transform"), "w");
     if (!f.IsOpened()) {
         wxMessageBox("Cannot open file" + f.GetName(), "Error",
                      wxOK|wxICON_ERROR);
