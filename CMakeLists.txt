@@ -231,3 +231,18 @@ install(TARGETS fityk ${BUILT_LUA}
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION "${LIB_INSTALL_DIR}"
         LIBRARY DESTINATION "${LIB_INSTALL_DIR}")
+
+
+enable_testing()
+if (NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/catch.hpp")
+  message(STATUS "Downloading catch.hpp...")
+  file(DOWNLOAD
+       https://raw.githubusercontent.com/philsquared/Catch/develop/single_include/catch.hpp
+       "${CMAKE_SOURCE_DIR}/tests/catch.hpp" SHOW_PROGRESS)
+endif()
+add_library(catch STATIC tests/catch.cpp)
+foreach(t gradient guess psvoigt num lua)
+  add_executable(test_${t} tests/${t}.cpp)
+  target_link_libraries(test_${t} fityk catch)
+  add_test(NAME ${t} COMMAND $<TARGET_FILE:test_${t}>)
+endforeach()
