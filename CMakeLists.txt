@@ -12,7 +12,7 @@ option(BUILD_SHARED_LIBS "Build as a shared library" ON)
 # on Windows default CMAKE_INSTALL_PREFIX is Program Files/Fityk
 # so it overwrites files from Fityk installer
 if (CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT AND WIN32)
-  set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install"
+  set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/inst"
       CACHE PATH "install prefix" FORCE)
 endif()
 
