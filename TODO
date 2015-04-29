@@ -1,10 +1,11 @@
 * [GUI, Windows] bad layout of Quick Load File dialog
 
-* document box constraints
-
 ----  1.3.0
 
+* handle correlated parameters: use pseudo-inverse for covariance matrix
+
 * API: add all_datasets(): for n, title in F:all_datasets() do ...
+  (or a public class Dataset?)
 
 * API: access to confidence intervals
 

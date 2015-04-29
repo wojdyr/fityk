@@ -1,5 +1,8 @@
 # Use autotools-based build system instead if you can.
-# CMake is used only to build libfityk in special cases.
+# For now CMake limited to building libfityk and cfityk.
+# But it can automatically download and build Lua, xylib and zlib!
+# You still need to have Boost libraries (headers only).
+# If they can't be found automatically, use -D BOOST_ROOT=C:\Path\to\boost
 
 cmake_minimum_required(VERSION 2.8)
 project(fityk C CXX)
