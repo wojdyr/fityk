@@ -20,13 +20,16 @@ class FileLoadBase(unittest.TestCase):
         self.ftk.set_option_as_number("verbosity", -1)
         prefix = getattr(self, 'file_prefix', 'tmp')
         f = tempfile.NamedTemporaryFile(prefix=prefix, delete=False)
-        self.data = [(random.uniform(-100, 100), random.gauss(10, 20))
-                     for _ in range(30)]
+        self.data = self.generate_data()
         for d in self.data:
             f.write(self.line_format(d))
         f.close()
         self.data.sort()
         self.filename = f.name
+
+    def generate_data(self):
+        return [(random.uniform(-100, 100), random.gauss(10, 20))
+                for _ in range(30)]
 
     def tearDown(self):
         #print "remove " + self.filename
@@ -85,6 +88,44 @@ class TestTextComma(FileLoadBase):
         self.ftk.execute("@0 < '%s'" % self.filename)
         self.assertNotEqual([i.x for i in self.ftk.get_data()],
                             [round(i[0], 7) for i in self.data])
+
+
+class Test5ColsFile(FileLoadBase):
+    def generate_data(self):
+        return [(random.uniform(-100, 100),
+                 random.gauss(0, 20),
+                 random.gauss(10, 1),
+                 random.gauss(20, 1),
+                 random.gauss(30, 1))
+                for _ in range(30)]
+    def line_format(self, t):
+        return "%.7f %.7f %.7f %.7f %.7f\n" % t
+    def test_load_default(self):
+        self.ftk.execute("@0 < '%s'" % self.filename)
+        self.compare(self.ftk.get_data(), ndigits=7)
+        self.ftk.execute("@0 < '%s::::'" % self.filename)
+        self.compare(self.ftk.get_data(), ndigits=7)
+        self.ftk.execute("@0 < '%s:1:2::0'" % self.filename)
+        self.compare(self.ftk.get_data(), ndigits=7)
+    def test_load_with_index(self):
+        self.ftk.execute("@0 < '%s:0:2::'" % self.filename)
+        out = self.ftk.get_data()
+        self.assertEqual([i.x for i in out], range(len(out)))
+    def test_load_with_sigma(self):
+        self.ftk.execute("@0 < '%s:1:2:3:'" % self.filename)
+        out = self.ftk.get_data()
+        self.assertEqual([i.sigma for i in out],
+                         [round(i[2], 7) for i in self.data])
+    def test_load_multi_y(self):
+        self.ftk.execute("@+ < '%s:1:2..3,5:4:'" % self.filename)
+        for n, y_col in enumerate([2,3,5]):
+            out = self.ftk.get_data(n)
+            self.assertEqual([i.x for i in out],
+                             [round(i[0], 7) for i in self.data])
+            self.assertEqual([i.y for i in out],
+                             [round(i[y_col-1], 7) for i in self.data])
+            self.assertEqual([i.sigma for i in out],
+                             [round(i[3], 7) for i in self.data])
 
 
 class TestSimpleScript(unittest.TestCase):
