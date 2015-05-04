@@ -85,6 +85,12 @@ For debugging you may use:
 ./configure CXXFLAGS="-g -O0 -fno-inline -W -Wall" \
       --enable-static --disable-shared
 
+Tests
+=====
+
+make check - runs unit tests in C++
+make check-python - runs tests that require Python bindings
+make check-cfityk - runs cfityk script that tests command parser
 
 ###########################################################################
 #             The instructions below are from GNU automake.               #

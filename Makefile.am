@@ -81,10 +81,15 @@ samples_helloc_LDADD = fityk/libfityk.la
 # workaround to link helloc with C++ linker
 nodist_EXTRA_samples_helloc_SOURCES = dummy.cxx
 
-check-scripts:
+check-cfityk:
+	cli/cfityk -q -c "= F:get_info('version')..'\n'..F:get_info('compiler')"
 	cli/cfityk -n -q $(srcdir)/tests/test_syntax.fit
+
+check-python:
 	PYTHONPATH=fityk/swig/.libs:$(srcdir)/fityk/swig/ \
 	   python -m unittest discover -s $(srcdir)/tests/
+
+check-scripts: check-cfityk check-python
 
 # --- doc/ ---
 
