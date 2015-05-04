@@ -83,6 +83,12 @@ nodist_EXTRA_samples_helloc_SOURCES = dummy.cxx
 
 check-cfityk:
 	cli/cfityk -q -c "= F:get_info('version')..'\n'..F:get_info('compiler')"
+	cli/cfityk -n -q $(srcdir)/samples/enso.fit
+	cli/cfityk -n -q $(srcdir)/samples/read-shockley.fit
+	cli/cfityk -n -q $(srcdir)/samples/nacl01.fit
+	cli/cfityk -n -q $(srcdir)/samples/SiC_Zn.fit
+	cli/cfityk -n -q $(srcdir)/samples/hello.lua
+	rm -f tmp_save.fit
 	cli/cfityk -n -q $(srcdir)/tests/test_syntax.fit
 
 check-python:
