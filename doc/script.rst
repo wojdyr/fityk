@@ -192,6 +192,14 @@ Settings
 Data
 ----
 
+.. method:: Fityk.load(spec [, d])
+
+    Load data to @*d* slot. The first argument is either a string with path
+    or LoadSpec struct that apart from the ``path`` has also the following
+    optional members: ``x_col``, ``y_col``, ``sig_col``, ``blocks``,
+    ``format``, ``options``. The meaning of these parameters is the same
+    as described in :ref:`dataload`.
+
 .. method:: Fityk.load_data(d, xx, yy, sigmas [, title])
 
     Load data to @*d* slot. *xx* and *yy* must be numeric arrays

@@ -34,7 +34,8 @@ where
   Column 0 means index of the point: 0 for the first point,
   1 for the second, etc.
 
-- *block* is only supported by formats with multiple blocks of data.
+- *block* - selects one or more blocks of data from a multi-block file
+  such as VAMAS
 
 - *filetype* usually can be omitted, because in most of the cases
   the filetype can be detected; the list of supported filetypes is

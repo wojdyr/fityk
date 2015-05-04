@@ -54,11 +54,11 @@ DLoadDlg::DLoadDlg(wxWindow* parent, int data_idx, Data* data,
         browser_->filectrl->SetDirectory(dir);
     browser_->update_file_options();
 
-    if (data->get_given_x() != INT_MAX)
+    if (data->get_given_x() != fityk::LoadSpec::NN)
         browser_->x_column->SetValue(data->get_given_x());
-    if (data->get_given_y() != INT_MAX)
+    if (data->get_given_y() != fityk::LoadSpec::NN)
         browser_->y_column->SetValue(data->get_given_y());
-    if (data->get_given_s() != INT_MAX) {
+    if (data->get_given_s() != fityk::LoadSpec::NN) {
         browser_->std_dev_cb->SetValue(true);
         browser_->s_column->SetValue(data->get_given_s());
     }

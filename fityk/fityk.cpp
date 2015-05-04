@@ -273,16 +273,15 @@ double Fityk::get_view_boundary(char side)
     }
 }
 
-void Fityk::load(int dataset, string const& path,
-                 int block, int x_col, int y_col, int sig_col,
-                 string const& format, string const& options)
+void Fityk::load(LoadSpec const& spec, int dataset)
                      throw(ExecuteError)
 {
+    if (dataset == DEFAULT_DATASET)
+        dataset = priv_->dk.default_idx();
     try {
-        priv_->dk.do_import_dataset(dataset < 0, dataset,
-                    path, x_col, y_col, sig_col == 0 ? INT_MAX : sig_col,
-                    vector1(block), format, options,
-                    priv_, priv_->mgr);
+        bool new_dataset = (dataset < 0);
+        priv_->dk.do_import_dataset(new_dataset, dataset, spec,
+                                    priv_, priv_->mgr);
     }
     CATCH_EXECUTE_ERROR
 }

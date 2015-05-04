@@ -36,10 +36,7 @@ public :
     ~Data();
     std::string get_info() const;
 
-    void load_file(const std::string& filename,
-                   int idx_x, int idx_y, int idx_s,
-                   const std::vector<int>& blocks,
-                   const std::string& format, const std::string& options);
+    void load_file(const LoadSpec& spec);
 
     int load_arrays(const std::vector<realt>& x, const std::vector<realt>& y,
                     const std::vector<realt>& sigma,
@@ -80,9 +77,9 @@ public :
     double get_x_max() const;
     std::vector<Point> const& points() const { return p_; }
     std::vector<Point>& get_mutable_points() { return p_; }
-    int get_given_x() const { return given_x_; }
-    int get_given_y() const { return given_y_; }
-    int get_given_s() const { return given_s_; }
+    int get_given_x() const { return spec_.x_col; }
+    int get_given_y() const { return spec_.y_col; }
+    int get_given_s() const { return spec_.sig_col; }
     void revert();
     Model* model() { return model_; }
     const Model* model() const { return model_; }
@@ -92,10 +89,7 @@ private:
     Model* const model_;
     std::string title_;
     std::string filename_;
-    int given_x_, given_y_, given_s_;/// columns given when loading the file
-    std::vector<int> given_blocks_;
-    std::string given_format_;
-    std::string given_options_;
+    LoadSpec spec_; // given when loading file
     double x_step_; // 0.0 if not fixed;
     bool has_sigma_;
     std::vector<Point> p_;

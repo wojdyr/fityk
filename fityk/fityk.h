@@ -147,6 +147,21 @@ struct FITYK_API Point
     bool operator< (Point const& q) const { return x < q.x; }
 };
 
+/// the only use of this struct is as an argument to Fityk::load()
+struct FITYK_API LoadSpec
+{
+    enum { NN = -10000 }; // not given, default value
+    std::string path;  // utf8 (ascii is valid utf8)
+    std::vector<int> blocks;
+    int x_col;
+    int y_col;
+    int sig_col;
+    std::string format;
+    std::string options;
+    LoadSpec() : x_col(NN), y_col(NN), sig_col(NN) {}
+    explicit LoadSpec(std::string const& p)
+        : path(p), x_col(NN), y_col(NN), sig_col(NN) {}
+};
 
 
 /// the public API to libfityk
@@ -167,10 +182,10 @@ public:
 
 
     /// load data from file (path should be ascii or utf8, col=0 is index)
-    void load(int dataset, std::string const& path,
-              int block=0, int x_col=1, int y_col=2, int sig_col=0,
-              std::string const& format="", std::string const& options="")
+    void load(LoadSpec const& spec, int dataset=DEFAULT_DATASET)
                   throw(ExecuteError);
+    void load(std::string const& path, int dataset=DEFAULT_DATASET)
+      throw(ExecuteError) { load(LoadSpec(path), dataset); }
 
     /// load data from arrays
     void load_data(int dataset,

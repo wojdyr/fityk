@@ -48,10 +48,10 @@ class TextFileLoadBase(FileLoadBase):
         self.ftk.execute("@0 < '%s'" % self.filename)
         self.compare(self.ftk.get_data(), 7)
     def test_load_with_lua(self):
-        self.ftk.execute("lua F:load(0, [[%s]])" % self.filename)
+        self.ftk.execute("lua F:load([[%s]])" % self.filename)
         self.compare(self.ftk.get_data(), 7)
     def test_load_with_py(self):
-        self.ftk.load(0, self.filename)
+        self.ftk.load(self.filename, 0)
         self.compare(self.ftk.get_data(), 7)
 
 class TestText(TextFileLoadBase):

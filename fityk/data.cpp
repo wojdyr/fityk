@@ -38,7 +38,6 @@ string get_file_basename(const string& path)
 
 Data::Data(BasicContext* ctx, Model *model)
         : ctx_(ctx), model_(model),
-          given_x_(INT_MAX), given_y_(INT_MAX), given_s_(INT_MAX),
           x_step_(0.), has_sigma_(false)
 {
 }
@@ -56,13 +55,15 @@ string Data::get_info() const
         s = "No data points.";
     else
         s = S(p_.size()) + " points, " + S(active_.size()) + " active.";
-    if (!filename_.empty())
-        s += "\nFilename: " + filename_;
-    if (given_x_ != INT_MAX || given_y_ != INT_MAX || given_s_ != INT_MAX)
-        s += "\nColumns: " + (given_x_ != INT_MAX ? S(given_x_) : S("_"))
-                    + ", " + (given_y_ != INT_MAX ? S(given_y_) : S("_"));
-    if (given_s_ != INT_MAX)
-        s += ", " + S(given_s_);
+    if (!spec_.path.empty())
+        s += "\nFilename: " + spec_.path;
+    if (spec_.x_col != LoadSpec::NN || spec_.y_col != LoadSpec::NN ||
+            spec_.sig_col != LoadSpec::NN)
+        s += "\nColumns: "
+               + (spec_.x_col != LoadSpec::NN ? S(spec_.x_col) : S("_"))
+               + ", " + (spec_.y_col != LoadSpec::NN ? S(spec_.y_col) : S("_"));
+    if (spec_.sig_col != LoadSpec::NN)
+        s += ", " + S(spec_.sig_col);
     if (!title_.empty())
         s += "\nData title: " + title_;
     if (active_.size() != p_.size())
@@ -73,11 +74,8 @@ string Data::get_info() const
 // does not clear model
 void Data::clear()
 {
-    filename_ = "";
+    spec_ = LoadSpec();
     title_ = "";
-    given_x_ = given_y_ = given_s_ = INT_MAX;
-    given_options_.clear();
-    given_blocks_.clear();
     p_.clear();
     x_step_ = 0;
     active_.clear();
@@ -144,15 +142,14 @@ void Data::set_points(const vector<Point> &p)
 
 void Data::revert()
 {
-    if (filename_.empty())
+    if (spec_.path.empty())
         throw ExecuteError("Dataset can't be reverted, it was not loaded "
                            "from file");
     string old_title = title_;
-    string old_filename = filename_;
-    // this->filename_ should not be passed by ref to load_file(), because it's
-    // cleared before being used
-    load_file(old_filename, given_x_, given_y_, given_s_,
-              given_blocks_, given_format_, given_options_);
+    LoadSpec old_spec = spec_;
+    // this->spec_ should not be passed by ref to load_file()
+    // because path is cleared before being used
+    load_file(old_spec);
     title_ = old_title;
 }
 
@@ -177,7 +174,7 @@ void Data::load_data_sum(const vector<const Data*>& dd, const string& op)
         // data should be sorted after apply_operation()
     clear();
     title_ = new_title;
-    filename_ = new_filename;
+    spec_.path = new_filename;
     p_ = new_p;
     has_sigma_ = true;
     find_step();
@@ -278,42 +275,38 @@ void Data::verify_options(const xylib::DataSet* ds, const string& options)
 }
 
 
-// for column indices, INT_MAX is used as not given
-void Data::load_file (const string& filename,
-                      int idx_x, int idx_y, int idx_s,
-                      const vector<int>& blocks,
-                      const string& format, const string& options)
+void Data::load_file(const LoadSpec& spec)
 {
-    if (filename.empty())
+    if (spec.path.empty())
         return;
 
     string block_name;
     try {
-        string ds_options = tr_opt(options);
+        string ds_options = tr_opt(spec.options);
         shared_ptr<const xylib::DataSet> xyds(
-                        xylib::cached_load_file(filename, format, ds_options));
+            xylib::cached_load_file(spec.path, spec.format, ds_options));
         verify_options(xyds.get(), ds_options);
         clear(); //removing previous file
-        vector<int> bb = blocks.empty() ? vector1(0) : blocks;
+        vector<int> bb = spec.blocks.empty() ? vector1(0) : spec.blocks;
 
         v_foreach (int, b, bb) {
             assert(xyds);
             const xylib::Block* block = xyds->get_block(*b);
             const xylib::Column& xcol
-                = block->get_column(idx_x != INT_MAX ?  idx_x : 1);
+               = block->get_column(spec.x_col != LoadSpec::NN ? spec.x_col : 1);
             const xylib::Column& ycol
-                = block->get_column(idx_y != INT_MAX ?  idx_y : 2);
+               = block->get_column(spec.y_col != LoadSpec::NN ? spec.y_col : 2);
             int n = block->get_point_count();
             if (n < 5 && bb.size() == 1)
                 ctx_->ui()->warn("Only "+S(n)+" data points found in file.");
 
             p_.reserve(p_.size() + n);
-            if (idx_s == INT_MAX) {
+            if (spec.sig_col == LoadSpec::NN) {
                 for (int i = 0; i < n; ++i) {
                     p_.push_back(Point(xcol.get_value(i), ycol.get_value(i)));
                 }
             } else {
-                const xylib::Column& scol = block->get_column(idx_s);
+                const xylib::Column& scol = block->get_column(spec.sig_col);
                 for (int i = 0; i < n; ++i) {
                     p_.push_back(Point(xcol.get_value(i), ycol.get_value(i),
                                        scol.get_value(i)));
@@ -346,23 +339,17 @@ void Data::load_file (const string& filename,
     if (!block_name.empty())
         title_ = block_name;
     else {
-        title_ = get_file_basename(filename);
-        if (idx_x != INT_MAX && idx_y != INT_MAX)
-            title_ += ":" + S(idx_x) + ":" + S(idx_y);
+        title_ = get_file_basename(spec.path);
+        if (spec.x_col != LoadSpec::NN && spec.y_col != LoadSpec::NN)
+            title_ += ":" + S(spec.x_col) + ":" + S(spec.y_col);
     }
 
-    if (x_step_ == 0 || blocks.size() > 1) {
+    if (x_step_ == 0 || spec.blocks.size() > 1) {
         sort_points();
         find_step();
     }
 
-    filename_ = filename;
-    given_x_ = idx_x;
-    given_y_ = idx_y;
-    given_s_ = idx_s;
-    given_blocks_ = blocks;
-    given_options_ = options;
-
+    spec_ = spec;
     post_load();
 }
 

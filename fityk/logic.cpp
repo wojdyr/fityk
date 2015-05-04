@@ -156,29 +156,28 @@ void DataKeeper::import_dataset(int slot, const string& data_path,
     // split "data_path" (e.g. "foo.dat:1:2,3::") into filename
     // and colon-separated indices
     int count_colons = ::count(data_path.begin(), data_path.end(), ':');
-    string filename;
+    LoadSpec spec;
     vector<int> indices[3];
-    vector<int> block_range;
     if (count_colons >= 4) {
         // take filename
         string::size_type fn_end = string::npos;
         for (int i = 0; i < 4; ++i)
             fn_end = data_path.rfind(':', fn_end - 1);
-        filename = data_path.substr(0, fn_end);
+        spec.path = data_path.substr(0, fn_end);
 
         // blocks
         string::size_type end_pos = data_path.size();
         string::size_type bpos = data_path.rfind(':', end_pos - 1);
         string::size_type blen = end_pos - bpos - 1;
         if (blen > 0) {
-            int block_count = Data::count_blocks(filename, format, options);
+            int block_count = Data::count_blocks(spec.path, format, options);
             string range = data_path.substr(bpos+1, blen);
-            block_range = parse_int_range(range, block_count-1);
+            spec.blocks = parse_int_range(range, block_count-1);
         }
         end_pos = bpos;
 
-        int first_block = block_range.empty() ? 0 : block_range[0];
-        int col_count = Data::count_columns(filename, format, options,
+        int first_block = spec.blocks.empty() ? 0 : spec.blocks[0];
+        int col_count = Data::count_columns(spec.path, format, options,
                                             first_block);
         for (int i = 2; i >= 0; --i) {
             string::size_type pos = data_path.rfind(':', end_pos - 1);
@@ -191,7 +190,7 @@ void DataKeeper::import_dataset(int slot, const string& data_path,
         }
         assert(fn_end == end_pos);
     } else {
-        filename = data_path;
+        spec.path = data_path;
     }
 
     if (indices[0].size() > 1)
@@ -201,22 +200,24 @@ void DataKeeper::import_dataset(int slot, const string& data_path,
     if (indices[1].size() > 1 && !new_dataset)
         throw ExecuteError("Multiple y columns can be specified only with @+");
 
-    int idx_x = indices[0].empty() ?  INT_MAX : indices[0][0];
-    if (indices[1].empty())
-        indices[1].push_back(INT_MAX);
-    int idx_s = indices[2].empty() ? INT_MAX : indices[2][0];
+    if (!indices[0].empty())
+        spec.x_col = indices[0][0];
+    if (!indices[2].empty())
+        spec.sig_col = indices[2][0];
 
-    for (size_t i = 0; i < indices[1].size(); ++i)
-        do_import_dataset(new_dataset, slot,
-                          filename, idx_x, indices[1][i], idx_s, block_range,
-                          format, options, ctx, mgr);
+    spec.format = format;
+    spec.options = options;
+    if (indices[1].empty())
+        indices[1].push_back(LoadSpec::NN);
+    for (size_t i = 0; i < indices[1].size(); ++i) {
+        spec.y_col = indices[1][i];
+        do_import_dataset(new_dataset, slot, spec, ctx, mgr);
+    }
 }
 
+
 void DataKeeper::do_import_dataset(bool new_dataset, int slot,
-                                   const string& filename,
-                                   int idx_x, int idx_y, int idx_s,
-                                   const vector<int>& block_range,
-                                   const string& format, const string& options,
+                                   const LoadSpec& spec,
                                    BasicContext* ctx, ModelManager &mgr)
 {
     Data *d;
@@ -229,7 +230,7 @@ void DataKeeper::do_import_dataset(bool new_dataset, int slot,
         auto_d.reset(new Data(ctx, mgr.create_model()));
         d = auto_d.get();
     }
-    d->load_file(filename, idx_x, idx_y, idx_s, block_range, format, options);
+    d->load_file(spec);
     if (auto_d.get())
         append(auto_d.release());
 }
