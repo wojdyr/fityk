@@ -747,11 +747,13 @@ void command_debug(const Full* F, int ds, const Token& key, const Token& rest)
         ep.parse_expr(lex, ds);
         realt x = ep.calculate();
         const Model* model = F->dk.get_model(ds);
-        vector<realt> symb = model->get_symbolic_derivatives(x);
-        vector<realt> num = model->get_numeric_derivatives(x, 1e-8);
+        realt y;
+        vector<realt> symb = model->get_symbolic_derivatives(x, &y);
+        vector<realt> num = model->get_numeric_derivatives(x, 1e4*epsilon);
         assert (symb.size() == num.size());
         int n = symb.size() - 1;
-        r += "F(" + S(x) + ")=" + S(model->value(x));
+        r += "F(" + S(x) + ")=" + S(model->value(x)) + "=" + S(y);
+        r += "\nusing h=1e4*epsilon=" + S(1e4*epsilon);
         for (int i = 0; i < n; ++i) {
             if (is_neq(symb[i], 0) || is_neq(num[i], 0))
                 r += "\ndF / d$" + F->mgr.gpos_to_var(i)->name

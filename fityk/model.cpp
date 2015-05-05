@@ -104,13 +104,15 @@ void Model::compute_model_with_derivs(vector<realt> &x, vector<realt> &y,
         mgr_.get_function(*i)->calculate_value_deriv(x, y, dy_da, true);
 }
 
-vector<realt> Model::get_symbolic_derivatives(realt x) const
+vector<realt> Model::get_symbolic_derivatives(realt x, realt *y) const
 {
     int n = mgr_.parameters().size();
     vector<realt> dy_da(n+1); // last item is dy/dx
     vector<realt> xx(1, x);
     vector<realt> yy(1);
     compute_model_with_derivs(xx, yy, dy_da);
+    if (y != NULL)
+        *y = yy[0];
     return dy_da;
 }
 
