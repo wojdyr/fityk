@@ -312,11 +312,11 @@ is pi/2.
 
 Note that callers will need to apply the 1/(2_hl) factor found in the FCJ paper.
 */
+if(twopsi == 0) return 0.0;
+if(fabs(twopsi - twotheta)<1e-8) return M_PI/2.0;
 realt stwopsi = sin(twopsi);
 realt stwoth  = sin(twotheta);
 realt ctwoth = cos(twotheta);
-if(twopsi == 0) return 0.0;
-if(twopsi == twotheta) return M_PI/2.0;
 return 0.5 * (asin((2.0*ctwoth*ctwoth + 2*stwopsi -2)/(abs(2*stwopsi-2)*stwoth)) -
        asin((2.0*ctwoth*ctwoth - 2*stwopsi -2)/(abs(2*stwopsi+2)*stwoth)));
 }
@@ -354,10 +354,15 @@ denom_unscaled = 2.0 * min(av_[5],av_[4]) * (M_PI/(4.0*av_[4]) - v) + (av_[4] + 
 denom = denom_unscaled * 2.0/fabs(cent_rad-twopsimin);     //Scale to [-1,1] interval of G-L integration
 // The following two factors are the analytic derivatives of the integral of D with respect to
 // h_l and s_l.
-df_dh_factor = (1.0/(2*av_[4]))*(dfunc_int(twopsiinfl,cent_rad) - dfunc_int(twopsimin,cent_rad)) -
-                                             (1.0/av_[4])*denom_unscaled;
-df_ds_factor = (1.0/(2*av_[4]))*(dfunc_int(twopsiinfl,cent_rad) - dfunc_int(twopsimin,cent_rad)) +
-                                            (1.0/av_[4])*(M_PI/2 - dfunc_int(twopsiinfl,cent_rad));
+realt uu = dfunc_int(twopsiinfl,cent_rad);
+realt vv = dfunc_int(twopsimin,cent_rad);
+df_dh_factor = (1.0/(2*av_[4]))*(uu - vv) - (1.0/av_[4])*denom_unscaled;
+if (av_[4]<av_[5]) {
+	df_dh_factor += (1.0/(2*av_[4]))*(M_PI - 2*uu);
+        df_ds_factor = (1.0/(2*av_[4]))*(uu - vv);
+        } else {
+        df_ds_factor = (1.0/(2*av_[4]))*(M_PI - (uu+vv));
+}
 // Precalculate the x and hfunc coefficients
 for(int pt=0;pt<512;pt++) {
     delta_n_neg[pt] = (cent_rad + twopsimin)/2.0 - (cent_rad-twopsimin)*x1024[pt]/2;
@@ -491,31 +496,36 @@ CALCULATE_DERIV_BEGIN(FuncFCJAsymm)
       sumWdRdt += weight_pos[pt] * dRdtt;
     }
     /* The derivative for h_l includes the convolution of dfunc with PV only up
-       to twopsiinfl when s_l < h_l  as it is zero above this limit.  To save
+       to twopsiinfl when s_l < h_l  as it is zero above this limit, and
+       likewise for s_l when h_l < s_l. To save
        program bytes, we keep the same G-L interval and therefore quadrature
        points.  This is defensible as it is equivalent to including the zero
        valued points in the integration.
        The derivative for peak "centre" given here ignores the contribution
        from changes in the weighting function, as it is not possible to
        numerically integrate the derivative of dfunc that appears in the
-       full expression.  It seems to work.
-       W is 2 min(s_l,h_l) above twopsiinfl.  If W = 2h_l, the 2h_l factor
-       cancels at top and bottom, leaving a derivative of zero with respect
-       to both s_l and h_l.  If W=2s_l, the derivative with respect to
-       s_l only is non-zero.*/
-    if(fabs(cos(delta_n_pos[pt])) > fabs(cos(twopsiinfl)) && side == 1) {
-      realt dconvol =  w1024[pt] * psvval * hfunc_pos / abs(cos(delta_n_pos[pt]));
-    sumWdGdh += dconvol;
-    sumWdGds += dconvol;
-    } else if(side == 1 && av_[5] < av_[4]) {
-      sumWdGds += 2.0* w1024[pt] * psvval *hfunc_pos / abs(cos(delta_n_pos[pt]));
+       full expression.  It seems to work. */
+    realt angpt = 0;
+    realt dconvol = 0;
+    if (side == 1) {
+      angpt = cos(delta_n_pos[pt]);
+      dconvol =  w1024[pt] * psvval * hfunc_pos / abs(angpt);
+      }
+    else
+      {
+      angpt = cos(delta_n_neg[pt]);
+      dconvol =  w1024[pt] * psvval * hfunc_neg / abs(angpt);
+      }
+    if(fabs(angpt) > fabs(cos(twopsiinfl))){   //further from centre than psi_infl
+      sumWdGdh += dconvol;
+      sumWdGds += dconvol;
     }
-    if(fabs(cos(delta_n_neg[pt])) > fabs(cos(twopsiinfl)) && side == 0) {
-      realt dconvol =  w1024[pt] * psvval * hfunc_neg / abs(cos(delta_n_neg[pt]));
-    sumWdGdh += dconvol;
-    sumWdGds += dconvol;
-    } else if (side == 0 && av_[5] < av_[4]) {
-      sumWdGds += 2.0* w1024[pt] * psvval * hfunc_neg / abs(cos(delta_n_neg[pt]));
+    if(fabs(angpt) < fabs(cos(twopsiinfl))) {  //closer to centre than psi_infl
+    if (av_[5] < av_[4]) {   // H_L is larger
+      sumWdGds += 2.0* dconvol;
+    } else {   // S_L is larger
+      sumWdGdh += 2.0 * dconvol;
+    }
     }
     }
     }
