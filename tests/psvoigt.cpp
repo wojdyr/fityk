@@ -57,7 +57,7 @@ TEST_CASE("pseudo-voigt", "") {
 
         fik->execute("F=%pv");
         vector<realt> deriv =
-            fik->priv()->dk.get_model(0)->get_symbolic_derivatives(3.0);
+            fik->priv()->dk.get_model(0)->get_symbolic_derivatives(3.0, NULL);
         double expected_deriv[5] = { 0.967533459381518,
                                      0.108597246412477,
                                      0.022358256614333,
