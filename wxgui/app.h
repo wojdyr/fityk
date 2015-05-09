@@ -15,6 +15,7 @@ public:
     // directory for (named by user) config files
     wxString config_dir;
 
+    FApp();
     virtual bool OnInit(void);
     virtual int OnExit();
 #ifdef __WXMAC__

@@ -192,6 +192,15 @@ void write_white_config(wxConfigBase *w)
     cfg_write_color(w, "OutputWin/Colors/bg", wxColour(255, 255, 255));
 }
 
+FApp::FApp()
+{
+#ifdef __WXGTK__
+    // ubuntu menu-proxy makes the program crashing, see e.g.
+    // https://bugs.launchpad.net/ubuntu/+source/unity-gtk-module/+bug/1452791
+    // workaround as per http://trac.wxwidgets.org/ticket/14302#comment:6
+    wxSetEnv("UBUNTU_MENUPROXY", "0");
+#endif
+}
 
 bool FApp::OnInit(void)
 {
