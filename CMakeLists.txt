@@ -131,7 +131,7 @@ if (DOWNLOAD_ZLIB)
   elseif (BUILD_SHARED_LIBS)
     set(ZLIB_NAME zlib$<$<CONFIG:Debug>:d>)
   else() # static windows
-    set(ZLIB_NAME zlibstatic)
+    set(ZLIB_NAME zlibstatic$<$<CONFIG:Debug>:d>)
   endif()
   set(ZLIB_LIBRARIES "${THIRDPARTY_INSTALL}/lib/${ZLIB_NAME}${LIB_SUFFIX}")
   message(STATUS "Using local zlib: ${ZLIB_LIBRARIES}")
