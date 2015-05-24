@@ -24,6 +24,7 @@ class FuncFCJAsymm : public Function
     bool get_center(realt* a) const { *a = av_[1]; return true; }
     bool get_height(realt* a) const { *a = av_[0]; return true; }
     bool get_fwhm(realt* a) const { *a = 2 * fabs(av_[2]); return true; }
+private:
     realt dfunc_int(realt angle1, realt angle2) const;
     realt fcj_psv(realt x, realt location, realt fwhm, realt mixing) const;
     static const double x100[];
@@ -34,10 +35,10 @@ class FuncFCJAsymm : public Function
     realt twopsimin;
     realt cent_rad;
     realt radians;
-    realt delta_n_neg[1024];      //same number of points as x1024 and w1024
-    realt delta_n_pos[1024];
-    realt weight_neg[1024];
-    realt weight_pos[1024];
+    realt delta_n_neg[512];      //same number of points as x1024 and w1024
+    realt delta_n_pos[512];
+    realt weight_neg[512];
+    realt weight_pos[512];
     realt denom;                 //denominator constant for given parameters
     realt denom_unscaled;        //denominator for x-axis in radians
     realt df_ds_factor;          //derivative with respect to denominator

@@ -321,6 +321,8 @@ return 0.5 * (asin((2.0*ctwoth*ctwoth + 2*stwopsi -2)/(abs(2*stwopsi-2)*stwoth))
        asin((2.0*ctwoth*ctwoth - 2*stwopsi -2)/(abs(2*stwopsi+2)*stwoth)));
 }
 
+static double sq(double a) { return a*a; }
+
 void FuncFCJAsymm::more_precomputations()
 {
 denom=0.0;
@@ -331,10 +333,10 @@ realt hfunc_neg, hfunc_pos;
 // Handle extrema by setting twopsimin to appropriate limit
  twopsimin = 0.0;
  if (cent_rad > M_PI/2) twopsimin = M_PI;
-realt cospsimin = cos(cent_rad)*sqrt(pow(av_[4]+av_[5],2) + 1.0);
+realt cospsimin = cos(cent_rad)*sqrt(sq(av_[4]+av_[5]) + 1.0);
  if(fabs(cospsimin)<1.0) twopsimin = acos(cospsimin);
 twopsiinfl = 0.0;
-realt cospsiinfl = cos(cent_rad)*sqrt(pow(av_[4]-av_[5],2) + 1.0);
+realt cospsiinfl = cos(cent_rad)*sqrt(sq(av_[4]-av_[5]) + 1.0);
  if(fabs(cospsiinfl)<1.0) twopsiinfl = acos(cospsiinfl);
  if(av_[4] == 0 && av_[5] == 0) denom = 1.0;
  else {
@@ -367,8 +369,8 @@ if (av_[4]<av_[5]) {
 for(int pt=0;pt<512;pt++) {
     delta_n_neg[pt] = (cent_rad + twopsimin)/2.0 - (cent_rad-twopsimin)*x1024[pt]/2;
     delta_n_pos[pt] = (cent_rad + twopsimin)/2.0 + (cent_rad-twopsimin)*x1024[pt]/2;
-    hfunc_neg = sqrt(pow(cos(delta_n_neg[pt]),2)/pow(cos(cent_rad),2) -1);
-    hfunc_pos = sqrt(pow(cos(delta_n_pos[pt]),2)/pow(cos(cent_rad),2)-1);
+    hfunc_neg = sqrt(sq(cos(delta_n_neg[pt]))/sq(cos(cent_rad)) -1);
+    hfunc_pos = sqrt(sq(cos(delta_n_pos[pt]))/sq(cos(cent_rad))-1);
     //Weights for negative half of G-L interval
     if(fabs(cos(delta_n_neg[pt])) > fabs(cos(twopsiinfl))) {
             weight_neg[pt] = av_[4] + av_[5] - hfunc_neg;
@@ -398,7 +400,7 @@ if (level == 0)
     else if (fabs(level) >= fabs(av_[0]))
         left = right = 0;
     else {
-      // As for Pseudo-Voight, allow 4 half-widths for Gaussian
+      // As for Pseudo-Voigt, allow 4 half-widths for Gaussian
       realt pvw = av_[2]*(sqrt(fabs(av_[0]/(level*M_PI*av_[2])-1))+4.); //halfwidths for Lorenzian
       // The first non-zero point occurs when the convoluting PV reaches twopsimin. The
       // last value occurs when the convoluting PV moves completely past the centre
@@ -413,7 +415,7 @@ if (level == 0)
     return true;
 }
 
-//Pseudo-Voight with scaling factors as used in crystallography.
+//Pseudo-Voigt with scaling factors as used in crystallography.
 realt FuncFCJAsymm::fcj_psv(realt x, realt location, realt fwhm, realt mixing) const {
     realt xa1a2 = (location - x) / fwhm;
     realt ex = exp(- 4.0 * M_LN2 * xa1a2 * xa1a2);
@@ -425,7 +427,7 @@ realt FuncFCJAsymm::fcj_psv(realt x, realt location, realt fwhm, realt mixing) c
 CALCULATE_VALUE_BEGIN(FuncFCJAsymm)
     realt numer = 0.0;
     realt fwhm_rad = av_[2]*2*M_PI/180.0;  // Fityk uses hwhm, we use fwhm
-if((av_[4]==0 && av_[5]==0) || cent_rad==M_PI/2) {     // Plain PseudoVoight
+if((av_[4]==0 && av_[5]==0) || cent_rad==M_PI/2) {     // Plain PseudoVoigt
   numer = fcj_psv(x*radians,cent_rad,fwhm_rad, av_[3]);
  } else {
     //do the sum over 1024 Gauss-Legendre points
@@ -472,17 +474,17 @@ CALCULATE_DERIV_BEGIN(FuncFCJAsymm)
     realt psvval = av_[0] * without_height;
     if(side == 0) {
         numer += weight_neg[pt] * psvval;
-        hfunc_neg = 1/(2.0*av_[4]*sqrt(pow(cos(delta_n_neg[pt]),2)/pow(cos(cent_rad),2)-1));
+        hfunc_neg = 1/(2.0*av_[4]*sqrt(sq(cos(delta_n_neg[pt]))/sq(cos(cent_rad))-1));
     } else
     if(side == 1) {           //So hfunc nonzero
         numer += weight_pos[pt] * psvval;
-        hfunc_pos = 1.0/(2.0*av_[4]*sqrt(pow(cos(delta_n_pos[pt]),2)/pow(cos(cent_rad),2)-1));
+        hfunc_pos = 1.0/(2.0*av_[4]*sqrt(sq(cos(delta_n_pos[pt]))/sq(cos(cent_rad))-1));
     }
-    // pseudo-voight derivatives: first fwhm.  The parameter is expressed in
+    // pseudo-voigt derivatives: first fwhm.  The parameter is expressed in
     // degrees, but our calculations use radians,so we remember to scale at the end.
     realt dRdg = ex/fwhm_rad * (-1.0 + -2.0*facta*xa1a2);  //gaussian part:checked
     dRdg = av_[0] * ((1-av_[3])* dRdg + av_[3]*(-1.0*lor/fwhm_rad +
-                                                16*xa1a2*xa1a2/(M_PI*(fwhm_rad*fwhm_rad))*1.0/pow(1.0+4*xa1a2*xa1a2,2)));
+                                                16*xa1a2*xa1a2/(M_PI*(fwhm_rad*fwhm_rad))*1.0/sq(1.0+4*xa1a2*xa1a2)));
     realt dRde =  av_[0] * (lor - ex);           //with respect to mixing
     realt dRdtt = -1.0* av_[0] * ((1.0-av_[3])*2.0*ex*facta/fwhm_rad - av_[3]*lor*8*xa1a2/(fwhm_rad*(1+4*xa1a2*xa1a2)));
     if(side==0) {
