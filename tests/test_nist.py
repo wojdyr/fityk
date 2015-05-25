@@ -192,28 +192,6 @@ nm_fails =    ["MGH17", "BoxBOD", "ENSO", "Eckerle4", "MGH09", "Bennett5"]
 nl_nm_fails = ["MGH17", "BoxBOD", "MGH10", "ENSO"]
 
 
-def try_method(method):
-    all_count = 0
-    ok_count = 0
-    for data_name in datasets:
-        for is_easy in (True, False):
-            ok = run(data_name, method, is_easy)
-            all_count += 1
-            if ok:
-                ok_count += 1
-            sys.stdout.flush()
-    print "OK: %2d / %2d" % (ok_count, all_count)
-
-
-if __name__ == '__main__':
-    try_method("mpfit")
-    #try_method("nlopt_bobyqa")
-# "nlopt_bobyqa", "nlopt_nm", "nlopt_sbplx",
-# "nlopt_cobyla", # doesn't work?
-# "nlopt_lbfgs", "nlopt_mma", "nlopt_slsqp", "nlopt_var2",
-# "nlopt_crs2", "nlopt_praxis"
-
-
 class TestSequenceFunctions(unittest.TestCase):
     def setUp(self):
         global VERBOSE
@@ -266,3 +244,23 @@ class TestSequenceFunctions(unittest.TestCase):
         for data_name in ["Rat42", "Eckerle4"]:
             self.assertTrue(run(data_name, "nlopt_sbplx", easy=False))
 
+
+def try_method(method):
+    all_count = 0
+    ok_count = 0
+    for data_name in datasets:
+        for is_easy in (True, False):
+            ok = run(data_name, method, is_easy)
+            all_count += 1
+            if ok:
+                ok_count += 1
+            sys.stdout.flush()
+    print "OK: %2d / %2d" % (ok_count, all_count)
+
+
+if __name__ == '__main__':
+    if len(sys.argv) > 2 and sys.argv[1] == 'method':
+        # syntax: ./test_nist.py method nlopt_bobyqa
+        try_method(sys.argv[2])
+    else:
+        unittest.main()
