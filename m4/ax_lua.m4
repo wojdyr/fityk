@@ -268,7 +268,7 @@ AC_DEFUN([AX_PROG_LUA],
         ax_cv_lua_version=[`$LUA -e '
           -- return a version number in X.Y format
           local _, _, ver = string.find(_VERSION, "^Lua (%d+%.%d+)")
-          print(ver)'`]
+          io.write(ver)'`]
       ])
     AS_IF([test "x$ax_cv_lua_version" = 'x'],
       [AC_MSG_ERROR([invalid Lua version number])])
@@ -280,7 +280,7 @@ AC_DEFUN([AX_PROG_LUA],
     dnl which OS platform Lua thinks this is.
     AC_CACHE_CHECK([for $ax_display_LUA platform],
       [ax_cv_lua_platform],
-      [ax_cv_lua_platform=[`$LUA -e 'print("unknown")'`]])
+      [ax_cv_lua_platform=[`$LUA -e 'io.write("unknown")'`]])
     AC_SUBST([LUA_PLATFORM], [$ax_cv_lua_platform])
 
     dnl Use the values of $prefix and $exec_prefix for the corresponding
@@ -372,7 +372,7 @@ AC_DEFUN([_AX_LUA_CHK_IS_INTRP],
         return n * fact(n-1)
       end
     end
-    print("fact(5) is " .. fact(5))'`]
+    io.write("fact(5) is " .. fact(5))'`]
   AS_IF([test "$_ax_lua_factorial" = 'fact(5) is 120'],
     [$2], [$3])
 ])
@@ -400,9 +400,9 @@ AC_DEFUN([_AX_LUA_CHK_VER],
     local ver = verstr2num(trimver)
     local maxver = verstr2num("$3") or 1e9
     if minver <= ver and ver < maxver then
-      print("yes")
+      io.write("yes")
     else
-      print("no")
+      io.write("no")
     end'`]
     AS_IF([test "x$_ax_lua_good_version" = "xyes"],
       [$4], [$5])
@@ -447,7 +447,7 @@ AC_DEFUN([_AX_LUA_FND_PRFX_PTH],
           end
         end
       end)
-    print(minpath)'`]
+    io.write(minpath)'`]
 ])
 
 
