@@ -82,15 +82,14 @@ elif [ $1 -eq 4 ]; then
  set -e
  MDIR=$HOME/local/mingw32
  BOOST_DIR=$HOME/local/src/boost_1_50_0
- if [ -d "$MINGW_DIR" ]; then
-     cd $MINGW_DIR
- else
-     mkdir -p $MINGW_DIR
-     cd $MINGW_DIR
+ [ -d "$MINGW_DIR" ] || mkdir -p $MINGW_DIR
+ cd "$MINGW_DIR"
+ if ! [ -e Makefile ]; then
      ../configure --host=i686-w64-mingw32 \
        CPPFLAGS="-I$BOOST_DIR -I$MDIR/include/" \
        CFLAGS="-O3" CXXFLAGS="-O3" \
        LDFLAGS="-s -fno-keep-inline-dllexport -L$MDIR/lib" \
+       LUA=$MDIR/bin/lua.exe \
        --without-readline --with-wx-config=$MDIR/bin/wx-config \
        --disable-static --enable-shared --enable-nlopt
  fi

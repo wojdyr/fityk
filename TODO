@@ -1,6 +1,3 @@
-* [GUI, Windows] bad layout of Quick Load File dialog
-
-----  1.3.0
 
 * handle correlated parameters: use pseudo-inverse for covariance matrix
 

@@ -46,7 +46,7 @@ html_last_updated_fmt = '%Y-%m-%d'
 html_use_smartypants = True
 html_use_modindex = False
 html_use_index = False
-html_add_permalinks = False
+#html_add_permalinks = False
 #html_compact_lists = True
 html_show_copyright = False
 
@@ -101,7 +101,7 @@ latex_elements = {
 }
 
 #latex_show_pagerefs = True
-latex_show_urls = True
+latex_show_urls = 'footnote'
 
 # determine vertical alignment of the math PNGs
 pngmath_use_preview = True

@@ -128,7 +128,7 @@ Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 (`releases <https://github.com/wojdyr/fityk/releases>`_)
 :html:`<a class="FlattrButton" style="display:none;" rev="flattr;button:compact;" href="http://fityk.nieto.pl"></a>`
 
-Version 1.2.9 was released on 2014-04-13
+Version 1.3.0 was released on 2015-05-25
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
 New version `notifications <http://fityk-announce.nieto.pl/>`_
 are delivered via email and feeds.
@@ -147,7 +147,7 @@ Documentation
 * `Manual <fityk-manual.html>`_
   (chapters :ref:`intro`, :ref:`getstarted`, :ref:`lang`, :ref:`data`,
   :ref:`model`, :ref:`fit`, :ref:`ref`)
-  and the same `in PDF <https://github.com/wojdyr/fityk/releases/download/v1.2.9/fityk-1.2.9-manual.pdf>`_,
+  and the same `in PDF <https://github.com/wojdyr/fityk/releases/download/v1.3.0/fityk-1.3.0-manual.pdf>`_,
 
 * `Fityk Wiki <https://github.com/wojdyr/fityk/wiki>`_
   (you are welcome to contribute).
