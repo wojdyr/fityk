@@ -11,9 +11,9 @@
 
 namespace fityk {
 
-std::string build_info();
+FITYK_API std::string build_info();
 
-const char* embedded_lua_version();
+FITYK_API const char* embedded_lua_version();
 
 /// appends output of the "info" command to the result
 int eval_info_args(const Full* F, int ds, const std::vector<Token>& args,

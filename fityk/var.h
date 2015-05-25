@@ -12,7 +12,7 @@ namespace fityk {
 struct OpTree;
 class Variable;
 
-class IndexedVars
+class FITYK_API IndexedVars
 {
 public:
     IndexedVars() {}
