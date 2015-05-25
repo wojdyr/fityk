@@ -46,9 +46,8 @@ Extra2CheckBoxes::Extra2CheckBoxes(wxWindow* parent,
     cb2->SetValue(value2);
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
 #ifdef __WXMSW__
-    sizer->AddSpacer(100);
-    sizer->Add(cb1, 0, wxLEFT|wxBOTTOM, 5);
-    sizer->Add(cb2, 0, wxLEFT|wxBOTTOM, 5);
+    sizer->Add(cb1, 0, wxLEFT|wxBOTTOM, 10);
+    sizer->Add(cb2, 0, wxLEFT|wxBOTTOM, 10);
 #else
     sizer->Add(cb1);
     sizer->Add(cb2, 0, wxTOP, 5);
