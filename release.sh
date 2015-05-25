@@ -14,16 +14,13 @@ if [ $# -eq 0 ]; then
  echo steps:
  echo a. update autotools files and m4 scripts from autoconf-archive
  echo 0. prepare new version and increase version number 
- echo 1. run samples
+ echo 1. run tests under valgrind
  echo "2. cd doc && make && make pdf"
  echo 3. make tarball: make dist-bzip2
  echo 4. compile windows version and make installer
  echo 5. https://build.opensuse.org/project/show?project=home%3Awojdyr
- echo 8. SourceForge release
+ echo 8. "git tag -a v$version -m 'version $version'; git push --tags"
  echo 9. put docs on www
- echo "10. http://freshmeat.net/projects/fityk/releases/new "
- echo "    http://www.gnomefiles.org/devs/index.php?login    "
- echo "12. git tag -a v$version -m 'version $version'; git push --tags"
  exit
 fi
 
@@ -56,15 +53,12 @@ elif [ $1 -eq 0 ]; then
  echo
 
 elif [ $1 -eq 1 ]; then
- echo run tests and samples...
- make check || exit
- cd ./tests
- ../cli/cfityk test_syntax.fit || exit
- cd ../samples
- ./hello
- ../cli/cfityk nacl01.fit
- ../wxgui/fityk nacl01.fit
- ../wxgui/fityk SiC_Zn.fit
+ echo run tests and samples under valgrind...
+ make check LOG_COMPILER="valgrind --error-exitcode=1" || exit
+ valgrind --trace-children=yes --log-file=valgrind.log make check-scripts
+ grep 'ERROR SUMMARY:' valgrind.log
+ wxgui/fityk ../samples/nacl01.fit
+ wxgui/fityk ../samples/SiC_Zn.fit
 
 
 elif [ $1 -eq 2 ]; then
@@ -119,21 +113,6 @@ elif [ $1 -eq 4 ]; then
  echo everything is in: `pwd`/$outdir
  
 
-elif [ $1 -eq 8 ]; then
- echo  SF release
- echo uploading files...
- [ ! -e $tarball_filename ] && echo "File not found: $tarball_filename" && exit
- [ ! -e $win_setup_filename ] && echo "File not found: $win_setup_filename" \
-                                                                       && exit
- mkdir $version || exit
- cp $tarball_filename $win_setup_filename $version/
- scp -r $version "wojdyr,fityk@frs.sourceforge.net:/home/frs/project/f/fi/fityk/fityk/"
- rm -r $version/
- echo now you may go to:
- echo https://sourceforge.net/project/admin/explorer.php?group_id=79434
- echo or to http://sourceforge.net/projects/fityk/files/
- 
-
 elif [ $1 -eq 9 ]; then
  #echo  putting docs on www
  #echo destination: $WEB
@@ -150,10 +129,6 @@ elif [ $1 -eq 9 ]; then
  #echo sending doxygen docs...
  #scp -r html/ $WEB/doxygen/
  #cd ..
- 
-
-elif [ $1 -eq 10 ]; then
- echo announce: freshmeat.net gnomefiles.com
  
 else
  echo unexpected step number: $1
