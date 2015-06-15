@@ -105,6 +105,7 @@ elif [ $1 -eq 4 ]; then
     $MDIR/lib/wxmsw30u_stc_gcc_custom.dll \
     $outdir/fityk/
  cp /usr/i686-w64-mingw32/sys-root/mingw/bin/libgcc_s_sjlj-1.dll \
+    /usr/i686-w64-mingw32/sys-root/mingw/bin/libwinpthread-1.dll \
     /usr/i686-w64-mingw32/sys-root/mingw/bin/libstdc++-6.dll \
     /usr/i686-w64-mingw32/sys-root/mingw/bin/zlib1.dll \
     /usr/i686-w64-mingw32/sys-root/mingw/bin/libpng16-16.dll \
