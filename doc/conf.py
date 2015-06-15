@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Sphinx v1.0.7
-#
-# sphinx-build -d ./doctrees/ -b html . html
+needs_sphinx = '1.3'
 
 import sys, os
 sys.path.append(os.path.abspath('.'))
@@ -16,15 +14,12 @@ if not os.getenv('BUILD_WEBSITE'):
 if os.getenv('READTHEDOCS'):
     # RTD works better with index.html
     html_additional_pages = { 'index': '_build/html/fityk-manual.html' }
-    # RTD has own layout.html. This hack is needed to use all layout.html files.
-    template_bridge = "fityk_ext.MyTemplateLoader"
 
-templates_path = ['.']
+html_theme_path = ['.']
 source_suffix = '.rst'
 source_encoding = 'utf-8'
 master_doc = 'fityk-manual'
 project = 'Fityk'
-copyright = '2001-2015, Fityk Developers'
 version = '1.3.0'
 release = version
 default_role = None
@@ -33,15 +28,21 @@ default_role = None
 highlight_language = "fityk"
 pygments_style = "trac"
 
-html_theme = "sphinxdoc"
-html_sidebars = {'index': [],
-                 'screens': [],
-                 '**': ['globaltoc.html', 'editlink.html', 'searchbox.html']}
+#html_theme = "sphinxdoc"
+html_theme = 'fitheme'
+
+html_theme_options = {
+    #'analytics_id': UA-20519098-2
+    'github_blob': 'wojdyr/fityk/blob/master/doc',
+    'logo': 'fityk-logo.png',
+    'website': 'http://fityk.nieto.pl/',
+    'wiki': 'https://github.com/wojdyr/fityk/wiki',
+}
+html_sidebars = { 'index': [], 'screens': [], '**': ['side.html'] }
 html_title = 'Fityk %s manual' % version
 html_short_title = 'Manual'
 html_favicon = 'fityk.ico'
-html_static_path = ['fityk-banner.png', 'fityk.css', 'img/mouse16.png']
-html_style = 'fityk.css'
+html_static_path = ['fityk-logo.png', 'img/mouse16.png']
 html_last_updated_fmt = '%Y-%m-%d'
 html_use_smartypants = True
 html_use_modindex = False

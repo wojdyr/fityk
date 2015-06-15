@@ -53,7 +53,7 @@ terms of the `GPL <http://creativecommons.org/licenses/GPL/2.0/>`_,
 version 2 or (at your option) any later version.
 
 To download the latest version of the program or to contact the author
-visit http://fityk.nieto.pl/.
+visit `fityk.nieto.pl <http://fityk.nieto.pl/>`_.
 
 Reference for academic papers:
 M. Wojdyr,
