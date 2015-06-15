@@ -1,6 +1,7 @@
 *~
 *.bak
 *.pyc
+*.o
 cscope.out
 tags
 Makefile.in
