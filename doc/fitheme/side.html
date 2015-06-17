@@ -1,8 +1,12 @@
 {%- if theme_logo %}
 <p class="logo">
-  <a href="{{ theme_website }}">
-    <img class="logo" src="{{ pathto('_static/' ~ theme_logo, 1) }}" alt="Logo"/>
-  </a>
+ <a href="{{ theme_website }}">
+  <img class="logo" src="{{ pathto('_static/' ~ theme_logo, 1) }}" alt="Logo"/>
+ </a>
+{%- if theme_logo_caption %}
+<br/ >{{ theme_logo_caption }}
+{%- endif %}
+
 </p>
 {%- endif %}
 

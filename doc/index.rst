@@ -11,8 +11,14 @@
 .. role:: html(raw)
    :format: html
 
+.. image:: fityk-banner.png
+   :align: center
+   :target: http://fityk.nieto.pl
+   :class: banner
+
 .. raw:: html
 
+  <div class="clearer" style="height:10px"></div>
   <div align="right" class="screenshot">
    <p class="quote">
     <i>Excellent GUI and command-line curve fitting tool</i><br />
@@ -146,8 +152,9 @@ Documentation
 
 * `Manual <fityk-manual.html>`_
   (chapters :ref:`intro`, :ref:`getstarted`, :ref:`lang`, :ref:`data`,
-  :ref:`model`, :ref:`fit`, :ref:`ref`)
-  and the same `in PDF <https://github.com/wojdyr/fityk/releases/download/v1.3.0/fityk-1.3.0-manual.pdf>`_,
+  :ref:`model`, :ref:`fit`, :ref:`ref`).
+* PDF, ePUB and older versions of the manual can be downloaded
+  `from Read the Docs <https://readthedocs.org/projects/fityk/downloads/>`_.
 
 * `Fityk Wiki <https://github.com/wojdyr/fityk/wiki>`_
   (you are welcome to contribute).
@@ -181,7 +188,7 @@ or, if it already is in the list, in assigning higher priority to it.
    $(document).ready(function(){
      $("#features").hide();
      $("#features").prev().after(
-      "<p id='expand_features'><a href=''><span class='h1'>Features</span> &nbsp; <span class='smallfont'>[show]</span></a></p>");
+      "<p id='expand_features'><a href=''><span class='h1'>Features</span> &nbsp; <span>[show]</span></a></p>");
      $("#expand_features a").click(function(event){
        $(this).parent().hide();
        $("#features").show('slow');

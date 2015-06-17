@@ -5,6 +5,10 @@
    :description: Fityk screenshots. Windows, Mac OS X and Linux.
    :keywords: peak fitting, curve fitting
 
+.. image:: fityk-banner.png
+   :align: center
+   :target: http://fityk.nieto.pl
+
 Screenshots
 ===========
 

@@ -1,3 +1,5 @@
+* docs: Mini-Language > Intro -> Getting Started > CLI,
+        move Mini-Language > Grammar -> Scripts
 
 * GUI: data open dialogs should make possible to explicitely pass file format,
   for instance "@+ <'/run/mw/example.xy' text"

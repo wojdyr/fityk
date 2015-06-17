@@ -198,7 +198,7 @@ div.bodywrapper { margin: 0 0 0 220px; }
 hr { border: 1px solid #B1B4B6; }
 div.body {
     background-color: #ffffff;
-    color: #3E4349;
+    color: #303338;
     padding: 0 30px 0 30px;
 }
 div.footer {
@@ -229,7 +229,7 @@ div.sphinxsidebar a {
 }
 div.sphinxsidebar a:hover { border-bottom: 1px solid #999; }
 div.sphinxsidebarwrapper { padding: 18px 10px; }
-div.sphinxsidebarwrapper p.logo { padding: 0; margin: 0; }
+div.sphinxsidebarwrapper p.logo { padding: 0; margin: 0; font-style: italic; }
 div.sphinxsidebarwrapper h1.logo {
     margin-top: -10px;
     text-align: center;
@@ -237,7 +237,6 @@ div.sphinxsidebarwrapper h1.logo {
     text-align: left;
 }
 div.sphinxsidebarwrapper h1.logo-name { margin-top: 0px; }
-div.sphinxsidebarwrapper p.blurb { margin-top: 0; font-style: normal; }
 div.sphinxsidebar h3, div.sphinxsidebar h4 {
     font-family: 'Garamond', 'Georgia', serif;
     color: #555;
@@ -246,6 +245,7 @@ div.sphinxsidebar h3, div.sphinxsidebar h4 {
     margin: 0 0 5px 0;
     padding: 0;
 }
+div.sphinxsidebar h3 { margin-top: 15px; }
 div.sphinxsidebar h4 { font-size: 20px; }
 div.sphinxsidebar h3 a { color: #555; }
 div.sphinxsidebar p.logo a, div.sphinxsidebar p.logo a:hover,
@@ -273,13 +273,14 @@ div.sphinxsidebar hr {
 
 a { color: #004B6B; text-decoration: underline; }
 a:hover { color: #6D4100; text-decoration: underline; }
-div.body h1, div.body h2, div.body h3, div.body h4, div.body h5, div.body h6 {
+div.body h1, div.body h2, div.body h3, div.body h4, div.body h5, div.body h6,
+ span.h1 {
     font-family: 'Garamond', 'Georgia', serif;
     font-weight: normal;
     margin: 30px 0px 10px 0px;
     padding: 0;
 }
-div.body h1 { margin-top: 0; padding-top: 0; font-size: 240%; }
+div.body h1, span.h1 { margin-top: 0; padding-top: 0; font-size: 220%; }
 div.body h2 { font-size: 180%; }
 div.body h3 { font-size: 150%; }
 div.body h4 { font-size: 130%; }
@@ -370,7 +371,7 @@ dl dd { margin-left: 30px; }
 blockquote { margin: 0 0 0 30px; padding: 0; }
 ul, ol { margin: 10px 0 10px 30px; padding: 0; }
 pre {
-    background: #EEE;
+    background: #f0f0f0;
     padding: 7px 30px;
     margin: 15px 0px;
     line-height: 1.3em;
@@ -378,10 +379,6 @@ pre {
 dl pre, blockquote pre, li pre { margin-left: -60px; padding-left: 60px; }
 dl dl pre { margin-left: -90px; padding-left: 90px; }
 tt, code { background-color: #ecf0f3; color: #222; }
-tt.xref, code.xref, a tt {
-    background-color: #FBFBFB;
-    border-bottom: 1px solid white;
-}
 a.reference {
     text-decoration: none;
     border-bottom: 1px dotted #004B6B;
@@ -398,6 +395,44 @@ a.footnote-reference {
 a.footnote-reference:hover { border-bottom: 1px solid #6D4100; }
 a:hover tt, a:hover code { background: #EEE; }
 
+/* public domain icon from wikipedia */
+div.sphinxsidebar a.external {
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-image: linear-gradient(transparent, transparent), url("data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%3F%3E%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2210%22%20height%3D%2210%22%3E%3Cg%20transform%3D%22translate%28-826.429%20-698.791%29%22%3E%3Crect%20width%3D%225.982%22%20height%3D%225.982%22%20x%3D%22826.929%22%20y%3D%22702.309%22%20fill%3D%22%23fff%22%20stroke%3D%22%2306c%22%2F%3E%3Cg%3E%3Cpath%20d%3D%22M831.194%20698.791h5.234v5.391l-1.571%201.545-1.31-1.31-2.725%202.725-2.689-2.689%202.808-2.808-1.311-1.311z%22%20fill%3D%22%2306f%22%2F%3E%3Cpath%20d%3D%22M835.424%20699.795l.022%204.885-1.817-1.817-2.881%202.881-1.228-1.228%202.881-2.881-1.851-1.851z%22%20fill%3D%22%23fff%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E");
+  padding-right: 13px;
+}
+
+/* div.sphinxsidebar a.current { font-weight: bold; } */
+
+/* for math symbols in the text use Century Schoolbook 
+ * that is more like LaTeX Computer Modern font.
+.math { font-family: "Century Schoolbook", "New Century Schoolbook",
+                     times, serif; }
+ */
+
+img.icon { vertical-align: text-bottom; }
+div#download img { margin-bottom: -1px; }
+div.admonition-in-the-gui p.admonition-title {
+    padding-left: 36px;
+    background: url('mouse16.png') no-repeat 10px 0;
+}
+
+.quote { font-size: 0.9em; }
+.quote-author, div.body span.quote-author a { color: #888; }
+div.screenshot { clear: right; float: right; margin-left: 1em; }
+div.screenshot p.caption { text-align: center; font-size: 0.9em; }
+.smallfont { font-size: 0.9em; }
+div.subscr, div.subscr span.pre { background-color: #EEEEEE; }
+div.subscr ul.simple { padding-top: 0; padding-bottom: 0; margin-top: 0; }
+div.subscr { padding: 0px 12px; border: 1px solid #CCC; border-width: 1px 0; }
+.FlattrButton { text-align: center; float: right; }
+#contents { text-align: center; display: none; }
+#expand_features a { text-decoration: none; }
+#expand_features span.h1 { color: #303338;  }
+img.banner { margin-top: 10px; margin-bottom: 10px; }
+
+
 @media print {
     div.document, div.documentwrapper, div.bodywrapper {
         margin: 0 !important; width: 100%;
@@ -412,20 +447,9 @@ a:hover tt, a:hover code { background: #EEE; }
 }
 
 @media screen and (max-width: 875px) {
-    body { margin: 0; padding: 20px 30px; }
+    body { margin: 0; padding: 20px 10px; }
     div.documentwrapper { float: none; background: white; }
-    div.sphinxsidebar {
-        display: block;
-        float: none;
-        width: 102.5%;
-        margin: 50px -30px -20px -30px;
-        padding: 10px 20px;
-        background: #333;
-        color: #FFF;
-    }
-    div.sphinxsidebar h3, div.sphinxsidebar h4,
-        div.sphinxsidebar p, div.sphinxsidebar h3 a { color: white; }
-    div.sphinxsidebar a { color: #AAA; }
+    div.sphinxsidebar { display: block; float: none; width: 100%; margin: 0; }
     div.sphinxsidebar p.logo { display: none; }
     div.document { width: 100%; margin: 0; }
     div.related { width: 100%; margin: 0; padding: 10px 0 20px 0; }
@@ -436,40 +460,8 @@ a:hover tt, a:hover code { background: #EEE; }
     .rtd_doc_footer { display: none; }
     .document { width: auto; }
     .footer { width: auto; }
+    pre { padding: 7px 5px; }
+    div.admonition { padding: 10px 5px; border-width: 1px 0; }
+    div.screenshot { margin-left: 0; }
 }
 
-
-/* public domain icon from wikipedia */
-div.sphinxsidebar a.external {
-  background-position: right center;
-  background-repeat: no-repeat;
-  background-image: linear-gradient(transparent, transparent), url("data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20encoding%3D%22UTF-8%22%3F%3E%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2210%22%20height%3D%2210%22%3E%3Cg%20transform%3D%22translate%28-826.429%20-698.791%29%22%3E%3Crect%20width%3D%225.982%22%20height%3D%225.982%22%20x%3D%22826.929%22%20y%3D%22702.309%22%20fill%3D%22%23fff%22%20stroke%3D%22%2306c%22%2F%3E%3Cg%3E%3Cpath%20d%3D%22M831.194%20698.791h5.234v5.391l-1.571%201.545-1.31-1.31-2.725%202.725-2.689-2.689%202.808-2.808-1.311-1.311z%22%20fill%3D%22%2306f%22%2F%3E%3Cpath%20d%3D%22M835.424%20699.795l.022%204.885-1.817-1.817-2.881%202.881-1.228-1.228%202.881-2.881-1.851-1.851z%22%20fill%3D%22%23fff%22%2F%3E%3C%2Fg%3E%3C%2Fg%3E%3C%2Fsvg%3E");
-  padding-right: 13px;
-}
-
-/* div.sphinxsidebar a.current { font-weight: bold; } */
-
-
-/* for math symbols in the text use Century Schoolbook 
- * that is more like LaTeX Computer Modern font.
-.math { font-family: "Century Schoolbook", "New Century Schoolbook",
-                     times, serif; }
- */
-
-img.icon { vertical-align: text-bottom; }
-div.admonition-in-the-gui p.admonition-title {
-    padding-left: 36px;
-    background: url('mouse16.png') no-repeat 10px;
-}
-
-.quote { font-size: 0.9em; }
-.quote-author, div.body span.quote-author a { color: #888; }
-div.screenshot { clear: right; float: right; margin-left: 1em; }
-div.screenshot p.caption { text-align: center; font-size: 0.9em; }
-.smallfont { font-size: 0.9em; }
-div.subscr, div.subscr span.pre { background-color: #EEEEEE; }
-div.subscr ul.simple { padding-top: 0; padding-bottom: 0; margin-top: 0; }
-div.subscr { padding: 0px 12px; border: 1px solid #CCC; border-width: 1px 0; }
-.FlattrButton { text-align: center; float: right; }
-#contents { text-align: center; display: none; }
-#expand_features a { text-decoration: none; }
