@@ -174,7 +174,7 @@ void BgManager::strip_background()
 {
     if (bg_.empty())
         return;
-    wxString name = wxDateTime::Now().Format(wxT("%Y-%m-%d %T"));
+    wxString name = wxDateTime::Now().Format("%Y-%m-%d %H:%M:%S");
     name += wxString::Format(wxT(" (%d points)"), (int) bg_.size());
     recent_bg_.push_back(make_pair(name, bg_));
     define_bg_func();
