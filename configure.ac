@@ -120,13 +120,13 @@ AS_IF([test "x$enable_GUI" != "xno"], [
     AM_PATH_WXCONFIG([3.0.0], [wxWin=1], [wxWin=0], [adv,core,base,stc])
     if test "$wxWin" != 1; then
     	AC_MSG_ERROR([
-	      wxWindows must be installed on your system
+	      wxWidgets must be installed on your system
 	      but wx-config script could not be found.
 
 	      Please check that wx-config is in path, the directory
-	      where wxWindows libraries are installed (returned by
+	      where wxWidgets libraries are installed (returned by
 	      'wx-config --libs' command) is in LD_LIBRARY_PATH or
-	      equivalent variable and wxWindows version is 2.9.2 or above.
+	      equivalent variable and wxWidgets version is 3.0 or above.
 	     ])
     fi
 ])
