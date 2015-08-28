@@ -1,11 +1,12 @@
 ; InnoSetup script. It is used to make MS Windows installer.
 
 [Setup]
-AppName=fityk
+AppName=Fityk
 AppId=fityk
 AppPublisher=Marcin Wojdyr
 AppPublisherURL=http://www.nieto.pl
 AppVersion=@VERSION@
+VersionInfoVersion=@VERSION@
 AppVerName=Fityk @VERSION@
 OutputBaseFilename=fityk-@VERSION@-setup
 UninstallFilesDir={app}
