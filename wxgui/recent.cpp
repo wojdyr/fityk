@@ -22,9 +22,11 @@ void RecentFiles::load_from_config(wxConfigBase *c)
         for (int i = 0; i < MAX_NUMBER_OF_ITEMS; i++) {
             wxString key = wxString::Format("%s/%i", config_group_, i);
             if (c->HasEntry(key)) {
+                wxString value = c->Read(key, wxT(""));
+                if (value.empty()) // it should not normally happen
+                    continue;
                 int id = first_item_id_ + counter;
                 ++counter;
-                wxString value = c->Read(key, wxT(""));
                 wxString opt;
                 string::size_type sep = value.find(MAGIC_SEP);
                 if (sep != string::npos) {
