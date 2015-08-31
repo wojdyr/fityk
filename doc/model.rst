@@ -269,7 +269,7 @@ Some formulae here have long parameter names
        \exp\left[-\ln(2)\left(\frac{x-a_1}{a_2}\right)^{2}\right]
 
 :math:`a_2` here is half width at half maximum (HWHM=FWHM/2,
-where FWHM stands for full width...), which is proportional to standard
+where FWHM stands for full width...), which is proportional to the standard
 deviation: :math:`a_2=\sqrt{2\ln2}\sigma`.
 
 :ftype:`SplitGaussian`:

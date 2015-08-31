@@ -108,6 +108,231 @@ To run such program and execute the output use command:
     exec ! program [args...]
 
 
+Fityk DSL
+=========
+
+As was described in :ref:`cli`, each line has a syntax::
+
+  [[@...:] [with ...] command [";" command]...] [#comment]
+
+The datasets listed before the colon (``:``) make a *foreach* loop.
+Here is a silly example::
+
+   =-> $a=0
+   =-> @0 @0 @0: $a={$a+1}; print $a
+   1
+   2
+   3
+
+Command that follows the colon is run for each specified dataset
+in the context of that dataset. This is to say that::
+
+   =-> @2 @4: guess Voigt
+
+is equivalent to::
+
+   =-> use @2
+   =-> guess Voigt
+   =-> use @4
+   =-> guess Voigt
+
+(except that the letter sets permenently default dataset to ``@4``.
+
+``@*`` stands for all datasets, from ``@0`` to the last one.
+
+Usually, when working with multiple datasets, one executes a command
+either for a single dataset or for all of them::
+
+   =-> @3: guess Voigt  # just for @3
+   =-> @*: guess Voigt  # for all datasets
+
+The whole line is parsed and partly validated before the execution.
+This may lead to unexpected errors when the line has
+multiple semicolon-separated commands::
+
+   =-> $a=4; print $a  # print gives unexpected error
+   Error: undefined variable: $a
+
+   =-> $b=2
+   =-> $b=4; print $b  # $b is already defined at the check time
+   4
+
+Therefore, it is recommended to have one command in one line.
+
+Grammar
+-------
+
+The grammar is expressed in EBNF-like notation:
+
+* ``(*this is a comment*)``
+* ``A*`` means 0 or more occurrences of A.
+* ``A+`` means 1 or more occurrences of A.
+* ``A % B`` means ``A (B A)*`` and the ``%`` operator has the highest
+  precedence. For example: ``term % "+" comment`` is the same as
+  ``term ("+" term)* comment``.
+* The colon ``:`` in quoted string means that the string can be shortened, e.g.
+  ``"del:ete"`` means that any of ``del``, ``dele``, ``delet`` and ``delete``
+  can be used.
+
+The functions that can be used in ``p_expr`` and ``v_expr`` are available
+:ref:`here <transform>` and :ref:`here <variables>`, respectively.
+``v_expr`` contains only a subset of functions from ``p_expr`` (partly,
+because we need to calculate symbolical derivatives of ``v_expr``)
+
+**Line structure**
+
+.. productionlist::
+   line: [`statement`] [`comment`]
+   statement: [Dataset+ ":"] [`with_opts`] `command` % ";"
+   with_opts: "w:ith" (Lname "=" `value`) % ","
+   comment: "#" AllChars*
+
+**Commands**
+
+The kCmd* names in the comments correspond to constants in the code.
+
+.. productionlist::
+   command: (
+    : "deb:ug" RestOfLine              | (*kCmdDebug*)
+    : "def:ine" `define`                 | (*kCmdDefine*)
+    : "del:ete" `delete`                 | (*kCmdDelete*)
+    : "del:ete" `delete_points`          | (*kCmdDeleteP*)
+    : "e:xecute" `exec`                  | (*kCmdExec*)
+    : "f:it" `fit`                       | (*kCmdFit*)
+    : "g:uess" `guess`                   | (*kCmdGuess*)
+    : "i:nfo" `info_arg` % "," [`redir`]   | (*kCmdInfo*)
+    : "l:ua" RestOfLine                | (*kCmdLua*)
+    : "=" RestOfLine                   | (*kCmdLua*)
+    : "pl:ot" [`range`] [`range`] Dataset* [`redir`] | (*kCmdPlot*)
+    : "p:rint" `print_args` [`redir`]      | (*kCmdPrint*)
+    : "quit"                           | (*kCmdQuit*)
+    : "reset"                          | (*kCmdReset*)
+    : "s:et" (Lname "=" `value`) % ","   | (*kCmdSet*)
+    : "sleep" `expr`                     | (*kCmdSleep*)
+    : "title" "=" `filename`             | (*kCmdTitle*)
+    : "undef:ine" Uname % ","          | (*kCmdUndef*)
+    : "use" Dataset                    | (*kCmdUse*)
+    : "!" RestOfLine                   | (*kCmdShell*)
+    : Dataset "<" `load_arg`             | (*kCmdLoad*)
+    : Dataset "=" `dataset_expr`         | (*kCmdDatasetTr*)
+    : Funcname "=" `func_rhs`            | (*kCmdNameFunc*)
+    : `param_lhs` "=" `v_expr`             | (*kCmdAssignParam*)
+    : Varname "=" `v_expr`               | (*kCmdNameVar*)
+    : Varname "=" "copy" "(" `var_id` ")" | (*kCmdNameVar*)
+    : `model_id` ("="|"+=") `model_rhs`    | (*kCmdChangeModel*)
+    : (`p_attr` "[" `expr` "]" "=" `p_expr`) % "," | (*kCmdPointTr*)
+    : (`p_attr` "=" `p_expr`) % ","        | (*kCmdAllPointsTr*)
+    : "M" "=" `expr`                     ) (*kCmdResizeP*)
+
+**Other rules**
+
+.. productionlist::
+   define: Uname "(" (Lname [ "=" `v_expr`]) % "," ")" "="
+         :    ( `v_expr` |
+         :      `component_func` % "+" |
+         :      "x" "<" `v_expr` "?" `component_func` ":" `component_func`
+         :    )
+   component_func: Uname "(" `v_expr` % "," ")"
+   delete: (Varname | `func_id` | Dataset | "file" `filename`) % ","
+   delete_points: "(" `p_expr` ")"
+   exec: `filename` |
+       : "!" RestOfLine |
+       : "=" RestOfLine
+   fit: [Number] [Dataset*] |
+      : "undo" |
+      : "redo" |
+      : "history" Number |
+      : "clear_history"
+   guess: [Funcname "="] Uname ["(" (Lname "=" `v_expr`) % "," ")"] [`range`]
+   info_arg: ...TODO
+   print_args: [("all" | ("if" `p_expr` ":")]
+             : (`p_expr` | QuotedString | "title" | "filename") % ","
+   redir: (">"|">>") `filename`
+   value: (Lname | QuotedString | `expr`) (*value type depends on the option*)
+   model_rhs: "0" |
+            : `func_id` |
+            : `func_rhs` |
+            : `model_id` |
+            : "copy" "(" `model_id` ")"
+   func_rhs: Uname "(" ([Lname "="] `v_expr`) % "," ")" |
+           : "copy" "(" `func_id` ")"
+   load_arg: `filename` Lname* |
+           : "."
+   p_attr: ("X" | "Y" | "S" | "A")
+   model_id: [Dataset "."] ("F"|"Z")
+   func_id: Funcname |
+          : `model_id` "[" Number "]"
+   param_lhs: Funcname "." Lname |
+            : `model_id` "[" (Number | "*") "]" "." Lname
+   var_id: Varname |
+         : `func_id` "." Lname
+   range: "[" [`expr`] ":" [`expr`] "]"
+   filename: QuotedString | NonblankString
+
+**Mathematical expressions**
+
+.. productionlist::
+   expr: expr_or ? expr_or : expr_or
+   expr_or: expr_and % "or"
+   expr_and: expr_not % "and"
+   expr_not: "not" expr_not | comparison
+   comparison: arith % ("<"|">"|"=="|">="|"<="|"!=")
+   arith: term % ("+"|"-")
+   term: factor % ("*"|"/")
+   factor: ('+'|'-') factor | power
+   power: atom ['**' factor]
+   atom: Number | "true" | "false" | "pi" |
+       : math_func | braced_expr | ?others?
+   math_func: "sqrt" "(" expr ")" |
+            : "gamma" "(" expr ")" |
+            :  ...
+   braced_expr: "{" [Dataset+ ":"] `p_expr` "}"
+
+The ``atom`` rule also accepts some fityk expressions, such as $variable,
+%function.parameter, %function(expr), etc.
+
+``p_expr`` and ``v_expr`` are similar to ``expr``,
+but they use additional variables in the ``atom`` rule.
+
+``p_expr`` recognizes ``n``, ``M``, ``x``, ``y``, ``s``, ``a``, ``X``, ``Y``,
+``S`` and ``A``. All of them but ``n`` and ``M`` can be indexed
+(e.g.  ``x[4]``).  Example: ``(x+x[n-1])/2``.
+
+``v_expr`` uses all unknown names (``Lname``) as variables
+(example: ``a+b*x^2``).
+Only a subset of functions (``math_func``) from ``expr`` is supported.
+The tilde (``~``) can be used to create simple-variables (``~5``),
+optionally with a domain in square brackets (``~5[1:6]``).
+
+Since ``v_expr`` is used to define variables and user-defined functions,
+the program calculates symbolically derivatives of ``v_expr``.
+That is why not all the function from ``expr`` are supported
+(they may be added in the future).
+
+``dataset_expr`` supports very limited set of operators and a few functions
+that take Dataset token as argument (example: ``@0 - shirley_bg(@0)``).
+
+**Lexer**
+
+Below, some of the tokens produced by the fityk lexer are defined.
+
+The lexer is context-dependend: ``NonblankString`` and ``RestOfLine``
+are produced only when they are expected in the grammar.
+
+``Uname`` is used only for function types (Gaussian)
+and pseudo-parameters (%f.Area).
+
+.. productionlist::
+   Dataset: "@"(Digit+|"+"|"*")
+   Varname: "$" Lname
+   Funcname: "%" Lname
+   QuotedString: "'" (AllChars - "'")* "'"
+   Lname: (LowerCase | "_") (LowerCase | Digit | "_")*
+   Uname: UpperCase AlphaNum+
+   Number: ?number read by strtod()?
+   NonblankString: (AllChars - (WhiteSpace | ";" | "#" ))*
+   RestOfLine: AllChars*
+
 Fityk library API
 =================
 
@@ -385,10 +610,10 @@ Fit statistics
     Returns covariance matrix.
 
 
-Examples
-========
+Examples in Lua
+===============
 
-List peak center of series of data::
+Show how the peak center moves between datasets::
 
     -- file list-max.lua
     prev_x = nil

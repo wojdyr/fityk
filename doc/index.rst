@@ -151,8 +151,8 @@ Documentation
 =============
 
 * `Manual <fityk-manual.html>`_
-  (chapters :ref:`intro`, :ref:`getstarted`, :ref:`lang`, :ref:`data`,
-  :ref:`model`, :ref:`fit`, :ref:`ref`).
+  (chapters :ref:`intro`, :ref:`getstarted`, :ref:`data`,
+  :ref:`model`, :ref:`fit`, :ref:`scripts`, :ref:`ref`).
 * PDF, ePUB and older versions of the manual can be downloaded
   `from Read the Docs <https://readthedocs.org/projects/fityk/downloads/>`_.
 

@@ -1,5 +1,6 @@
-* docs: Mini-Language > Intro -> Getting Started > CLI,
-        move Mini-Language > Grammar -> Scripts
+* GUI: make \-line continuation work
+
+* docs: re-read recent changes, guilabel:`View whole` -> image
 
 * GUI: data open dialogs should make possible to explicitely pass file format,
   for instance "@+ <'/run/mw/example.xy' text"
