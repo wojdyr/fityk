@@ -1,7 +1,5 @@
 * GUI: make \-line continuation work
 
-* docs: re-read recent changes, guilabel:`View whole` -> image
-
 * GUI: data open dialogs should make possible to explicitely pass file format,
   for instance "@+ <'/run/mw/example.xy' text"
 
@@ -90,7 +88,7 @@
                        http://dx.doi.org/10.1002/cem.1005
                        http://www.ncbi.nlm.nih.gov/pmc/articles/PMC2631518/
 
-* "anonymous" function types: %f = ~1/(1+exp(11*(~0.663-x)))  -> Anon0(a0,a1)
+* "anonymous" function types: %f = ~1/(1+exp(11*(~0.663-x)))  -> Anon1(a0,a1)
 
 * fitting - external libraries to be considered/tested:
   - ceres-solver (or http://dlib.net/optimization.html)

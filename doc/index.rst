@@ -37,9 +37,10 @@
 Fityk *[fi:tik]* is a program for data processing
 and nonlinear **curve fitting**.
 
-Although it is primarily used...
+Primarily used
 
-* by scientists who analyse data from powder diffraction, chromatography,
+* by scientists (150 citations in 2014 alone)
+  who analyse data from powder diffraction, chromatography,
   photoluminescence and photoelectron spectroscopy,
   infrared and Raman spectroscopy, and other experimental techniques,
 
@@ -48,8 +49,7 @@ Although it is primarily used...
 * to fit peaks -- bell-shaped functions (Gaussian, Lorentzian, Voigt,
   Pearson VII, bifurcated Gaussian, EMG, Doniach-Sunjic, etc.),
 
-... the program can be used for any task that requires fitting a curve
-to 2D (*x*,\ *y*) data.
+but the program is suitable for fitting any curve to 2D (*x*,\ *y*) data.
 
 .. _contents:
 

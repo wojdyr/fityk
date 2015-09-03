@@ -1,12 +1,10 @@
 ACLOCAL_AMFLAGS = -I m4
 EXTRA_DIST = README.md fityk.iss fityk.url \
-             doc/fityk-manual.rst  doc/index.rst       doc/intro.rst \
-             doc/getstarted.rst    doc/lang.rst        doc/data.rst \
-             doc/model.rst         doc/fit.rst         doc/ref.rst \
-             doc/script.rst        doc/conf.py         doc/editlink.html \
-             doc/layout.html       doc/fityk_ext.py    doc/fityk.css \
-             doc/Makefile \
-             doc/html
+             doc/fityk-manual.rst doc/intro.rst doc/getstarted.rst \
+             doc/data.rst doc/model.rst doc/fit.rst \
+             doc/script.rst doc/ref.rst \
+             doc/Makefile doc/conf.py doc/fityk_ext.py \
+             doc/img doc/fitheme doc/html
 
 SUBDIRS = fityk
 if GUI_DIR

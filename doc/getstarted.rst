@@ -13,36 +13,70 @@ That's how the :abbr:`GUI (Graphical User Interface)` looks like:
    :align: center
    :scale: 50
 
-The input field with the output window provide a console-like interface
-to the program. All important operation performed using the GUI
-are translated to textual commands and displayed in the output windows.
+The **main plot** can display data points, model that is to be fitted to the
+data and individual functions in the model. Use can configure what is displayed
+and how (through :menuselection:`GUI --> Configure` or context menu).
 
-The main plot can display data points, model that is to be fitted to the
-data and component functions of the model. Use the pop-up menu (click
-right button on the plot) to configure it. Some properties of the plot
-(e.g. colors of data points) can be changed from the sidebar.
+The **helper plot** shows how well the model fits the data.
+You may have one, two or no helper plots (:menuselection:`GUI --> Show`).
+By default, the plot shows the difference between the data and the model.
+It can also show weighted or cumulative difference,
+and a couple of other things.
 
-The helper plot below can show various statistics.
-The default one one is the difference between the data and the model.
-The plot can be configured from a pop-up menu.
-If you do not find it useful you may hide it (:menuselection:`GUI --> Show`).
-
-Configuration of the GUI (visible windows, colors, etc.) can be saved
-using :menuselection:`GUI --> Save current config`.
-
-On the **main plot**, the meaning of the left and right mouse button depends
-on current :dfn:`mode`.
-There are hints on the status bar. In normal mode, the left button is
-used for zooming and the right invokes the pop-up menu.
-
-On the **helper plot**, selecting a horizontal range with the left button
-will show this range, automatically adjusting vertical range.
-The middle button shows the whole dataset (like |zoom-all-icon| in the toolbar).
-The right button displays a menu.
+The helper plot is also handy for zooming -- with left and middle
+mouse buttons. Selecting a horizontal span with the left button
+zooms into this span. The middle button goes back to the whole dataset
+(the same as |zoom-all-icon| in the toolbar).
 
 .. |zoom-all-icon| image:: img/zoom_all.png
    :alt: Zoom All
    :class: icon
+
+The **sidebar** is for switching between datasets, inspecting functions,
+and for changing function parameters. It also provides quick access
+to a few properties of the main plot, such as the size of data points.
+
+On the main plot, the meaning of the left and right mouse button depends
+on the current **mouse mode**. Mouse modes are switched using toolbar
+buttons:
+
+* |mode-zoom-icon| *normal mode* -- the left button zooms in and
+  the right button shows pop-up menu,
+
+* |mode-range-icon| *data-range mode* -- for activating and de-activating data,
+  i.e. for selecting regions of interest,
+
+* |mode-bg-icon| *baseline mode* -- manual baseline subtraction
+  (in may never need it),
+
+* |mode-add-icon| *add-peak mode* -- for placing peaks and other functions.
+
+.. |mode-zoom-icon| image:: img/mode_zoom.png
+   :alt: Normal Mode
+   :class: icon
+
+.. |mode-range-icon| image:: img/mode_range_icon.png
+   :alt: Data-Range Mode
+   :class: icon
+
+.. |mode-bg-icon| image:: img/mode_bg_icon.png
+   :alt: Baseline Mode
+   :class: icon
+
+.. |mode-add-icon| image:: img/mode_add_icon.png
+   :alt: Add-Peak Mode
+   :class: icon
+
+The status bar shows a hint what the mouse does in the current mode.
+
+Finally, the **input field** and the **output window** provide alternative,
+console-like way of interacting with the program.
+Also, the GUI operations that change the state of the program
+(data, model, non-visual settings) are translated into textual commands
+and printed in the output window.
+
+.. note:: To save configuration of the GUI (visible windows, colors, etc.)
+          for next session use :menuselection:`GUI --> Save current config`.
 
 
 Minimal Example
@@ -74,18 +108,14 @@ from the menu (or |load-data-icon| from the toolbar) and choose the file.
    @0 < nacl01.dat 
 
 
-You can zoom-in to the biggest peak using left mouse
-button on the residual plot (the plot below the main plot).
-To zoom out, press the :guilabel:`View whole` toolbar button.
+You can zoom-in to the biggest peak using the left mouse
+button on the residual (helper) plot.
+To zoom out, press |zoom-all-icon| on the toolbar.
 
 Now all data points are active. Only the biggest peak is of
 our interest, so we want to deactivate the remaining points.
-Change to the :dfn:`range` mode (toolbar: |mode-range-icon|)
+Change to the *range mode* (toolbar: |mode-range-icon|)
 and deactivate not needed points with the right mouse button.
-
-.. |mode-range-icon| image:: img/mode_range_icon.png
-   :alt: Data-Range Mode
-   :class: icon
 
 .. admonition:: CLI
 
@@ -109,19 +139,17 @@ and press |add-peak-icon|.
    guess Gaussian
 
 
-If you'd like to set the initial parameters manually,
-change the GUI mode to |mode-add-icon|,
-click on the plot and drag the mouse to select
-the position, height and width of a new peak.
-
-.. |mode-add-icon| image:: img/mode_add_icon.png
-   :alt: Add-Peak Mode
-   :class: icon
+Automatic peak detection works in this case, but if it wouldn't, you may
+set the initial peak position, height and width manually.
+Either with mouse in the *add-peak mode*, or with a command.
 
 .. admonition:: CLI
 
    F += Gaussian(~60000, ~24.6, ~0.2)
 
+Parameters of an existing function can be changed in the sideber,
+or by dragging that little square handle attached to each function
+(you should see a handle at the top of your Gaussian).
 
 If the peaks/functions are not named explicitely (like in this example),
 they get automatic names ``%_1``, ``%_2``, etc.
@@ -143,10 +171,10 @@ Select :menuselection:`Fit --> Run` from the menu or press |fit-icon|.
     (see :ref:`nonlinear`).
     The default :ref:`weights of points <weights>` are not equal.
 
-To see the peak parameters,
-move the cursor to the top of the peak
-and select "Show Info" from the context menu (right mouse button).
-Or check the parameters on the sidebar.
+Now you can check the peak position together with other parameters
+on the sidebar.
+Alternatively, right click the peak handle
+and select :menuselection:`Show Info` from the context menu.
 
 
 .. admonition:: CLI
@@ -155,7 +183,7 @@ Or check the parameters on the sidebar.
 
 That's it!
 
-You can save all the issued commands to a file
+By the way, you can save all the issued commands to a file
 (:menuselection:`Session --> Save History`)
 
 .. admonition:: CLI
@@ -184,7 +212,7 @@ for this.
 
    you do not need to learn these commands.
    It is possible to use menus and dialogs in the GUI
-   and avoid typing commands.
+   and completely avoid typing commands.
 
 When you use the GUI and perform an action using the menu,
 you can see the corresponding command in the output window.
@@ -255,8 +283,10 @@ the command::
 
 .. highlight:: none
 
-Each line has a syntax::
+Putting it all together, a line typically has a single command,
+often prefixed with datasets+\ ``:``, sometimes prefixed with ``with``.
+In general it is::
 
   [[@...:] [with ...] command [";" command]...] [#comment]
 
-All the commands are described in the next chapters.
+All the commands are described in next chapters.
