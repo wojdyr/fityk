@@ -2,8 +2,8 @@
 // Licence: GNU General Public License ver. 2+
 // (It is also part of xyconvert and can be distributed under LGPL2.1)
 
-#ifndef FITYK__WX_UPLOT__H__
-#define FITYK__WX_UPLOT__H__
+#ifndef FITYK_WX_UPLOT_H_
+#define FITYK_WX_UPLOT_H_
 
 #include <vector>
 
@@ -86,4 +86,4 @@ std::vector<double> scale_tics_step(double beg, double end, int max_tics,
                                     std::vector<double> &minors,
                                     bool logarithm=false);
 
-#endif //FITYK__WX_UPLOT__H__
+#endif //FITYK_WX_UPLOT_H_

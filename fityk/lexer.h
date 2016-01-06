@@ -3,8 +3,8 @@
 
 /// Lexical analyser. Takes characters and yields tokens.
 
-#ifndef FITYK__LEXER__H__
-#define FITYK__LEXER__H__
+#ifndef FITYK_LEXER_H_
+#define FITYK_LEXER_H_
 
 #include <string>
 
@@ -154,4 +154,4 @@ private:
 std::string token2str(const Token& token);
 
 } // namespace fityk
-#endif // FITYK__LEXER__H__
+#endif // FITYK_LEXER_H_

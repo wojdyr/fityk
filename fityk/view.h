@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright 2001-2013 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__VIEW__H__
-#define FITYK__VIEW__H__
+#ifndef FITYK_VIEW_H_
+#define FITYK_VIEW_H_
 
 #include <string>
 #include <vector>

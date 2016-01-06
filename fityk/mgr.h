@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright 2001-2013 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__MGR__H__
-#define FITYK__MGR__H__
+#ifndef FITYK_MGR_H_
+#define FITYK_MGR_H_
 
 #include <map>
 #include "fityk.h"

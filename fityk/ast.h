@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright 2001-2013 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__AST__H__
-#define FITYK__AST__H__
+#ifndef FITYK_AST_H_
+#define FITYK_AST_H_
 
 #include <assert.h>
 #include "vm.h" // opcodes

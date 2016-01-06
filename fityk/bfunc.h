@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright 2001-2013 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__BFUNC__H__
-#define FITYK__BFUNC__H__
+#ifndef FITYK_BFUNC_H_
+#define FITYK_BFUNC_H_
 
 #include "func.h"
 #include "numfuncs.h" // PointQ

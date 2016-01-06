@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright 2001-2013 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__NUMFUNCS__H__
-#define FITYK__NUMFUNCS__H__
+#ifndef FITYK_NUMFUNCS_H_
+#define FITYK_NUMFUNCS_H_
 
 #include <stdlib.h>
 #include "fityk.h"

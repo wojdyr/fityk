@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright 2001-2013 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__NMFIT__H__
-#define FITYK__NMFIT__H__
+#ifndef FITYK_NMFIT_H_
+#define FITYK_NMFIT_H_
 
 #include <vector>
 #include "common.h"

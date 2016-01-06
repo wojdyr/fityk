@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright 2001-2013 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__WX_APP__H__
-#define FITYK__WX_APP__H__
+#ifndef FITYK_WX_APP_H_
+#define FITYK_WX_APP_H_
 
 
 class wxCmdLineParser;

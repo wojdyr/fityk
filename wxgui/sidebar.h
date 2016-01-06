@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright 2001-2013 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__WX_SIDEBAR__H__
-#define FITYK__WX_SIDEBAR__H__
+#ifndef FITYK_WX_SIDEBAR_H_
+#define FITYK_WX_SIDEBAR_H_
 
 #include <wx/notebook.h>
 #include <wx/spinctrl.h>

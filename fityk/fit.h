@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright 2001-2013 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__FIT__H__
-#define FITYK__FIT__H__
+#ifndef FITYK_FIT_H_
+#define FITYK_FIT_H_
 #include <vector>
 #include <string>
 #include <time.h>

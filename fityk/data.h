@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright 2001-2013 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__DATA__H__
-#define FITYK__DATA__H__
+#ifndef FITYK_DATA_H_
+#define FITYK_DATA_H_
 #include <string>
 #include <vector>
 #include <limits.h>

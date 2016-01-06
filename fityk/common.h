@@ -3,8 +3,8 @@
 
 ///  Various headers and definitions. Included by almost all files.
 
-#ifndef FITYK__COMMON__H__
-#define FITYK__COMMON__H__
+#ifndef FITYK_COMMON_H_
+#define FITYK_COMMON_H_
 
 #if HAVE_CONFIG_H
 #  include <config.h>

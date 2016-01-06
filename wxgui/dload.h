@@ -1,8 +1,8 @@
 // This file is part of fityk program. Copyright 2001-2013 Marcin Wojdyr
 // Licence: GNU General Public License ver. 2+
 
-#ifndef FITYK__WX_DLOAD__H__
-#define FITYK__WX_DLOAD__H__
+#ifndef FITYK_WX_DLOAD_H_
+#define FITYK_WX_DLOAD_H_
 
 namespace fityk { class Data; }
 class XyFileBrowser;
