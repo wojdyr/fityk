@@ -118,6 +118,7 @@ class TestDefaultValues(unittest.TestCase):
     def test_defval_bounds(self):
         self.ftk.execute("define My(a=3, b=0.1[-1:1]) = a*exp(b*x)")
         self.ftk.execute("%f=My(a=3)")
+        self.assertEqual(self.ftk.get_variable("%f.b").name, "_2")
         a = self.ftk.get_variable("_2")
         self.assertEqual(a.value(), 0.1)
         self.assertEqual(a.domain.lo, -1)

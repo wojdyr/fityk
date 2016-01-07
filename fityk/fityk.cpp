@@ -251,7 +251,7 @@ const Var* Fityk::get_variable(string const& name)  throw(ExecuteError)
             vname = string(name, 1);
         else if (name[0] == '%' && name.find('.') < name.size() - 1) {
             string::size_type pos = name.find('.');
-            Function const* f = priv_->mgr.find_function(string(1, pos-1));
+            Function const* f = priv_->mgr.find_function(name.substr(1, pos-1));
             string pname = name.substr(pos+1);
             vname = f->used_vars().get_name(f->get_param_nr(pname));
         } else
