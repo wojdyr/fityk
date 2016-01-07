@@ -14,7 +14,11 @@
 #include <xylib/xylib.h> //get_version()
 #include <boost/version.hpp> // BOOST_VERSION
 extern "C" {
-#include <lua.h> // LUA_RELEASE
+#ifndef DISABLE_LUA
+# include <lua.h> // LUA_RELEASE
+#else
+# define LUA_RELEASE "disabled"
+#endif
 }
 // <config.h> is included from common.h
 #if HAVE_LIBNLOPT

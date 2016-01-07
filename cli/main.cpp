@@ -229,7 +229,6 @@ void main_loop()
             s.resize(s.size()-1);
             printf("... ");
             fflush(stdout);
-            string cont;
             if (!fgets(line_buffer, sizeof(line_buffer), stdin))
                 break;
             s += line_buffer;

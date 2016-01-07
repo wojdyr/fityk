@@ -4,6 +4,8 @@
 #include "logic.h"
 #include "ui.h"
 
+#ifndef DISABLE_LUA
+
 extern "C" {
 #include <lua.h>
 #include <lualib.h>
@@ -209,3 +211,17 @@ void LuaBridge::handle_lua_error()
 }
 
 } // namespace fityk
+
+#else // DISABLE_LUA
+
+namespace fityk {
+LuaBridge::LuaBridge(Full*) {}
+LuaBridge::~LuaBridge() {}
+void LuaBridge::close_lua() {}
+void LuaBridge::exec_lua_string(const std::string&) {}
+void LuaBridge::exec_lua_script(const std::string&) {}
+void LuaBridge::exec_lua_output(const std::string&) {}
+bool LuaBridge::is_lua_line_incomplete(const char*) { return true; }
+}
+
+#endif // DISABLE_LUA

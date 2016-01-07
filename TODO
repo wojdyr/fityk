@@ -94,6 +94,7 @@
   - ceres-solver (or http://dlib.net/optimization.html)
   - libgencurvefit (Differential Evolution),
   - PaGMO library that collects many optimisation methods.
+  - GSL: https://www.sourceware.org/ml/gsl-discuss/2014-q1/msg00025.html
 
 * fitting: in addition to the least squares fit, add so-called robust fit 
   (it is called robust fit in the Numerical Recipes book), i.e. optimize

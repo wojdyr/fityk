@@ -117,8 +117,9 @@ after the end of subscription.
 
    <div class="smallfont">
 
-There is a discount for home users and students,
-email wojdyr@gmail.com for details.
+Fityk is usually bought by companies and institutions.
+If you're a home user or a student in an institution that won't buy software
+for you - email wojdyr@gmail.com for info about discount.
 
 .. raw:: html
 
