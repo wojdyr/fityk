@@ -51,7 +51,7 @@ PreviewPlot::PreviewPlot(wxWindow* parent)
     : PlotWithTics(parent), block_nr(0), idx_x(1), idx_y(2),
       data_updated_(false)
 {
-    set_bg_color(*wxBLACK);
+    set_bg_color(wxColour(64, 64, 64));
     support_antialiasing_ = false;
 }
 
@@ -174,9 +174,9 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
     title_tc->Enable(false);
     dt_sizer->Add(title_tc, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     left_sizer->Add (dt_sizer, 0, wxEXPAND);
+#endif
 
     StdDevCheckBoxChanged();
-#endif
 
     // ----- right upper panel -----
     text_preview =  new wxTextCtrl(rupper_panel, -1, wxT(""),
