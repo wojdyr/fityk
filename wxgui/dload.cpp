@@ -59,12 +59,14 @@ DLoadDlg::DLoadDlg(wxWindow* parent, int data_idx, Data* data,
     if (data->get_given_y() != fityk::LoadSpec::NN)
         browser_->y_column->SetValue(data->get_given_y());
     if (data->get_given_s() != fityk::LoadSpec::NN) {
-        browser_->std_dev_cb->SetValue(true);
+        browser_->std_dev_b->SetValue(true);
         browser_->s_column->SetValue(data->get_given_s());
+    } else if (S(ftk->get_settings()->default_sigma) == "sqrt") {
+        browser_->sd_sqrt_rb->SetValue(true);
+    } else {
+        browser_->sd_1_rb->SetValue(true);
     }
-
-    bool def_sqrt = (S(ftk->get_settings()->default_sigma) == "sqrt");
-    browser_->sd_sqrt_cb->SetValue(def_sqrt);
+    browser_->update_s_column();
 
     Connect(open_here_btn_->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
             wxCommandEventHandler(DLoadDlg::OnOpenHere));
@@ -78,7 +80,7 @@ void DLoadDlg::exec_command(bool replace)
     string cols;
     int x = browser_->x_column->GetValue();
     int y = browser_->y_column->GetValue();
-    bool has_s = browser_->std_dev_cb->GetValue();
+    bool has_s = browser_->std_dev_b->GetValue();
     int sig = browser_->s_column->GetValue();
     int b = browser_->block_ch->GetSelection();
     // default parameter values are not passed explicitely
@@ -92,14 +94,15 @@ void DLoadDlg::exec_command(bool replace)
     }
 
     string cmd;
-    bool def_sqrt = (S(ftk->get_settings()->default_sigma) == "sqrt");
-    bool set_sqrt = browser_->sd_sqrt_cb->GetValue();
-    bool sigma_in_file = browser_->std_dev_cb->GetValue();
-    if (!sigma_in_file && set_sqrt != def_sqrt) {
-        if (set_sqrt)
-            cmd = "with default_sigma=sqrt ";
-        else
-            cmd = "with default_sigma=one ";
+    if (!has_s) {
+        bool default_sqrt = (S(ftk->get_settings()->default_sigma) == "sqrt");
+        bool set_sqrt = browser_->sd_sqrt_rb->GetValue();
+        if (set_sqrt != default_sqrt) {
+            if (set_sqrt)
+                cmd = "with default_sigma=sqrt ";
+            else
+                cmd = "with default_sigma=one ";
+        }
     }
     wxArrayString paths;
     browser_->filectrl->GetPaths(paths);

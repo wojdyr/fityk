@@ -35,25 +35,28 @@ class XyFileBrowser : public wxSplitterWindow
 public:
     wxFileCtrl *filectrl;
     wxSpinCtrl *x_column, *y_column, *s_column;
-    wxCheckBox *std_dev_cb, *comma_cb;
+    wxCheckBox *comma_cb;
     wxChoice *block_ch;
-#ifndef XYCONVERT
-    wxCheckBox *sd_sqrt_cb, *title_cb;
+#ifdef XYCONVERT
+    wxCheckBox *std_dev_b;
+#else
+    wxRadioButton *std_dev_b, *sd_sqrt_rb, *sd_1_rb;
+    wxCheckBox *title_cb;
     wxTextCtrl *title_tc;
 #endif
 
     XyFileBrowser(wxWindow* parent);
     std::string get_filetype() const;
     void update_file_options();
+    void update_s_column();
 
 private:
     wxTextCtrl *text_preview;
     PreviewPlot *plot_preview;
     wxCheckBox *auto_text_cb, *auto_plot_cb;
 
-    void StdDevCheckBoxChanged();
     void OnCommaCheckBox(wxCommandEvent&);
-    void OnStdDevCheckBox(wxCommandEvent&) { StdDevCheckBoxChanged(); }
+    void OnStdDevSwitched(wxCommandEvent&) { update_s_column(); }
     void OnAutoTextCheckBox(wxCommandEvent& event);
     void OnAutoPlotCheckBox(wxCommandEvent& event);
     void OnColumnChanged(wxSpinEvent& event);

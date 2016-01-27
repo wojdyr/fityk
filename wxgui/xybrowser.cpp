@@ -146,17 +146,23 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
     y_column = new SpinCtrl(columns_panel, wxID_ANY, 2, 0, 999, 50);
     h2a_sizer->Add (y_column, 0, wxALL|wxALIGN_LEFT, 5);
-    std_dev_cb = new wxCheckBox(columns_panel, -1, wxT("\u03C3"));
-    std_dev_cb->SetValue(false);
-    h2a_sizer->Add(std_dev_cb, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL,5);
+#ifdef XYCONVERT
+    std_dev_b = new wxCheckBox(columns_panel, -1, wxT("\u03C3"));
+#else
+    std_dev_b = new wxRadioButton(columns_panel, -1, wxT("\u03C3"));
+#endif
+    std_dev_b->SetValue(false);
+    h2a_sizer->Add(std_dev_b, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL,5);
     s_column = new SpinCtrl(columns_panel, wxID_ANY, 3, 1, 999, 50);
     h2a_sizer->Add(s_column, 0, wxALL|wxALIGN_LEFT, 5);
 #ifndef XYCONVERT
     h2a_sizer->Add(new wxStaticText(columns_panel, wxID_ANY, "or"),
                    0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    sd_sqrt_cb = new wxCheckBox(columns_panel, wxID_ANY,
-                                wxT("\u03C3 = max{\u221Ay, 1}"));
-    h2a_sizer->Add(sd_sqrt_cb, 0, wxALL|wxEXPAND, 5);
+    sd_sqrt_rb = new wxRadioButton(columns_panel, wxID_ANY,
+                                   wxT("\u03C3=max{\u221Ay, 1}  or "));
+    h2a_sizer->Add(sd_sqrt_rb, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    sd_1_rb = new wxRadioButton(columns_panel, wxID_ANY, wxT("\u03C3=1"));
+    h2a_sizer->Add(sd_1_rb, 0, wxALL|wxEXPAND, 5);
 #endif
     columns_panel->SetSizer(h2a_sizer);
     left_sizer->Add (columns_panel, 0, wxALL|wxEXPAND, 5);
@@ -167,16 +173,15 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
 
 #ifndef XYCONVERT
     wxBoxSizer *dt_sizer = new wxBoxSizer(wxHORIZONTAL);
-    title_cb = new wxCheckBox(left_panel, wxID_ANY,
-                              wxT("data title:"));
+    title_cb = new wxCheckBox(left_panel, wxID_ANY, "data title:");
     dt_sizer->Add(title_cb, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    title_tc = new wxTextCtrl(left_panel, -1, wxT(""));
+    title_tc = new wxTextCtrl(left_panel, -1, "");
     title_tc->Enable(false);
     dt_sizer->Add(title_tc, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     left_sizer->Add (dt_sizer, 0, wxEXPAND);
 #endif
 
-    StdDevCheckBoxChanged();
+    update_s_column();
 
     // ----- right upper panel -----
     text_preview =  new wxTextCtrl(rupper_panel, -1, wxT(""),
@@ -204,8 +209,17 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
 
     update_block_list();
 
-    Connect(std_dev_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
-            wxCommandEventHandler(XyFileBrowser::OnStdDevCheckBox));
+#ifdef XYCONVERT
+    Connect(std_dev_b->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
+            wxCommandEventHandler(XyFileBrowser::OnStdDevSwitched));
+#else
+    Connect(std_dev_b->GetId(), wxEVT_RADIOBUTTON,
+            wxCommandEventHandler(XyFileBrowser::OnStdDevSwitched));
+    Connect(sd_sqrt_rb->GetId(), wxEVT_RADIOBUTTON,
+            wxCommandEventHandler(XyFileBrowser::OnStdDevSwitched));
+    Connect(sd_1_rb->GetId(), wxEVT_RADIOBUTTON,
+            wxCommandEventHandler(XyFileBrowser::OnStdDevSwitched));
+#endif
     Connect(comma_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
             wxCommandEventHandler(XyFileBrowser::OnCommaCheckBox));
     Connect(auto_text_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
@@ -227,13 +241,9 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
 }
 
 
-void XyFileBrowser::StdDevCheckBoxChanged()
+void XyFileBrowser::update_s_column()
 {
-    bool v = std_dev_cb->GetValue();
-    s_column->Enable(v);
-#ifndef XYCONVERT
-    sd_sqrt_cb->Enable(!v);
-#endif
+    s_column->Enable(std_dev_b->GetValue());
 }
 
 #ifndef XYCONVERT
@@ -283,7 +293,7 @@ void XyFileBrowser::update_title_from_file()
         title = get_file_basename(paths[0].ToStdString());
         int x_idx = x_column->GetValue();
         int y_idx = y_column->GetValue();
-        if (x_idx != 1 || y_idx != 2 || std_dev_cb->GetValue())
+        if (x_idx != 1 || y_idx != 2 || std_dev_b->GetValue())
             title += ":" + S(x_idx) + ":" + S(y_idx);
     }
 
