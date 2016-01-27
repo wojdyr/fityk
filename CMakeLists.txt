@@ -237,7 +237,7 @@ enable_testing()
 if (NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/catch.hpp")
   message(STATUS "Downloading catch.hpp...")
   file(DOWNLOAD
-       https://raw.githubusercontent.com/philsquared/Catch/develop/single_include/catch.hpp
+       https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
        "${CMAKE_SOURCE_DIR}/tests/catch.hpp" SHOW_PROGRESS)
 endif()
 add_library(catch STATIC tests/catch.cpp)

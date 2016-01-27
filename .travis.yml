@@ -14,12 +14,11 @@ before_script:
   -  curl -o tests/catch.hpp https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
   - autoreconf -i
 script: ./configure LUA=/usr/bin/lua5.1 LUA_INCLUDE=-I/usr/include/lua5.1 LUA_LIB=-llua5.1 SWIG=swig3.0 && make -j2 check
+
 branches:
   only:
     - master
+
 notifications:
-  recipients:
-    - wojdyr@gmail.com
   email:
-    on_success: change
-    on_failure: always
+    - wojdyr@gmail.com
