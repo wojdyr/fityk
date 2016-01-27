@@ -159,7 +159,7 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
     h2a_sizer->Add(new wxStaticText(columns_panel, wxID_ANY, "or"),
                    0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sd_sqrt_rb = new wxRadioButton(columns_panel, wxID_ANY,
-                                   wxT("\u03C3=max{\u221Ay, 1}  or "));
+                                   wxT("\u03C3=max{\u221Ay, 1}  or"));
     h2a_sizer->Add(sd_sqrt_rb, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     sd_1_rb = new wxRadioButton(columns_panel, wxID_ANY, wxT("\u03C3=1"));
     h2a_sizer->Add(sd_1_rb, 0, wxALL|wxEXPAND, 5);
@@ -173,10 +173,9 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
 
 #ifndef XYCONVERT
     wxBoxSizer *dt_sizer = new wxBoxSizer(wxHORIZONTAL);
-    title_cb = new wxCheckBox(left_panel, wxID_ANY, "data title:");
-    dt_sizer->Add(title_cb, 0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
+    dt_sizer->Add(new wxStaticText(left_panel, wxID_ANY, "data title:"),
+                  0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     title_tc = new wxTextCtrl(left_panel, -1, "");
-    title_tc->Enable(false);
     dt_sizer->Add(title_tc, 1, wxALL|wxALIGN_CENTER_VERTICAL, 5);
     left_sizer->Add (dt_sizer, 0, wxEXPAND);
 #endif
@@ -234,10 +233,6 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
             wxCommandEventHandler(XyFileBrowser::OnBlockChanged));
     Connect(filectrl->GetId(), wxEVT_FILECTRL_SELECTIONCHANGED,
             wxFileCtrlEventHandler(XyFileBrowser::OnPathChanged));
-#ifndef XYCONVERT
-    Connect(title_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
-            wxCommandEventHandler(XyFileBrowser::OnTitleCheckBox));
-#endif
 }
 
 
@@ -245,15 +240,6 @@ void XyFileBrowser::update_s_column()
 {
     s_column->Enable(std_dev_b->GetValue());
 }
-
-#ifndef XYCONVERT
-void XyFileBrowser::OnTitleCheckBox(wxCommandEvent& event)
-{
-    if (!event.IsChecked())
-        update_title_from_file();
-    title_tc->Enable(event.IsChecked());
-}
-#endif
 
 void XyFileBrowser::update_block_list()
 {
@@ -284,7 +270,8 @@ void XyFileBrowser::update_block_list()
 void XyFileBrowser::update_title_from_file()
 {
 #ifndef XYCONVERT
-    if (title_cb->GetValue())
+    wxString current_title = title_tc->GetValue().Trim();
+    if (!current_title.empty() && current_title != auto_title_)
         return;
     wxArrayString paths;
     filectrl->GetPaths(paths);
@@ -296,8 +283,8 @@ void XyFileBrowser::update_title_from_file()
         if (x_idx != 1 || y_idx != 2 || std_dev_b->GetValue())
             title += ":" + S(x_idx) + ":" + S(y_idx);
     }
-
-    title_tc->ChangeValue(wxString(title));
+    auto_title_ = wxString(title);
+    title_tc->ChangeValue(auto_title_);
 #endif
 }
 
@@ -314,11 +301,9 @@ void XyFileBrowser::OnAutoTextCheckBox (wxCommandEvent& event)
         text_preview->Clear();
 }
 
-void XyFileBrowser::OnAutoPlotCheckBox(wxCommandEvent& event)
+void XyFileBrowser::OnAutoPlotCheckBox(wxCommandEvent&)
 {
     update_plot_preview();
-    if (event.IsChecked())
-        update_title_from_file();
 }
 
 void XyFileBrowser::OnBlockChanged(wxCommandEvent&)

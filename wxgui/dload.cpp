@@ -121,12 +121,10 @@ void DLoadDlg::exec_command(bool replace)
                    ", [[" + wx2s(paths[i]) + "]], " + S(b) + ", " +
                    S(x) + ", " + S(y) + ", " + S(sig) + lua_trailer + ")";
         exec(cmd);
-        if (browser_->title_tc->IsEnabled()) {
-            wxString t = browser_->title_tc->GetValue().Trim();
-            if (!t.IsEmpty()) {
-                int slot = (replace ? data_idx_ : ftk->dk.count() - 1);
-                exec("@" + S(slot) + ": title = '" + wx2s(t) + "'");
-            }
+        wxString title = browser_->title_tc->GetValue().Trim();
+        if (!title.empty() && title != browser_->auto_title_) {
+            int slot = (replace ? data_idx_ : ftk->dk.count() - 1);
+            exec("@" + S(slot) + ": title = '" + wx2s(title) + "'");
         }
         frame->add_recent_data_file(paths[i]);
     }

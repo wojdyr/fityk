@@ -41,8 +41,8 @@ public:
     wxCheckBox *std_dev_b;
 #else
     wxRadioButton *std_dev_b, *sd_sqrt_rb, *sd_1_rb;
-    wxCheckBox *title_cb;
     wxTextCtrl *title_tc;
+    wxString auto_title_;
 #endif
 
     XyFileBrowser(wxWindow* parent);
@@ -67,9 +67,6 @@ private:
     void update_block_list();
     wxString get_one_path();
     void update_title_from_file();
-#ifndef XYCONVERT
-    void OnTitleCheckBox(wxCommandEvent& event);
-#endif
 };
 
 
