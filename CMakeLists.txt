@@ -238,7 +238,12 @@ if (NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/catch.hpp")
   message(STATUS "Downloading catch.hpp...")
   file(DOWNLOAD
        https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
-       "${CMAKE_SOURCE_DIR}/tests/catch.hpp" SHOW_PROGRESS)
+       "${CMAKE_SOURCE_DIR}/tests/catch.hpp" SHOW_PROGRESS
+       STATUS download_status)
+  list(GET download_status 0 status_code)
+  if (NOT ${status_code} EQUAL 0)
+    message(FATAL_ERROR "Downloading catch.hpp FAILED: ${download_status}")
+  endif()
 endif()
 add_library(catch STATIC tests/catch.cpp)
 foreach(t gradient guess psvoigt num lua)
