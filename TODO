@@ -1,8 +1,5 @@
 * GUI: make \-line continuation work
 
-* GUI: data open dialogs should make possible to explicitely pass file format,
-  for instance "@+ <'/run/mw/example.xy' text"
-
 * handle correlated parameters: use pseudo-inverse for covariance matrix
 
 * API: add all_datasets(): for n, title in F:all_datasets() do ...

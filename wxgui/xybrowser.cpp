@@ -128,11 +128,24 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
 
     // selecting block
     wxBoxSizer *block_sizer = new wxBoxSizer(wxHORIZONTAL);
-    block_ch = new wxChoice(left_panel, -1);
+    block_sizer->Add(new wxStaticText(left_panel, -1, "file format:"),
+                     wxSizerFlags().Border(wxLEFT|wxRIGHT).Center());
+    format_ch = new wxChoice(left_panel, -1);
+    format_ch->Append(wxString("<automatic>"));
+    const xylibFormat *format;
+    for (int i = 0; (format = xylib_get_format(i)) != NULL; ++i)
+        format_ch->Append(format->name);
+    format_ch->SetSelection(0);
+    block_sizer->Add(format_ch, wxSizerFlags(0).Border(wxRIGHT));
     block_sizer->Add(new wxStaticText(left_panel, -1, "block:"),
-                     wxSizerFlags().Border(wxRIGHT).Center());
+                     wxSizerFlags().Border(wxLEFT|wxRIGHT).Center());
+    block_ch = new wxChoice(left_panel, -1);
     block_sizer->Add(block_ch, wxSizerFlags(1));
     left_sizer->Add(block_sizer, wxSizerFlags().Border().Expand());
+
+    comma_cb = new wxCheckBox(left_panel, wxID_ANY, "decimal comma");
+    comma_cb->SetValue(false);
+    left_sizer->Add(comma_cb, 0, wxLEFT|wxRIGHT|wxBOTTOM|wxEXPAND, 5);
 
     // selecting columns
     wxPanel *columns_panel = new wxPanel (left_panel, -1);
@@ -166,10 +179,6 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
 #endif
     columns_panel->SetSizer(h2a_sizer);
     left_sizer->Add (columns_panel, 0, wxALL|wxEXPAND, 5);
-
-    comma_cb = new wxCheckBox(left_panel, wxID_ANY, "decimal comma");
-    comma_cb->SetValue(false);
-    left_sizer->Add(comma_cb, 0, wxALL|wxEXPAND, 5);
 
 #ifndef XYCONVERT
     wxBoxSizer *dt_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -229,6 +238,8 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
             wxSpinEventHandler(XyFileBrowser::OnColumnChanged));
     Connect(y_column->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
             wxSpinEventHandler(XyFileBrowser::OnColumnChanged));
+    Connect(format_ch->GetId(), wxEVT_COMMAND_CHOICE_SELECTED,
+            wxCommandEventHandler(XyFileBrowser::OnFormatChanged));
     Connect(block_ch->GetId(), wxEVT_COMMAND_CHOICE_SELECTED,
             wxCommandEventHandler(XyFileBrowser::OnBlockChanged));
     Connect(filectrl->GetId(), wxEVT_FILECTRL_SELECTIONCHANGED,
@@ -250,7 +261,7 @@ void XyFileBrowser::update_block_list()
                 plot_preview->get_data()->get_block(i)->get_name();
             bb.push_back(name.empty() ? "Block #" + S(i+1) : name);
         } else {
-        bb.push_back("<default block>");
+        bb.push_back("<default>");
     }
 
     if (bb.size() != (size_t) block_ch->GetCount()) {
@@ -304,6 +315,19 @@ void XyFileBrowser::OnAutoTextCheckBox (wxCommandEvent& event)
 void XyFileBrowser::OnAutoPlotCheckBox(wxCommandEvent&)
 {
     update_plot_preview();
+}
+
+void XyFileBrowser::OnFormatChanged(wxCommandEvent&)
+{
+    update_plot_preview();
+    int format_idx = format_ch->GetSelection();
+    if (format_idx == 0) {
+        comma_cb->Enable(true);
+    } else {
+        const char* name = xylib_get_format(format_idx - 1)->name;
+        comma_cb->Enable(strcmp(name, "text") == 0 ||
+                         strcmp(name, "csv") == 0);
+    }
 }
 
 void XyFileBrowser::OnBlockChanged(wxCommandEvent&)
@@ -365,7 +389,7 @@ void XyFileBrowser::update_plot_preview()
             plot_preview->idx_y = y_column->GetValue();
             plot_preview->block_nr = block_ch->GetSelection();
             string options;
-            if (comma_cb->GetValue())
+            if (comma_cb->IsEnabled() && comma_cb->GetValue())
                 options = "decimal-comma";
             plot_preview->load_dataset((const char*) path.ToUTF8(),
                                        get_filetype(),
@@ -378,7 +402,7 @@ void XyFileBrowser::update_plot_preview()
 
 string XyFileBrowser::get_filetype() const
 {
-    int idx = filectrl->GetFilterIndex();
+    int idx = format_ch->GetSelection();
     if (idx > 0)
         return xylib_get_format(idx - 1)->name;
     else

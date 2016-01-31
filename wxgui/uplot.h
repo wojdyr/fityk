@@ -5,6 +5,7 @@
 #ifndef FITYK_WX_UPLOT_H_
 #define FITYK_WX_UPLOT_H_
 
+#include <math.h>  // floor
 #include <vector>
 
 /// wxPanel with associated bitmap buffer, used for drawing plots

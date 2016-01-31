@@ -9,7 +9,7 @@
 #include <wx/splitter.h>
 #include <wx/spinctrl.h>
 #include "xylib/xylib.h"
-#include "xylib/cache.h"
+#include "xylib/cache.h"  // shared_ptr (we want it the same as in xylib)
 
 #include "uplot.h"
 
@@ -36,7 +36,7 @@ public:
     wxFileCtrl *filectrl;
     wxSpinCtrl *x_column, *y_column, *s_column;
     wxCheckBox *comma_cb;
-    wxChoice *block_ch;
+    wxChoice *format_ch, *block_ch;
 #ifdef XYCONVERT
     wxCheckBox *std_dev_b;
 #else
@@ -60,6 +60,7 @@ private:
     void OnAutoTextCheckBox(wxCommandEvent& event);
     void OnAutoPlotCheckBox(wxCommandEvent& event);
     void OnColumnChanged(wxSpinEvent& event);
+    void OnFormatChanged(wxCommandEvent& event);
     void OnBlockChanged(wxCommandEvent& event);
     void OnPathChanged(wxFileCtrlEvent&) { update_file_options(); }
     void update_text_preview();

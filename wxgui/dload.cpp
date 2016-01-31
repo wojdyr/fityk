@@ -108,9 +108,14 @@ void DLoadDlg::exec_command(bool replace)
     browser_->filectrl->GetPaths(paths);
     string trailer;
     string lua_trailer;
-    if (browser_->comma_cb->GetValue()) {
-        trailer = " _ decimal_comma";
-        lua_trailer = ", '', 'decimal_comma'";
+    string fmt = browser_->get_filetype();
+    if (fmt != "" || browser_->comma_cb->GetValue()) {
+        trailer = " " + (fmt == "" ? "_" : fmt);
+        lua_trailer = ", '" + fmt + "'";
+        if (browser_->comma_cb->GetValue()) {
+            trailer += " decimal_comma";
+            lua_trailer += ", 'decimal_comma'";
+        }
     }
     for (size_t i = 0; i < paths.GetCount(); ++i) {
         if (paths[i].Find('\'') == wxNOT_FOUND)
