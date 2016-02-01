@@ -34,12 +34,13 @@ using fityk::Tplate;
 using fityk::Model;
 
 enum {
-    ID_plot_popup_za                = 25001,
-    ID_plot_popup_prefs                    ,
+    ID_plot_popup_za         = 25001,
+    ID_plot_popup_prefs             ,
 
-    ID_peak_popup_info                     ,
-    ID_peak_popup_del                      ,
-    ID_peak_popup_guess
+    ID_peak_popup_info              ,
+    ID_peak_popup_del               ,
+    ID_peak_popup_guess             ,
+    ID_peak_popup_edit
 };
 
 
@@ -249,6 +250,7 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MENU (ID_peak_popup_info,   MainPlot::OnPeakInfo)
     EVT_MENU (ID_peak_popup_del,    MainPlot::OnPeakDelete)
     EVT_MENU (ID_peak_popup_guess,  MainPlot::OnPeakGuess)
+    EVT_MENU (ID_peak_popup_edit,   MainPlot::OnPeakEdit)
 END_EVENT_TABLE()
 
 MainPlot::MainPlot (wxWindow *parent)
@@ -790,6 +792,7 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
     peak_menu.Append(ID_peak_popup_info, wxT("Show &Info"));
     peak_menu.Append(ID_peak_popup_del, wxT("&Delete"));
     peak_menu.Append(ID_peak_popup_guess, wxT("&Guess parameters"));
+    peak_menu.Append(ID_peak_popup_edit, wxT("&Edit function"));
     realt dummy;
     peak_menu.Enable(ID_peak_popup_guess,
                      ftk->mgr.get_function(over_peak_)->get_center(&dummy));
@@ -828,6 +831,15 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
     }
 }
 
+void MainPlot::OnPeakEdit(wxCommandEvent&)
+{
+    if (over_peak_ < 0)
+        return;
+    const Function* p = ftk->mgr.get_function(over_peak_);
+    string t = p->get_current_assignment(ftk->mgr.variables(),
+                                         ftk->mgr.parameters());
+    frame->edit_in_input(t);
+}
 
 // mouse usage
 //
