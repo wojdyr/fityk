@@ -472,7 +472,6 @@ void Runner::command_name_var(const vector<Token>& args, int ds)
 {
     assert(args.size() >= 2 && args[0].type == kTokenVarname);
     string name = Lexer::get_string(args[0]);
-    int pos;
     int n_args;
     if (args[1].as_string() == "copy") {
         assert(args.size() > 2);
@@ -486,14 +485,13 @@ void Runner::command_name_var(const vector<Token>& args, int ds)
             string param = args[n_args-1].as_string();
             orig_name = F_->mgr.find_function(func_name)->var_name(param);
         }
-        pos = F_->mgr.assign_var_copy(name, orig_name);
+        F_->mgr.assign_var_copy(name, orig_name);
     } else {
         assert(args.size() == 2 || args.size() == 4);
         VMData* vd = get_vm_from_token(args[1]);
-        pos = F_->mgr.make_variable(name, vd);
+        F_->mgr.make_variable(name, vd);
         n_args = 2;
     }
-    assert(F_->mgr.get_variable(pos)->name == name);
     F_->mgr.use_parameters();
     F_->outdated_plot(); // TODO: only for replacing old variable
 }
