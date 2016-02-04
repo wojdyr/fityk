@@ -436,36 +436,55 @@ void Runner::command_name_func(const vector<Token>& args, int ds)
 
 void Runner::command_assign_param(const vector<Token>& args, int ds)
 {
-    // args: Funcname Lname EVar
-    // args: (Dataset|Nop) (F|Z) Expr Lname EVar
-    string name = get_func(F_, ds, args.begin());
-    string param = (args.end()-2)->as_string();
-    const Token& var = *(args.end()-1);
-    F_->mgr.substitute_func_param(name, param, get_vm_from_token(var));
+    if (args[2].type == kTokenMult || args[1].type == kTokenNop) {
+        command_assign_all(args, ds);
+    } else {
+        // args: Funcname Lname EVar
+        // args: (Dataset|Nop) (F|Z) Expr Lname EVar
+        string name = get_func(F_, ds, args.begin());
+        string param = (args.end()-2)->as_string();
+        const Token& var = *(args.end()-1);
+        F_->mgr.substitute_func_param(name, param, get_vm_from_token(var));
+    }
     F_->mgr.use_parameters();
     F_->outdated_plot();
 }
 
 void Runner::command_assign_all(const vector<Token>& args, int ds)
 {
-    // args: (Dataset|Nop) (F|Z) '*' Lname Expr
+    // args: (Dataset|Nop) (F|Z|Nop) '*' Lname Expr
     assert(args[0].type == kTokenDataset || args[0].type == kTokenNop);
-    assert(args[1].type == kTokenUletter);
-    assert(args[2].type == kTokenMult);
+    assert(args[1].type == kTokenUletter || args[1].type == kTokenNop);
+    assert(args[2].type == kTokenMult || args[2].type == kTokenFuncname);
     assert(args[3].type == kTokenLname);
     assert(args[4].type == kTokenEVar);
     if (args[0].type == kTokenDataset)
         ds = args[0].value.i;
-    char c = *args[1].str;
     string param = args[3].as_string();
     VMData* vd = get_vm_from_token(args[4]);
-    const FunctionSum& fz = F_->dk.get_model(ds)->get_fz(c);
-    v_foreach (string, i, fz.names) {
-        if (contains_element(F_->mgr.find_function(*i)->tp()->fargs, param))
-            F_->mgr.substitute_func_param(*i, param, vd);
+    int cnt = 0;
+    if (args[1].type == kTokenUletter) {
+        char c = *args[1].str;
+        const FunctionSum& fz = F_->dk.get_model(ds)->get_fz(c);
+        v_foreach (string, i, fz.names) {
+            const Function *func = F_->mgr.find_function(*i);
+            if (contains_element(func->tp()->fargs, param)) {
+                F_->mgr.substitute_func_param(*i, param, vd);
+                cnt++;
+            }
+        }
+    } else {
+        string funcname = args[2].as_string().substr(1);
+        v_foreach (Function*, i, F_->mgr.functions()) {
+            if (match_glob((*i)->name.c_str(), funcname.c_str()) &&
+                    contains_element((*i)->tp()->fargs, param)) {
+                F_->mgr.substitute_func_param((*i)->name, param, vd);
+                cnt++;
+            }
+        }
     }
-    F_->mgr.use_parameters();
-    F_->outdated_plot();
+    if (F_->get_verbosity() >= 1)
+        F_->ui()->mesg(S(cnt) + " parameters substituted.");
 }
 
 void Runner::command_name_var(const vector<Token>& args, int ds)
@@ -787,14 +806,8 @@ void Runner::execute_command(Command& c, int ds)
             F_->dk.data(ds)->set_title(Lexer::get_string(c.args[0]));
             break;
         case kCmdAssignParam:
-            if (c.args[2].type == kTokenMult)
-                command_assign_all(c.args, ds);
-            else
-                command_assign_param(c.args, ds);
+            command_assign_param(c.args, ds);
             break;
-        //case kCmdAssignAll:
-        //    command_assign_all(c.args, ds);
-        //    break;
         case kCmdNameVar:
             command_name_var(c.args, ds);
             break;

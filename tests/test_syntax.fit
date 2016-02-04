@@ -82,8 +82,12 @@ $a = %ble.shape + %lo.hwhm
 $b = ~{%ble.shape} + {%lo.hwhm}
 $abc = F[0].hwhm + 1
 $abc = {F[0].hwhm + 0.1}
+$_a = 3
+$_a = 4
 @0.F[0].hwhm = $abc
 F[*].hwhm = $abc
+%*.hwhm = $abc
+%*.dummy = ~3
 F[*].hwhm = ~{F[0].hwhm + 0.1}
 %lo_cp = copy(@0.F[1])
 del %lo_cp

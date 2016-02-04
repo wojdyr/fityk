@@ -234,6 +234,7 @@ void Lexer::read_token(bool allow_glob)
             // we do't want error when peeking)
             if (! (isalpha(*ptr) || *ptr == '_' || *ptr == '*'))
                 throw SyntaxError("unexpected character after '$'");
+            ++ptr;
             tok_.type = kTokenVarname;
             while (isalnum(*ptr) || *ptr == '_' || (allow_glob && *ptr == '*'))
                 ++ptr;
@@ -243,6 +244,7 @@ void Lexer::read_token(bool allow_glob)
             // the same rules as in the case of '$'
             if (! (isalpha(*ptr) || *ptr == '_' || *ptr == '*'))
                 throw SyntaxError("unexpected character after '%'");
+            ++ptr;
             tok_.type = kTokenFuncname;
             while (isalnum(*ptr) || *ptr == '_' || (allow_glob && *ptr == '*'))
                 ++ptr;

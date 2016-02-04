@@ -78,7 +78,6 @@ const char* commandtype2str(CommandType c)
         case kCmdDatasetTr: return "DatasetTr";
         case kCmdNameFunc: return "NameFunc";
         case kCmdAssignParam: return "AssignParam";
-        //case kCmdAssignAll: return "AssignAll";
         case kCmdNameVar: return "NameVar";
         case kCmdChangeModel: return "ChangeModel";
         case kCmdPointTr: return "PointTr";
@@ -578,7 +577,7 @@ void Parser::parse_one_info_arg(Lexer& lex, vector<Token>& args)
             args.push_back(lex.get_expected_token(kTokenFuncname));
         }
     } else if (token.type == kTokenCname || token.type == kTokenFuncname ||
-             token.type == kTokenVarname) {
+               token.type == kTokenVarname) {
         args.push_back(token);
     }
     // handle [@n.]F/Z['['expr']']
@@ -751,10 +750,6 @@ void Parser::parse_fz(Lexer& lex, Command &cmd)
     }
     // F.param= ...
     else if (t.type == kTokenDot) {
-        //cmd.type = kCmdAssignAll;
-        //cmd.args.push_back(lex.get_expected_token(kTokenLname));
-        //lex.get_expected_token(kTokenAssign); // discard '='
-        //cmd.args.push_back(read_var(lex));
         lex.throw_syntax_error("Illegal syntax, did you mean F[*].par= ?");
     }
     // F[Number]...
@@ -957,6 +952,8 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
     // $var=...
     else if (token.type == kTokenVarname &&
              lex.peek_token().type == kTokenAssign) {
+        if (token.str[1] == '*')
+            lex.throw_syntax_error("$* cannot be assigned");
         cmd.type = kCmdNameVar;
         cmd.args.push_back(token);
         lex.get_token(); // discard '='
@@ -965,6 +962,8 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
     // %func=...
     else if (token.type == kTokenFuncname &&
              lex.peek_token().type == kTokenAssign) {
+        if (token.str[1] == '*')
+            lex.throw_syntax_error("%* cannot be assigned");
         cmd.type = kCmdNameFunc;
         cmd.args.push_back(token);
         lex.get_token(); // discard '='
@@ -974,6 +973,10 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
     else if (token.type == kTokenFuncname &&
              lex.peek_token().type == kTokenDot) {
         cmd.type = kCmdAssignParam;
+        if (token.str[1] == '*') {
+            cmd.args.push_back(nop());  // see Runner::command_assign_all()
+            cmd.args.push_back(nop());
+        }
         cmd.args.push_back(token);
         lex.get_token(); // discard '.'
         cmd.args.push_back(lex.get_expected_token(kTokenLname));
