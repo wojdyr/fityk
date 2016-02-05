@@ -961,54 +961,11 @@ void SideBar::OnVarFocusChanged(wxListEvent&)
     update_var_inf();
 }
 
-bool SideBar::find_value_of_param(string const& p, double* value)
-{
-    if (active_function_ != -1) {
-        Function const* fun = ftk->mgr.get_function(active_function_);
-        int idx = index_of_element(fun->tp()->fargs, p);
-        if (idx != -1) {
-            *value = fun->av()[idx];
-            return true;
-        }
-    }
-
-    v_foreach (Function*, i, ftk->mgr.functions()) {
-        int idx = index_of_element((*i)->tp()->fargs, p);
-        if (idx != -1) {
-            *value = (*i)->av()[idx];
-            return true;
-        }
-    }
-    return false;
-}
-
 void SideBar::make_same_func_par(string const& p, bool checked)
 {
-    string varname = "_" + p;
-    string val_str;
-    if (checked) {
-        double value = 0.;
-        bool found = find_value_of_param(p, &value);
-        if (!found)
-            return;
-
-        exec("$" + varname + " = ~" + S(value));
-        val_str = "$" + varname;
-    } else {
-        int nr = ftk->mgr.find_variable_nr(varname);
-        if (nr == -1)
-            return;
-        val_str = ftk->mgr.get_variable(nr)->get_formula(ftk->mgr.parameters());
-        // varname (_hwhm or _shape) will be auto-deleted
-    }
-    string cmd;
-    for (int i = 0; i < ftk->dk.count(); ++i)
-        if (ftk->dk.get_model(i)->get_ff().names.size() > 0) {
-            if (!cmd.empty())
-                cmd += "; ";
-            cmd += "@" + S(i) + ".F[*]." + p + " = " + val_str;
-        }
-    exec(cmd);
+    vector<string> cmds = ftk->mgr.share_par_cmd(p, checked);
+    v_foreach(string, cmd, cmds)
+        exec(*cmd);
 }
 
 void SideBar::on_parameter_changing(const std::vector<realt>& values)

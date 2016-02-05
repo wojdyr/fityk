@@ -80,6 +80,7 @@ public:
         get_variable_references(const std::string &name) const;
     void update_indices_in_models();
     void do_reset();
+    std::vector<std::string> share_par_cmd(const std::string& par, bool share);
 
     std::string next_var_name(); ///generate name for "anonymous" variable
     std::string next_func_name(); ///generate name for "anonymous" function

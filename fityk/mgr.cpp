@@ -668,4 +668,35 @@ void ModelManager::update_indices_in_models()
     }
 }
 
+vector<string> ModelManager::share_par_cmd(const string& par, bool share)
+{
+    vector<string> cmds;
+    const string varname = "_" + par;
+    string val_str;
+    int nr = find_variable_nr(varname);
+    if (share) {
+        vector<double> values;
+        v_foreach (Function*, i, functions_) {
+            int idx = index_of_element((*i)->tp()->fargs, par);
+            if (idx != -1)
+                values.push_back((*i)->av()[idx]);
+        }
+        if (values.empty())
+            return cmds;
+        if (nr == -1) {
+            sort(values.begin(), values.end());
+            double median = values[(values.size()-1)/2];
+            cmds.push_back("$" + varname + " = ~" + S(median));
+        }
+        val_str = "$" + varname;
+    } else {  // undoing
+        if (nr == -1)
+            return cmds;
+        val_str = get_variable(nr)->get_formula(parameters());
+        // varname (_hwhm or _shape) will be auto-deleted
+    }
+    cmds.push_back("%*." + par + " = " + val_str);
+    return cmds;
+}
+
 } // namespace fityk

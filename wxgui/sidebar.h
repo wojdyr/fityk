@@ -108,7 +108,6 @@ private:
     void update_var_list();
     void do_activate_function();
     void make_same_func_par(std::string const& p, bool checked);
-    bool find_value_of_param(std::string const& p, double* value);
 
     DECLARE_EVENT_TABLE()
 };
