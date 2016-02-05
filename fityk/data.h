@@ -60,7 +60,7 @@ public :
     std::pair<int,int> get_index_range(const RealRange& range) const;
     const std::string& get_title() const { return title_; }
     void set_title(const std::string& title) { title_ = title; }
-    const std::string& get_filename() const { return filename_; }
+    const std::string& get_filename() const { return spec_.path; }
 
     void find_step();
     void sort_points();
@@ -88,7 +88,6 @@ private:
     const BasicContext* ctx_;
     Model* const model_;
     std::string title_;
-    std::string filename_;
     LoadSpec spec_; // given when loading file
     double x_step_; // 0.0 if not fixed;
     bool has_sigma_;
