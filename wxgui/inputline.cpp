@@ -117,10 +117,14 @@ void InputLine::HistoryMove(int n, bool relative)
 
 void InputLine::OnInputLine(const wxString& line)
 {
-    m_history.Last() = line;
-    m_history.Add(wxT(""));
+    m_history.Last() += line;
+    if (line.EndsWith('\\')) {
+        *(m_history.Last().end()-1) = ' ';
+        return;
+    }
+    m_observer->ProcessInputLine(m_history.Last());
+    m_history.Add("");
     GoToHistoryEnd();
-    m_observer->ProcessInputLine(line);
     m_text->SetFocus();
 }
 

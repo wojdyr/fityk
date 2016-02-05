@@ -1,4 +1,8 @@
-* GUI: make \-line continuation work
+
+* [request] the option "view the first 64kB of file as text" for datafiles
+  that are already loaded? (ex. in the show/hide info window)
+
+* aggragate function centile(, N)
 
 * handle correlated parameters: use pseudo-inverse for covariance matrix
 
@@ -28,8 +32,6 @@
   OR                conv(@0, gauss(2.3))
 
 * GUI: draw points (handles) for dragging peak width at half height
-
-* GUI: definition mgr - checkbox - show in the list on toolbar
 
 * GUI: definition mgr - show formula images from the manual, if available
 
@@ -68,6 +70,7 @@
 * data smoothing (Savitzky-Golay and/or other methods)
 
 * GUI: constraining parameters of two peak using the peak-top menu
+  (Share with %_2 > ...)
 
 * splines: fitting, guessing, handling knots in the GUI
 
@@ -98,6 +101,3 @@
   assuming the error distribution is other then Gaussian, eg. Lorenzian...;
   there is also a literature about so called 'maximum-likelihood method'
   in which the exact Poisson error distribution is handled.
-
-* [request] the option "view the first 64kB of file as text" for datafiles
-  that are already loaded? (ex. in the show/hide info window)
