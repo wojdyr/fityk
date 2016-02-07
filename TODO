@@ -33,8 +33,6 @@
 
 * GUI: draw points (handles) for dragging peak width at half height
 
-* GUI: definition mgr - show formula images from the manual, if available
-
 * CLI/GUI: use sigaction() instead of signal() to handle SIGINT
   print a message from interrupt_handler()
 
@@ -68,9 +66,6 @@
 * confidence bands
 
 * data smoothing (Savitzky-Golay and/or other methods)
-
-* GUI: constraining parameters of two peak using the peak-top menu
-  (Share with %_2 > ...)
 
 * splines: fitting, guessing, handling knots in the GUI
 

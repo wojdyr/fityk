@@ -40,7 +40,8 @@ enum {
     ID_peak_popup_info              ,
     ID_peak_popup_del               ,
     ID_peak_popup_guess             ,
-    ID_peak_popup_edit
+    ID_peak_popup_edit              ,
+    ID_peak_popup_share //+15
 };
 
 
@@ -251,6 +252,8 @@ BEGIN_EVENT_TABLE(MainPlot, FPlot)
     EVT_MENU (ID_peak_popup_del,    MainPlot::OnPeakDelete)
     EVT_MENU (ID_peak_popup_guess,  MainPlot::OnPeakGuess)
     EVT_MENU (ID_peak_popup_edit,   MainPlot::OnPeakEdit)
+    EVT_MENU_RANGE (ID_peak_popup_share, ID_peak_popup_share+15,
+                    MainPlot::OnPeakShare)
 END_EVENT_TABLE()
 
 MainPlot::MainPlot (wxWindow *parent)
@@ -794,8 +797,23 @@ void MainPlot::show_peak_menu (wxMouseEvent &event)
     peak_menu.Append(ID_peak_popup_guess, wxT("&Guess parameters"));
     peak_menu.Append(ID_peak_popup_edit, wxT("&Edit function"));
     realt dummy;
-    peak_menu.Enable(ID_peak_popup_guess,
-                     ftk->mgr.get_function(over_peak_)->get_center(&dummy));
+    const Function* p = ftk->mgr.get_function(over_peak_);
+    peak_menu.Enable(ID_peak_popup_guess, p->get_center(&dummy));
+    int active = frame->get_sidebar()->get_active_function();
+    if (active >= 0 && active != over_peak_) {
+        const Function* a = ftk->mgr.get_function(active);
+        wxMenu *share_menu = new wxMenu;
+        for (int i = 0; i != max(a->nv(), 16); ++i) {
+            const string param = a->get_param(i);
+            if (contains_element(p->tp()->fargs, param)) {
+                share_menu->AppendCheckItem(ID_peak_popup_share+i,
+                                            "&" + s2wx(param));
+                if (a->var_name(param) == p->var_name(param))
+                    share_menu->Check(ID_peak_popup_share+i, true);
+            }
+        }
+        peak_menu.Append(-1, "&Share with %" + s2wx(a->name), share_menu);
+    }
     PopupMenu (&peak_menu, event.GetX(), event.GetY());
 }
 
@@ -839,6 +857,21 @@ void MainPlot::OnPeakEdit(wxCommandEvent&)
     string t = p->get_current_assignment(ftk->mgr.variables(),
                                          ftk->mgr.parameters());
     frame->edit_in_input(t);
+}
+
+void MainPlot::OnPeakShare(wxCommandEvent& event)
+{
+    int active = frame->get_sidebar()->get_active_function();
+    if (over_peak_ < 0 || active < 0)
+        return;
+    const Function* a = ftk->mgr.get_function(active);
+    const Function* p = ftk->mgr.get_function(over_peak_);
+    string param = a->get_param(event.GetId() - ID_peak_popup_share);
+    string lhs = "%" + p->name + "." + param;
+    if (event.IsChecked())
+        exec(lhs + " = %" + a->name + "." + param);
+    else
+        exec(lhs + " = ~{" + lhs + "}");
 }
 
 // mouse usage
