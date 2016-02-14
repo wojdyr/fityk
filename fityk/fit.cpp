@@ -80,11 +80,13 @@ string Fit::get_goodness_info(const vector<Data*>& datas)
 
 vector<double> Fit::get_covariance_matrix(const vector<Data*>& datas)
 {
+    update_par_usage(datas);
     return MPfit(F_, "").get_covariance_matrix(datas);
 }
 
 vector<double> Fit::get_standard_errors(const vector<Data*>& datas)
 {
+    update_par_usage(datas);
     return MPfit(F_, "").get_standard_errors(datas);
 }
 
