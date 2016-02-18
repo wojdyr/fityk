@@ -521,7 +521,9 @@ It is also possible to calculate some properties of %functions:
 
 A few examples::
 
-    print %fun.numarea(, 0, 100, 10000) # shows area of function %fun
+    print %fun.findx(-10, 10, 0)  # find the zero of %fun in [-10, 10]
+    print F.findx(-10, 10, 0)     # find the zero of the model in [-10, 10]
+    print %fun.numarea(0, 100, 10000) # shows area of function %fun
     print %_1(%_1.extremum(40, 50)) # shows extremum value
     
     # calculate FWHM numerically, value 50 can be tuned

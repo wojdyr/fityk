@@ -6,6 +6,7 @@
 
 #include <stdlib.h>
 #include "fityk.h"
+#include "common.h" // S
 
 namespace fityk {
 
@@ -76,6 +77,108 @@ public:
 private:
     std::vector<PointD> vertices_;
 };
+
+
+/// search x in [x1, x2] for which %f(x)==val,
+/// x1, x2, val: f(x1) <= val <= f(x2) or f(x2) <= val <= f(x1)
+/// bisection + Newton-Raphson
+template<typename T>
+realt find_x_with_value(T *func, realt x1, realt x2, realt val)
+{
+    const int max_iter = 1000;
+    std::vector<realt> dy_da(func->max_param_pos() + 1, 0);
+    // we don't need derivatives here, but to make it simpler..
+    realt y1 = func->calculate_value_and_deriv(x1, dy_da) - val;
+    realt y2 = func->calculate_value_and_deriv(x2, dy_da) - val;
+    if ((y1 > 0 && y2 > 0) || (y1 < 0 && y2 < 0))
+        throw ExecuteError("Value " + S(val) + " is not bracketed by "
+                           + S(x1) + "(" + S(y1+val) + ") and "
+                           + S(x2) + "(" + S(y2+val) + ").");
+    if (y1 == 0)
+        return x1;
+    if (y2 == 0)
+        return x2;
+    if (y1 > 0)
+        std::swap(x1, x2);
+    realt t = (x1 + x2) / 2.;
+    for (int i = 0; i < max_iter; ++i) {
+        //check if converged
+        if (is_eq(x1, x2))
+            return (x1+x2) / 2.;
+
+        // calculate f and df
+        dy_da.back() = 0;
+        realt f = func->calculate_value_and_deriv(t, dy_da) - val;
+        realt df = dy_da.back();
+
+        // narrow the range
+        if (f == 0.)
+            return t;
+        else if (f < 0)
+            x1 = t;
+        else // f > 0
+            x2 = t;
+
+        // select new guess point
+        realt dx = -f/df * 1.02; // 1.02 is to jump to the other side of point
+        if ((t+dx > x2 && t+dx > x1) || (t+dx < x2 && t+dx < x1)  // outside
+                            || i % 20 == 19) {                 // precaution
+            //bisection
+            t = (x1 + x2) / 2.;
+        } else {
+            t += dx;
+        }
+    }
+    throw ExecuteError("The search has not converged.");
+}
+
+/// finds root of derivative, using bisection method
+template<typename T>
+realt find_extremum(T *func, realt x1, realt x2)
+{
+    const int max_iter = 1000;
+    std::vector<realt> dy_da(func->max_param_pos() + 1, 0);
+
+    // calculate df
+    dy_da.back() = 0;
+    func->calculate_value_and_deriv(x1, dy_da);
+    realt y1 = dy_da.back();
+
+    dy_da.back() = 0;
+    func->calculate_value_and_deriv(x2, dy_da);
+    realt y2 = dy_da.back();
+
+    if ((y1 > 0 && y2 > 0) || (y1 < 0 && y2 < 0))
+        throw ExecuteError("Derivatives at " + S(x1) + " and " + S(x2)
+                           + " have the same sign.");
+    if (y1 == 0)
+        return x1;
+    if (y2 == 0)
+        return x2;
+    if (y1 > 0)
+        std::swap(x1, x2);
+    for (int i = 0; i < max_iter; ++i) {
+        realt t = (x1 + x2) / 2.;
+
+        // calculate df
+        dy_da.back() = 0;
+        func->calculate_value_and_deriv(t, dy_da);
+        realt df = dy_da.back();
+
+        // narrow the range
+        if (df == 0.)
+            return t;
+        else if (df < 0)
+            x1 = t;
+        else // df > 0
+            x2 = t;
+
+        //check if converged
+        if (is_eq(x1, x2))
+            return (x1+x2) / 2.;
+    }
+    throw ExecuteError("The search has not converged.");
+}
 
 } // namespace fityk
 #endif

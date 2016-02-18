@@ -13,8 +13,8 @@ using namespace std;
 
 namespace fityk {
 
-vector<realt> Function::calc_val_xx(1);
-vector<realt> Function::calc_val_yy(1);
+vector<realt> Function::bufx_(1);
+vector<realt> Function::bufy_(1);
 
 Function::Function(const Settings* settings,
                    const string &name_,
@@ -74,10 +74,10 @@ void Function::calculate_value(const vector<realt> &x, vector<realt> &y) const
 
 realt Function::calculate_value(realt x) const
 {
-    calc_val_xx[0] = x;
-    calc_val_yy[0] = 0.;
-    calculate_value_in_range(calc_val_xx, calc_val_yy, 0, 1);
-    return calc_val_yy[0];
+    bufx_[0] = x;
+    bufy_[0] = 0.;
+    calculate_value_in_range(bufx_, bufy_, 0, 1);
+    return bufy_[0];
 }
 
 void Function::calculate_value_deriv(const vector<realt> &x,
@@ -93,6 +93,14 @@ void Function::calculate_value_deriv(const vector<realt> &x,
         this->calculate_value_deriv_in_range(x, y, dy_da, in_dx, first, last);
     } else
         this->calculate_value_deriv_in_range(x, y, dy_da, in_dx, 0, x.size());
+}
+
+int Function::max_param_pos() const
+{
+    int n = 0;
+    v_foreach (Multi, j, multi_)
+        n = max(j->p + 1, n);
+    return n;
 }
 
 bool Function::get_center(realt* a) const
@@ -224,117 +232,6 @@ realt Function::numarea(realt x1, realt x2, int nsteps) const
     for (int i = 1; i < nsteps-1; ++i)
         a += yy[i];
     return a*h;
-}
-
-/// search x in [x1, x2] for which %f(x)==val,
-/// x1, x2, val: f(x1) <= val <= f(x2) or f(x2) <= val <= f(x1)
-/// bisection + Newton-Raphson
-realt Function::find_x_with_value(realt x1, realt x2, realt val,
-                                  int max_iter) const
-{
-    realt y1 = calculate_value(x1) - val;
-    realt y2 = calculate_value(x2) - val;
-    if ((y1 > 0 && y2 > 0) || (y1 < 0 && y2 < 0))
-        throw ExecuteError("Value " + S(val) + " is not bracketed by "
-                           + S(x1) + "(" + S(y1+val) + ") and "
-                           + S(x2) + "(" + S(y2+val) + ").");
-    int n = 0;
-    v_foreach (Multi, j, multi_)
-        n = max(j->p + 1, n);
-    vector<realt> dy_da(n+1);
-    if (y1 == 0)
-        return x1;
-    if (y2 == 0)
-        return x2;
-    if (y1 > 0)
-        swap(x1, x2);
-    realt t = (x1 + x2) / 2.;
-    for (int i = 0; i < max_iter; ++i) {
-        //check if converged
-        if (is_eq(x1, x2))
-            return (x1+x2) / 2.;
-
-        // calculate f and df
-        calc_val_xx[0] = t;
-        calc_val_yy[0] = 0;
-        dy_da.back() = 0;
-        calculate_value_deriv(calc_val_xx, calc_val_yy, dy_da);
-        realt f = calc_val_yy[0] - val;
-        realt df = dy_da.back();
-
-        // narrow range
-        if (f == 0.)
-            return t;
-        else if (f < 0)
-            x1 = t;
-        else // f > 0
-            x2 = t;
-
-        // select new guess point
-        realt dx = -f/df * 1.02; // 1.02 is to jump to the other side of point
-        if ((t+dx > x2 && t+dx > x1) || (t+dx < x2 && t+dx < x1)  // outside
-                            || i % 20 == 19) {                 // precaution
-            //bisection
-            t = (x1 + x2) / 2.;
-        } else {
-            t += dx;
-        }
-    }
-    throw ExecuteError("The search has not converged in " + S(max_iter)
-                       + " steps");
-}
-
-/// finds root of derivative, using bisection method
-realt Function::find_extremum(realt x1, realt x2, int max_iter) const
-{
-    int n = 0;
-    v_foreach (Multi, j, multi_)
-        n = max(j->p + 1, n);
-    vector<realt> dy_da(n+1);
-
-    // calculate df
-    calc_val_xx[0] = x1;
-    dy_da.back() = 0;
-    calculate_value_deriv(calc_val_xx, calc_val_yy, dy_da);
-    realt y1 = dy_da.back();
-
-    calc_val_xx[0] = x2;
-    dy_da.back() = 0;
-    calculate_value_deriv(calc_val_xx, calc_val_yy, dy_da);
-    realt y2 = dy_da.back();
-
-    if ((y1 > 0 && y2 > 0) || (y1 < 0 && y2 < 0))
-        throw ExecuteError("Derivatives at " + S(x1) + " and " + S(x2)
-                           + " have the same sign.");
-    if (y1 == 0)
-        return x1;
-    if (y2 == 0)
-        return x2;
-    if (y1 > 0)
-        swap(x1, x2);
-    for (int i = 0; i < max_iter; ++i) {
-        realt t = (x1 + x2) / 2.;
-
-        // calculate df
-        calc_val_xx[0] = t;
-        dy_da.back() = 0;
-        calculate_value_deriv(calc_val_xx, calc_val_yy, dy_da);
-        realt df = dy_da.back();
-
-        // narrow range
-        if (df == 0.)
-            return t;
-        else if (df < 0)
-            x1 = t;
-        else // df > 0
-            x2 = t;
-
-        //check if converged
-        if (is_eq(x1, x2))
-            return (x1+x2) / 2.;
-    }
-    throw ExecuteError("The search has not converged in " + S(max_iter)
-                       + " steps");
 }
 
 } // namespace fityk

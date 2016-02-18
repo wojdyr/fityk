@@ -104,6 +104,13 @@ void Model::compute_model_with_derivs(vector<realt> &x, vector<realt> &y,
         mgr_.get_function(*i)->calculate_value_deriv(x, y, dy_da, true);
 }
 
+realt Model::calculate_value_and_deriv(realt x, vector<realt> &dy_da) const
+{
+    vector<realt> bufx(1, x), bufy(1, 0);
+    compute_model_with_derivs(bufx, bufy, dy_da);
+    return bufy[0];
+}
+
 vector<realt> Model::get_symbolic_derivatives(realt x, realt *y) const
 {
     int n = mgr_.parameters().size();
@@ -250,6 +257,16 @@ realt Model::numarea(realt x1, realt x2, int nsteps) const
     v_foreach (int, i, ff_.idx)
         a += mgr_.get_function(*i)->numarea(x1, x2, nsteps);
     return a;
+}
+
+int Model::max_param_pos() const
+{
+    int n = 0;
+    v_foreach (int, i, ff_.idx)
+        n = max(mgr_.get_function(*i)->max_param_pos(), n);
+    v_foreach (int, i, zz_.idx)
+        n = max(mgr_.get_function(*i)->max_param_pos(), n);
+    return n;
 }
 
 } // namespace fityk

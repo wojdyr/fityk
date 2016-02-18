@@ -69,7 +69,8 @@ public:
 
     realt numarea(realt x1, realt x2, int nsteps) const;
     bool is_dependent_on_var(int idx) const;
-
+    int max_param_pos() const;
+    realt calculate_value_and_deriv(realt x, std::vector<realt> &dy_da) const;
 
 private:
     const BasicContext* ctx_;
@@ -80,7 +81,6 @@ private:
     friend class ModelManager;
     Model(const BasicContext *ctx, ModelManager &mgr) : ctx_(ctx), mgr_(mgr) {}
     ~Model() {}
-
 
     DISALLOW_COPY_AND_ASSIGN(Model);
 };

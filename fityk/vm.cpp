@@ -299,11 +299,11 @@ void run_const_op(const Full* F, const std::vector<realt>& numbers,
             i += 2;
             STACK_OFFSET_CHANGE(-2);
             if (*(i-1) == OP_FUNC) {
-                *stackPtr = F->mgr.get_function(*i)->find_x_with_value(
+                *stackPtr = find_x_with_value(F->mgr.get_function(*i),
                                   *stackPtr, *(stackPtr+1), *(stackPtr+2));
             } else if (*(i-1) == OP_SUM_F) {
-                throw ExecuteError("F.findx() is not implemented. "
-                                   "Does anyone need it?");
+                *stackPtr = find_x_with_value(F->dk.get_model(*i),
+                                  *stackPtr, *(stackPtr+1), *(stackPtr+2));
             } else // OP_SUM_Z
                 throw ExecuteError("Z.findx() is not implemented. "
                                    "Does anyone need it?");
@@ -313,11 +313,11 @@ void run_const_op(const Full* F, const std::vector<realt>& numbers,
             i += 2;
             STACK_OFFSET_CHANGE(-1);
             if (*(i-1) == OP_FUNC) {
-                *stackPtr = F->mgr.get_function(*i)->find_extremum(*stackPtr,
-                                                            *(stackPtr+1));
+                *stackPtr = find_extremum(F->mgr.get_function(*i),
+                                          *stackPtr, *(stackPtr+1));
             } else if (*(i-1) == OP_SUM_F) {
-                throw ExecuteError("F.extremum() is not implemented. "
-                                   "Does anyone need it?");
+                *stackPtr = find_extremum(F->dk.get_model(*i),
+                                          *stackPtr, *(stackPtr+1));
             } else // OP_SUM_Z
                 throw ExecuteError("Z.extremum() is not implemented. "
                                    "Does anyone need it?");

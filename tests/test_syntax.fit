@@ -171,6 +171,8 @@ X = x + @0.Z(x)
 del %c
 p %fun(%fun.extremum(10, 50))
 @0: p s[index(19.92)]^2, y[index(19.92)]
+p %fun.numarea(10, 30, 100)
+p F.numarea(-10, 10, 100)
 
 
 plot

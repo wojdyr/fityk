@@ -90,9 +90,6 @@ public:
                             throw(ExecuteError); // exc. spec. is used by SWIG
 
     realt numarea(realt x1, realt x2, int nsteps) const;
-    realt find_x_with_value(realt x1, realt x2, realt val,
-                            int max_iter=1000) const;
-    realt find_extremum(realt x1, realt x2, int max_iter=1000) const;
 
     virtual std::string get_bytecode() const { return "No bytecode"; }
     virtual void update_var_indices(const std::vector<Variable*>& variables)
@@ -111,7 +108,13 @@ public:
 #endif
 
     virtual realt value_at(realt x) const { return calculate_value(x); }
+    int max_param_pos() const;
 
+    realt calculate_value_and_deriv(realt x, std::vector<realt> &dy_da) const {
+        bufx_[0] = x, bufy_[0] = 0.;
+        calculate_value_deriv_in_range(bufx_, bufy_, dy_da, false, 0, 1);
+        return bufy_[0];
+    }
 
 protected:
     void replace_symbols_with_values(std::string &t, const char* num_fmt) const;
@@ -126,8 +129,8 @@ protected:
     int center_idx_;
 
 private:
-    static std::vector<realt> calc_val_xx;
-    static std::vector<realt> calc_val_yy;
+    static std::vector<realt> bufx_;
+    static std::vector<realt> bufy_;
 };
 
 } // namespace fityk
