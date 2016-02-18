@@ -419,6 +419,8 @@ The following aggregate functions are recognized:
 
 * ``stddev()`` --- the standard deviation,
 
+* ``centile(N, )`` --- percentile
+
 * ``darea()`` --- a function used to normalize the area (see the example below).
   It returns the sum of
   *expression*\ \*(*x*\ [*n*\ +1]-*x*\ [*n*-1])/2.
@@ -428,6 +430,7 @@ The following aggregate functions are recognized:
 Examples::
 
     p avg(y) # print the average y value
+    p centile(50, y) # print the median y value
     p max(y) # the largest y value
     p argmax(y) # the position of data maximum
     p max(y if x > 40 and x < 60)   # the largest y value for x in (40, 60)

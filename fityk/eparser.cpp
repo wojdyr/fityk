@@ -292,6 +292,30 @@ protected:
     virtual double value() const { return sqrt(v_ / (counter_ - 1)); }
 };
 
+class AggregCentile : public AggregFunc
+{
+public:
+    AggregCentile() : param_(0.) {}
+    virtual int number_of_parameters() const { return 1; }
+    virtual void add_param(double p) { param_ = p; }
+
+protected:
+    virtual void op(double x, int) { values_.push_back(x); }
+
+    virtual double value() const
+    {
+        if (values_.empty())
+            return 0;
+        int n = iround(param_ / 100. * values_.size());
+        n = min(max(n, 0), (int) values_.size() - 1);
+        std::nth_element(values_.begin(), values_.begin() + n, values_.end());
+        return values_[n];
+    }
+private:
+    double param_;
+    mutable vector<double> values_;
+};
+
 } // anonymous namespace
 
 namespace fityk {
@@ -351,8 +375,14 @@ void ExpressionParser::put_ag_function(Lexer& lex, int ds, AggregFunc& ag)
     //cout << "put_ag_function() " << op << endl;
     lex.get_expected_token(kTokenOpen); // discard '('
     ExpressionParser ep(F_);
-    ep.parse_expr(lex, ds);
     const vector<Point>& points = F_->dk.data(ds)->points();
+    for (int i = 0; i < ag.number_of_parameters(); ++i) {
+        ep.parse_expr(lex, ds);
+        lex.get_expected_token(kTokenComma);
+        ag.add_param(ep.calculate(0, points));
+        ep.clear_vm();
+    }
+    ep.parse_expr(lex, ds);
     Token t = lex.get_expected_token(kTokenClose, "if");
     if (t.type == kTokenClose) {
         for (size_t n = 0; n != points.size(); ++n) {
@@ -771,6 +801,9 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                         put_ag_function(lex, default_ds, ag);
                     } else if (word == "stddev") {
                         AggregStdDev ag;
+                        put_ag_function(lex, default_ds, ag);
+                    } else if (word == "centile") {
+                        AggregCentile ag;
                         put_ag_function(lex, default_ds, ag);
                     } else if (word == "darea") {
                         if (F_ == NULL)

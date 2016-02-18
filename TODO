@@ -1,8 +1,6 @@
+* "int. width" - unclear, use "integral width", document it
 
-* [request] the option "view the first 64kB of file as text" for datafiles
-  that are already loaded? (ex. in the show/hide info window)
-
-* aggragate function centile(, N)
+* document how to get Gaussian/Lorentzian width from Voigt
 
 * handle correlated parameters: use pseudo-inverse for covariance matrix
 
@@ -70,8 +68,8 @@
 * splines: fitting, guessing, handling knots in the GUI
 
 * user defined functions:
-      - calculating limits, width, area, etc. for UDF
-      - ?? use LLVM for faster calculation of user-defined functions
+  - calculating limits, width, area, etc. for UDF
+  - ?? use LLVM for faster calculation of user-defined functions
 
 * info dpeak [range]: show parameters of selected data range assuming that
   this range contains a peak: area, center, FWHM, max, peak-area, backgr-area

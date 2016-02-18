@@ -23,6 +23,8 @@ public:
     // x - expression value, n - index of the point in Data::p_
     void put(double x, int n) { ++counter_; op(x, n); }
     virtual double value() const { return v_; }
+    virtual int number_of_parameters() const { return 0; }
+    virtual void add_param(double /*p*/) { }
 
 protected:
     int counter_;
