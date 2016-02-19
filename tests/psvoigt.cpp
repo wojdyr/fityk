@@ -46,6 +46,8 @@ TEST_CASE("pseudo-voigt", "") {
             REQUIRE(area == Approx(9.925545022985));
             double H = fik->calculate_expr("%pv.Height");
             REQUIRE(H == height);
+            double ib = fik->calculate_expr("%pv.IB");
+            REQUIRE(ib == area/height);
         }
         const fityk::Func *f = fik->get_function("pv");
         double at_ctr = f->value_at(center);

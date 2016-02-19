@@ -112,7 +112,7 @@ bool Function::get_center(realt* a) const
     return false;
 }
 
-bool Function::get_iwidth(realt* a) const
+bool Function::get_ibreadth(realt* a) const
 {
     realt area, height;
     if (this->get_area(&area) && this->get_height(&height)) {
@@ -209,6 +209,8 @@ realt Function::get_param_value(const string& param) const  throw(ExecuteError)
     } else if (param == "FWHM" && get_fwhm(&a)) {
         return a;
     } else if (param == "Area" && get_area(&a)) {
+        return a;
+    } else if (param == "IB" && get_ibreadth(&a)) {
         return a;
     } else if (get_other_prop(param, &a)) {
         return a;

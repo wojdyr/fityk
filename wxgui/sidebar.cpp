@@ -867,8 +867,8 @@ void SideBar::update_func_inf()
         inf->AppendText(wxT("\nHeight: ") + s2wx(S(a)));
     if (func->get_fwhm(&a))
         inf->AppendText(wxT("\nFWHM: ") + s2wx(S(a)));
-    if (func->get_iwidth(&a))
-        inf->AppendText(wxT("\nInt. Width: ") + s2wx(S(a)));
+    if (func->get_ibreadth(&a))
+        inf->AppendText(wxT("\nI.Breadth: ") + s2wx(S(a)));
     v_foreach (string, i, func->get_other_prop_names()) {
         func->get_other_prop(*i, &a);
         inf->AppendText(s2wx("\n" + *i + ": " + S(a)));

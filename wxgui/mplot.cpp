@@ -611,7 +611,7 @@ void MainPlot::prepare_peak_labels(const Model* model)
             else if (tag == "fwhm")
                 label.replace(pos, right-pos+1, f->get_fwhm(&a) ? S(a) : " ");
             else if (tag == "ib")
-                label.replace(pos, right-pos+1, f->get_iwidth(&a) ? S(a) : " ");
+                label.replace(pos, right-pos+1, f->get_ibreadth(&a) ? S(a):" ");
             else if (tag == "name")
                 label.replace(pos, right-pos+1, f->name);
             else if (tag == "br")
@@ -837,11 +837,11 @@ void MainPlot::OnPeakGuess(wxCommandEvent&)
     realt ctr;
     if (p->get_center(&ctr)) {
         double plusmin = 0;
-        realt fwhm, iw;
+        realt fwhm, ib;
         if (p->get_fwhm(&fwhm))
             plusmin = fabs(fwhm);
-        if (p->get_iwidth(&iw) && fabs(iw) > plusmin)
-            plusmin = fabs(iw);
+        if (p->get_ibreadth(&ib) && fabs(ib) > plusmin)
+            plusmin = fabs(ib);
         plusmin = max(plusmin, 1.);
         exec(frame->get_datasets() + "guess %" + p->name + " = "
                   + frame->get_guess_string(p->tp()->name)

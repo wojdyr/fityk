@@ -61,7 +61,7 @@ public:
     virtual bool get_fwhm(realt* /*a*/) const { return false; }
     virtual bool get_area(realt* /*a*/) const { return false; }
     /// integral width := area / height
-    bool get_iwidth(realt* a) const;
+    bool get_ibreadth(realt* a) const;
     /// get list of other properties (e.g. like Lorentzian-FWHM of Voigt)
     virtual const std::vector<std::string>& get_other_prop_names() const
                 { static const std::vector<std::string> empty; return empty; }

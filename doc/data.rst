@@ -504,10 +504,10 @@ Variables ($foo) and functions (%bar) can be used in data expressions::
    :class: icon
 
 Values of the function parameters (e.g. ``%fun.a0``) and pseudo-parameters
-``Center``, ``Height``, ``FWHM`` and ``Area`` (e.g. ``%fun.Area``)
-can also be used.
-Pseudo-parameters are supported only by functions, which know
-how to calculate these properties.
+``Center``, ``Height``, ``FWHM``, ``IB`` and ``Area`` (e.g. ``%fun.Area``)
+can also be used. IB stands for Integral Breadth -- width of rectangle with
+the same area and height as the peak, in other words Area/Height.
+Not all functions have pseudo-parameters.
 
 It is also possible to calculate some properties of %functions:
 

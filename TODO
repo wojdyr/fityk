@@ -1,7 +1,3 @@
-* "int. width" - unclear, use "integral width", document it
-
-* document how to get Gaussian/Lorentzian width from Voigt
-
 * handle correlated parameters: use pseudo-inverse for covariance matrix
 
 * API: add all_datasets(): for n, title in F:all_datasets() do ...
@@ -10,6 +6,8 @@
 * API: access to confidence intervals
 
 * GUI: Tools > Macros
+
+* document how to get Gaussian/Lorentzian width from Voigt
 
 * info cov/errors - do not specify dataset
 
