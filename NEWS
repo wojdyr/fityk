@@ -1,6 +1,8 @@
 User-visible changes in version 1.3.1  (unreleased):
 * GUI: more options in the peak-top menu
+* GUI: Tools > XPS KE <-> BE
 * added utilities F.findx(), F.extremum(), centile(N, expr), %peak.IB
+* bug fixes, as always
 
 User-visible changes in version 1.3.0  (2015-05-25):
 * support filenames with non-ascii characters

@@ -95,6 +95,7 @@ public:
     void OnFHistory      (wxCommandEvent& event);
 
     void OnPowderDiffraction (wxCommandEvent&);
+    void OnXpsKEBE(wxCommandEvent&);
 
     void OnMenuLogStartUpdate (wxUpdateUIEvent& event);
     void OnMenuLogStopUpdate (wxUpdateUIEvent& event);

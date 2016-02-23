@@ -166,6 +166,7 @@ enum {
     ID_F_REDO                  ,
     ID_F_HISTORY               ,
     ID_T_PD                    ,
+    ID_T_KEBE                  ,
     ID_F_M                     ,
     ID_F_M_END = ID_F_M+50     ,
     ID_SESSION_LOG             ,
@@ -329,6 +330,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_F_HISTORY,     FFrame::OnFHistory)
 
     EVT_MENU (ID_T_PD,          FFrame::OnPowderDiffraction)
+    EVT_MENU (ID_T_KEBE,        FFrame::OnXpsKEBE)
 
     EVT_MENU (ID_G_M_ZOOM,      FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_RANGE,     FFrame::OnChangeMouseMode)
@@ -676,6 +678,8 @@ void FFrame::set_menubar()
     append_mi(tools_menu, ID_T_PD, wxBitmap(powdifpat16_xpm),
               wxT("&Powder Diffraction"),
               wxT("A tool for Pawley fitting"));
+    tools_menu->Append(ID_T_KEBE, "&XPS KE<->BE",
+                       "Requires known source energy");
 
     wxMenu* gui_menu = new wxMenu;
     wxMenu* gui_menu_mode = new wxMenu;
@@ -1299,6 +1303,24 @@ void FFrame::OnFHistory (wxCommandEvent&)
 void FFrame::OnPowderDiffraction (wxCommandEvent&)
 {
     PowderDiffractionDlg(this, -1).ShowModal();
+}
+
+void FFrame::OnXpsKEBE(wxCommandEvent&)
+{
+    vector<int> dd = get_selected_data_indices();
+    v_foreach(int, i, dd) {
+        Data *data = ftk->dk.data(*i);
+        double e = data->xps_source_energy();
+        if (e > 0) {
+            exec("@" + S(*i) + ": X = " + eS(e) +
+                 (data->get_x_min() > 0 ? " - x" : " + x"));
+        } else {
+            wxMessageBox("Switching between Kinetic and Binding Energy\n"
+                         "works only when the source energy is known\n"
+                         "from the data file in VAMAS or other XPS format.",
+                         "Unknown source energy", wxOK|wxICON_ERROR);
+        }
+    }
 }
 
 void FFrame::OnMenuLogStartUpdate (wxUpdateUIEvent& event)

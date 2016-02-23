@@ -83,6 +83,7 @@ public :
     void revert();
     Model* model() { return model_; }
     const Model* model() const { return model_; }
+    double xps_source_energy() const { return xps_source_energy_; }
 
 private:
     const BasicContext* ctx_;
@@ -93,6 +94,7 @@ private:
     bool has_sigma_;
     std::vector<Point> p_;
     std::vector<int> active_;
+    double xps_source_energy_;
 
     void post_load();
     void verify_options(const xylib::DataSet* ds, const std::string& options);

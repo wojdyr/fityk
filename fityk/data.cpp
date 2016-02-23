@@ -38,7 +38,7 @@ string get_file_basename(const string& path)
 
 Data::Data(BasicContext* ctx, Model *model)
         : ctx_(ctx), model_(model),
-          x_step_(0.), has_sigma_(false)
+          x_step_(0.), has_sigma_(false), xps_source_energy_(0.)
 {
 }
 
@@ -80,6 +80,7 @@ void Data::clear()
     x_step_ = 0;
     active_.clear();
     has_sigma_ = false;
+    xps_source_energy_ = 0.;
 }
 
 bool Data::completely_empty() const
@@ -330,6 +331,10 @@ void Data::load_file(const LoadSpec& spec)
                 if (!block_name.empty())
                     block_name += "/";
                 block_name += block->get_name();
+            }
+            if (block->meta.has_key("source energy")) {
+                const string& energy = block->meta.get("source energy");
+                xps_source_energy_ = strtod(energy.c_str(), NULL);
             }
         }
     } catch (const std::runtime_error& e) {
