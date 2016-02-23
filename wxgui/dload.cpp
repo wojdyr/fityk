@@ -93,15 +93,15 @@ void DLoadDlg::exec_command(bool replace)
             cols += S(b);
     }
 
-    string cmd;
+    string with_options;
     if (!has_s) {
         bool default_sqrt = (S(ftk->get_settings()->default_sigma) == "sqrt");
         bool set_sqrt = browser_->sd_sqrt_rb->GetValue();
         if (set_sqrt != default_sqrt) {
             if (set_sqrt)
-                cmd = "with default_sigma=sqrt ";
+                with_options = "with default_sigma=sqrt ";
             else
-                cmd = "with default_sigma=one ";
+                with_options = "with default_sigma=one ";
         }
     }
     wxArrayString paths;
@@ -118,14 +118,15 @@ void DLoadDlg::exec_command(bool replace)
         }
     }
     for (size_t i = 0; i < paths.GetCount(); ++i) {
+        string cmd;
         if (paths[i].Find('\'') == wxNOT_FOUND)
-            cmd += "@" + (replace ? S(data_idx_) : S("+")) +
+            cmd = "@" + (replace ? S(data_idx_) : S("+")) +
                    " < '" + wx2s(paths[i]) + cols + "'" + trailer;
         else // very special case
-            cmd += "lua F:load(" + S(replace ? data_idx_ : -1) +
+            cmd = "lua F:load(" + S(replace ? data_idx_ : -1) +
                    ", [[" + wx2s(paths[i]) + "]], " + S(b) + ", " +
                    S(x) + ", " + S(y) + ", " + S(sig) + lua_trailer + ")";
-        exec(cmd);
+        exec(with_options + cmd);
         wxString title = browser_->title_tc->GetValue().Trim();
         if (!title.empty() && title != browser_->auto_title_) {
             int slot = (replace ? data_idx_ : ftk->dk.count() - 1);
