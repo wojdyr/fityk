@@ -21,6 +21,10 @@
 using std::string;
 using std::vector;
 
+#if XYLIB_VERSION < 10500
+typedef shared_ptr<const xylib::DataSet> dataset_shared_ptr;
+#endif
+
 namespace fityk {
 
 // filename utils
@@ -239,7 +243,7 @@ int Data::count_blocks(const string& filename,
                        const string& format, const string& options)
 {
     try {
-        shared_ptr<const xylib::DataSet> xyds(xylib::cached_load_file(filename,
+        dataset_shared_ptr xyds(xylib::cached_load_file(filename,
                                                      format, tr_opt(options)));
         return xyds->get_block_count();
     } catch (const std::runtime_error& e) {
@@ -252,7 +256,7 @@ int Data::count_columns(const string& filename,
                         int first_block)
 {
     try {
-        shared_ptr<const xylib::DataSet> xyds(xylib::cached_load_file(filename,
+        dataset_shared_ptr xyds(xylib::cached_load_file(filename,
                                                      format, tr_opt(options)));
         return xyds->get_block(first_block)->get_column_count();
     } catch (const std::runtime_error& e) {
@@ -284,7 +288,7 @@ void Data::load_file(const LoadSpec& spec)
     string block_name;
     try {
         string ds_options = tr_opt(spec.options);
-        shared_ptr<const xylib::DataSet> xyds(
+        dataset_shared_ptr xyds(
             xylib::cached_load_file(spec.path, spec.format, ds_options));
         verify_options(xyds.get(), ds_options);
         clear(); //removing previous file

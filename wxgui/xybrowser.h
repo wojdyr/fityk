@@ -9,9 +9,13 @@
 #include <wx/splitter.h>
 #include <wx/spinctrl.h>
 #include "xylib/xylib.h"
-#include "xylib/cache.h"  // shared_ptr (we want it the same as in xylib)
+#include "xylib/cache.h"  // dataset_shared_ptr
 
 #include "uplot.h"
+
+#if XYLIB_VERSION < 10500
+typedef shared_ptr<const xylib::DataSet> dataset_shared_ptr;
+#endif
 
 class PreviewPlot : public PlotWithTics
 {
@@ -22,11 +26,11 @@ public:
     virtual void draw(wxDC &dc, bool);
     void load_dataset(const std::string& filename, const std::string& filetype,
                       const std::string& options);
-    shared_ptr<const xylib::DataSet> get_data() const { return data_; }
+    dataset_shared_ptr get_data() const { return data_; }
     void make_outdated() { data_updated_ = false; }
 
 private:
-    shared_ptr<const xylib::DataSet> data_;
+    dataset_shared_ptr data_;
     bool data_updated_; // if false, draw() doesn't do anything (plot is clear)
 };
 

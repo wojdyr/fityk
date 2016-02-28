@@ -993,8 +993,7 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
                 return;
         }
         try {
-            shared_ptr<const xylib::DataSet> d =
-                                            xylib::cached_load_file(f, "", "");
+            dataset_shared_ptr d = xylib::cached_load_file(f, "", "");
             if (d->get_block_count() > 1) {
                 wxArrayString choices;
                 for (int i = 0; i < d->get_block_count(); ++i) {
