@@ -4,9 +4,10 @@
 #ifndef FITYK_UI_API_H_
 #define FITYK_UI_API_H_
 
+#include <csignal> // sig_atomic_t
 #include <string>
 #include <vector>
-#include "fityk.h" //FITYK_API
+#include "fityk.h" // FITYK_API
 
 namespace fityk {
 
@@ -92,7 +93,7 @@ complete_fityk_line(Fityk *F, const char* line_buffer, int start, int end,
 FITYK_API const char* startup_commands_filename(); // "init"
 FITYK_API const char* config_dirname(); // ".fityk"
 /// flag that is set to interrupt fitting (it is checked after each iteration)
-extern volatile FITYK_API bool user_interrupt;
+extern volatile FITYK_API std::sig_atomic_t user_interrupt;
 
 } // namespace fityk
 #endif // FITYK_UI_API_H_

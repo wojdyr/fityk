@@ -159,6 +159,10 @@ namespace std {
             SWIG_exception(SWIG_TypeError,"Expected function.");
     }
 
+    /* we had problem with user_interrupt, see
+       https://github.com/swig/swig/issues/629 */
+    %apply int { std::sig_atomic_t };
+
     #define FITYK_API // empirical workaround that makes SWIG 2.0.8 work
     %{
     using fityk::Fityk; // empirical workaround that makes SWIG 2.0.8 work

@@ -243,8 +243,7 @@ void main_loop()
 
 void interrupt_handler (int /*signum*/)
 {
-    //set flag for breaking long computations
-    user_interrupt = true;
+    fityk::user_interrupt = 1;  // set flag to stop computations
 }
 
 } // anonymous namespace

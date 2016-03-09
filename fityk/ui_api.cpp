@@ -51,7 +51,7 @@ namespace fityk {
 const char* config_dirname() { return ".fityk"; }
 const char* startup_commands_filename() { return "init"; }
 
-volatile bool user_interrupt = false;
+volatile std::sig_atomic_t user_interrupt = 0;
 
 static
 void simple_show_message(UiApi::Style style, const string& s)

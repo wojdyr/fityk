@@ -399,7 +399,7 @@ void Fit::fit(int max_eval, const vector<Data*>& datas)
     a_orig_ = F_->mgr.parameters();
     F_->fit_manager()->push_param_history(a_orig_);
     evaluations_ = 0;
-    fityk::user_interrupt = false;
+    fityk::user_interrupt = 0;
     max_eval_ = (max_eval > 0 ? max_eval
                               : F_->get_settings()->max_wssr_evaluations);
     int nu = count(par_usage_.begin(), par_usage_.end(), true);

@@ -167,8 +167,7 @@ UserInterface::Status gui_exec_command(const string& s)
 static
 void interrupt_handler (int /*signum*/)
 {
-    //set flag for breaking long computations
-    fityk::user_interrupt = true;
+    fityk::user_interrupt = 1;  // set flag to stop computations
 }
 
 static
