@@ -634,7 +634,7 @@ void FFrame::set_menubar()
     data_menu->Append(-1, wxT("&XPS"), data_xps_menu);
     data_menu->AppendSeparator();
     append_mi(data_menu, ID_D_EXPORT, GET_BMP(export16),
-              wxT("&Export\tCtrl-S"), wxT("Save data to file"));
+              wxT("&Export Points\tCtrl-S"), wxT("Save data to file"));
 
     wxMenu* sum_menu = new wxMenu;
     func_type_menu_ = new wxMenu;
@@ -656,7 +656,7 @@ void FFrame::set_menubar()
     append_mi(sum_menu, ID_S_EXPORTF, GET_BMP(export16), wxT("&Export Formula"),
               wxT("Export mathematic formula to file"));
     append_mi(sum_menu, ID_S_EXPORTD, GET_BMP(export16), wxT("&Export Points"),
-              wxT("Export as points in TSV file"));
+              wxT("Export points to file"));
 
     wxMenu* fit_menu = new wxMenu;
     wxMenu* fit_method_menu = new wxMenu;
