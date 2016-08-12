@@ -734,7 +734,9 @@ CelFile read_cel_file(FILE *f)
         return cel;
     }
     while (1) {
-        fscanf(f, "%12s", s);
+        r = fscanf(f, "%12s", s);
+        if (r != 1)
+            return cel;
         if (strcmp(s, "RGNR") == 0 || strcmp(s, "rgnr") == 0
                 || strcmp(s, "Rgnr") == 0)
             break;
@@ -757,14 +759,16 @@ CelFile read_cel_file(FILE *f)
     cel.sgs = find_first_sg_with_number(sgn);
     for (int c = fgetc(f); c != '\n' && c != EOF; c = fgetc(f)) {
         if (c == ':') {
-            fscanf(f, "%8s", s);
-            cel.sgs = find_space_group_setting(sgn, s);
+            r = fscanf(f, "%8s", s);
+            if (r == 1)
+                cel.sgs = find_space_group_setting(sgn, s);
             break;
         } else if (isdigit(c)) {
             ungetc(c, f);
             int pc_setting;
-            fscanf(f, "%d", &pc_setting);
-            cel.sgs = get_sg_from_powdercell_rgnr(sgn, pc_setting);
+            r = fscanf(f, "%d", &pc_setting);
+            if (r == 1)
+                cel.sgs = get_sg_from_powdercell_rgnr(sgn, pc_setting);
             break;
         } else if (!isspace(c))
             break;

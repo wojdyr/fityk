@@ -273,9 +273,9 @@ bool is_fityk_script(string filename)
 
     const int magic_len = strlen(magic);
     char buffer[32];
-    fgets(buffer, magic_len, f);
+    char *ret = fgets(buffer, magic_len, f);
     fclose(f);
-    return !strncmp(magic, buffer, magic_len);
+    return ret && !strncmp(magic, buffer, magic_len);
 }
 
 void Full::process_cmd_line_arg(const string& arg)

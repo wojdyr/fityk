@@ -59,9 +59,9 @@ TextPane::TextPane(wxWindow *parent)
     FILE *f = wxFopen(hist_file, "r");
     if (f) {
         char buf[10];
-        fgets(buf, 10, f);
+        char* ret = fgets(buf, 10, f);
         fclose(f);
-        if (strncmp(buf, "_HiStOrY_", 9) == 0) // libedit weirdness
+        if (ret && strncmp(buf, "_HiStOrY_", 9) == 0) // libedit weirdness
             hist_file += "_gui";
     }
     input_field = new InputLine(this, -1, this, hist_file);

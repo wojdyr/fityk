@@ -42,7 +42,11 @@ void GnuPlot::fork_and_make_pipe()
 #ifndef _WIN32
     signal(SIGPIPE, SIG_IGN);
     int fd[2];
-    pipe(fd);
+    int ret = pipe(fd);
+    if (ret == -1) {
+        perror("pipe");
+        exit(1);
+    }
     pid_t childpid = fork();
     if (childpid == -1) {
         perror("fork");

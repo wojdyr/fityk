@@ -68,8 +68,8 @@ string simple_user_input(const string& prompt)
     printf("%s ", prompt.c_str());
     fflush(stdout);
     char s[100];
-    fgets(s, 100, stdin);
-    return strip_string(s);
+    char *ret = fgets(s, 100, stdin);
+    return ret ? strip_string(s) : "";
 }
 
 UiApi::UiApi()

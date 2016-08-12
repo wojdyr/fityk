@@ -512,10 +512,10 @@ void get_factors(OpTree *a, OpTree *expo,
                 found = true;
                 break;
             }
-            if (!found) {
-                v.push_back(MultFactor(a, expo->clone()));
-                return; //don't delete a
-            }
+        if (!found) {
+            v.push_back(MultFactor(a, expo->clone()));
+            return; //don't delete a
+        }
     }
     //we are here -- MultFactor(a,...) not created
     a->c1 = a->c2 = 0;
