@@ -104,12 +104,10 @@ private:
 
     char* return_buf(int n)
     {
-        // we don't need '\n' at all
         if (n > 0 && buf_[n-1] == '\n')
             buf_[n-1] = '\0';
         return n == -1 ? NULL : buf_;
     }
-
 };
 
 

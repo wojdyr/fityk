@@ -63,9 +63,9 @@ void GnuPlot::fork_and_make_pipe()
         //putenv("PAGER=");
         execlp(GNUPLOT_PATH, GNUPLOT_PATH, /*"-",*/ NULL);
         // if we are here, sth went wrong
-        fprintf(stderr,
-                "** Calling `" GNUPLOT_PATH "' failed. Plotting disabled. **");
-        exit(0); // terminate only the child process 
+        fprintf(stderr, "** Calling `" GNUPLOT_PATH
+                        "' failed. Plotting disabled. **\n");
+        abort(); // exit() messed with open files.
     } else {
         // Parent process closes up input side of pipe
         close(fd[0]);
@@ -83,7 +83,7 @@ bool GnuPlot::test_gnuplot_pipe()
     fprintf(gnuplot_pipe_, " "); //pipe test
     fflush(gnuplot_pipe_);
     if (errno != 0) // errno == EPIPE if the pipe doesn't work
-        failed_ = false;
+        failed_ = true;
     return errno == 0;
 #endif //_WIN32
 }
