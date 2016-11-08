@@ -9,7 +9,7 @@ before_install:
   - sudo apt-get update -qq
   - sudo apt-get install -y libboost-dev liblua5.1-0-dev lua5.1
   - sudo apt-get install -y --force-yes swig3.0
-  - sudo apt-get install -y libxy-dev wxgtk-for-fityk-devel
+  - sudo apt-get install -y --force-yes libxy-dev wxgtk-for-fityk-devel
 before_script:
   -  curl -o tests/catch.hpp https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
   - autoreconf -i
