@@ -1,3 +1,8 @@
+* ? @0 < 'file.dat' :1:2..:: -- syntax error -- doc
+
+* getting NaN as one of X values leads to hard to diagnose problems,
+  need to filter it out at some stage and warn the user
+
 * handle correlated parameters: use pseudo-inverse for covariance matrix
 
 * API: add all_datasets(): for n, title in F:all_datasets() do ...
