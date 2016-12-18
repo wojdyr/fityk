@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-needs_sphinx = '1.3'
+needs_sphinx = '1.5'
 
 import sys, os
 sys.path.append(os.path.abspath('.'))
