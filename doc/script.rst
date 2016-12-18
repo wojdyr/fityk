@@ -65,9 +65,9 @@ with appended ".out"::
 
 This and other methods of ``F`` are documented in the next section.
 
-.. highlight:: lua
+Here is an example of Lua-Fityk interactions:
 
-Here is an example of Lua-Fityk interactions::
+.. code-block:: lua
 
     -- load data from files file01.dat, file02.dat, ... file13.dat
     for i=1,13 do
@@ -88,7 +88,9 @@ Here is an example of Lua-Fityk interactions::
     print("The largest y: " .. total_max_y)
 
 If a fityk command executed from Lua script fails, the whole script is
-stopped, unless you catch the error::
+stopped, unless you catch the error:
+
+.. code-block:: lua
 
     -- wrap F:execute() in pcall to handle possible errors
     status, err = pcall(function() F:execute("fit") end)
@@ -101,9 +103,7 @@ about it, feel free to ask.
 
 Older, but still supported way to automate Fityk is to prepare
 a stand-alone program that writes a valid fityk script to the standard output.
-To run such program and execute the output use command:
-
-.. code-block:: fityk
+To run such program and execute the output use command::
 
     exec ! program [args...]
 
@@ -111,7 +111,7 @@ To run such program and execute the output use command:
 Fityk DSL
 =========
 
-As was described in :ref:`cli`, each line has a syntax::
+As was described in :ref:`cli`, each line has a syntax:
 
   [[@...:] [with ...] command [";" command]...] [#comment]
 
@@ -369,6 +369,8 @@ Here is the most general function:
 
     Executes a fityk command. Example: ``F:execute("fit")``.
 
+.. highlight:: lua
+
 The ``%`` operator for the string type is pre-set to support Python-like
 formatting::
 
@@ -441,36 +443,38 @@ Data
 
 .. method:: Fityk.get_dataset_count()
 
-   Returns number of datasets (n >= 1).
+    Returns number of datasets (n >= 1).
 
 .. method:: Fityk.get_default_dataset()
 
-   Returns default dataset. Default dataset is set by the "use @n" command.
+    Returns default dataset. Default dataset is set by the "use @n" command.
 
 .. method:: Fityk.get_data([d])
 
-   Returns points for dataset *d*.
+    Returns points for dataset *d*.
 
-   * in C++ -- returns vector<Point>
-   * in Lua -- userdata with array-like methods, indexed from 0.
+    * in C++ -- returns vector<Point>
+    * in Lua -- userdata with array-like methods, indexed from 0.
 
-   Each point has 4 properties:
-   ``x``, ``y``, ``sigma`` (real numbers) and ``is_active`` (bool).
+    Each point has 4 properties:
+    ``x``, ``y``, ``sigma`` (real numbers) and ``is_active`` (bool).
 
-   Example::
+    Example::
 
-       points = F:get_data()
-       for i = 0, #points-1 do
-           p = points[i]
-           if p.is_active then
-               print(i, p.x, p.y, p.sigma)
-           end
-       end
+      points = F:get_data()
+      for i = 0, #points-1 do
+          p = points[i]
+          if p.is_active then
+              print(i, p.x, p.y, p.sigma)
+          end
+      end
 
-       1       4.24    1.06    1
-       2       6.73    1.39    1
-       3       8.8     1.61    1
-       ...
+    .. code-block:: none
+
+      1       4.24    1.06    1
+      2       6.73    1.39    1
+      3       8.8     1.61    1
+      ...
 
 
 

@@ -5,7 +5,7 @@ needs_sphinx = '1.3'
 import sys, os
 sys.path.append(os.path.abspath('.'))
 
-extensions = ["sphinx.ext.pngmath", "sphinx.ext.extlinks", "fityk_ext"]
+extensions = ["sphinx.ext.imgmath", "sphinx.ext.extlinks", "fityk_ext"]
 
 exclude_patterns = ['html', 'latex']
 if not os.getenv('BUILD_WEBSITE'):
@@ -23,6 +23,7 @@ project = 'Fityk'
 version = '1.3.0'
 release = version
 default_role = None
+suppress_warnings = ["ref.option"]
 
 #highlight_language = "none"
 highlight_language = "fityk"
@@ -52,6 +53,7 @@ html_use_index = False
 #html_add_permalinks = False
 #html_compact_lists = True
 html_show_copyright = False
+html_copy_source = False  # we link directly to GitHub
 
 latex_documents = [
   ('fityk-manual', 'fityk-manual.tex', 'Fityk manual', '', 'manual', True),
@@ -107,12 +109,12 @@ latex_elements = {
 latex_show_urls = 'footnote'
 
 # determine vertical alignment of the math PNGs
-pngmath_use_preview = True
+imgmath_use_preview = True
 
 dl_dir = 'http://fityk.nieto.pl/subscribers/'
 dl_prefix = 'fityk-%s' % version
 extlinks = {
     'wiki': ('https://github.com/wojdyr/fityk/wiki/%s', ''),
-    'download': (dl_dir + dl_prefix + '%s', dl_prefix),
+    'subscribers_download': (dl_dir + dl_prefix + '%s', dl_prefix),
     }
 
