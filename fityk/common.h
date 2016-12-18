@@ -225,15 +225,16 @@ inline bool is_le(double a, double b) { return a <= b + epsilon; }
 inline bool is_ge(double a, double b) { return a >= b - epsilon; }
 inline bool is_zero(double a) { return fabs(a) <= epsilon; }
 
-inline bool is_finite(double a)
+inline bool is_finite(double a) {
 // to avoid "deprecated finite()" warning on OSX 10.9 we try first isfinite()
 #if defined(HAVE_ISFINITE)
-    { return isfinite(a); }
+    return isfinite(a);
 #elif defined(HAVE_FINITE)
-    { return finite(a); }
+    return finite(a);
 #else
-    { return a == a; } // this checks only for NaN (better than nothing)
+    return a == a; // this checks only for NaN (better than nothing)
 #endif
+}
 
 
 #ifndef M_PI
