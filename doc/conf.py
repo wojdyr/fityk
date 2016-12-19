@@ -70,6 +70,7 @@ latex_elements = {
 
     # put notes into boxes
     'preamble': r"""
+\usepackage{fancybox}
 \usepackage{ifthen}
 \definecolor{gray03}{gray}{0.3}
 \let\origbeginnotice\notice
@@ -78,6 +79,7 @@ latex_elements = {
 \renewenvironment{notice}[2]{%
   \def\noticetype{#1}
   \def\inTheGui{\equal{#2}{In the GUI}}
+  \def\inCLI{\equal{#2}{CLI}}
   \ifthenelse{\equal{#1}{note}}{%
     \setlength{\fboxrule}{1pt}
     \setlength{\fboxsep}{6pt}
@@ -88,7 +90,7 @@ latex_elements = {
     \Sbox
     \minipage{\mylen}
     \ifthenelse{\inTheGui}{\color{gray03}}{}
-    \par\strong{#2}
+    \ifthenelse{\inCLI}{}{\par\sphinxstylestrong{#2}}
   }{%
   \origbeginnotice{#1}{#2}%
   }
@@ -107,6 +109,7 @@ latex_elements = {
 
 #latex_show_pagerefs = True
 latex_show_urls = 'footnote'
+latex_keep_old_macro_names = False
 
 # determine vertical alignment of the math PNGs
 imgmath_use_preview = True
