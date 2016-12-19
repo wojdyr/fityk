@@ -136,7 +136,7 @@ and Linux (Ubuntu PPA_ and RPMs from OBS_).
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 (`releases <https://github.com/wojdyr/fityk/releases>`_)
 
-Version 1.3.0 was released on 2015-05-25
+Version 1.3.1 was released on 2016-12-19
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
 New version `notifications <http://fityk-announce.nieto.pl/>`_
 are delivered via email and feeds.
