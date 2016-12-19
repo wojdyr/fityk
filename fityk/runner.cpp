@@ -91,7 +91,7 @@ void Runner::command_delete(const vector<Token>& args)
             funcs.push_back(Lexer::get_string(*i));
         else if (i->type == kTokenVarname)
             vars.push_back(Lexer::get_string(*i));
-        else if (i->type == kTokenFilename || i->type == kTokenString)
+        else if (i->type == kTokenWord || i->type == kTokenString)
             files.push_back(Lexer::get_string(*i));
         else
             assert(0);
@@ -292,7 +292,7 @@ void Runner::command_plot(const vector<Token>& args, int ds)
         dd.push_back(ds);
     F_->view.change_view(hor, ver, dd);
     string filename;
-    if (args.back().type == kTokenFilename || args.back().type == kTokenString)
+    if (args.back().type == kTokenWord || args.back().type == kTokenString)
         filename = Lexer::get_string(args.back());
     F_->ui()->draw_plot(UserInterface::kRepaintImmediately,
                         filename.empty() ? NULL : filename.c_str());
@@ -623,13 +623,18 @@ void Runner::command_load(const vector<Token>& args)
         F_->dk.data(dataset)->revert();
     } else { // read given file
         string format, options;
-        if (args.size() > 2) {
-            format = args[2].as_string();
+        vector<Token>::const_iterator it = args.begin() + 2;
+        if (it != args.end() && it->type == kTokenWord) {
+            filename += it->as_string();
+            ++it;
+        }
+        if (it != args.end()) {
+            format = it->as_string();
             // "_" means any format (useful for passing option decimal_comma)
             if (format == "_")
                 format.clear();
-            for (size_t i = 3; i < args.size(); ++i)
-                options += (i == 3 ? "" : " ") + args[i].as_string();
+            while (++it != args.end())
+                options += (options.empty() ? "" : " ") + it->as_string();
         }
         F_->dk.import_dataset(dataset, filename, format, options, F_, F_->mgr);
         if (F_->dk.count() == 1) {

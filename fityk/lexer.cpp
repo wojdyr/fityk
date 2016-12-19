@@ -44,7 +44,7 @@ const char* tokentype2str(TokenType tt)
         case kTokenFuncname: return "%func_name";
         case kTokenNumber: return "number";
         case kTokenDataset: return "@dataset";
-        case kTokenFilename: return "filename";
+        case kTokenWord: return "word";
         case kTokenExpr: return "expr";
         case kTokenEVar: return "var-expr";
         case kTokenRest: return "rest-of-line";
@@ -96,7 +96,7 @@ string token2str(const Token& token)
         case kTokenLname:
         case kTokenCname:
         case kTokenUletter:
-        case kTokenFilename:
+        case kTokenWord:
         case kTokenRest:
             return s + " \"" + token.as_string() + "\"";
         case kTokenExpr:
@@ -323,14 +323,14 @@ Token Lexer::get_glob_token()
     return tok_;
 }
 
-Token Lexer::get_filename_token()
+Token Lexer::get_word_token()
 {
     Token t = get_token();
     if (t.type == kTokenString || t.type == kTokenNop)
         return t;
     while (*cur_ != '\0' && !isspace(*cur_) && *cur_ != ';' && *cur_ != '#')
         ++cur_;
-    t.type = kTokenFilename;
+    t.type = kTokenWord;
     t.length = cur_ - t.str;
     return t;
 }

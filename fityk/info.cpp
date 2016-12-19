@@ -641,7 +641,7 @@ void command_redirectable(const Full* F, int ds,
         }
         F->ui()->mesg(info);
     } else {
-        assert(args.back().type == kTokenFilename ||
+        assert(args.back().type == kTokenWord ||
                args.back().type == kTokenString);
         string filename = Lexer::get_string(args.back());
         const char* mode = args[len-2].type == kTokenGT ? "w" : "a";
@@ -793,9 +793,9 @@ void command_debug(const Full* F, int ds, const Token& key, const Token& rest)
     // tests the match_glob()
     else if (word == "glob") {
         Lexer lex(rest.str);
-        string pattern = lex.get_filename_token().as_string();
+        string pattern = lex.get_word_token().as_string();
         Token t;
-        while ((t = lex.get_filename_token()).type != kTokenNop) {
+        while ((t = lex.get_word_token()).type != kTokenNop) {
             string s = t.as_string();
             if (match_glob(s.c_str(), pattern.c_str()))
                 r += s + " ";
@@ -803,7 +803,8 @@ void command_debug(const Full* F, int ds, const Token& key, const Token& rest)
     }
 
     else
-        r += "unexpected arg: " + word;
+        r += "unexpected arg: " + word + "\nShould be one of: "
+             + join(debug_args, debug_args+9, " ");
     F->ui()->mesg(r);
 }
 

@@ -8,6 +8,7 @@
 
 #include <string.h>
 #include <stdlib.h>
+#include <algorithm>
 
 #include "lexer.h"
 #include "eparser.h"
@@ -455,7 +456,7 @@ void parse_delete_args(Lexer& lex, vector<Token>& args)
                 t.type == kTokenVarname)    // $var
             args.push_back(t);
         else if (t.type == kTokenLname && t.as_string() == "file")
-            args.push_back(lex.get_filename_token());
+            args.push_back(lex.get_word_token());
         else
             lex.throw_syntax_error("unexpected arg after `delete'");
     } while (lex.discard_token_if(kTokenComma));
@@ -470,7 +471,7 @@ void parse_exec_args(Lexer& lex, vector<Token>& args)
         args.push_back(lex.get_token());
         args.push_back(lex.get_rest_of_line());
     } else
-        args.push_back(lex.get_filename_token());
+        args.push_back(lex.get_word_token());
 }
 
 void Parser::parse_fit_args(Lexer& lex, vector<Token>& args)
@@ -525,7 +526,7 @@ void parse_redir(Lexer& lex, vector<Token>& args)
     if (lex.peek_token().type == kTokenGT ||
             lex.peek_token().type == kTokenAppend) {
         args.push_back(lex.get_token());
-        Token f = lex.get_filename_token();
+        Token f = lex.get_word_token();
         if (f.type == kTokenNop)
             lex.throw_syntax_error("expected filename");
         args.push_back(f);
@@ -916,7 +917,7 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
             // [@n:] "title" '='
             cmd.type = kCmdTitle;
             lex.get_expected_token(kTokenAssign); // discard '='
-            cmd.args.push_back(lex.get_filename_token());
+            cmd.args.push_back(lex.get_word_token());
         } else if (is_command(token, "use","")) {
             cmd.type = kCmdUse;
             cmd.args.push_back(lex.get_expected_token(kTokenDataset));
@@ -997,7 +998,15 @@ void Parser::parse_command(Lexer& lex, Command& cmd)
         cmd.type = kCmdLoad;
         cmd.args.push_back(token);
         lex.get_token(); // discard '<'
-        cmd.args.push_back(lex.get_filename_token());
+        cmd.args.push_back(lex.get_word_token());
+        // Normally columns are parsed as a part of filename ('foo.xy:1:2::'),
+        // which is weird, so let's handle also separated 'foo.xy' :1:2:3::.
+        if (lex.peek_token().type == kTokenColon) {
+            cmd.args.push_back(lex.get_word_token());
+            string cols = Lexer::get_string(cmd.args.back());
+            if (std::count(cols.begin(), cols.end(), ':') != 4)
+                lex.throw_syntax_error("4 colons required in column spec");
+        }
         while (lex.peek_token().type == kTokenLname)
             cmd.args.push_back(lex.get_token());
     } else if (token.type == kTokenDataset &&
