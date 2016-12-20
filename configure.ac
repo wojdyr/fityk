@@ -110,10 +110,11 @@ AC_COMPILE_IFELSE(
   ])],
   [], [AC_MSG_ERROR([xylib >= 1.0 is not installed])])
 
-
-AX_PROG_LUA(5.1, 5.4)
-AX_LUA_HEADERS
-AX_LUA_LIBS
+AS_IF([test x"$LUA52_FROM_SOURCE" != xyes], [
+    AX_PROG_LUA(5.1, 5.4)
+    AX_LUA_HEADERS
+    AX_LUA_LIBS
+])
 
 # Checks for version specific libraries and headers.
 AS_IF([test "x$enable_GUI" != "xno"], [
@@ -181,6 +182,7 @@ AM_CONDITIONAL([CLI_DIR], [test "x$enable_CLI" != xno])
 AM_CONDITIONAL([PYTHON_ENABLED], [test "x$enable_python" = xyes])
 #AM_CONDITIONAL([PERL_ENABLED], [test "x$enable_perl" = xyes])
 AM_CONDITIONAL([NLOPT_ENABLED], [test "x$enable_nlopt" = xyes])
+AM_CONDITIONAL([COMPILE_LUA_SRC], [test "x$LUA52_FROM_SOURCE" = xyes])
 
 #if test "x$enable_perl" = "xyes"; then
 #    AC_CHECK_PROG(PERL, perl, "yes")
