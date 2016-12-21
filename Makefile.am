@@ -48,10 +48,13 @@ tests_num_LDFLAGS = -no-install
 tests_lua_SOURCES = tests/lua.cpp
 tests_lua_LDADD = fityk/libfityk.la tests/libcatch.a
 tests_lua_LDFLAGS = -no-install
-check_PROGRAMS = $(TESTS) tests/mpfit_deriv
+check_PROGRAMS = $(TESTS)
+if ! OS_WIN32
+check_PROGRAMS += tests/mpfit_deriv
 tests_mpfit_deriv_SOURCES = tests/mpfit_deriv.cpp
 tests_mpfit_deriv_LDADD = fityk/libfityk.la
 tests_mpfit_deriv_LDFLAGS = -no-install
+endif
 dist_noinst_SCRIPTS = tests/test_syntax.fit \
       tests/test_nist.py tests/test_guess.py tests/test_model.py \
       tests/test_tranform.py tests/test_data_load.py tests/test_info.py
