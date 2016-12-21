@@ -79,10 +79,10 @@ elif [ $1 -eq 4 ]; then
  cd "$MINGW_DIR"
  if ! [ -e Makefile ]; then
      ../configure --host=i686-w64-mingw32 \
-       CPPFLAGS="-I$BOOST_DIR -I$MDIR/include/" \
+       CPPFLAGS="-I$BOOST_DIR -I$MDIR/include" \
        CFLAGS="-O3" CXXFLAGS="-O3" \
        LDFLAGS="-s -fno-keep-inline-dllexport -L$MDIR/lib" \
-       LUA=$MDIR/bin/lua.exe \
+       LUA52_FROM_SOURCE=yes \
        --without-readline --with-wx-config=$MDIR/bin/wx-config \
        --disable-static --enable-shared --enable-nlopt
  fi
@@ -96,18 +96,20 @@ elif [ $1 -eq 4 ]; then
  cp wxgui/.libs/*.exe cli/.libs/cfityk.exe \
     fityk/.libs/libfityk-*.dll \
     $MDIR/bin/libxy-*.dll $MDIR/bin/xyconv.exe $MDIR/bin/xyconvert.exe \
-    $MDIR/bin/lua5*.dll \
     $MDIR/bin/libnlopt*.dll \
     $MDIR/lib/wxbase30u_gcc_custom.dll \
     $MDIR/lib/wxmsw30u_adv_gcc_custom.dll \
     $MDIR/lib/wxmsw30u_core_gcc_custom.dll \
     $MDIR/lib/wxmsw30u_stc_gcc_custom.dll \
     $outdir/fityk/
- cp /usr/i686-w64-mingw32/sys-root/mingw/bin/libgcc_s_sjlj-1.dll \
-    /usr/i686-w64-mingw32/sys-root/mingw/bin/libwinpthread-1.dll \
-    /usr/i686-w64-mingw32/sys-root/mingw/bin/libstdc++-6.dll \
-    /usr/i686-w64-mingw32/sys-root/mingw/bin/zlib1.dll \
-    /usr/i686-w64-mingw32/sys-root/mingw/bin/libpng16-16.dll \
+ #MINGW_DLL_DIR=/usr/i686-w64-mingw32/sys-root/mingw/bin
+ #MINGW_DLL_DIR2=$MINGW_DLL_DIR
+ MINGW_DLL_DIR=/usr/i686-w64-mingw32/lib
+ MINGW_DLL_DIR2=/usr/lib/gcc/i686-w64-mingw32/5.3-win32
+ cp $MINGW_DLL_DIR/libwinpthread-1.dll \
+    $MINGW_DLL_DIR2/libgcc_s_sjlj-1.dll \
+    $MINGW_DLL_DIR2/libstdc++-6.dll \
+    $MINGW_DLL_DIR/zlib1.dll \
     $outdir/fityk/
  i686-w64-mingw32-strip $outdir/fityk/*
  echo everything is in: `pwd`/$outdir
