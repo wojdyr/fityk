@@ -39,7 +39,7 @@ and nonlinear **curve fitting**.
 
 Primarily used
 
-* by scientists (150+ citations_ per year)
+* by scientists_
   who analyse data from powder diffraction, chromatography,
   photoluminescence and photoelectron spectroscopy,
   infrared and Raman spectroscopy, and other experimental techniques,
@@ -49,9 +49,9 @@ Primarily used
 * to fit peaks -- bell-shaped functions (Gaussian, Lorentzian, Voigt,
   Pearson VII, bifurcated Gaussian, EMG, Doniach-Sunjic, etc.),
 
-but the program is suitable for fitting any curve to 2D (*x*,\ *y*) data.
+but it is suitable for fitting any curve to 2D (*x*,\ *y*) data.
 
-.. _citations: https://scholar.google.com/citations?view_op=view_citation&hl=en&citation_for_view=aCtDUBMAAAAJ:u5HHmVD_uO8C
+.. _scientists: https://scholar.google.com/scholar?cites=1686729773533771289
 
 .. _contents:
 
