@@ -31,11 +31,6 @@ AC_ARG_ENABLE(nlopt, AS_HELP_STRING([--enable-nlopt],
 AC_ARG_WITH(readline, AS_HELP_STRING([--without-readline],
                        [do not use the GNU readline library for cfityk]))
 
-AC_ARG_WITH(options, AS_HELP_STRING([--with-options=OPTIONS],
-                       [options appended to CC, CXX and LD (e.g. -isysroot)]),
-            [UNIV_OPTION=$withval])
-
-
 AM_OPTIONS_WXCONFIG
 
 
