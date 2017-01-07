@@ -17,6 +17,7 @@
 #include <wx/stdpaths.h>
 #include <wx/clipbrd.h>
 #include <wx/filepicker.h>
+#include <wx/filename.h>
 
 #include <algorithm>
 #include <string.h>
@@ -1476,15 +1477,26 @@ void FFrame::show_editor(const wxString& path, const wxString& content)
     dlg->Show(true);
 }
 
+static void split_path(const wxString& path, wxString* dir, wxString* name) {
+    if (path.empty())
+        return;
+    wxFileName fn(path);
+    *dir = fn.GetPath(); // GetPath() returns only directory not path
+    *name = fn.GetFullName(); // "fullname" is basename w/ extension
+}
+
 void FFrame::OnSessionLoad(wxCommandEvent&)
 {
+    wxString dir = script_dir_;
+    wxString file;
+    split_path(last_session_path_, &dir, &file);
     wxFileDialog fdlg(this, "Run script (after resetting session)",
-                      script_dir_, "", fityk_lua_wildcards,
+                      dir, file, fityk_lua_wildcards,
                       wxFD_OPEN | wxFD_FILE_MUST_EXIST);
     if (fdlg.ShowModal() == wxID_OK) {
         get_main_plot()->bgm()->clear_background();
-        exec("reset; exec '" + wx2s(fdlg.GetPath()) + "'");
-        //last_include_path_ = wx2s(fdlg.GetPath());
+        last_session_path_ = fdlg.GetPath();
+        exec("reset; exec '" + wx2s(last_session_path_) + "'");
         //GetMenuBar()->Enable(ID_SESSION_RECENT, true);
     }
     script_dir_ = fdlg.GetDirectory();
@@ -1492,14 +1504,17 @@ void FFrame::OnSessionLoad(wxCommandEvent&)
 
 void FFrame::OnSessionSave(wxCommandEvent&)
 {
-    wxFileDialog fdlg(this, wxT("Save everything as a script"),
-                      export_dir_, wxT(""),
-                      wxT("fityk file (*.fit)|*.fit;*.FIT"),
+    wxString dir = script_dir_;
+    wxString file;
+    split_path(last_session_path_, &dir, &file);
+    wxFileDialog fdlg(this, "Save everything as a script",
+                      dir, file, "fityk file (*.fit)|*.fit;*.FIT",
                       wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
     if (fdlg.ShowModal() == wxID_OK) {
-        exec("info state > '" + wx2s(fdlg.GetPath()) + "'");
+        last_session_path_ = fdlg.GetPath();
+        exec("info state > '" + wx2s(last_session_path_) + "'");
     }
-    export_dir_ = fdlg.GetDirectory();
+    script_dir_ = fdlg.GetDirectory();
 }
 
 void FFrame::OnSettings (wxCommandEvent&)
