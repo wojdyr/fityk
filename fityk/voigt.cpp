@@ -1,6 +1,6 @@
 
 // fastest_humlik.for and humdev.for - from Bob Wells Voigt Function Page
-// http://www.atm.ox.ac.uk/user/wells/voigt.html
+// http://web.archive.org/web/20100503005358/http://www.atm.ox.ac.uk/user/wells/voigt.html
 // Translated to C++ with f2c program and modified by M.W.
 // It can be slower than original, I haven't compared the speed.
 
@@ -10,7 +10,6 @@
 
 ///     Calculates the Faddeeva function
 ///     and partial derivatives of the Voigt function for y>=0
-///     (from http://www.atm.ox.ac.uk/user/wells/voigt.html)
 /// arguments:
 ///  x, y - Faddeeva/Voigt function arguments
 ///  k - voigt              -- output
@@ -234,7 +233,6 @@ void humdev(const float x, const float y,
 
 
 ///   Calculates the Faddeeva function with relative error less than 10^(-4).
-///     (from http://www.atm.ox.ac.uk/user/wells/voigt.html)
 /// arguments:
 ///  x, y - Faddeeva/Voigt function arguments
 /// return value -- voigt

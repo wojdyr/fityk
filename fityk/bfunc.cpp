@@ -464,7 +464,7 @@ void FuncVoigt::more_precomputations()
 }
 
 CALCULATE_VALUE_BEGIN(FuncVoigt)
-    // humdev/humlik routines require with y (a3 here) parameter >0.
+    // humdev/humlik routines require the y (a3 here) parameter >0.
     float k;
     realt xa1a2 = (x - av_[1]) / av_[2];
     k = humlik(xa1a2, fabs(av_[3]));
@@ -585,15 +585,15 @@ void FuncVoigtA::more_precomputations()
 }
 
 CALCULATE_VALUE_BEGIN(FuncVoigtA)
-    // humdev/humlik routines require with y (a3 here) parameter >0.
+    // humdev/humlik routines require the y (a3 here) parameter >0.
     float k;
     realt xa1a2 = (x - av_[1]) / av_[2];
     k = humlik(xa1a2, fabs(av_[3]));
 CALCULATE_VALUE_END(av_[0] / (sqrt(M_PI) * av_[2]) * k)
 
 CALCULATE_DERIV_BEGIN(FuncVoigtA)
-    // humdev/humlik routines require with y (a3 here) parameter >0.
-    // here fabs(av_[3]) is used, and dy_dv[3] is negated if av_[3]<0.
+    // humdev/humlik routines require the y (a3 here) parameter >0.
+    // Here fabs(av_[3]) is used, and dy_dv[3] is negated if av_[3]<0.
     float k;
     realt xa1a2 = (x-av_[1]) / av_[2];
     realt f = av_[0] / (sqrt(M_PI) * av_[2]);
