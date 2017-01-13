@@ -39,6 +39,13 @@ using namespace std;
 using fityk::UserInterface;
 using fityk::range_vector;
 
+#ifdef HELP_DIR
+// We don't pass HELP_DIR directly to wxString as a workaround for a problem
+// with Conda builds. wxString uses the system wchar_t by default
+// and Conda overlooks wide strings when replacing prefixes.
+const char* kHelpDir = HELP_DIR;
+#endif
+
 IMPLEMENT_APP(FApp)
 
 
@@ -209,15 +216,15 @@ bool FApp::OnInit(void)
         signal (SIGINT, SIG_IGN);
 #endif //_WIN32
 
-    SetAppName(wxT("fityk"));
+    SetAppName("fityk");
 
     // if options can be parsed
     wxCmdLineParser cmdLineParser(cmdLineDesc, argc, argv);
     if (cmdLineParser.Parse(false) != 0) {
         cmdLineParser.Usage();
         return false; //false = exit the application
-    } else if (cmdLineParser.Found(wxT("V"))) {
-        wxMessageOutput::Get()->Printf(wxT("fityk version %s\n"), wxT(VERSION));
+    } else if (cmdLineParser.Found("V")) {
+        wxMessageOutput::Get()->Printf("fityk version %s\n", VERSION);
         return false; //false = exit the application
     } else if (cmdLineParser.Found("full-version")) {
         wxMessageOutput::Get()->Printf("fityk version %s\n%s\n%s\n", VERSION,
@@ -259,7 +266,7 @@ bool FApp::OnInit(void)
     wxConfig::Set(config);
 
     // directory for configs
-    config_dir = fityk_dir + wxFILE_SEP_PATH + wxT("configs") + wxFILE_SEP_PATH;
+    config_dir = fityk_dir + wxFILE_SEP_PATH + "configs" + wxFILE_SEP_PATH;
     if (!wxDirExists(config_dir)) {
         wxMkdir(config_dir);
         // create white-background config
@@ -271,20 +278,20 @@ bool FApp::OnInit(void)
     // moving configs from ver. <= 0.9.7 to the current locations
     wxString old_config = get_conf_file("config");
     if (wxFileExists(old_config))
-        wxRenameFile(old_config, config_dir + wxT("default"), false);
+        wxRenameFile(old_config, config_dir + "default", false);
     wxString old_alt_config = get_conf_file("alt-config");
     if (wxFileExists(old_alt_config))
-        wxRenameFile(old_alt_config, config_dir + wxT("alt-config"), false);
+        wxRenameFile(old_alt_config, config_dir + "alt-config", false);
 
     EditTransDlg::read_transforms(false);
 
     // Create the main frame window
-    frame = new FFrame(NULL, -1, wxT("fityk"), wxDEFAULT_FRAME_STYLE);
+    frame = new FFrame(NULL, -1, "fityk", wxDEFAULT_FRAME_STYLE);
 
-    wxString ini_conf = wxT("default");
+    wxString ini_conf = "default";
     // if the -g option was given, it replaces default config
-    cmdLineParser.Found(wxT("g"), &ini_conf);
-    wxConfigBase *cf = new wxFileConfig(wxT(""), wxT(""), config_dir+ini_conf);
+    cmdLineParser.Found("g", &ini_conf);
+    wxConfigBase *cf = new wxFileConfig("", "", config_dir+ini_conf);
     frame->read_all_settings(cf);
 
     frame->Show(true);
@@ -299,7 +306,7 @@ bool FApp::OnInit(void)
 
     SetTopWindow(frame);
 
-    if (!cmdLineParser.Found(wxT("I"))) {
+    if (!cmdLineParser.Found("I")) {
         // run initial commands
         wxString startup_file =
                     get_conf_file(fityk::startup_commands_filename());
@@ -323,7 +330,7 @@ bool FApp::OnInit(void)
 int FApp::OnExit()
 {
     delete ftk;
-    wxConfig::Get()->Write(wxT("/FitykVersion"), pchar2wx(VERSION));
+    wxConfig::Get()->Write("/FitykVersion", pchar2wx(VERSION));
     delete wxConfig::Set((wxConfig *) NULL);
     return 0;
 }
@@ -372,13 +379,13 @@ int find_common_prefix_length(vector<string> const& p)
 void FApp::process_argv(wxCmdLineParser &cmdLineParser)
 {
     wxString cmd;
-    if (cmdLineParser.Found(wxT("c"), &cmd))
+    if (cmdLineParser.Found("c", &cmd))
         ftk->ui()->exec_and_log(wx2s(cmd));
     //the rest of parameters/arguments are scripts and/or data files
     vector<string> p;
     for (unsigned int i = 0; i < cmdLineParser.GetParamCount(); i++)
         p.push_back(wx2s(cmdLineParser.GetParam(i)));
-    if (cmdLineParser.Found(wxT("r")) && p.size() > 1) { // reorder
+    if (cmdLineParser.Found("r") && p.size() > 1) { // reorder
         sort(p.begin(), p.end(), less_filename(find_common_prefix_length(p)));
     }
     for (vector<string>::const_iterator i = p.begin(); i != p.end(); ++i) {
@@ -413,42 +420,42 @@ void FApp::process_argv(wxCmdLineParser &cmdLineParser)
 //   {exedir}/../../doc/ and {exedir}/../../../doc/ - for uninstalled program
 wxString get_help_url(const wxString& name)
 {
-    wxString dir = wxFILE_SEP_PATH + wxString(wxT("html"));
+    wxString dir = wxFILE_SEP_PATH + wxString("html");
     wxPathList paths;
     // installed path
 #if defined(__WXMAC__) || defined(__WXMSW__)
     paths.Add(wxStandardPaths::Get().GetResourcesDir() + dir);
 #endif
 #ifdef HELP_DIR
-    paths.Add(wxT(HELP_DIR) + dir);
+    paths.Add(kHelpDir + dir);
 #endif
     // uninstalled paths, relative to executable
-    wxString up = wxFILE_SEP_PATH + wxString(wxT(".."));
+    wxString up = wxFILE_SEP_PATH + wxString("..");
     paths.Add(wxPathOnly(wxGetApp().argv[0]) + up + up
-              + wxFILE_SEP_PATH + wxT("doc") + dir);
+              + wxFILE_SEP_PATH + "doc" + dir);
     paths.Add(wxPathOnly(wxGetApp().argv[0]) + up + up + up
-              + wxFILE_SEP_PATH + wxT("doc") + dir);
+              + wxFILE_SEP_PATH + "doc" + dir);
 
     wxString path = paths.FindAbsoluteValidPath(name);
     if (!path.IsEmpty())
         return wxFileSystem::FileNameToURL(path);
     else
-        return wxT("http://fityk.nieto.pl/") + name;
+        return "http://fityk.nieto.pl/" + name;
 }
 
 wxString get_sample_path(const wxString& name)
 {
-    wxString dir = wxFILE_SEP_PATH + wxString(wxT("samples"));
+    wxString dir = wxFILE_SEP_PATH + wxString("samples");
     wxPathList paths;
     // installed path
 #if defined(__WXMAC__) || defined(__WXMSW__)
     paths.Add(wxStandardPaths::Get().GetResourcesDir() + dir);
 #endif
 #ifdef HELP_DIR
-    paths.Add(wxT(HELP_DIR) + dir);
+    paths.Add(kHelpDir + dir);
 #endif
     // uninstalled paths, relative to executable
-    wxString up = wxFILE_SEP_PATH + wxString(wxT(".."));
+    wxString up = wxFILE_SEP_PATH + wxString("..");
     paths.Add(wxPathOnly(wxGetApp().argv[0]) + up + up + dir);
     paths.Add(wxPathOnly(wxGetApp().argv[0]) + up + up + up + dir);
     wxFileName path(paths.FindAbsoluteValidPath(name));
