@@ -68,6 +68,7 @@ guess %lo = SplitGaussian [38:]
 sleep 0.3
 guess %lo = LorentzianA [38:44]
 %pe = Pearson7(height=~1901, center=~75.313, hwhm=~1/2, shape=2.4)
+%g2S = GaussianA(height=~300, center=75, area=~11174, hwhm=~6.3[0:10])
 F += %pe
 %ble = copy(%pe)
 dele %pe

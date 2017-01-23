@@ -633,6 +633,11 @@ void run_func_op(const vector<realt>& numbers, vector<int>::const_iterator &i,
 
         case OP_TILDE:
             // used for default values in Runner::make_func_from_template()
+            // compare with ModelManager::eval_tilde()
+            assert(*(i+1) == OP_NUMBER);
+            STACK_OFFSET_CHANGE(+1);
+            *stackPtr = numbers[*(i+2)];
+            i += (*(i+3) == OP_TILDE ? 3 : 6);
             break;
 
         default:
