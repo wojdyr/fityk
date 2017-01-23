@@ -519,7 +519,7 @@ UDFs can be defined in a few ways:
 - as a sum of already defined functions
   (see the ``GLSum`` example below),
 
-- as a splitted (bifurcated) function:
+- as a split (bifurcated) function:
   ``x <`` *expression* ``?`` *Function1(...)* ``:`` *Function2(...)*
   (see the ``SplitL`` example below).
 
