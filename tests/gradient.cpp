@@ -27,7 +27,7 @@ static double boxbetts_f(const double *a, double *grad)
     for (int x = 1; x <= 10; ++x) {
         double e0 = exp(-0.1*x*a[0]);
         double e1 = exp(-0.1*x*a[1]);
-        double e2 = exp(-0.1*x) - exp(-x);
+        double e2 = exp(-0.1*x) - exp(-1.0*x);
         double g = e0 - e1 - e2 * a[2];
         f += g*g;
         if (grad) {
