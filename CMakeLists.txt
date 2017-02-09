@@ -1,8 +1,16 @@
-# Use autotools-based build system instead if you can.
-# For now CMake limited to building libfityk and cfityk.
-# But it can automatically download and build Lua, xylib and zlib!
+# CMake build is limited to building libfityk, cfityk and Python module.
+# It is used only for building with fityk in Visual Studio, for example
+# on AppVeyor: https://ci.appveyor.com/project/wojdyr/fityk
+# All offical releases are prepared with autotools instead.
+
+# This build script cannot build GUI, has fewer options than the configure
+# script, but it can automatically download and build Lua, xylib and zlib!
 # You still need to have Boost libraries (headers only).
-# If they can't be found automatically, use -D BOOST_ROOT=C:\Path\to\boost
+# You may need to point to them with -D BOOST_ROOT=C:\Path\to\boost
+# If you downloaded the source from git you also need SWIG.
+# On Windows it can be installed with "cinst swig".
+# When using Microsoft Visual C++ Compiler for Python 2.7 add cmake option
+# -D CMAKE_BUILD_TYPE=Release (I haven't investigated why it was needed).
 
 cmake_minimum_required(VERSION 2.8)
 project(fityk C CXX)
@@ -99,7 +107,6 @@ endif()
 include_directories(${LUA_INCLUDE_DIR})
 
 find_package(SWIG REQUIRED)
-#include(${SWIG_USE_FILE})
 
 if (BUILD_SHARED_LIBS)
   set(LIB_PREFIX ${CMAKE_SHARED_LIBRARY_PREFIX})
@@ -217,13 +224,23 @@ set_target_properties(fityk PROPERTIES SOVERSION 4 VERSION 4.0.0)
 add_executable(cfityk cli/gnuplot.cpp cli/main.cpp)
 target_link_libraries(cfityk fityk)
 
-#add_definitions(-DVERSION="1.3.0")
+#add_definitions(-DVERSION="1.3.1")
 set_target_properties (fityk cfityk PROPERTIES
-                       COMPILE_DEFINITIONS VERSION="1.3.0")
+                       COMPILE_DEFINITIONS VERSION="1.3.1")
 
 
-#swig_add_module(fityk python fityk/swig/fityk.i fityk/ui_api.h)
-#swig_link_libraries(fityk fityk ${PYTHON_LIBRARIES})
+find_package(PythonLibs)
+if (PYTHONLIBS_FOUND)
+  message(STATUS "Building extension for Python ${PYTHONLIBS_VERSION_STRING}")
+  include_directories(${PYTHON_INCLUDE_DIRS})
+  include(${SWIG_USE_FILE})
+  set_property(SOURCE fityk/swig/fityk.i PROPERTY SWIG_MODULE_NAME fityk)
+  swig_add_module(fityk python fityk/swig/fityk.i fityk/ui_api.h)
+  swig_link_libraries(fityk fityk ${PYTHON_LIBRARIES})
+  string(REGEX REPLACE "\\.[0-9]$" "" py_ver python${PYTHONLIBS_VERSION_STRING})
+  install(TARGETS ${SWIG_MODULE_fityk_REAL_NAME} DESTINATION ${py_ver})
+  install(FILES ${CMAKE_BINARY_DIR}/fityk.py DESTINATION ${py_ver})
+endif()
 
 
 install(TARGETS cfityk DESTINATION bin)
@@ -231,6 +248,7 @@ install(TARGETS fityk ${BUILT_LUA}
         RUNTIME DESTINATION bin
         ARCHIVE DESTINATION "${LIB_INSTALL_DIR}"
         LIBRARY DESTINATION "${LIB_INSTALL_DIR}")
+install(FILES fityk/fityk.h fityk/ui_api.h DESTINATION include/fityk)
 
 
 enable_testing()

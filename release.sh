@@ -43,6 +43,8 @@ elif [ $1 -eq 0 ]; then
  echo now the version in this script is: $version
  echo configure.ac:
  grep AC_INIT configure.ac
+ echo CMakeLists.txt:
+ grep 'VERSION=' CMakeLists.txt
  echo doc/conf.py:
  grep 'version =' doc/conf.py
  echo doc/index.rst:
