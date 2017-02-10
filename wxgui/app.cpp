@@ -172,12 +172,6 @@ UserInterface::Status gui_exec_command(const string& s)
 //-------------------------------------------------------------------------
 
 static
-void interrupt_handler (int /*signum*/)
-{
-    fityk::interrupt_computations();
-}
-
-static
 void write_white_config(wxConfigBase *w)
 {
     cfg_write_color(w, "MainPlot/Colors/bg", wxColour(255, 255, 255));
@@ -210,12 +204,7 @@ FApp::FApp()
 
 bool FApp::OnInit(void)
 {
-#ifndef _WIN32
-    // setting Ctrl-C handler
-    if (signal (SIGINT, interrupt_handler) == SIG_IGN)
-        signal (SIGINT, SIG_IGN);
-#endif //_WIN32
-
+    fityk::interrupt_computations_on_sigint();
     SetAppName("fityk");
 
     // if options can be parsed

@@ -10,7 +10,6 @@ try:
 except ImportError:
     readline = None
 import atexit
-import signal
 from optparse import OptionParser
 import subprocess
 import bisect
@@ -26,10 +25,6 @@ _gnuplot = None
 # Python 3.2 has math.isfinite()
 def finite(x):
     return x == x
-
-def interrupt_handler(signum, frame):
-    sys.stderr.write("\n(^C interrupts long calculations, use ^D to exit)\n")
-    fityk.interrupt_computations()
 
 def read_line():
     try:
@@ -80,7 +75,7 @@ def main():
                 pass
             atexit.register(readline.write_history_file, histfile)
 
-    signal.signal(signal.SIGINT, interrupt_handler)
+    fityk.interrupt_computations_on_sigint()
 
     parser = OptionParser("Usage: %prog [-h] [-V] [-c <str>]"
                           " [script or data file...]")

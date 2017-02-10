@@ -60,6 +60,21 @@ void interrupt_computations()
 }
 
 static
+void interrupt_handler(int /*signum*/)
+{
+    interrupt_computations();
+}
+
+void interrupt_computations_on_sigint()
+{
+#ifndef _WIN32
+    // setting Ctrl-C handler
+    if (signal (SIGINT, interrupt_handler) == SIG_IGN)
+        signal (SIGINT, SIG_IGN);
+#endif //_WIN32
+}
+
+static
 void simple_show_message(UiApi::Style style, const string& s)
 {
     if (style == UiApi::kWarning)

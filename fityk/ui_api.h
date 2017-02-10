@@ -93,6 +93,7 @@ FITYK_API const char* startup_commands_filename(); // "init"
 FITYK_API const char* config_dirname(); // ".fityk"
 /// stops fitting after the current iteration
 FITYK_API void interrupt_computations();
+FITYK_API void interrupt_computations_on_sigint();
 
 } // namespace fityk
 #endif // FITYK_UI_API_H_
