@@ -240,9 +240,10 @@ if (PYTHONLIBS_FOUND)
   set_property(SOURCE fityk/swig/fityk.i PROPERTY SWIG_MODULE_NAME fityk)
   swig_add_module(fityk python fityk/swig/fityk.i fityk/ui_api.h)
   swig_link_libraries(fityk fityk ${PYTHON_LIBRARIES})
-  string(REGEX REPLACE "\\.[0-9]$" "" py_ver python${PYTHONLIBS_VERSION_STRING})
-  install(TARGETS ${SWIG_MODULE_fityk_REAL_NAME} DESTINATION ${py_ver})
-  install(FILES ${CMAKE_BINARY_DIR}/fityk.py DESTINATION ${py_ver})
+  string(REGEX REPLACE "\\.[0-9]+$" ""
+         py_dir python${PYTHONLIBS_VERSION_STRING})
+  install(TARGETS ${SWIG_MODULE_fityk_REAL_NAME} DESTINATION ${py_dir})
+  install(FILES ${CMAKE_BINARY_DIR}/fityk.py DESTINATION ${py_dir})
 endif()
 
 
