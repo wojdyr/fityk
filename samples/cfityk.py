@@ -29,7 +29,7 @@ def finite(x):
 
 def interrupt_handler(signum, frame):
     sys.stderr.write("\n(^C interrupts long calculations, use ^D to exit)\n")
-    fityk.cvar.user_interrupt = True
+    fityk.interrupt_computations()
 
 def read_line():
     try:

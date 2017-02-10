@@ -8,6 +8,7 @@
 #include <ctype.h> // for isspace
 #include "cparser.h"
 #include "mgr.h"
+#include "ui.h"
 #include "logic.h"
 #include "func.h"
 
@@ -52,6 +53,11 @@ const char* config_dirname() { return ".fityk"; }
 const char* startup_commands_filename() { return "init"; }
 
 volatile std::sig_atomic_t user_interrupt = 0;
+
+void interrupt_computations()
+{
+    user_interrupt = 1;
+}
 
 static
 void simple_show_message(UiApi::Style style, const string& s)

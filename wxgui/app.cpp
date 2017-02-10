@@ -174,7 +174,7 @@ UserInterface::Status gui_exec_command(const string& s)
 static
 void interrupt_handler (int /*signum*/)
 {
-    fityk::user_interrupt = 1;  // set flag to stop computations
+    fityk::interrupt_computations();
 }
 
 static

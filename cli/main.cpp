@@ -240,16 +240,16 @@ void main_loop()
 #endif //HAVE_LIBREADLINE
 
 
-
-void interrupt_handler (int /*signum*/)
+static
+void interrupt_handler(int /*signum*/)
 {
-    fityk::user_interrupt = 1;  // set flag to stop computations
+    fityk::interrupt_computations();
 }
 
 } // anonymous namespace
 
 
-int main (int argc, char **argv)
+int main(int argc, char **argv)
 {
 #ifndef _WIN32
     // setting Ctrl-C handler

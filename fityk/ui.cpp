@@ -253,7 +253,7 @@ private:
 
 void UserInterface::exec_fityk_script(const string& filename)
 {
-    user_interrupt = false;
+    user_interrupt = 0;
 
     boost::scoped_ptr<FileOpener> opener;
     if (endswith(filename, ".gz"))

@@ -4,6 +4,7 @@
 #ifndef FITYK_UI_H_
 #define FITYK_UI_H_
 
+#include <csignal> // sig_atomic_t
 #include "common.h"
 #include "ui_api.h"
 
@@ -90,6 +91,8 @@ private:
 
     DISALLOW_COPY_AND_ASSIGN(UserInterface);
 };
+
+extern volatile std::sig_atomic_t user_interrupt;
 
 } // namespace fityk
 #endif
