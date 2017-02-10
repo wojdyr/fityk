@@ -229,6 +229,9 @@ set_target_properties (fityk cfityk PROPERTIES
                        COMPILE_DEFINITIONS VERSION="1.3.1")
 
 
+if(MSVC90) # compiling with VS2008? It's most likely for Python 2.7.
+  set(Python_ADDITIONAL_VERSIONS 2.7)
+endif()
 find_package(PythonLibs)
 if (PYTHONLIBS_FOUND)
   message(STATUS "Building extension for Python ${PYTHONLIBS_VERSION_STRING}")
