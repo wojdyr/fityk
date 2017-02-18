@@ -15,7 +15,7 @@ namespace fityk {
 class LMfit : public Fit
 {
 public:
-    LMfit(Full* F, const char* name) : Fit(F, name) {}
+    LMfit(Full* F, const char* fname) : Fit(F, fname) {}
     virtual double run_method(std::vector<realt>* best_a);
 
     // the same methods that were used for all methods up to ver. 1.2.1

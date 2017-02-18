@@ -14,6 +14,9 @@
 #pragma clang diagnostic ignored "-Wc++98-compat-pedantic"
 #pragma clang diagnostic ignored "-Wconditional-uninitialized"
 #endif
+#ifdef __GNUC__
+#pragma GCC diagnostic ignored "-Wshadow"
+#endif
 %}
 
 #if defined(SWIGPERL)

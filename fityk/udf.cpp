@@ -41,10 +41,10 @@ Function* init_component(const string& func_name, const Tplate::Component& c,
 
 
 CompoundFunction::CompoundFunction(const Settings* settings,
-                                   const string &name,
+                                   const string &fname,
                                    const Tplate::Ptr tp,
                                    const vector<string> &vars)
-    : Function(settings, name, tp, vars)
+    : Function(settings, fname, tp, vars)
 {
 }
 
@@ -201,10 +201,10 @@ bool CompoundFunction::get_nonzero_range(double level,
 ///////////////////////////////////////////////////////////////////////
 
 CustomFunction::CustomFunction(const Settings* settings,
-                               const string &name,
+                               const string &fname,
                                const Tplate::Ptr tp,
                                const vector<string> &vars)
-    : Function(settings, name, tp, vars),
+    : Function(settings, fname, tp, vars),
       // don't use nv() here, it's not set until init()
       derivatives_(vars.size()+1),
       value_offset_(0)
@@ -295,10 +295,10 @@ string CustomFunction::get_current_formula(const string& x,
 ///////////////////////////////////////////////////////////////////////
 
 SplitFunction::SplitFunction(const Settings* settings,
-                             const string &name,
+                             const string &fname,
                              const Tplate::Ptr tp,
                              const vector<string> &vars)
-    : Function(settings, name, tp, vars), left_(NULL), right_(NULL)
+    : Function(settings, fname, tp, vars), left_(NULL), right_(NULL)
 {
 }
 
