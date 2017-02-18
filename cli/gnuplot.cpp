@@ -61,7 +61,7 @@ void GnuPlot::fork_and_make_pipe()
         if (fd[0] > 2)
             close(fd[0]);
         //putenv("PAGER=");
-        execlp(GNUPLOT_PATH, GNUPLOT_PATH, /*"-",*/ NULL);
+        execlp(GNUPLOT_PATH, GNUPLOT_PATH, /*"-",*/ (char*) NULL);
         // if we are here, sth went wrong
         fprintf(stderr, "** Calling `" GNUPLOT_PATH
                         "' failed. Plotting disabled. **\n");
