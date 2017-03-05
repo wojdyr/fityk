@@ -19,11 +19,13 @@ icon32dir = $(datadir)/icons/hicolor/32x32/apps
 iconscdir = $(datadir)/icons/hicolor/scalable/apps
 desktopdir = $(datadir)/applications
 mimepkgdir = $(datadir)/mime/packages
+appdatadir = $(datadir)/appdata
 
 dist_icon32_DATA = fityk.png
 dist_iconsc_DATA = fityk.svg
 dist_desktop_DATA = fityk.desktop
 dist_mimepkg_DATA = fityk.xml
+dist_appdata_DATA = fityk.appdata.xml
 
 # ---  cli/ ---
 cli_cfityk_SOURCES = cli/gnuplot.cpp cli/main.cpp cli/gnuplot.h

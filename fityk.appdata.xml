@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<application>
+  <id type="desktop">fityk.desktop</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0+</project_license>
+  <name>Fityk</name>
+  <summary>Non-linear curve fitting and data analysis</summary>
+  <description>
+    <p>
+      Fityk is a program for nonlinear curve-fitting of analytical
+      functions (especially peak-shaped) to data (usually experimental
+      data). It can also be used for visualization of x-y data only.
+    </p>
+  </description>
+  <screenshots>
+    <screenshot type="default">
+      <image>http://fityk.nieto.pl/_images/fityk-1.0.1-gtk-multi.png</image>
+    </screenshot>
+  </screenshots>
+  <url type="homepage">http://fityk.nieto.pl/</url>
+  <updatecontact>wojdyr@gmail.com</updatecontact>
+</application>
