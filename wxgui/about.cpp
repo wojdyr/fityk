@@ -7,9 +7,13 @@
 #include <wx/hyperlink.h>
 
 #include "cmn.h" // pchar2wx, s2wx, GET_BMP
-#include "fityk/common.h" // VERSION
+#include "fityk/common.h" // VERSION, HAVE_LIBNLOPT
 #include "fityk/info.h" // embedded_lua_version()
 #include "img/fityk96.h"
+
+#if HAVE_LIBNLOPT
+# include <nlopt.h>  // nlopt_version()
+#endif
 
 AboutDlg::AboutDlg(wxWindow* parent)
     : wxDialog(parent, -1, wxT("About Fityk"), wxDefaultPosition,
@@ -50,13 +54,18 @@ AboutDlg::AboutDlg(wxWindow* parent)
     txt->SetBackgroundColour(bg_col);
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxITALIC_FONT));
     txt->AppendText(wxT("powered by: ") wxVERSION_STRING);
-    txt->AppendText(wxString::Format(wxT(", Boost %d.%d.%d"),
+    txt->AppendText(wxString::Format(", Boost %d.%d.%d",
                                      BOOST_VERSION / 100000,
                                      BOOST_VERSION / 100 % 1000,
                                      BOOST_VERSION % 100));
     txt->AppendText(wxString(", ") + fityk::embedded_lua_version());
-    txt->AppendText(wxT(" and xylib ") + pchar2wx(xylib_get_version())
-                    + wxT("\n"));
+#if HAVE_LIBNLOPT
+    int nl_ver[3];
+    nlopt_version(nl_ver, nl_ver+1, nl_ver+2);
+    txt->AppendText(wxString::Format(", NLopt %d.%d.%d",
+                                     nl_ver[0], nl_ver[1], nl_ver[2]));
+#endif
+    txt->AppendText(" and xylib " + pchar2wx(xylib_get_version()) + "\n");
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxNORMAL_FONT));
     txt->AppendText(wxT("\nCopyright 2001 - 2017 Marcin Wojdyr\n\n"));
     txt->SetDefaultStyle(wxTextAttr(wxNullColour, bg_col, *wxSMALL_FONT));
