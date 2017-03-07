@@ -362,17 +362,19 @@ private:
 /* C API.
  * Functions below correspond to member functions of class Fityk.
  * To check for errors use fityk_last_error().
- * bool and Point here should be ABI-compatible with C++ bool and fityk::Point.
+ * Point here should be ABI-compatible with C++ bool and fityk::Point.
  */
-
-#define bool _Bool
 
 typedef struct Fityk_ Fityk;
 
 typedef struct
 {
     realt x, y, sigma;
-    bool is_active;
+#if __STDC_VERSION__-0 >= 199901L
+    _Bool is_active;
+#else
+    unsigned char is_active; // best guess
+#endif
 } Point;
 
 #endif /* __cplusplus */
@@ -386,8 +388,8 @@ using fityk::Fityk;
 
 FITYK_API Fityk* fityk_create();
 FITYK_API void fityk_delete(Fityk *f);
-/* returns false on ExitRequestedException */
-FITYK_API bool fityk_execute(Fityk *f, const char* command);
+/* returns 0 on ExitRequestedException */
+FITYK_API int fityk_execute(Fityk *f, const char* command);
 FITYK_API void fityk_load_data(Fityk *f, int dataset,
                                double *x, double *y, double *sigma, int num,
                                const char* title);

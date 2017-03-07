@@ -474,15 +474,15 @@ void fityk_delete(Fityk *f)
     delete f;
 }
 
-bool fityk_execute(Fityk *f, const char* command)
+int fityk_execute(Fityk *f, const char* command)
 {
     try {
         f->execute(command);
     }
     catch(ExitRequestedException) {
-        return false;
+        return 0;
     }
-    return true;
+    return 1;
 }
 
 void fityk_load_data(Fityk *f, int dataset,
