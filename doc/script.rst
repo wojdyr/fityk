@@ -5,12 +5,16 @@ Scripts
 Working with Scripts
 ====================
 
-Scripts can be executed using the command::
+Fityk can run two kinds of scripts:
 
-    exec filename
+- Fityk scripts composed of the commands described in previous sections,
+- and Lua scripts (extension ``.lua``), in the Lua language.
 
-The file can be either a fityk script (usually with extension ``fit``),
-or a Lua script (extension ``lua``).
+Scripts are executed using the `exec` command::
+
+    exec file1.fit
+    exec file2.lua
+    exec file3.fit.gz  # read script compressed with gzip
 
 .. note::
 
@@ -18,11 +22,7 @@ or a Lua script (extension ``lua``).
     It can also save all commands executed (directly or via GUI) in the session
     to a script (``info history > file.fit``).
 
-Since a Fityk script with all the data inside can be a large file,
-the files may be stored compressed and it is possible to directly read
-gzip-compressed fityk script (``.fit.gz``).
-
-Embedded Lua interpreter can execute any program in Lua 5.1.
+Embedded Lua interpreter can execute any program in Lua 5.2.
 One-liners can be run with command ``lua``::
 
     =-> lua print(_VERSION)
@@ -47,25 +47,29 @@ as Lua expressions, but this time the resulting string is executed
 as a fityk command::
 
     =-> = string.format("fit @%d", math.random(0,5))
-    fit 17
+    fit @4
     =-> exec= string.format("fit @%d", math.random(0,5))
     # fitting random dataset (useless example)
 
-The Lua interpreter in Fityk has defined global object ``F`` which
-enables interaction with the program::
+The embedded Lua interpreter interacts with the rest of the program
+through the global object ``F``::
 
     =-> = F:get_info("version")
     Fityk 1.2.1
 
-Now the first example that can be useful. For each dataset write output
-of the ``info peaks`` command to a file named after the data file,
-with appended ".out"::
+All methods of ``F`` are documented in the section :ref:`api`.
+
+A few more examples.
+
+Let's say that we work with a number of datasets, and for each of them
+we want to save output of the ``info peaks`` command to a file
+named *original-data-filename*\ ``.out``. This can be done in one line::
 
     =-> @*: lua F:execute("info peaks >'%s.out'" % F:get_info("filename"))
 
-This and other methods of ``F`` are documented in the next section.
-
-Here is an example of Lua-Fityk interactions:
+Now a more complex script that would need to be put into a file
+(with extension ``.lua``) and run with ``exec``.
+:
 
 .. code-block:: lua
 
@@ -98,15 +102,23 @@ stopped, unless you catch the error:
         print("Error: " .. err)
     end
 
-The Lua interpreter was added in ver. 1.0.3. If you have any questions
-about it, feel free to ask.
+The Lua interpreter was added in ver. 1.0.3. If you need help with writing
+Lua scripts - feel free to ask. Usage scenarios give us a better idea
+what functions should be available from the Lua interface.
 
-Older, but still supported way to automate Fityk is to prepare
-a stand-alone program that writes a valid fityk script to the standard output.
-To run such program and execute the output use command::
+Fityk also has a simple mechanism to interact with external programs.
+It is useful mostly on Unix systems.  ``!`` runs a program,
+``exec!`` runs a program and executes its standard output.
+Here is an example of using Unix utilties ``echo``, ``ls`` and ``head``
+to load the newest CIF file from the current directory::
 
-    exec ! program [args...]
-
+    =-> ! pwd
+    /home/wojdyr/fityk/data
+    =-> ! ls -t *.cif | head -1
+    lab6_3-2610-q.cif
+    =-> exec! echo "@+ < $(ls -t *.cif | head -1)"
+    > @+ < lab6_3-2610-q.cif
+    2300 points. No explicit std. dev. Set as sqrt(y)
 
 Fityk DSL
 =========
@@ -136,7 +148,7 @@ is equivalent to::
    =-> use @4
    =-> guess Voigt
 
-(except that the letter sets permenently default dataset to ``@4``.
+(except that the latter sets permenently default dataset to ``@4``.
 
 ``@*`` stands for all datasets, from ``@0`` to the last one.
 
@@ -332,6 +344,8 @@ and pseudo-parameters (%f.Area).
    Number: ?number read by strtod()?
    NonblankString: (AllChars - (WhiteSpace | ";" | "#" ))*
    RestOfLine: AllChars*
+
+.. _api:
 
 Fityk library API
 =================
