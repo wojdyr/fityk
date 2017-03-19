@@ -63,7 +63,7 @@ A few more examples.
 
 Let's say that we work with a number of datasets, and for each of them
 we want to save output of the ``info peaks`` command to a file
-named *original-data-filename*\ ``.out``. This can be done in one line::
+named *original-data-filename*\ .out. This can be done in one line::
 
     =-> @*: lua F:execute("info peaks >'%s.out'" % F:get_info("filename"))
 
@@ -108,7 +108,8 @@ what functions should be available from the Lua interface.
 
 Fityk also has a simple mechanism to interact with external programs.
 It is useful mostly on Unix systems.  ``!`` runs a program,
-``exec!`` runs a program and executes its standard output.
+``exec!`` runs a program, reads its standard output and executes it
+as a Fityk script.
 Here is an example of using Unix utilties ``echo``, ``ls`` and ``head``
 to load the newest CIF file from the current directory::
 
