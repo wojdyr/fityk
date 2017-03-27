@@ -13,6 +13,7 @@ int main()
     double x[500], y[500], sigma[500];
     const double mu = 12.345;
     double d;
+    const Func* gauss;
 
     Fityk *f = fityk_create();
 
@@ -34,6 +35,8 @@ int main()
     fityk_execute(f, "fit");
     d = fityk_calculate_expr(f, "%gauss.Center", 0);
     printf("peak center: %g\n", d);
+    gauss = fityk_get_function(f, "gauss");
+    printf("value at x=12: %g\n", fityk_value_at(gauss, 12));
     fityk_delete(f);
     return 0;
 }

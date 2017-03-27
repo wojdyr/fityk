@@ -220,7 +220,7 @@ vector<Func*> Fityk::get_components(int dataset, char fz)  throw(ExecuteError)
     return ret;
 }
 
-realt Fityk::get_model_value(realt x, int dataset)  throw(ExecuteError)
+realt Fityk::get_model_value(realt x, int dataset) const  throw(ExecuteError)
 {
     try {
         return priv_->dk.get_model(hd(priv_, dataset))->value(x);
@@ -241,7 +241,7 @@ vector<realt> Fityk::get_model_vector(vector<realt> const& x, int dataset)
     return yy;
 }
 
-const Var* Fityk::get_variable(string const& name)  throw(ExecuteError)
+const Var* Fityk::get_variable(string const& name) const  throw(ExecuteError)
 {
     try {
         string vname;
@@ -259,7 +259,7 @@ const Var* Fityk::get_variable(string const& name)  throw(ExecuteError)
         return priv_->mgr.find_variable(vname);
     }
     CATCH_EXECUTE_ERROR
-    return NULL; // avoid compiler warning
+    return NULL;
 }
 
 double Fityk::get_view_boundary(char side)
@@ -528,6 +528,16 @@ int fityk_get_parameter_count(const Fityk* f)
     return f->get_parameter_count();
 }
 
+const Var* fityk_get_variable(const Fityk* f, const char* name)
+{
+    return f->get_variable(name);
+}
+
+const Func* fityk_get_function(const Fityk* f, const char* name)
+{
+    return f->get_function(name);
+}
+
 const Point* fityk_get_data_point(Fityk *f, int dataset, int index)
 {
     const vector<Point>& data = f->get_data(dataset);
@@ -551,6 +561,21 @@ int fityk_get_dof(Fityk *f, int dataset) { return f->get_dof(dataset); }
 realt* fityk_get_covariance_matrix(Fityk *f, int dataset)
 {
     return f->get_covariance_matrix_as_array(dataset);
+}
+
+realt fityk_var_value(const Var *var)
+{
+    return var->value();
+}
+
+const char* fityk_var_name(const Func *func, const char *param)
+{
+    return func->var_name(param).c_str();
+}
+
+realt fityk_value_at(const Func *func, realt x)
+{
+    return func->value_at(x);
 }
 
 } // extern "C"
