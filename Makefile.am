@@ -98,7 +98,13 @@ check-python:
 	PYTHONPATH=fityk/swig/.libs:$(srcdir)/fityk/swig/ \
 	   python -m unittest discover -s $(srcdir)/tests/
 
-check-scripts: check-cfityk check-python
+check-help:
+	echo '$$ fityk -h'   > $(srcdir)/doc/help-message.txt
+	wxgui/fityk -h 2>&1 | sed s/lt-fi/fi/ >> $(srcdir)/doc/help-message.txt
+	echo -e '\n$$ cfityk -h' >> $(srcdir)/doc/help-message.txt
+	cli/cfityk -h       >> $(srcdir)/doc/help-message.txt
+
+check-scripts: check-cfityk check-python check-help
 
 # --- doc/ ---
 

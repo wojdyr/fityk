@@ -3,7 +3,7 @@
 
 SPHINX = sphinx-build -a -d ./doctrees/
 
-html: *.rst fitheme/* fitheme/static/* conf.py
+html: *.rst fitheme/* fitheme/static/* conf.py help-message.txt
 	$(SPHINX) -b html . html
 	rm -f html/objects.inv html/.buildinfo
 

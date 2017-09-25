@@ -1,0 +1,18 @@
+$ fityk -h
+Usage: fityk [-h] [-V] [--full-version] [-c <str>] [-g <str>] [-I] [-r] [script or data file...]
+  -h, --help        	show this help message
+  -V, --version     	output version information and exit
+  --full-version    	print version with additional info and exit
+  -c, --cmd=<str>   	script passed in as string
+  -g, --config=<str>	choose GUI configuration
+  -I, --no-init     	don't process $HOME/.fityk/init file
+  -r, --reorder     	reorder data (50.xy before 100.xy)
+
+$ cfityk -h
+Usage: cfityk [-h] [-V] [-c <str>] [script or data file...]
+  -h, --help            show this help message
+  -V, --version         output version information and exit
+  -c, --cmd=<str>       script passed in as string
+  -I, --no-init         don't process $HOME/.fityk/init file
+  -n, --no-plot         disable plotting (gnuplot)
+  -q, --quit            don't enter interactive shell
