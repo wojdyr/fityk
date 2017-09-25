@@ -258,8 +258,9 @@ install(FILES fityk/fityk.h fityk/ui_api.h DESTINATION include/fityk)
 enable_testing()
 if (NOT EXISTS "${CMAKE_SOURCE_DIR}/tests/catch.hpp")
   message(STATUS "Downloading catch.hpp...")
+# the latest version of Catch 1.x does not compile with VS 2008
   file(DOWNLOAD
-       https://raw.githubusercontent.com/philsquared/Catch/master/single_include/catch.hpp
+       https://github.com/philsquared/Catch/releases/download/v1.9.5/catch.hpp
        "${CMAKE_SOURCE_DIR}/tests/catch.hpp" SHOW_PROGRESS
        STATUS download_status)
   list(GET download_status 0 status_code)
