@@ -11,7 +11,7 @@ before_install:
   - sudo apt-get install -y swig3.0
   - sudo apt-get install -y libxy-dev wxgtk-for-fityk-devel
 before_script:
-  -  curl -o tests/catch.hpp https://github.com/philsquared/Catch/releases/download/v1.10.0/catch.hpp
+  -  curl -LsS -o tests/catch.hpp https://github.com/philsquared/Catch/releases/download/v1.10.0/catch.hpp
   - autoreconf -i
 script: ./configure LUA=/usr/bin/lua5.1 LUA_INCLUDE=-I/usr/include/lua5.1 LUA_LIB=-llua5.1 SWIG=swig3.0 && make -j2 check
 
