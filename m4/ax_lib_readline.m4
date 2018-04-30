@@ -1,5 +1,5 @@
 # ===========================================================================
-#      http://www.gnu.org/software/autoconf-archive/ax_lib_readline.html
+#     https://www.gnu.org/software/autoconf-archive/ax_lib_readline.html
 # ===========================================================================
 #
 # SYNOPSIS
@@ -58,7 +58,7 @@
 #   and this notice are preserved. This file is offered as-is, without any
 #   warranty.
 
-#serial 6
+#serial 7
 
 AU_ALIAS([VL_LIB_READLINE], [AX_LIB_READLINE])
 AC_DEFUN([AX_LIB_READLINE], [

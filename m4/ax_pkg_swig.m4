@@ -1,5 +1,5 @@
 # ===========================================================================
-#        http://www.gnu.org/software/autoconf-archive/ax_pkg_swig.html
+#       https://www.gnu.org/software/autoconf-archive/ax_pkg_swig.html
 # ===========================================================================
 #
 # SYNOPSIS
@@ -48,7 +48,7 @@
 #   Public License for more details.
 #
 #   You should have received a copy of the GNU General Public License along
-#   with this program. If not, see <http://www.gnu.org/licenses/>.
+#   with this program. If not, see <https://www.gnu.org/licenses/>.
 #
 #   As a special exception, the respective Autoconf Macro's copyright owner
 #   gives unlimited permission to copy, distribute and modify the configure
@@ -63,7 +63,7 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 12
+#serial 13
 
 AC_DEFUN([AX_PKG_SWIG],[
         # Find path to the "swig" executable.
