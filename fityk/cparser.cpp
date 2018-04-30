@@ -127,8 +127,7 @@ Token Parser::read_expr(Lexer& lex, ExpressionParser::ParseMode mode)
     t.type = kTokenExpr;
     t.str = lex.pchar();
     ep_.clear_vm();
-    assert(!st_.datasets.empty());
-    int ds = st_.datasets[0];
+    int ds = st_.datasets.empty() ? 0 : st_.datasets[0];
     ep_.parse_expr(lex, ds, NULL, NULL, mode);
     t.length = lex.pchar() - t.str;
     t.value.d = 0.;
@@ -138,7 +137,7 @@ Token Parser::read_expr(Lexer& lex, ExpressionParser::ParseMode mode)
 Token Parser::read_and_calc_expr(Lexer& lex)
 {
     Token t = read_expr(lex);
-    int ds = st_.datasets[0];
+    int ds = st_.datasets.empty() ? 0 : st_.datasets[0];
     const vector<Point>& points = F_->dk.data(ds)->points();
     t.value.d = ep_.calculate(0, points);
     return t;
