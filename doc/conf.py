@@ -11,7 +11,7 @@ exclude_patterns = ['html', 'latex']
 if not os.getenv('BUILD_WEBSITE'):
     exclude_patterns += ['index.rst', 'screens.rst']
 
-if os.getenv('READTHEDOCS'):
+if os.getenv('READTHEDOCS') and 'epub' not in sys.argv:
     # RTD works better with index.html
     html_additional_pages = { 'index': '_build/html/fityk-manual.html' }
 
@@ -47,7 +47,6 @@ html_short_title = 'Manual'
 html_favicon = 'fityk.ico'
 html_static_path = ['fityk-logo.png', 'img/mouse16.png']
 html_last_updated_fmt = '%Y-%m-%d'
-html_use_smartypants = True
 html_use_modindex = False
 html_use_index = False
 #html_add_permalinks = False
