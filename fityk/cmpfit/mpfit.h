@@ -13,7 +13,7 @@
 
 /* Header file defining constants, data structures and functions of
    mpfit library 
-   $Id: mpfit.h,v 1.15 2013/04/09 17:55:32 craigm Exp $
+   $Id: mpfit.h,v 1.16 2016/06/02 19:14:16 craigm Exp $
 */
 
 #ifndef MPFIT_H
@@ -25,7 +25,7 @@ extern "C" {
 #endif
 
 /* MPFIT version string */
-#define MPFIT_VERSION "1.2"
+#define MPFIT_VERSION "1.3"
 
 /* Definition of a parameter constraint structure */
 struct mp_par_struct {
