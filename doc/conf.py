@@ -113,10 +113,10 @@ latex_keep_old_macro_names = False
 # determine vertical alignment of the math PNGs
 imgmath_use_preview = True
 
-dl_dir = 'http://fityk.nieto.pl/subscribers/'
+dl_dir = 'https://github.com/wojdyr/fityk/releases/download/v%s/' % version
 dl_prefix = 'fityk-%s' % version
 extlinks = {
     'wiki': ('https://github.com/wojdyr/fityk/wiki/%s', ''),
-    'subscribers_download': (dl_dir + dl_prefix + '%s', dl_prefix),
+    'github_download': (dl_dir + dl_prefix + '%s', dl_prefix),
     }
 
