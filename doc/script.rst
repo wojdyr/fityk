@@ -443,6 +443,20 @@ Data
     ``format``, ``options``. The meaning of these parameters is the same
     as described in :ref:`dataload`.
 
+    For example, due to limitations of the Fityk DSL a file with
+    the ``'`` character in the path must be loaded through Lua::
+
+        lua F:load([[Kat's file.dat]])
+
+    LoadSpec is used to specify also format of the file, columns, etc::
+
+        spec = fityk.LoadSpec('my.csv')
+        spec.x_col = 1
+        spec.y_col = 3
+        spec.format = 'csv'
+        spec.options = 'decimal_comma'
+        F:load(spec)
+
 .. method:: Fityk.load_data(d, xx, yy, sigmas [, title])
 
     Load data to @*d* slot. *xx* and *yy* must be numeric arrays
