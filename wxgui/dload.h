@@ -7,6 +7,10 @@
 namespace fityk { class Data; }
 class XyFileBrowser;
 
+std::string make_lua_load(int data_idx, const wxString& path, int b,
+                          int x, int y, int sig,
+                          const std::string& fmt, bool comma);
+
 class DLoadDlg : public wxDialog
 {
 public:

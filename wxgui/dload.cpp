@@ -107,15 +107,11 @@ void DLoadDlg::exec_command(bool replace)
     wxArrayString paths;
     browser_->filectrl->GetPaths(paths);
     string trailer;
-    string lua_trailer;
     string fmt = browser_->get_filetype();
-    if (fmt != "" || browser_->comma_cb->GetValue()) {
-        trailer = " " + (fmt == "" ? "_" : fmt);
-        lua_trailer = ", '" + fmt + "'";
-        if (browser_->comma_cb->GetValue()) {
+    if (!fmt.empty() || browser_->comma_cb->GetValue()) {
+        trailer = " " + (fmt.empty() ? "_" : fmt);
+        if (browser_->comma_cb->GetValue())
             trailer += " decimal_comma";
-            lua_trailer += ", 'decimal_comma'";
-        }
     }
     for (size_t i = 0; i < paths.GetCount(); ++i) {
         string cmd;
@@ -123,9 +119,10 @@ void DLoadDlg::exec_command(bool replace)
             cmd = "@" + (replace ? S(data_idx_) : S("+")) +
                    " < '" + wx2s(paths[i]) + cols + "'" + trailer;
         else // very special case
-            cmd = "lua F:load(" + S(replace ? data_idx_ : -1) +
-                   ", [[" + wx2s(paths[i]) + "]], " + S(b) + ", " +
-                   S(x) + ", " + S(y) + ", " + S(sig) + lua_trailer + ")";
+            cmd = "lua " +
+                  make_lua_load((replace ? data_idx_ : -1), paths[i], b,
+                                x, y, (has_s ? sig : fityk::LoadSpec::NN),
+                                fmt, browser_->comma_cb->GetValue());
         exec(with_options + cmd);
         wxString title = browser_->title_tc->GetValue().Trim();
         if (!title.empty() && title != browser_->auto_title_) {
@@ -136,3 +133,22 @@ void DLoadDlg::exec_command(bool replace)
     }
 }
 
+std::string make_lua_load(int data_idx, const wxString& path, int b,
+                          int x, int y, int sig,
+                          const std::string& fmt, bool comma) {
+    std::string cmd = "_spec=fityk.LoadSpec([[" + wx2s(path) + "]]); ";
+    if (b != 0)
+        cmd += "_spec.blocks=fityk.IntVector(1," + S(b) + "); ";
+    if (x != fityk::LoadSpec::NN)
+        cmd += "_spec.x_col=" + S(x) + "; ";
+    if (y != fityk::LoadSpec::NN)
+        cmd += "_spec.y_col=" + S(y) + "; ";
+    if (sig != fityk::LoadSpec::NN)
+        cmd += "_spec.sig_col=" + S(sig) + "; ";
+    if (!fmt.empty())
+        cmd += "_spec.format='" + fmt + "'; ";
+    if (comma)
+        cmd += "_spec.options='decimal_comma'; ";
+    cmd += "F:load(_spec, " + S(data_idx) + ")";
+    return cmd;
+}

@@ -966,17 +966,18 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
         return;
 
     string cmd;
-    string options;
+    std::string tail;
     wxWindow *extra = fdlg.GetExtraControl();
+    bool decimal_comma = false;
     if (extra != NULL) {
         Extra2CheckBoxes *extracb = wxDynamicCast(extra,Extra2CheckBoxes);
         string selected = extracb->is_checked1() ? "sqrt" : "one";
         if (ftk->get_settings()->default_sigma != selected)
             cmd = "with default_sigma=" + selected + " ";
 
-        bool decimal_comma = extracb->is_checked2();
+        decimal_comma = extracb->is_checked2();
         if (decimal_comma)
-            options += "decimal_comma";
+            tail = "_ decimal_comma";
         wxConfig::Get()->Write("decimalComma", decimal_comma);
     }
 
@@ -1033,14 +1034,13 @@ void FFrame::OnDataQLoad (wxCommandEvent&)
                 cmd += "lua ";
             }
         if (has_single_quote) { // very special case
-            cmd += "F:load(-1, [[" + wx2s(paths[i]) + "]], 0, 1, 2, 0, '', '"
-                + options + "')";
+            int NN = fityk::LoadSpec::NN;
+            cmd += make_lua_load(-1, paths[i], 0, NN, NN, NN,
+                                 "", decimal_comma);
         } else {
-            cmd += "@+ <'" + wx2s(paths[i]) + "'";
-            if (!options.empty())
-               cmd += " _ " + options;
+            cmd += "@+ <'" + wx2s(paths[i]) + "' " + tail;
         }
-        recent_data_->add(paths[i], options.empty() ? "" : "_ "+options);
+        recent_data_->add(paths[i], tail);
     }
 
     exec(cmd);

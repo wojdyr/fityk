@@ -54,6 +54,7 @@ namespace std {
      */
     //%template(RealVector) vector<realt>;
     %template(RealVector) vector<double>;
+    %template(IntVector) vector<int>;
     %template(VarVector) vector<fityk::Var*>;
     %template(FuncVector) vector<fityk::Func*>;
 }
