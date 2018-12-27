@@ -556,27 +556,27 @@ const char* FitManager::method_list[][3] =
 };
 
 
-FitManager::FitManager(Full *F_)
-    : ParameterHistoryMgr(F_), dirty_error_cache_(true)
+FitManager::FitManager(Full *F)
+    : ParameterHistoryMgr(F), dirty_error_cache_(true)
 
 {
     // these methods correspond to method_list[]
-    methods_.push_back(new LMfit(F_, next_method()));
-    methods_.push_back(new MPfit(F_, next_method()));
+    methods_.push_back(new LMfit(F, next_method()));
+    methods_.push_back(new MPfit(F, next_method()));
 #if HAVE_LIBNLOPT
-    methods_.push_back(new NLfit(F_, next_method(), NLOPT_LN_NELDERMEAD));
-    methods_.push_back(new NLfit(F_, next_method(), NLOPT_LD_LBFGS));
-    methods_.push_back(new NLfit(F_, next_method(), NLOPT_LD_VAR2));
-    methods_.push_back(new NLfit(F_, next_method(), NLOPT_LN_PRAXIS));
-    methods_.push_back(new NLfit(F_, next_method(), NLOPT_LN_BOBYQA));
-    methods_.push_back(new NLfit(F_, next_method(), NLOPT_LN_SBPLX));
-    //methods_.push_back(new NLfit(F_, next_method(), NLOPT_LD_MMA));
-    //methods_.push_back(new NLfit(F_, next_method(), NLOPT_LD_SLSQP));
-    //methods_.push_back(new NLfit(F_, next_method(), NLOPT_LN_COBYLA));
-    //methods_.push_back(new NLfit(F_, next_method(), NLOPT_GN_CRS2_LM));
+    methods_.push_back(new NLfit(F, next_method(), NLOPT_LN_NELDERMEAD));
+    methods_.push_back(new NLfit(F, next_method(), NLOPT_LD_LBFGS));
+    methods_.push_back(new NLfit(F, next_method(), NLOPT_LD_VAR2));
+    methods_.push_back(new NLfit(F, next_method(), NLOPT_LN_PRAXIS));
+    methods_.push_back(new NLfit(F, next_method(), NLOPT_LN_BOBYQA));
+    methods_.push_back(new NLfit(F, next_method(), NLOPT_LN_SBPLX));
+    //methods_.push_back(new NLfit(F, next_method(), NLOPT_LD_MMA));
+    //methods_.push_back(new NLfit(F, next_method(), NLOPT_LD_SLSQP));
+    //methods_.push_back(new NLfit(F, next_method(), NLOPT_LN_COBYLA));
+    //methods_.push_back(new NLfit(F, next_method(), NLOPT_GN_CRS2_LM));
 #endif
-    methods_.push_back(new NMfit(F_, next_method()));
-    methods_.push_back(new GAfit(F_, next_method()));
+    methods_.push_back(new NMfit(F, next_method()));
+    methods_.push_back(new GAfit(F, next_method()));
 }
 
 

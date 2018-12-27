@@ -226,6 +226,7 @@ private:
     RecentFiles *recent_scripts_, *recent_data_;
     wxMenu *data_ft_menu_, *func_type_menu_;
     wxString script_dir_, data_dir_, export_dir_;
+    wxString last_session_path_;
     bool antialias_;
 
     void place_plot_and_io_windows(wxWindow *parent);

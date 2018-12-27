@@ -31,6 +31,43 @@ endif
 
 pkginclude_HEADERS = fityk.h ui_api.h
 
+# Undocumented feature: if Lua 5.2 source is unpacked into ./lua52
+# and LUA52_FROM_SOURCE=yes liblua is built as part of libfityk.
+if COMPILE_LUA_SRC
+nodist_libfityk_la_SOURCES = \
+lua52/src/lapi.c \
+lua52/src/lcode.c \
+lua52/src/lctype.c \
+lua52/src/ldebug.c \
+lua52/src/ldo.c \
+lua52/src/ldump.c \
+lua52/src/lfunc.c \
+lua52/src/lgc.c \
+lua52/src/llex.c \
+lua52/src/lmem.c \
+lua52/src/lobject.c \
+lua52/src/lopcodes.c \
+lua52/src/lparser.c \
+lua52/src/lstate.c \
+lua52/src/lstring.c \
+lua52/src/ltable.c \
+lua52/src/ltm.c \
+lua52/src/lundump.c \
+lua52/src/lvm.c \
+lua52/src/lzio.c \
+lua52/src/lauxlib.c \
+lua52/src/lbaselib.c \
+lua52/src/lbitlib.c \
+lua52/src/lcorolib.c \
+lua52/src/ldblib.c \
+lua52/src/liolib.c \
+lua52/src/lmathlib.c \
+lua52/src/loslib.c \
+lua52/src/lstrlib.c \
+lua52/src/ltablib.c \
+lua52/src/loadlib.c \
+lua52/src/linit.c
+endif
 
 # --- directory swig/ ---
 
@@ -61,6 +98,9 @@ $(srcdir)/swig/Fityk.pm: $(srcdir)/swig/fityk_perl.cpp
 $(srcdir)/swig/fityk_ruby.cpp: swig/fityk.i fityk.h
 	$(SWIG) -c++ -ruby -I$(srcdir) -o $@ $<
 
+$(srcdir)/swig/fityk_csharp.cpp: swig/fityk.i fityk.h
+	$(SWIG) -c++ -csharp -I$(srcdir) -o $@ -namespace Fityk -outfile $(srcdir)/swig/Fityk.cs $<
+
 $(srcdir)/swig/java/fityk_java.cpp: swig/fityk.i fityk.h
 	mkdir -p $(srcdir)/swig/java
 	$(SWIG) -c++ -java -I$(srcdir) -o $@ -package fityk -outdir $(srcdir)/swig/java $<
@@ -73,6 +113,10 @@ ruby: swig/fityk_ruby.o
 	mkdir -p swig/ruby
 	$(CXX) -shared $(CXXFLAGS) $(LDFLAGS) $< -L./.libs -lfityk -o swig/ruby/fityk.so
 
+csharp: swig/fityk_csharp.o
+	mkdir -p swig/csharp
+	$(CXX) -shared $(CXXFLAGS) $(LDFLAGS) $< -L./.libs -lfityk -o swig/csharp/Fityk.so
+
 java: swig/java/fityk_java.o
 	$(CXX) -shared $(CXXFLAGS) $(LDFLAGS) $< -L./.libs -lfityk -o swig/java/libfitykJ.so
 
@@ -84,6 +128,9 @@ swig/fityk_ruby.o: swig/fityk_ruby.cpp
 	$(CXX) $(CPPFLAGS) -I$(srcdir) \
 	    -I`ruby -e "require 'rbconfig'; puts Config::CONFIG['archdir']"` \
 	    $(CXXFLAGS) -fPIC -o $@ -c $<
+
+swig/fityk_csharp.o: swig/fityk_csharp.cpp
+	$(CXX) $(CPPFLAGS) -I$(srcdir) $(CXXFLAGS) -fPIC -o $@ -c $<
 
 swig/java/fityk_java.o: swig/java/fityk_java.cpp
 	mkdir -p swig/java

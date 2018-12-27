@@ -29,7 +29,7 @@ where
 - *dataslot* should be replaced with ``@0``, unless many datasets
   are to be used simultaneously (for details see: :ref:`multidata`),
 
-- *xcol*, *ycol*, *scol* (supported only in text file) are columns
+- *xcol*, *ycol*, *scol* (supported only in text and CSV files) are columns
   corresponding to x, y and std. dev. of y.
   Column 0 means index of the point: 0 for the first point,
   1 for the second, etc.
@@ -47,19 +47,24 @@ If the filename contains blank characters, a semicolon or comma, it
 should be put inside single quotation marks (together with colon-separated
 indices, if any).
 
-Multiple y columns and/or blocks can be specified, see the examples below::
+A few examples should clarify it::
 
     @0 < foo.vms
-    @0 < foo.fii text first_line_header
-    @0 < foo.dat:1:4:: # x,y - 1st and 4th columns
-    @0 < foo.dat:1:3,4:: # load two dataset (with y in columns 3,4)
-    @0 < foo.dat:1:3..5:: # load three dataset (with y in columns 3,4,5)
-    @0 < foo.dat:1:4..6,2:: # load four dataset (y: 4,5,6,2)
-    @0 < foo.dat:1:2..:: # load 2nd and all the next columns as y
-    @0 < foo.dat:1:2:3: # read std. dev. of y from 3rd column
-    @0 < foo.dat:0:1:: # x - 0,1,2,..., y - first column
-    @0 < 'foo.dat:0:1::' # the same
-    @0 < foo.raw::::0,1 # load two first blocks of data (as one dataset)
+    @0 < 'foo.vms'  # filename can be quoted
+    @0 < foo.fii text first_line_header  # with filetype options
+    @0 < foo.csv:1:4::  # x,y - 1st and 4th columns
+    @0 < foo.csv:1:2:3:  # read std. dev. of y from 3rd column
+    @0 < foo.csv:0:1::  # x - index (0,1,2,...), y - first column
+    @0 < foo.raw::::0,1  # load two first blocks of data (as one dataset)
+
+You may also specify multiple *y* columns.
+It will load each *x*/*y* pair as a separate dataset.
+In this case you need to use ``@+ < ...`` (``@+`` denotes new dataslot)::
+
+    @+ < foo.csv:1:3,4:: # load two dataset (with y in columns 3,4)
+    @+ < foo.csv:1:3..5:: # load three dataset (with y in columns 3,4,5)
+    @+ < foo.csv:1:4..6,2:: # load four dataset (y: 4,5,6,2)
+    @+ < foo.csv:1:2..:: # load 2nd and all the next columns as y
 
 Information about loaded data can be obtained with::
 
@@ -72,9 +77,15 @@ text
     ASCII text, multicolumn numeric data.
     The details are given in the next section.
 
+csv
+    CSV or TSV file. Similar to text but supports quoted (``"``) values
+    and uses different heuristic to interpret ambiguous cases.
+
 dbws
-    format used by DBWS (program for Rietveld analysis)
-    and DMPLOT.
+    format used by DBWS (program for Rietveld analysis) and DMPLOT.
+
+canberra_cnf
+    Canberra CNF format
 
 cpi
     Sietronics Sieray CPI format
@@ -106,6 +117,7 @@ spe
 pdcif
     CIF for powder diffraction
 
+And a few others.
 The full list is available at: http://xylib.sourceforge.net/.
 
 Reading Text Files

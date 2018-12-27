@@ -1,4 +1,4 @@
-User-visible changes in version 1.3.1  (unreleased):
+User-visible changes in version 1.3.1  (2016-12-21):
 * GUI: more options in the peak-top menu
 * GUI: Tools > XPS KE <-> BE
 * added utilities F.findx(), F.extremum(), centile(N, expr), %peak.IB

@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([fityk],[1.3.0])
+AC_INIT([fityk],[1.3.1])
 LIBRARY_VERSION_FLAG="-version-info 4:0:0"
 
 AC_CONFIG_SRCDIR([fityk/voigt.h])
@@ -30,11 +30,6 @@ AC_ARG_ENABLE(nlopt, AS_HELP_STRING([--enable-nlopt],
 # this option is handled in m4/readline.m4
 AC_ARG_WITH(readline, AS_HELP_STRING([--without-readline],
                        [do not use the GNU readline library for cfityk]))
-
-AC_ARG_WITH(options, AS_HELP_STRING([--with-options=OPTIONS],
-                       [options appended to CC, CXX and LD (e.g. -isysroot)]),
-            [UNIV_OPTION=$withval])
-
 
 AM_OPTIONS_WXCONFIG
 
@@ -110,10 +105,13 @@ AC_COMPILE_IFELSE(
   ])],
   [], [AC_MSG_ERROR([xylib >= 1.0 is not installed])])
 
-
-AX_PROG_LUA(5.1, 5.4)
-AX_LUA_HEADERS
-AX_LUA_LIBS
+AS_IF([test x"$LUA52_FROM_SOURCE" = xyes], [
+    LUA_INCLUDE='-I$(top_srcdir)/fityk/lua52/src'
+  ], [
+    AX_PROG_LUA(5.1, 5.4)
+    AX_LUA_HEADERS
+    AX_LUA_LIBS
+])
 
 # Checks for version specific libraries and headers.
 AS_IF([test "x$enable_GUI" != "xno"], [
@@ -181,6 +179,7 @@ AM_CONDITIONAL([CLI_DIR], [test "x$enable_CLI" != xno])
 AM_CONDITIONAL([PYTHON_ENABLED], [test "x$enable_python" = xyes])
 #AM_CONDITIONAL([PERL_ENABLED], [test "x$enable_perl" = xyes])
 AM_CONDITIONAL([NLOPT_ENABLED], [test "x$enable_nlopt" = xyes])
+AM_CONDITIONAL([COMPILE_LUA_SRC], [test "x$LUA52_FROM_SOURCE" = xyes])
 
 #if test "x$enable_perl" = "xyes"; then
 #    AC_CHECK_PROG(PERL, perl, "yes")

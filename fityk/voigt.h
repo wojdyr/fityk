@@ -1,7 +1,8 @@
 
 ///     calculates the Faddeeva function
 ///     and partial derivatives of the Voigt function for y>=0
-///     (from http://www.atm.ox.ac.uk/user/wells/voigt.html)
+///     Based on (now only in Wayback Machine):
+///     http://web.archive.org/web/20100503005358/http://www.atm.ox.ac.uk/user/wells/voigt.html
 void humdev(const float x, const float y,
             float &k, float &l, float &dkdx, float &dkdy);
         // arguments:
@@ -13,7 +14,6 @@ void humdev(const float x, const float y,
 
 
 ///     calculates the Faddeeva function with relative error less than 10^(-4).
-///     (from http://www.atm.ox.ac.uk/user/wells/voigt.html)
 float humlik(const float x, const float y);
         // arguments:
         //  x, y - Faddeeva/Voigt function arguments

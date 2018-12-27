@@ -19,11 +19,13 @@ icon32dir = $(datadir)/icons/hicolor/32x32/apps
 iconscdir = $(datadir)/icons/hicolor/scalable/apps
 desktopdir = $(datadir)/applications
 mimepkgdir = $(datadir)/mime/packages
+appdatadir = $(datadir)/appdata
 
 dist_icon32_DATA = fityk.png
 dist_iconsc_DATA = fityk.svg
 dist_desktop_DATA = fityk.desktop
 dist_mimepkg_DATA = fityk.xml
+dist_appdata_DATA = fityk.appdata.xml
 
 # ---  cli/ ---
 cli_cfityk_SOURCES = cli/gnuplot.cpp cli/main.cpp cli/gnuplot.h
@@ -48,10 +50,13 @@ tests_num_LDFLAGS = -no-install
 tests_lua_SOURCES = tests/lua.cpp
 tests_lua_LDADD = fityk/libfityk.la tests/libcatch.a
 tests_lua_LDFLAGS = -no-install
-check_PROGRAMS = $(TESTS) tests/mpfit_deriv
+check_PROGRAMS = $(TESTS)
+if ! OS_WIN32
+check_PROGRAMS += tests/mpfit_deriv
 tests_mpfit_deriv_SOURCES = tests/mpfit_deriv.cpp
 tests_mpfit_deriv_LDADD = fityk/libfityk.la
 tests_mpfit_deriv_LDFLAGS = -no-install
+endif
 dist_noinst_SCRIPTS = tests/test_syntax.fit \
       tests/test_nist.py tests/test_guess.py tests/test_model.py \
       tests/test_tranform.py tests/test_data_load.py tests/test_info.py
@@ -93,7 +98,13 @@ check-python:
 	PYTHONPATH=fityk/swig/.libs:$(srcdir)/fityk/swig/ \
 	   python -m unittest discover -s $(srcdir)/tests/
 
-check-scripts: check-cfityk check-python
+check-help:
+	echo '$$ fityk -h'   > $(srcdir)/doc/help-message.txt
+	wxgui/fityk -h 2>&1 | sed s/lt-fi/fi/ >> $(srcdir)/doc/help-message.txt
+	echo -e '\n$$ cfityk -h' >> $(srcdir)/doc/help-message.txt
+	cli/cfityk -h       >> $(srcdir)/doc/help-message.txt
+
+check-scripts: check-cfityk check-python check-help
 
 # --- doc/ ---
 

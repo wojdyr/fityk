@@ -1,3 +1,4 @@
+.. _scripts:
 
 Scripts
 #######
@@ -5,12 +6,16 @@ Scripts
 Working with Scripts
 ====================
 
-Scripts can be executed using the command::
+Fityk can run two kinds of scripts:
 
-    exec filename
+- Fityk scripts composed of the commands described in previous sections,
+- and Lua scripts (extension ``.lua``), in the Lua language.
 
-The file can be either a fityk script (usually with extension ``fit``),
-or a Lua script (extension ``lua``).
+Scripts are executed using the `exec` command::
+
+    exec file1.fit
+    exec file2.lua
+    exec file3.fit.gz  # read script compressed with gzip
 
 .. note::
 
@@ -18,11 +23,7 @@ or a Lua script (extension ``lua``).
     It can also save all commands executed (directly or via GUI) in the session
     to a script (``info history > file.fit``).
 
-Since a Fityk script with all the data inside can be a large file,
-the files may be stored compressed and it is possible to directly read
-gzip-compressed fityk script (``.fit.gz``).
-
-Embedded Lua interpreter can execute any program in Lua 5.1.
+Embedded Lua interpreter can execute any program in Lua 5.2.
 One-liners can be run with command ``lua``::
 
     =-> lua print(_VERSION)
@@ -47,27 +48,31 @@ as Lua expressions, but this time the resulting string is executed
 as a fityk command::
 
     =-> = string.format("fit @%d", math.random(0,5))
-    fit 17
+    fit @4
     =-> exec= string.format("fit @%d", math.random(0,5))
     # fitting random dataset (useless example)
 
-The Lua interpreter in Fityk has defined global object ``F`` which
-enables interaction with the program::
+The embedded Lua interpreter interacts with the rest of the program
+through the global object ``F``::
 
     =-> = F:get_info("version")
     Fityk 1.2.1
 
-Now the first example that can be useful. For each dataset write output
-of the ``info peaks`` command to a file named after the data file,
-with appended ".out"::
+All methods of ``F`` are documented in the section :ref:`api`.
+
+A few more examples.
+
+Let's say that we work with a number of datasets, and for each of them
+we want to save output of the ``info peaks`` command to a file
+named *original-data-filename*\ .out. This can be done in one line::
 
     =-> @*: lua F:execute("info peaks >'%s.out'" % F:get_info("filename"))
 
-This and other methods of ``F`` are documented in the next section.
+Now a more complex script that would need to be put into a file
+(with extension ``.lua``) and run with ``exec``.
+:
 
-.. highlight:: lua
-
-Here is an example of Lua-Fityk interactions::
+.. code-block:: lua
 
     -- load data from files file01.dat, file02.dat, ... file13.dat
     for i=1,13 do
@@ -88,7 +93,9 @@ Here is an example of Lua-Fityk interactions::
     print("The largest y: " .. total_max_y)
 
 If a fityk command executed from Lua script fails, the whole script is
-stopped, unless you catch the error::
+stopped, unless you catch the error:
+
+.. code-block:: lua
 
     -- wrap F:execute() in pcall to handle possible errors
     status, err = pcall(function() F:execute("fit") end)
@@ -96,22 +103,29 @@ stopped, unless you catch the error::
         print("Error: " .. err)
     end
 
-The Lua interpreter was added in ver. 1.0.3. If you have any questions
-about it, feel free to ask.
+The Lua interpreter was added in ver. 1.0.3. If you need help with writing
+Lua scripts - feel free to ask. Usage scenarios give us a better idea
+what functions should be available from the Lua interface.
 
-Older, but still supported way to automate Fityk is to prepare
-a stand-alone program that writes a valid fityk script to the standard output.
-To run such program and execute the output use command:
+Fityk also has a simple mechanism to interact with external programs.
+It is useful mostly on Unix systems.  ``!`` runs a program,
+``exec!`` runs a program, reads its standard output and executes it
+as a Fityk script.
+Here is an example of using Unix utilties ``echo``, ``ls`` and ``head``
+to load the newest CIF file from the current directory::
 
-.. code-block:: fityk
-
-    exec ! program [args...]
-
+    =-> ! pwd
+    /home/wojdyr/fityk/data
+    =-> ! ls -t *.cif | head -1
+    lab6_3-2610-q.cif
+    =-> exec! echo "@+ < $(ls -t *.cif | head -1)"
+    > @+ < lab6_3-2610-q.cif
+    2300 points. No explicit std. dev. Set as sqrt(y)
 
 Fityk DSL
 =========
 
-As was described in :ref:`cli`, each line has a syntax::
+As was described in :ref:`cli`, each line has a syntax:
 
   [[@...:] [with ...] command [";" command]...] [#comment]
 
@@ -136,7 +150,7 @@ is equivalent to::
    =-> use @4
    =-> guess Voigt
 
-(except that the letter sets permenently default dataset to ``@4``.
+(except that the latter sets permenently default dataset to ``@4``.
 
 ``@*`` stands for all datasets, from ``@0`` to the last one.
 
@@ -333,6 +347,8 @@ and pseudo-parameters (%f.Area).
    NonblankString: (AllChars - (WhiteSpace | ";" | "#" ))*
    RestOfLine: AllChars*
 
+.. _api:
+
 Fityk library API
 =================
 
@@ -368,6 +384,8 @@ Here is the most general function:
 .. method:: Fityk.execute(cmd)
 
     Executes a fityk command. Example: ``F:execute("fit")``.
+
+.. highlight:: lua
 
 The ``%`` operator for the string type is pre-set to support Python-like
 formatting::
@@ -425,6 +443,20 @@ Data
     ``format``, ``options``. The meaning of these parameters is the same
     as described in :ref:`dataload`.
 
+    For example, due to limitations of the Fityk DSL a file with
+    the ``'`` character in the path must be loaded through Lua::
+
+        lua F:load([[Kat's file.dat]])
+
+    LoadSpec is used to specify also format of the file, columns, etc::
+
+        spec = fityk.LoadSpec('my.csv')
+        spec.x_col = 1
+        spec.y_col = 3
+        spec.format = 'csv'
+        spec.options = 'decimal_comma'
+        F:load(spec)
+
 .. method:: Fityk.load_data(d, xx, yy, sigmas [, title])
 
     Load data to @*d* slot. *xx* and *yy* must be numeric arrays
@@ -441,36 +473,38 @@ Data
 
 .. method:: Fityk.get_dataset_count()
 
-   Returns number of datasets (n >= 1).
+    Returns number of datasets (n >= 1).
 
 .. method:: Fityk.get_default_dataset()
 
-   Returns default dataset. Default dataset is set by the "use @n" command.
+    Returns default dataset. Default dataset is set by the "use @n" command.
 
 .. method:: Fityk.get_data([d])
 
-   Returns points for dataset *d*.
+    Returns points for dataset *d*.
 
-   * in C++ -- returns vector<Point>
-   * in Lua -- userdata with array-like methods, indexed from 0.
+    * in C++ -- returns vector<Point>
+    * in Lua -- userdata with array-like methods, indexed from 0.
 
-   Each point has 4 properties:
-   ``x``, ``y``, ``sigma`` (real numbers) and ``is_active`` (bool).
+    Each point has 4 properties:
+    ``x``, ``y``, ``sigma`` (real numbers) and ``is_active`` (bool).
 
-   Example::
+    Example::
 
-       points = F:get_data()
-       for i = 0, #points-1 do
-           p = points[i]
-           if p.is_active then
-               print(i, p.x, p.y, p.sigma)
-           end
-       end
+      points = F:get_data()
+      for i = 0, #points-1 do
+          p = points[i]
+          if p.is_active then
+              print(i, p.x, p.y, p.sigma)
+          end
+      end
 
-       1       4.24    1.06    1
-       2       6.73    1.39    1
-       3       8.8     1.61    1
-       ...
+    .. code-block:: none
+
+      1       4.24    1.06    1
+      2       6.73    1.39    1
+      3       8.8     1.61    1
+      ...
 
 
 

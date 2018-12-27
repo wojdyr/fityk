@@ -1089,7 +1089,7 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                 break;
 
             // these are never return by get_token()
-            case kTokenFilename:
+            case kTokenWord:
             case kTokenExpr:
             case kTokenEVar:
             case kTokenRest:

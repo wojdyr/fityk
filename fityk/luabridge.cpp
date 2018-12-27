@@ -80,8 +80,8 @@ LuaBridge::LuaBridge(Full *F)
 
     // make vectors also iterators over elements
     const char* vectors[] = { "FuncVector", "VarVector", "PointVector",
-                              "RealVector" };
-    for (int i = 0; i < 4; ++i) {
+                              "RealVector", "IntVector" };
+    for (int i = 0; i < 5; ++i) {
         SWIG_Lua_get_class_metatable(L_, vectors[i]);
         SWIG_Lua_add_function(L_, "__call", lua_vector_iterator);
         lua_pop(L_, 1);

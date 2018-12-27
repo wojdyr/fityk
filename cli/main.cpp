@@ -239,23 +239,12 @@ void main_loop()
 
 #endif //HAVE_LIBREADLINE
 
-
-
-void interrupt_handler (int /*signum*/)
-{
-    fityk::user_interrupt = 1;  // set flag to stop computations
-}
-
 } // anonymous namespace
 
 
-int main (int argc, char **argv)
+int main(int argc, char **argv)
 {
-#ifndef _WIN32
-    // setting Ctrl-C handler
-    if (signal (SIGINT, interrupt_handler) == SIG_IGN)
-        signal (SIGINT, SIG_IGN);
-#endif //_WIN32
+    interrupt_computations_on_sigint();
 
     // process command-line arguments
     bool exec_init_file = true;

@@ -14,10 +14,10 @@ private:\
     DISALLOW_COPY_AND_ASSIGN(Func##NAME); \
 public:\
     Func##NAME (const Settings* settings, \
-                const std::string &name, \
+                const std::string &fname, \
                 Tplate::Ptr tp, \
                 std::vector<std::string> const &vars) \
-        : PARENT(settings, name, tp, vars) {} \
+        : PARENT(settings, fname, tp, vars) {} \
     void calculate_value_in_range(std::vector<realt> const &xx, \
                                   std::vector<realt> &yy, \
                                   int first, int last) const;\
@@ -150,7 +150,7 @@ class FuncVoigt : public Function
     bool get_fwhm(realt* a) const;
     bool get_area(realt* a) const;
     const std::vector<std::string>& get_other_prop_names() const;
-    bool get_other_prop(std::string const& name, realt* a) const;
+    bool get_other_prop(std::string const& pname, realt* a) const;
 };
 
 class FuncVoigtA : public Function
@@ -205,10 +205,10 @@ public:
     virtual std::string get_param(int n) const;
 protected:
     VarArgFunction(const Settings* settings,
-                   const std::string &name,
+                   const std::string &fname,
                    Tplate::Ptr tp,
                    const std::vector<std::string> &vars)
-        : Function(settings, name, tp, vars) {}
+        : Function(settings, fname, tp, vars) {}
     virtual void init() { center_idx_ = -1; }
 };
 

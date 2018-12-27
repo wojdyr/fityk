@@ -330,26 +330,9 @@ option, if given, and processes command line arguments:
 .. highlight:: none
 
 There are also other parameters to the CLI and GUI versions of the program.
-Option "-h" ("/h" on MS Windows) gives the full listing::
+Option "-h" ("/h" on MS Windows) gives the full listing:
 
-    wojdyr@ubu:~/fityk/src$ ./fityk -h
-    Usage: fityk \[-h] \[-V] \[-c <str>] \[-I] \[-r] \[script or data file...]
-    -h, --help            show this help message
-    -V, --version         output version information and exit
-    -c, --cmd=<str>       script passed in as string
-    -g, --config=<str>    choose GUI configuration
-    -I, --no-init         don't process $HOME/.fityk/init file
-    -r, --reorder         reorder data (50.xy before 100.xy)
-
-
-    wojdyr@ubu:~/foo$ cfityk -h
-    Usage: cfityk \[-h] \[-V] \[-c <str>] \[script or data file...]
-    -h, --help            show this help message
-    -V, --version         output version information and exit
-    -c, --cmd=<str>       script passed in as string
-    -I, --no-init         don't process $HOME/.fityk/init file
-    -n, --no-plot         disable plotting (gnuplot)
-    -q, --quit            don't enter interactive shell
+.. literalinclude:: help-message.txt
 
 The example of non-interactive using CLI version on Linux::
 

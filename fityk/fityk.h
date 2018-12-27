@@ -286,7 +286,7 @@ public:
     std::vector<Var*> all_variables() const;
 
     /// returns variable $name
-    const Var* get_variable(std::string const& name)  throw(ExecuteError);
+    const Var* get_variable(std::string const& name) const throw(ExecuteError);
 
     /// returns all %functions
     std::vector<Func*> all_functions() const;
@@ -299,7 +299,7 @@ public:
                                                          throw(ExecuteError);
 
     /// returns the value of the model for a given dataset at x
-    realt get_model_value(realt x, int dataset=DEFAULT_DATASET)
+    realt get_model_value(realt x, int dataset=DEFAULT_DATASET) const
                                                          throw(ExecuteError);
 
     /// multiple point version of the get_model_value()
@@ -345,7 +345,7 @@ public:
 private:
     Full *priv_;
     bool throws_;
-    std::string last_error_;
+    mutable std::string last_error_;
     FitykInternalData *p_; // members hidden for the sake of API stability
     // disallow copy and assign
     Fityk(const Fityk&);
@@ -362,17 +362,21 @@ private:
 /* C API.
  * Functions below correspond to member functions of class Fityk.
  * To check for errors use fityk_last_error().
- * bool and Point here should be ABI-compatible with C++ bool and fityk::Point.
+ * Point here should be ABI-compatible with C++ bool and fityk::Point.
  */
 
-#define bool _Bool
-
 typedef struct Fityk_ Fityk;
+typedef struct Func_ Func;
+typedef struct Var_ Var;
 
 typedef struct
 {
     realt x, y, sigma;
-    bool is_active;
+#if __STDC_VERSION__-0 >= 199901L
+    _Bool is_active;
+#else
+    unsigned char is_active; // best guess
+#endif
 } Point;
 
 #endif /* __cplusplus */
@@ -382,12 +386,14 @@ typedef struct
 extern "C" {
 using fityk::Point;
 using fityk::Fityk;
+using fityk::Func;
+using fityk::Var;
 #endif
 
 FITYK_API Fityk* fityk_create();
 FITYK_API void fityk_delete(Fityk *f);
-/* returns false on ExitRequestedException */
-FITYK_API bool fityk_execute(Fityk *f, const char* command);
+/* returns 0 on ExitRequestedException */
+FITYK_API int fityk_execute(Fityk *f, const char* command);
 FITYK_API void fityk_load_data(Fityk *f, int dataset,
                                double *x, double *y, double *sigma, int num,
                                const char* title);
@@ -399,6 +405,8 @@ FITYK_API char* fityk_get_info(Fityk *f, const char *s, int dataset);
 FITYK_API realt fityk_calculate_expr(Fityk *f, const char* s, int dataset);
 FITYK_API int fityk_get_dataset_count(const Fityk *f);
 FITYK_API int fityk_get_parameter_count(const Fityk* f);
+FITYK_API const Var* fityk_get_variable(const Fityk* f, const char* name);
+FITYK_API const Func* fityk_get_function(const Fityk* f, const char* name);
 /* get data point, returns NULL if index is out of range */
 FITYK_API const Point* fityk_get_data_point(Fityk *f, int dataset, int index);
 FITYK_API realt fityk_get_model_value(Fityk *f, realt x, int dataset);
@@ -409,6 +417,10 @@ FITYK_API int fityk_get_dof(Fityk *f, int dataset);
 /* returns matrix in array, which caller is responsible to free(); */
 /* length of the array is parameter_count^2                        */
 FITYK_API realt* fityk_get_covariance_matrix(Fityk *f, int dataset);
+
+FITYK_API realt fityk_var_value(const Var *var);
+FITYK_API const char* fityk_var_name(const Func *func, const char *param);
+FITYK_API realt fityk_value_at(const Func *func, realt x);
 
 #ifdef __cplusplus
 } // extern "C"

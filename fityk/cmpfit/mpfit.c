@@ -13,7 +13,7 @@
  */
 
 /* Main mpfit library routines (double precision) 
-   $Id: mpfit.c,v 1.23 2013/04/23 04:24:16 craigm Exp $
+   $Id: mpfit.c,v 1.24 2013/04/23 18:37:38 craigm Exp $
  */
 
 #include <stdio.h>
@@ -332,7 +332,7 @@ int mpfit(mp_func funct, int m, int npar,
     conf.maxfev = config->maxfev;
   }
 
-  info = 0;
+  info = MP_ERR_INPUT; /* = 0 */
   iflag = 0;
   nfree = 0;
   npegged = 0;

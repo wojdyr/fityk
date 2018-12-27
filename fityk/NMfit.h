@@ -26,7 +26,7 @@ struct Vertex
 class NMfit : public Fit
 {
 public:
-    NMfit(Full* F, const char* name) : Fit(F, name) {}
+    NMfit(Full* F, const char* fname) : Fit(F, fname) {}
     virtual double run_method(std::vector<realt>* best_a);
 private:
     std::vector<Vertex> vertices;

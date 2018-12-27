@@ -256,7 +256,9 @@ vector<string> DefinitionMgrDlg::get_commands()
 void DefinitionMgrDlg::OnAddButton(wxCommandEvent &)
 {
     Tplate tp;
+    tp.traits = 0;
     tp.create = NULL;
+    tp.docs_fragment = NULL;
     modified_.push_back(tp);
     lb->Append(wxT("-"));
     lb->SetSelection(lb->GetCount() - 1);

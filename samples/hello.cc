@@ -22,6 +22,7 @@ int main()
     f->execute("guess %gauss = Gaussian");
     f->execute("fit");
     cout << "peak center: " << f->calculate_expr("%gauss.Center") << endl;
+    cout << "value at x=12: " << f->get_function("gauss")->value_at(12) << endl;
     delete f;
     return 0;
 }

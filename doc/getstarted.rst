@@ -14,14 +14,13 @@ That's how the :abbr:`GUI (Graphical User Interface)` looks like:
    :scale: 50
 
 The **main plot** can display data points, model that is to be fitted to the
-data and individual functions in the model. Use can configure what is displayed
+data and individual functions in the model. You can configure what is displayed
 and how (through :menuselection:`GUI --> Configure` or context menu).
 
 The **helper plot** shows how well the model fits the data.
 You may have one, two or no helper plots (:menuselection:`GUI --> Show`).
 By default, the plot shows the difference between the data and the model.
-It can also show weighted or cumulative difference,
-and a couple of other things.
+It can also show weighted or cumulative difference, and a couple of other things.
 
 The helper plot is also handy for zooming -- with left and middle
 mouse buttons. Selecting a horizontal span with the left button
@@ -47,7 +46,7 @@ buttons:
   i.e. for selecting regions of interest,
 
 * |mode-bg-icon| *baseline mode* -- manual baseline subtraction
-  (in may never need it),
+  (you may never need it),
 
 * |mode-add-icon| *add-peak mode* -- for placing peaks and other functions.
 
@@ -67,7 +66,7 @@ buttons:
    :alt: Add-Peak Mode
    :class: icon
 
-The status bar shows a hint what the mouse does in the current mode.
+The status bar shows a hint of what the mouse does in the current mode.
 
 Finally, the **input field** and the **output window** provide alternative,
 console-like way of interacting with the program.
@@ -85,7 +84,7 @@ Minimal Example
 Let us analyze a diffraction pattern of NaCl. Our goal is to determine
 the position of the center of the highest peak. It is needed for
 calculating the pressure under which the sample was measured, but this
-later detail in the processing is irrelevent for the time being.
+later detail in the processing is irrelevant for the time being.
 
 The data file used in this example is distributed with the program and
 can be found in the :file:`samples` directory.
@@ -141,14 +140,14 @@ and press |add-peak-icon|.
 
 Automatic peak detection works in this case, but if it wouldn't, you may
 set the initial peak position, height and width manually.
-Either with mouse in the *add-peak mode*, or with a command.
+Either with the mouse in the *add-peak mode*, or with a command.
 
 .. admonition:: CLI
 
    F += Gaussian(~60000, ~24.6, ~0.2)
 
 Parameters of an existing function can be changed in the sideber,
-or by dragging that little square handle attached to each function
+or by dragging that little circle handle attached to each function
 (you should see a handle at the top of your Gaussian).
 
 If the peaks/functions are not named explicitely (like in this example),
@@ -222,7 +221,7 @@ fitting, or writing results to a file.
 
 A sequence of commands written down in a file makes a script (macro),
 which can automate common tasks. Complex tasks may need to be programmed
-in a general-purpose language. That is why Fityk has embedded Lua interpreter
+in a general-purpose language. That is why Fityk has an embedded Lua interpreter
 (Lua is a lightweight programming language).
 It is also possible to use Fityk library from a program in Python, C, C++,
 Java, Ruby or Perl, and possibly from other languages supported by SWIG.
@@ -249,8 +248,8 @@ or a backslash can be used to continue a command in the next line::
   ... 'this'
   this
 
-If the user works simultaneously with multiple datasets, she can refer to
-a dataset using its number: the first dataset is ``@0``, the second -- ``@1``,
+If you want to work with multiple datasets simultaneously, you can refer to
+a dataset through its number: the first dataset is ``@0``, the second -- ``@1``,
 etc::
 
   =-> fit # perform fitting of the default dataset (the first one)

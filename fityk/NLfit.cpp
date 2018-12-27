@@ -13,8 +13,8 @@ using namespace std;
 
 namespace fityk {
 
-NLfit::NLfit(Full* F, const char* name, nlopt_algorithm algorithm)
-    : Fit(F, name), algorithm_(algorithm), opt_(NULL)
+NLfit::NLfit(Full* F, const char* fname, nlopt_algorithm algorithm)
+    : Fit(F, fname), algorithm_(algorithm), opt_(NULL)
 {
 }
 

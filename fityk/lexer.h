@@ -29,8 +29,8 @@ enum TokenType
 
     // special tokens:
 
-    // returned only by get_filename_token(), not by get_token()
-    kTokenFilename,
+    // returned only by get_word_token(), not by get_token()
+    kTokenWord,
     // expression as string, never returned by Lexer, used only in Parser
     kTokenExpr,
     // variable or expression meant to create a new variable,
@@ -124,12 +124,12 @@ public:
     // Unlike get_token(), allow '*' in $variables and %functions. 
     Token get_glob_token();
 
-    // Filename is expected by parser. Reads any sequence of non-blank
-    // characters (with exception of ' and #) as a file.
-    // The filename can be inside 'single quotes'.
-    Token get_filename_token();
+    // Used mostly for filenames. Reads a quoted string or a sequence
+    // of non-blank and non-[;#] characters as a word.
+    // Returns kTokenWord, kTokenString or kTokenNop.
+    Token get_word_token();
 
-    // Reads the same as get_filename_token() and blanks. Returns kTokenRest
+    // Reads the same as get_word_token() plus blanks. Returns kTokenRest
     Token get_rest_of_cmd();
 
     // Reads rest of the line and returns kTokenRest

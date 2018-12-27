@@ -16,7 +16,7 @@ namespace fityk {
 class MPfit : public Fit
 {
 public:
-    MPfit(Full* F, const char* name) : Fit(F, name) {}
+    MPfit(Full* F, const char* fname) : Fit(F, fname) {}
     virtual double run_method(std::vector<realt>* best_a);
 
     // implementation (must be public to be called inside callback function)

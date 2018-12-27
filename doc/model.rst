@@ -196,15 +196,12 @@ where *p* can be set using the :option:`domain_percent` option.
 Function Types and Functions
 ----------------------------
 
-Function types have names that start with upper case letter,
-e.g. ``Linear`` or ``Voigt``.
+Function types have names that start with upper case letter
+(``Linear``, ``Voigt``).
 
-Functions have names prefixed with the percent symbol,
-e.g. ``%func``. Every function has a type and variables bound to its
-parameters.
-
-Functions can be created by giving the type and the correct
-number of variables in brackets, e.g.::
+Functions have names prefixed with the percent symbol (``%func``).
+Every function has a type and variables bound to its parameters.
+One way to create a function is to specify both type and variables::
 
    %f1 = Gaussian(~66254., ~24.7, ~0.264)
    %f2 = Gaussian(~6e4, $ctr, $b+$c)
@@ -216,7 +213,7 @@ If it is not just a name of a variable, an automatic variable is created.
 In the above examples, two variables were implicitely created for ``%f2``:
 first for value ``6e4`` and the second for ``$b+$c``).
 
-If the names of function's parameters are given (like for ``%f3``),
+If the names of function's parameters are given (like for ``%f3`` above),
 the variables can be given in any order.
 
 Function types can can have specified default values for
@@ -225,7 +222,7 @@ e.g.::
 
    =-> i Pearson7
    Pearson7(height, center, hwhm, shape=2) = height/(1+((x-center)/hwhm)^2*(2^(1/shape)-1))^shape
-   =-> %f4 = Pearson7(height=~66254., center=~24.7, fwhm=~0.264) # no shape is given
+   =-> %f4 = Pearson7(height=~66254., center=~24.7, hwhm=~0.264) # no shape is given
    New function %f4 was created.
 
 Functions can be copied. The following command creates a deep copy
@@ -522,7 +519,7 @@ UDFs can be defined in a few ways:
 - as a sum of already defined functions
   (see the ``GLSum`` example below),
 
-- as a splitted (bifurcated) function:
+- as a split (bifurcated) function:
   ``x <`` *expression* ``?`` *Function1(...)* ``:`` *Function2(...)*
   (see the ``SplitL`` example below).
 

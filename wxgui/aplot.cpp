@@ -392,7 +392,6 @@ void AuxPlot::OnLeftUp (wxMouseEvent &event)
     if (GetCapture() == this)
         ReleaseMouse();
     connect_esc_to_cancel(false);
-    downX = INT_MIN;
     SetCursor(wxCURSOR_CROSS);
     overlay.switch_mode(Overlay::kVLine);
     if (abs(event.GetX() - downX) >= 5) {
@@ -403,6 +402,7 @@ void AuxPlot::OnLeftUp (wxMouseEvent &event)
         overlay.draw_overlay();
         frame->plot_pane()->draw_vertical_lines(event.GetX(), -1, this);
     }
+    downX = INT_MIN;
 }
 
 //popup-menu
