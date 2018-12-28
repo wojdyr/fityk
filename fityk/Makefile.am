@@ -13,6 +13,7 @@ libfityk_la_SOURCES = logic.cpp view.cpp lexer.cpp eparser.cpp cparser.cpp \
 		 runner.cpp info.cpp common.cpp data.cpp var.cpp mgr.cpp \
 		 tplate.cpp func.cpp udf.cpp bfunc.cpp f_fcjasym.cpp ast.cpp \
 		 vm.cpp transform.cpp settings.cpp ui.cpp ui_api.cpp \
+		 root/background.cpp \
 		 luabridge.cpp GAfit.cpp LMfit.cpp guess.cpp NMfit.cpp \
 		 model.cpp fit.cpp voigt.cpp numfuncs.cpp fityk.cpp \
 		 \
@@ -20,6 +21,7 @@ libfityk_la_SOURCES = logic.cpp view.cpp lexer.cpp eparser.cpp cparser.cpp \
 		 runner.h info.h common.h data.h var.h mgr.h \
 		 tplate.h func.h udf.h bfunc.h f_fcjasym.h ast.h \
 		 vm.h transform.h settings.h ui.h luabridge.h \
+		 root/background.hpp \
 		 GAfit.h LMfit.h guess.h NMfit.h \
 		 model.h fit.h voigt.h numfuncs.h \
 		 swig/fityk_lua.cpp swig/luarun.h \
