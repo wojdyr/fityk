@@ -637,11 +637,24 @@ and functions:
     Calculates Shirley background
     (useful in X-ray photoelectron spectroscopy).
 
+``snip_bg(@n, window_width, direction, filter_order, estimate_compton)``
+    Calculates the spectrum background applying a Sensitive Nonlinear Iterative Peak clipping algorithm (SNIP) (useful in gamma-ray spectroscopy).
+    This SNIP algorithm is taken from the `TSpectrum <https://root.cern.ch/doc/v608/classTSpectrum.html>`_ class of `ROOT <http://root.cern.ch>`_.
+    It requires the parameters:
+    1. ``window_width``: maximal width of clipping window;
+    2. ``direction``:  direction of change of clipping window, if it is a positive number the window will be increasing;
+    3. ``filter_order``:  order of clipping filter, possible values are 2, 4, 6 or 8;
+    4. ``estimate_compton``:  if a positive number the algorithm will try to estimate the Compton edge.
+    Active points are modified according to the SNIP algorithm.
+    Inactive points are left as they are, assuming that they are already considered background.
+    Subtracting the calculated background from the initial spectrum gives zero in all inactive points.
+
 Examples::
 
   @+ = @0 # duplicate the dataset
   @+ = @0 and @1 # create a new dataset from @0 and @1
   @0 = @0 - shirley_bg(@0) # remove Shirley background 
+  @0 = @0 - snip_bg(@0, 30, 1, 2, 0) # remove gamma background 
   @0 = @0 - @1 # subtract @1 from @0
   @0 = @0 - 0.28*@1 # subtract scaled dataset @1 from @0
 
