@@ -9,7 +9,7 @@ before_install:
   - sudo apt-get update -q
   - sudo apt-get install -y libboost-dev liblua5.1-0-dev lua5.1 libgtk2.0-dev
   - sudo apt-get install -y swig3.0
-  - sudo apt-get install -y libxy-dev wxgtk-for-fityk-devel
+  - sudo apt-get install -y --allow-unauthenticated libxy-dev wxgtk-for-fityk-devel
 before_script:
   -  curl -LsS -o tests/catch.hpp https://github.com/philsquared/Catch/releases/download/v1.10.0/catch.hpp
   - autoreconf -i
