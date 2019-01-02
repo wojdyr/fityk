@@ -92,12 +92,12 @@ FStatusBar::FStatusBar(wxWindow *parent)
     sizer->AddSpacer(16);
     SetSizer(sizer);
     Connect(prefbtn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
-            (wxObjectEventFunction) &FStatusBar::OnPrefButton);
+            wxCommandEventHandler(FStatusBar::OnPrefButton));
     mousebmp->Connect(wxEVT_LEFT_DOWN,
-                      (wxObjectEventFunction) &FStatusBar::OnMouseBmpClicked,
+                      wxMouseEventHandler(FStatusBar::OnMouseBmpClicked),
                       NULL, this);
     mousebmp->Connect(wxEVT_RIGHT_DOWN,
-                      (wxObjectEventFunction) &FStatusBar::OnMouseBmpClicked,
+                      wxMouseEventHandler(FStatusBar::OnMouseBmpClicked),
                       NULL, this);
 }
 
@@ -272,13 +272,13 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     //okbmp->Show(!sb->extra_value.empty());
 
     Connect(show_btn_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
-            (wxObjectEventFunction) &ConfStatBarDlg::OnShowBtnCheckbox);
+            wxCommandEventHandler(ConfStatBarDlg::OnShowBtnCheckbox));
     Connect(show_hints_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
-            (wxObjectEventFunction) &ConfStatBarDlg::OnShowHintsCheckbox);
+            wxCommandEventHandler(ConfStatBarDlg::OnShowHintsCheckbox));
     Connect(extra_tc->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
-            (wxObjectEventFunction) &ConfStatBarDlg::OnExtraValueChange);
+            wxCommandEventHandler(ConfStatBarDlg::OnExtraValueChange));
     Connect(e_prec_sc->GetId(), wxEVT_COMMAND_SPINCTRL_UPDATED,
-            (wxObjectEventFunction) &ConfStatBarDlg::OnPrecisionSpin);
+            wxCommandEventHandler(ConfStatBarDlg::OnPrecisionSpin));
 }
 
 void ConfStatBarDlg::OnShowBtnCheckbox(wxCommandEvent& event)

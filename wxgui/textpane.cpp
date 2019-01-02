@@ -300,19 +300,19 @@ OutputWinConfDlg::OutputWinConfDlg(wxWindow* parent, wxWindowID id,
     SetEscapeId(wxID_CLOSE);
 
     Connect(system_font_cb->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
-            (wxObjectEventFunction) &OutputWinConfDlg::OnSystemFontCheckbox);
+            wxCommandEventHandler(OutputWinConfDlg::OnSystemFontCheckbox));
     Connect(font_picker_->GetId(), wxEVT_COMMAND_FONTPICKER_CHANGED,
-            (wxObjectEventFunction) &OutputWinConfDlg::OnFontChange);
+            wxFontPickerEventHandler(OutputWinConfDlg::OnFontChange));
     Connect(cp_bg_->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
-            (wxObjectEventFunction) &OutputWinConfDlg::OnColor);
+            wxColourPickerEventHandler(OutputWinConfDlg::OnColor));
     Connect(cp_input_->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
-            (wxObjectEventFunction) &OutputWinConfDlg::OnColor);
+            wxColourPickerEventHandler(OutputWinConfDlg::OnColor));
     Connect(cp_output_->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
-            (wxObjectEventFunction) &OutputWinConfDlg::OnColor);
+            wxColourPickerEventHandler(OutputWinConfDlg::OnColor));
     Connect(cp_quote_->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
-            (wxObjectEventFunction) &OutputWinConfDlg::OnColor);
+            wxColourPickerEventHandler(OutputWinConfDlg::OnColor));
     Connect(cp_warning_->GetId(), wxEVT_COMMAND_COLOURPICKER_CHANGED,
-            (wxObjectEventFunction) &OutputWinConfDlg::OnColor);
+            wxColourPickerEventHandler(OutputWinConfDlg::OnColor));
 }
 
 void OutputWinConfDlg::OnSystemFontCheckbox(wxCommandEvent& event)

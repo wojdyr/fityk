@@ -162,7 +162,7 @@ UserInterface::Status gui_exec_command(const string& s)
     try {
         r = ftk->ui()->execute_line(s);
     }
-    catch(fityk::ExitRequestedException) {
+    catch(const fityk::ExitRequestedException&) {
         frame->Close(true);
         return UserInterface::kStatusOk;
     }
@@ -307,7 +307,7 @@ bool FApp::OnInit(void)
     try {
         process_argv(cmdLineParser);
     }
-    catch(fityk::ExitRequestedException) {
+    catch(const fityk::ExitRequestedException&) {
         return false;
     }
 

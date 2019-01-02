@@ -479,7 +479,7 @@ int fityk_execute(Fityk *f, const char* command)
     try {
         f->execute(command);
     }
-    catch(ExitRequestedException) {
+    catch(const ExitRequestedException&) {
         return 0;
     }
     return 1;

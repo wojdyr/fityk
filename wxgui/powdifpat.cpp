@@ -189,7 +189,7 @@ PowderBook::PowderBook(wxWindow* parent, wxWindowID id)
                                                c.Blue(), c.Alpha()));
 
     Connect(GetId(), wxEVT_COMMAND_TOOLBOOK_PAGE_CHANGED,
-            (wxObjectEventFunction) &PowderBook::OnPageChanged);
+            wxBookCtrlEventHandler(PowderBook::OnPageChanged));
 }
 
 static
@@ -284,7 +284,7 @@ wxPanel* PowderBook::PrepareIntroPanel()
     range_sizer->Add(range_to, wxSizerFlags().Center().Border());
     intro_sizer->Add(range_sizer);
     Connect(file_picker->GetId(), wxEVT_COMMAND_FILEPICKER_CHANGED,
-            (wxObjectEventFunction) &PowderBook::OnFilePicked);
+            wxFileDirPickerEventHandler(PowderBook::OnFilePicked));
 #endif
 
     wxStaticBoxSizer *legend_box = new wxStaticBoxSizer(wxHORIZONTAL,
@@ -596,41 +596,41 @@ PhasePanel::PhasePanel(wxNotebook *parent, PowderBook *powder_book_)
     SetSizerAndFit(vsizer);
 
     Connect(sg_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
-            (wxObjectEventFunction) &PhasePanel::OnSpaceGroupButton);
+            wxCommandEventHandler(PhasePanel::OnSpaceGroupButton));
     Connect(save_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
-            (wxObjectEventFunction) &PhasePanel::OnAddToQLButton);
+            wxCommandEventHandler(PhasePanel::OnAddToQLButton));
     Connect(s_clear_btn->GetId(), wxEVT_COMMAND_BUTTON_CLICKED,
-            (wxObjectEventFunction) &PhasePanel::OnClearButton);
+            wxCommandEventHandler(PhasePanel::OnClearButton));
     Connect(name_tc->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
-            (wxObjectEventFunction) &PhasePanel::OnNameChanged);
+            wxCommandEventHandler(PhasePanel::OnNameChanged));
     Connect(sg_tc->GetId(), wxEVT_COMMAND_TEXT_ENTER,
-            (wxObjectEventFunction) &PhasePanel::OnSpaceGroupChanged);
+            wxCommandEventHandler(PhasePanel::OnSpaceGroupChanged));
     Connect(sg_tc->GetId(), wxEVT_COMMAND_TEXT_UPDATED,
-            (wxObjectEventFunction) &PhasePanel::OnSpaceGroupChanging);
+            wxCommandEventHandler(PhasePanel::OnSpaceGroupChanging));
 
     const LockableRealCtrl* param_controls[] =
             { par_a, par_b, par_c, par_alpha, par_beta, par_gamma };
     for (int i = 0; i != sizeof(param_controls) / sizeof(par_a); ++i) {
         wxWindowID id = param_controls[i]->get_text_ctrl()->GetId();
         Connect(id, wxEVT_COMMAND_TEXT_UPDATED,
-                (wxObjectEventFunction) &PhasePanel::OnParameterChanging);
+                wxCommandEventHandler(PhasePanel::OnParameterChanging));
         Connect(id, wxEVT_COMMAND_TEXT_ENTER,
-                (wxObjectEventFunction) &PhasePanel::OnParameterChanged);
+                wxCommandEventHandler(PhasePanel::OnParameterChanged));
     }
 
     Connect(hkl_list->GetId(), wxEVT_COMMAND_CHECKLISTBOX_TOGGLED,
-            (wxObjectEventFunction) &PhasePanel::OnLineToggled);
+            wxCommandEventHandler(PhasePanel::OnLineToggled));
     Connect(hkl_list->GetId(), wxEVT_COMMAND_LISTBOX_SELECTED,
-            (wxObjectEventFunction) &PhasePanel::OnLineSelected);
+            wxCommandEventHandler(PhasePanel::OnLineSelected));
 
     atoms_tc->Connect(wxEVT_SET_FOCUS,
-                      (wxObjectEventFunction) &PhasePanel::OnAtomsFocus,
+                      wxFocusEventHandler(PhasePanel::OnAtomsFocus),
                       NULL, this);
     atoms_tc->Connect(wxEVT_KILL_FOCUS,
-                      (wxObjectEventFunction) &PhasePanel::OnAtomsUnfocus,
+                      wxFocusEventHandler(PhasePanel::OnAtomsUnfocus),
                       NULL, this);
     atoms_tc->Connect(wxEVT_COMMAND_TEXT_UPDATED,
-                      (wxObjectEventFunction) &PhasePanel::OnAtomsChanged,
+                      wxCommandEventHandler(PhasePanel::OnAtomsChanged),
                       NULL, this);
 }
 

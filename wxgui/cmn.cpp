@@ -113,12 +113,12 @@ ProportionalSplitter::ProportionalSplitter(wxWindow* parent, wxWindowID id,
     SetMinimumPaneSize(20);
     ResetSash();
     Connect(GetId(), wxEVT_COMMAND_SPLITTER_SASH_POS_CHANGED,
-                (wxObjectEventFunction) &ProportionalSplitter::OnSashChanged);
+            wxSplitterEventHandler(ProportionalSplitter::OnSashChanged));
     Connect(GetId(), wxEVT_SIZE,
-                     (wxObjectEventFunction) &ProportionalSplitter::OnReSize);
+            wxSizeEventHandler(ProportionalSplitter::OnReSize));
     //hack to set sizes on first paint event
     Connect(GetId(), wxEVT_PAINT,
-                      (wxObjectEventFunction) &ProportionalSplitter::OnPaint);
+            wxPaintEventHandler(ProportionalSplitter::OnPaint));
 }
 
 bool ProportionalSplitter::SplitHorizProp(wxWindow* win1, wxWindow* win2,

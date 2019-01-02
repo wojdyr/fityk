@@ -74,14 +74,14 @@ SpaceGroupChooser::SpaceGroupChooser(wxWindow* parent,
 
     for (size_t i = 0; i < sizeof(centering_cb)/sizeof(centering_cb[0]); ++i)
         Connect(centering_cb[i]->GetId(), wxEVT_COMMAND_CHECKBOX_CLICKED,
-                (wxObjectEventFunction) &SpaceGroupChooser::OnCheckBox);
+                wxCommandEventHandler(SpaceGroupChooser::OnCheckBox));
 
     Connect(system_c->GetId(), wxEVT_COMMAND_CHOICE_SELECTED,
-            (wxObjectEventFunction) &SpaceGroupChooser::OnSystemChoice);
+            wxCommandEventHandler(SpaceGroupChooser::OnSystemChoice));
     //Connect(list->GetId(), wxEVT_COMMAND_LIST_ITEM_FOCUSED,
-    //        (wxObjectEventFunction) &SpaceGroupChooser::OnListItemFocused);
+    //        wxCommandEventHandler(SpaceGroupChooser::OnListItemFocused));
     Connect(list->GetId(), wxEVT_COMMAND_LIST_ITEM_ACTIVATED,
-            (wxObjectEventFunction) &SpaceGroupChooser::OnListItemActivated);
+            wxCommandEventHandler(SpaceGroupChooser::OnListItemActivated));
 }
 
 void SpaceGroupChooser::OnListItemActivated(wxCommandEvent&)

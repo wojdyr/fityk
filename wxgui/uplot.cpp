@@ -119,8 +119,7 @@ void BufferedPanel::set_bg_color(wxColour const& c)
 PlotWithTics::PlotWithTics(wxWindow* parent)
     : BufferedPanel(parent)
 {
-    Connect(GetId(), wxEVT_PAINT,
-                  (wxObjectEventFunction) &PlotWithTics::OnPaint);
+    Connect(GetId(), wxEVT_PAINT, wxPaintEventHandler(PlotWithTics::OnPaint));
 }
 
 void PlotWithTics::draw_tics(wxDC &dc, double x_min, double x_max,

@@ -325,10 +325,10 @@ int main(int argc, char **argv)
         if (!quit)
             main_loop();
     }
-    catch(ExitRequestedException) {
+    catch(const ExitRequestedException&) {
         fprintf(stderr, "\nbye...\n");
     }
-    catch (runtime_error const& e) {
+    catch (const runtime_error& e) {
         fprintf(stderr, "Error: %s\n", e.what());
         return 1;
     }
