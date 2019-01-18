@@ -139,8 +139,8 @@ public:
     void set_font(wxDC &dc, wxFont const& font);
     void set_scale(int pixel_width, int pixel_height);
     int get_special_point_at_pointer(wxMouseEvent& event);
-    Scale const& get_x_scale() const { return xs; }
-    Scale const& get_y_scale() const { return ys; }
+    Scale & get_x_scale() { return xs; }
+    Scale & get_y_scale() { return ys; }
     virtual void save_settings(wxConfigBase *cf) const;
     virtual void read_settings(wxConfigBase *cf);
     void set_magnification(int m) { pen_width = m > 0 ? m : 1; }
