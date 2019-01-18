@@ -84,6 +84,7 @@
 #include "img/zoom_right.xpm"
 #include "img/zoom_up.xpm"
 #include "img/zoom_vert.xpm"
+#include "img/log_y_toggle.xpm"
 
 #include "img/book16.h"
 #include "img/editor16.h"
@@ -255,6 +256,7 @@ enum {
     ID_T_RUN                  ,
     ID_T_UNDO                 ,
     ID_T_AUTO                 ,
+    ID_T_LOGY                 ,
     //ID_T_BAR                  ,
     ID_T_CHOICE
 };
@@ -2293,6 +2295,7 @@ BEGIN_EVENT_TABLE (FToolBar, wxToolBar)
     //EVT_TOOL (ID_T_BAR, FToolBar::OnSwitchSideBar)
     EVT_CHOICE (ID_T_CHOICE, FToolBar::OnPeakChoice)
     EVT_TOOL_ENTER (-1, FToolBar::OnToolEnter)
+    EVT_TOOL (ID_T_LOGY, FToolBar::OnLogYToggle)
 END_EVENT_TABLE()
 
 FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
@@ -2343,6 +2346,10 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddTool(ID_T_PZ, wxT("Back"), wxBitmap(zoom_prev_xpm), wxNullBitmap,
             wxITEM_NORMAL, wxT("Previous view"),
             wxT("Go to the previous view"));
+    AddSeparator();
+    AddTool(ID_T_LOGY, wxT("Log y"), wxBitmap(log_y_toggle_xpm), wxNullBitmap,
+            wxITEM_NORMAL, wxT("Toggle y log"),
+            wxT("Toggle y scale between logarithmic and linear"));
     AddSeparator();
     //file
     AddTool(ID_SESSION_INCLUDE, wxT("Execute"),
@@ -2464,6 +2471,18 @@ void FToolBar::OnToolEnter(wxCommandEvent& event)
     if (event.GetSelection() == ID_T_AUTO) {
         on_addpeak_hover();
     }
+}
+
+void FToolBar::OnLogYToggle(wxCommandEvent& event)
+{
+    const bool log_x = frame->get_main_plot()->get_x_scale().logarithm;
+    const bool log_y = frame->get_main_plot()->get_y_scale().logarithm;
+
+    frame->get_main_plot()->get_x_scale().logarithm = log_x;
+    frame->get_main_plot()->get_y_scale().logarithm = !log_y;
+    ftk->view.set_log_scale(log_x, !log_y);
+
+    frame->plot_pane()->refresh_plots(false, kMainPlot);
 }
 
 void FToolBar::on_addpeak_hover()
