@@ -146,7 +146,7 @@ Either with the mouse in the *add-peak mode*, or with a command.
 
    F += Gaussian(~60000, ~24.6, ~0.2)
 
-Parameters of an existing function can be changed in the sideber,
+Parameters of an existing function can be changed in the sidebar,
 or by dragging that little circle handle attached to each function
 (you should see a handle at the top of your Gaussian).
 
