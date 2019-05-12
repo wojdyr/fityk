@@ -895,8 +895,8 @@ void SideBar::update_var_inf()
     if (n < 0)
         return;
     const Variable* var = ftk->mgr.get_variable(n);
-    string t = "$"+var->name + " = " + var->get_formula(ftk->mgr.parameters());
-    t += "\n" + var->domain.str();
+    string t = "$" + var->name + " = ";
+    t += var->get_formula(ftk->mgr.parameters());
     inf->AppendText(s2wx(t));
     vector<string> in = ftk->mgr.get_variable_references(var->name);
     if (!in.empty())

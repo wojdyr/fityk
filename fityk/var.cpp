@@ -97,14 +97,14 @@ void Variable::set_var_idx(vector<Variable*> const& variables)
 
 string Variable::get_formula(vector<realt> const &parameters) const
 {
-    assert(gpos_ >= -1);
+    if (gpos_ >= 0)
+        return "~" + eS(parameters[gpos_]) + domain.str();
+    assert(gpos_ == -1);
     vector<string> vn;
     v_foreach (string, i, used_vars_.names())
         vn.push_back("$" + *i);
-    const char* num_format = "%.12g";
-    OpTreeFormat fmt = { num_format, &vn };
-    return gpos_ == -1 ? get_op_trees().back()->str(fmt)
-                    : "~" + eS(parameters[gpos_]);
+    OpTreeFormat fmt = { "%.12g", &vn };
+    return get_op_trees().back()->str(fmt);
 }
 
 void Variable::recalculate(vector<Variable*> const &variables,
