@@ -72,8 +72,30 @@ void shirley_bg(vector<Point> &pp)
     const int max_iter = 50;
     const double max_rdiff = 1e-6;
     const int n = pp.size();
-    double ya = pp[0].y; // lowest bg
-    double yb = pp[n-1].y; // highest bg
+    
+    /* Determine the range for the shirley background from the active range in the dataset 
+     * the first/last point is determined by the first/last active datapoint */
+    unsigned long startXindex =  0;
+    unsigned long endXindex =pp.size()-1;
+
+    for (unsigned long i = 0; i < pp.size(); i++) {
+        if( pp[i].is_active==true){
+            startXindex = i;
+            i = pp.size();
+        }
+    }
+    for (unsigned long i = pp.size(); i == 0; --i) {
+        if( pp[i].is_active==true){
+            endXindex = i;
+            i = 0;
+        }
+    }
+
+    //double ya = pp[0].y; // lowest bg
+    //double yb = pp[n-1].y; // highest bg
+    double ya = pp[startXindex].y; // lowest bg
+    double yb = pp[endXindex].y; // highest bg
+    
     double dy = yb - ya;
     vector<double> B(n, ya);
     vector<double> PA(n, 0.);
@@ -94,6 +116,8 @@ void shirley_bg(vector<Point> &pp)
     for (int i = 0; i < n; ++i)
         pp[i].y = B[i];
 }
+
+
 
 } // anonymous namespace
 
