@@ -67,54 +67,78 @@ void merge_same_x(vector<Point> &pp, bool avg)
     }
 }
 
+
 void shirley_bg(vector<Point> &pp)
 {
-    const int max_iter = 50;
-    const double max_rdiff = 1e-6;
-    const int n = pp.size();
-    
-    /* Determine the range for the shirley background from the active range in the dataset 
-     * the first/last point is determined by the first/last active datapoint */
-    unsigned long startXindex =  0;
-    unsigned long endXindex =pp.size()-1;
+    /* Set criteria to stop itertions */
+    const int max_iter = 50; 
+    const double max_rdiff = 1e-6;  // impement: check for differences
+    const unsigned long n = pp.size();
 
-    for (unsigned long i = 0; i < pp.size(); i++) {
+    /* The user has to set an appropriate region around the peak since the outcome is sensitive to that */
+    /* Determine the range for the shirley background calculation from the active range in the dataset
+     * the shirley BG will be calculated between the first and last active datapoint */
+    unsigned long startXindex = 0;
+    unsigned long endXindex = n-1;
+
+    for (unsigned long i = 0; i < n; i++) {
         if( pp[i].is_active==true){
             startXindex = i;
-            i = pp.size();
-        }
-    }
-    for (unsigned long i = pp.size(); i == 0; --i) {
-        if( pp[i].is_active==true){
-            endXindex = i;
-            i = 0;
+            break;
         }
     }
 
-    //double ya = pp[0].y; // lowest bg
-    //double yb = pp[n-1].y; // highest bg
-    double ya = pp[startXindex].y; // lowest bg
-    double yb = pp[endXindex].y; // highest bg
-    
-    double dy = yb - ya;
-    vector<double> B(n, ya);
-    vector<double> PA(n, 0.);
-    double old_A = 0;
-    for (int iter = 0; iter < max_iter; ++iter) {
-        vector<double> Y(n);
-        for (int i = 0; i < n; ++i)
-            Y[i] = pp[i].y - B[i];
-        for (int i = 1; i < n; ++i)
-            PA[i] = PA[i-1] + (Y[i] + Y[i-1]) / 2 * (pp[i].x - pp[i-1].x);
-        double rel_diff = old_A != 0. ? fabs(PA[n-1] - old_A) / old_A : 1.;
-        if (rel_diff < max_rdiff)
+    for (unsigned long i = endXindex; i > 0; i--) {
+        if( pp[i].is_active==true){
+            endXindex = i;
             break;
-        old_A = PA[n-1];
-        for (int i = 0; i < n; ++i)
-            B[i] = ya + dy / PA[n-1] * PA[i];
+        }
     }
-    for (int i = 0; i < n; ++i)
-        pp[i].y = B[i];
+
+    /* Here we assume that we are in BE representation and Alow belongs to smaller BE and Ahigh to higher BE */
+    double ymin = pp[startXindex].y;
+    double ymax = pp[endXindex].y;
+
+    /* Determine minimum element from active data.
+     *   In theory this should be ymin.
+     *   but this might not be the case for a bad SNR */
+    double yminElement = ymin;
+    for (unsigned long i = 0; i < n; i++) {
+        if( pp[i].y < yminElement){
+            yminElement =  pp[i].y;
+        }
+    }
+    /* create starting background */
+    std::vector<double> BG(n, yminElement);
+
+    /* recursive determination of the shirley background */
+    for (int iter = 0; iter < max_iter; iter++) {
+
+        /* Determine all background BG(Energy) values in dependence of the Energy */
+        for (unsigned long EnergyIdx = 0; EnergyIdx < n ;  EnergyIdx++){
+
+            double Alow = 0.0;
+            double Ahigh = 0.0;
+
+            /* calculate Areas A1 and A2 for each energy value */
+            for (unsigned long x = startXindex+1; x < EnergyIdx ;  x++){
+                Alow = Alow +  ((pp[x].x-pp[x-1].x)*(pp[x].y+pp[x-1].y)/2.0) - BG[x];
+            }
+
+            for (unsigned long x = EnergyIdx; x < endXindex ;  x++){
+                Ahigh = Ahigh + ((pp[x].x-pp[x-1].x)*(pp[x].y+pp[x-1].y)/2.0) - BG[x];
+            }
+
+            /* The formula is implemented  as given in the CasaXPS manual (2006) "Peak fitting in XPS" chapter */
+            BG[EnergyIdx] = ymin + (ymax-ymin) * (Alow / (Ahigh+Alow));
+
+        }
+    }
+
+    /* copy the resulting background */
+    for (unsigned long i = 0; i < n; i++){
+        pp[i].y = BG[i];
+    }
 }
 
 
