@@ -95,13 +95,38 @@ void shirley_bg(vector<Point> &pp)
         }
     }
 
-    /* Here we assume that we are in BE representation and Alow belongs to smaller BE and Ahigh to higher BE */
-    double ymin = pp[startXindex].y;
-    double ymax = pp[endXindex].y;
+    /* To set ymin and ymax, we assume that we are in BE representation and Alow belongs to smaller BE and Ahigh to higher BE */
 
-    /* Determine minimum element from active data.
-     *   In theory this should be ymin.
-     *   but this might not be the case for a bad SNR */
+    /* Straight forward determination of ymin and ymax, but this can result to poor results when SNR is high. */
+    //double ymin = pp[startXindex].y;
+    //double ymax = pp[endXindex].y;
+
+    /* To improve behaviour for bad SNR we average up to 5 y values around the x-index*/
+    double ymin = 0.00001;
+    double ymax = 0.00001;
+
+    int count_start = 0;
+    int count_end = 0;
+
+    for(unsigned long i=0; i<5; i++){
+        /* check if argument is within the range of the array indices */
+        if( (int(startXindex+i)-2 >= 0) && ( startXindex+i-2 < n) ){
+            ymin = ymin + pp[startXindex+i-2].y;
+            count_start++;
+        }
+
+        /* check if argument is within the range of the array indices */
+        if( (int(endXindex+i)-2 >= 0) && ( endXindex+i-2 < n) ){
+            ymax = ymax + pp[endXindex+i-2].y;
+            count_end++;
+        }
+    }
+    /* divide by number of summations */
+    ymin=ymin/double(count_start);
+    ymax=ymax/double(count_end);
+
+
+    /* Determine minimum element from data to obtain a reasonable starting value for the fit */
     double yminElement = ymin;
     for (unsigned long i = 0; i < n; i++) {
         if( pp[i].y < yminElement){
