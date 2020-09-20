@@ -108,7 +108,7 @@ AC_COMPILE_IFELSE(
 AS_IF([test x"$LUA52_FROM_SOURCE" = xyes], [
     LUA_INCLUDE='-I$(top_srcdir)/fityk/lua52/src'
   ], [
-    AX_PROG_LUA(5.1, 5.4)
+    AX_PROG_LUA(5.1, 5.5)
     AX_LUA_HEADERS
     AX_LUA_LIBS
 ])
