@@ -130,12 +130,14 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
     wxBoxSizer *block_sizer = new wxBoxSizer(wxHORIZONTAL);
     block_sizer->Add(new wxStaticText(left_panel, -1, "file format:"),
                      wxSizerFlags().Border(wxLEFT|wxRIGHT).Center());
-    format_ch = new wxChoice(left_panel, -1, wxDefaultPosition, wxSize(140,-1));
+    format_ch = new wxChoice(left_panel, -1);
     format_ch->Append(wxString("<automatic>"));
     const xylibFormat *format;
     for (int i = 0; (format = xylib_get_format(i)) != NULL; ++i)
         format_ch->Append(format->desc);
     format_ch->SetSelection(0);
+    if (format_ch->GetBestSize().GetWidth() < 140)
+        format_ch->SetMinSize(wxSize(140, -1));
     block_sizer->Add(format_ch, wxSizerFlags(0).Border(wxRIGHT));
     block_sizer->Add(new wxStaticText(left_panel, -1, "block:"),
                      wxSizerFlags().Border(wxLEFT|wxRIGHT).Center());
