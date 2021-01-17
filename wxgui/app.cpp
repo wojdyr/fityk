@@ -8,11 +8,6 @@
 #include <wx/filesys.h>
 #include <wx/tooltip.h>
 
-#ifdef __WXGTK3__
-#error "Not everything is working with wxGTK3. Use default wxGTK instead, " \
-       "based on GTK+2. If you want to test it, just remove this #error."
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
