@@ -461,7 +461,7 @@ void PlotWithLines::draw(wxDC &dc, bool)
     dc.SetPen(peak_pen);
     const vector<PlanesWithSameD>& bp = phase_panel_->get_crystal().bp;
     int selected = phase_panel_->get_selected_hkl();
-    double max_intensity = get_max_intensity(bp);;
+    double max_intensity = get_max_intensity(bp);
     double h_mult = 0;
     if (max_intensity > 0)
         h_mult = powder_book_->y_max / max_intensity;
@@ -1801,7 +1801,7 @@ void PowderBook::OnQuickListImport(wxCommandEvent&)
                     + wxT("' already exists.\nOverwrite?"),
                     wxT("Overwrite?"), wxYES_NO|wxICON_QUESTION);
             if (answer != wxYES)
-                continue;;
+                continue;
         }
         if (ext == wxT("cif") || ext == wxT("CIF")) {
             wxMessageBox(wxT("Support for CIF files is not ready yet."),

@@ -1368,7 +1368,7 @@ void MainPlot::OnButtonUp (wxMouseEvent &event)
                   + frame->get_guess_string(frame->get_peak_type())
                   + " [" + eS(min(x1,x2)) + " : " + eS(max(x1,x2)) + "]");
     } else {
-        ;// nothing - action done in OnButtonDown()
+        // nothing - action done in OnButtonDown()
     }
 }
 
