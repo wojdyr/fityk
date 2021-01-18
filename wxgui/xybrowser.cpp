@@ -95,7 +95,7 @@ void PreviewPlot::load_dataset(string const& filename,
 
 XyFileBrowser::XyFileBrowser(wxWindow* parent)
     : wxSplitterWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-                       wxSP_NOBORDER),
+                       wxSP_LIVE_UPDATE),
       auto_plot_cb(NULL)
 {
     // +----------------------------+
@@ -110,7 +110,7 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
     wxBoxSizer *left_sizer = new wxBoxSizer(wxVERTICAL);
     wxSplitterWindow *right_splitter = new wxSplitterWindow(this, -1,
                                              wxDefaultPosition, wxDefaultSize,
-                                             wxSP_NOBORDER);
+                                             wxSP_LIVE_UPDATE);
     right_splitter->SetSashGravity(0.5);
     right_splitter->SetMinimumPaneSize(20);
     wxPanel *rupper_panel = new wxPanel(right_splitter, -1);

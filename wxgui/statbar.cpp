@@ -28,7 +28,8 @@ FStatusBar::FStatusBar(wxWindow *parent)
         : wxPanel(parent, -1), extra_parser(NULL), last_x(0), last_y(0)
 {
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-    split = new wxSplitterWindow(this, -1, wxDefaultPosition, wxDefaultSize, 0);
+    split = new wxSplitterWindow(this, -1, wxDefaultPosition, wxDefaultSize,
+                                 wxSP_LIVE_UPDATE|wxSP_THIN_SASH);
     wxPanel *panel_text = new wxPanel(split, -1);
     wxPanel *panel_coords = new wxPanel(split, -1);
     text = new wxStaticText(panel_text, -1, wxT(""));

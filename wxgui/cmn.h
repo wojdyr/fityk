@@ -113,7 +113,7 @@ public:
                          wxWindowID id=-1,
                          float proportion=0.66, // 0. - 1.
                          const wxSize& size = wxDefaultSize,
-                         long style=wxSP_NOBORDER|wxSP_3DSASH);
+                         long style=wxSP_3DSASH|wxSP_LIVE_UPDATE);
     bool SplitHorizProp(wxWindow* win1, wxWindow* win2, float proportion=-1);
     bool SplitVertProp(wxWindow* win1, wxWindow* win2, float proportion=-1);
     float GetProportion() const { return m_proportion; }

@@ -408,8 +408,10 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 
     //sizer, splitters, etc.
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    v_splitter_ = new ProportionalSplitter(this);
-    main_pane_ = new ProportionalSplitter(v_splitter_);
+    v_splitter_ = new ProportionalSplitter(this, -1, 0.66, wxDefaultSize,
+                                           wxSP_3DSASH);
+    main_pane_ = new ProportionalSplitter(v_splitter_, -1, 0.66, wxDefaultSize,
+                                          wxSP_3DSASH);
     plot_pane_ = new PlotPane(main_pane_);
     text_pane_ = new TextPane(main_pane_);
     main_pane_->SplitHorizProp(plot_pane_, text_pane_);
