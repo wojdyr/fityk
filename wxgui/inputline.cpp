@@ -37,7 +37,7 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
                        wxWANTS_CHARS|wxTE_PROCESS_ENTER /*|wxTE_PROCESS_TAB*/);
     m_button = new wxSpinButton(this, wxID_ANY,
                                 wxDefaultPosition, wxDefaultSize,
-                                wxSP_VERTICAL|wxSP_ARROW_KEYS|wxNO_BORDER),
+                                wxSP_VERTICAL|wxSP_ARROW_KEYS|wxNO_BORDER);
     m_button->SetRange(0, 0);
     m_button->SetValue(0);
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);

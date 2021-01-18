@@ -38,7 +38,7 @@ using fityk::range_vector;
 // We don't pass HELP_DIR directly to wxString as a workaround for a problem
 // with Conda builds. wxString uses the system wchar_t by default
 // and Conda overlooks wide strings when replacing prefixes.
-const char* kHelpDir = HELP_DIR;
+static const char* kHelpDir = HELP_DIR;
 #endif
 
 IMPLEMENT_APP(FApp)

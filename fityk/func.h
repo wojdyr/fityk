@@ -116,7 +116,8 @@ public:
     int max_param_pos() const;
 
     realt calculate_value_and_deriv(realt x, std::vector<realt> &dy_da) const {
-        bufx_[0] = x, bufy_[0] = 0.;
+        bufx_[0] = x;
+        bufy_[0] = 0.;
         calculate_value_deriv_in_range(bufx_, bufy_, dy_da, false, 0, 1);
         return bufy_[0];
     }
