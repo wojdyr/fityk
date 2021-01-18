@@ -15,7 +15,7 @@ public:
                 const wxColour& first_col, const wxColour& last_col);
     void OnColor(wxColourPickerEvent&) { display_->Refresh(); }
     void OnRadioChanged(wxCommandEvent &) { display_->Refresh(); }
-    wxColour get_value(float x);
+    wxColour get_value(double x);
 private:
     wxRadioButton *rb1_, *rb2_, *rb3_, *rb4_;
     wxColourPickerCtrl *from_cp_, *to_cp_;
