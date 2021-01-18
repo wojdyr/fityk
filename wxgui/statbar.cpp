@@ -83,7 +83,7 @@ FStatusBar::FStatusBar(wxWindow *parent)
     lmouse_sizer->SetMinSize(rmouse_hint->GetClientSize());
     wxBoxSizer *hint_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *vhint_sizer = new wxBoxSizer(wxHORIZONTAL);
-    vhint_sizer->Add(lmouse_sizer, wxSizerFlags(1).Expand().FixedMinSize());
+    vhint_sizer->Add(lmouse_sizer, wxSizerFlags(1).Centre().FixedMinSize());
     vhint_sizer->Add(mousebmp, wxSizerFlags().Centre().Border(wxRIGHT, 3));
     vhint_sizer->Add(rmouse_hint, wxSizerFlags().Centre().FixedMinSize());
     hint_sizer->Add(new wxStaticLine(this), wxSizerFlags().Expand());
