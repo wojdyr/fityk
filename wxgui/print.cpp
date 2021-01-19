@@ -45,24 +45,24 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
     wxBoxSizer *m1sizer = new wxBoxSizer(wxHORIZONTAL);
     m1sizer->Add(new wxStaticText(this, -1, "Top"),
                  0, wxALIGN_CENTER_VERTICAL);
-    top_margin_sc = new SpinCtrl(this, -1, 0, -100, 500);
+    top_margin_sc = make_wxspinctrl(this, -1, 0, -100, 500);
     m1sizer->Add(top_margin_sc, 0, wxALL, 5);
     hsizer->Add(m1sizer, 0, wxALIGN_CENTER|wxRIGHT, 15);
     wxBoxSizer *m2sizer = new wxBoxSizer(wxHORIZONTAL);
     m2sizer->Add(new wxStaticText(this, -1, "Left"),
                  0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-    left_margin_sc = new SpinCtrl(this, -1, 0, -100, 500);
+    left_margin_sc = make_wxspinctrl(this, -1, 0, -100, 500);
     m2sizer->Add(left_margin_sc, 0, wxLEFT, 5);
     m2sizer->AddStretchSpacer();
     m2sizer->Add(new wxStaticText(this, -1, "Right"),
                  0, wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT);
-    right_margin_sc = new SpinCtrl(this, -1, 0, -100, 500);
+    right_margin_sc = make_wxspinctrl(this, -1, 0, -100, 500);
     m2sizer->Add(right_margin_sc, 0, wxLEFT|wxRIGHT|wxALIGN_RIGHT, 5);
     hsizer->Add(m2sizer, 0, wxEXPAND);
     wxBoxSizer *m3sizer = new wxBoxSizer(wxHORIZONTAL);
     m3sizer->Add(new wxStaticText(this, -1, "Bottom"),
                  0, wxALIGN_CENTER_VERTICAL);
-    bottom_margin_sc = new SpinCtrl(this, -1, 0, -100, 500);
+    bottom_margin_sc = make_wxspinctrl(this, -1, 0, -100, 500);
     m3sizer->Add(bottom_margin_sc, 0, wxALL, 5);
     hsizer->Add(m3sizer, 0, wxALIGN_CENTER|wxRIGHT, 30);
     top_sizer->Add(hsizer, 0, wxALL|wxEXPAND, 5);

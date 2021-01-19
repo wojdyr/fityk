@@ -33,16 +33,16 @@ inline std::string S(int n) { return format1<int, 16>("%d", n); }
 inline std::string S(double d) { return format1<double, 16>("%g", d); }
 
 // copied from cmn.h
-class SpinCtrl: public wxSpinCtrl
+inline wxSpinCtrl* make_wxspinctrl(wxWindow* parent, wxWindowID id, int val,
+                                   int min, int max, int width=50)
 {
-public:
-    SpinCtrl(wxWindow* parent, wxWindowID id, int val,
-             int min, int max, int width=50)
-        : wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
-                      wxDefaultPosition, wxSize(width, -1),
-                      wxSP_ARROW_KEYS, min, max, val)
-    {}
-};
+#ifdef __WXGTK3__
+    width += 30;
+#endif
+    return new wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
+                           wxDefaultPosition, wxSize(width, -1),
+                           wxSP_ARROW_KEYS, min, max, val);
+}
 
 #endif // XYCONVERT
 
@@ -155,11 +155,11 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
                     columns_panel, wxT("Select columns (0 for point index):"));
     h2a_sizer->Add (new wxStaticText (columns_panel, -1, wxT("x")),
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    x_column = new SpinCtrl(columns_panel, wxID_ANY, 1, 0, 999, 50);
+    x_column = make_wxspinctrl(columns_panel, wxID_ANY, 1, 0, 999, 50);
     h2a_sizer->Add (x_column, 0, wxALL|wxALIGN_LEFT, 5);
     h2a_sizer->Add (new wxStaticText (columns_panel, -1, wxT("y")),
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    y_column = new SpinCtrl(columns_panel, wxID_ANY, 2, 0, 999, 50);
+    y_column = make_wxspinctrl(columns_panel, wxID_ANY, 2, 0, 999, 50);
     h2a_sizer->Add (y_column, 0, wxALL|wxALIGN_LEFT, 5);
 #ifdef XYCONVERT
     std_dev_b = new wxCheckBox(columns_panel, -1, wxT("\u03C3"));
@@ -168,7 +168,7 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
 #endif
     std_dev_b->SetValue(false);
     h2a_sizer->Add(std_dev_b, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL,5);
-    s_column = new SpinCtrl(columns_panel, wxID_ANY, 3, 1, 999, 50);
+    s_column = make_wxspinctrl(columns_panel, wxID_ANY, 3, 1, 999, 50);
     h2a_sizer->Add(s_column, 0, wxALL|wxALIGN_LEFT, 5);
 #ifndef XYCONVERT
     h2a_sizer->Add(new wxStaticText(columns_panel, wxID_ANY, "or"),

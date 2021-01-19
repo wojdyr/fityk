@@ -6,7 +6,7 @@
 #include <wx/spinctrl.h>
 
 #include "gradient.h"
-#include "cmn.h" //SpinCtrl, change_color_dlg, add_apply_close_buttons
+#include "cmn.h" // change_color_dlg, add_apply_close_buttons
 #include "fityk/common.h" //iround()
 
 using namespace std;

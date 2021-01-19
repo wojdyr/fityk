@@ -99,12 +99,12 @@ wxChoice *addEnumSetting(wxWindow *parent, const wxString& label,
     return ctrl;
 }
 
-SpinCtrl* addSpinCtrl(wxWindow *parent, const wxString& label,
-                      int value, int min_v, int max_v, wxSizer *sizer,
-                      int indentation=0)
+wxSpinCtrl* addSpinCtrl(wxWindow *parent, const wxString& label,
+                        int value, int min_v, int max_v, wxSizer *sizer,
+                        int indentation=0)
 {
     wxStaticText *st = new wxStaticText(parent, -1, label);
-    SpinCtrl *spin = new SpinCtrl(parent, -1, value, min_v, max_v, 70);
+    wxSpinCtrl *spin = make_wxspinctrl(parent, -1, value, min_v, max_v, 70);
     wxBoxSizer *box = new wxBoxSizer(wxHORIZONTAL);
     if (indentation)
         box->AddSpacer(indentation);

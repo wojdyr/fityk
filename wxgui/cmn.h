@@ -131,16 +131,16 @@ private:
     void OnPaint(wxPaintEvent &event);
 };
 
-class SpinCtrl: public wxSpinCtrl
+inline wxSpinCtrl* make_wxspinctrl(wxWindow* parent, wxWindowID id, int val,
+                                   int min, int max, int width=50)
 {
-public:
-    SpinCtrl(wxWindow* parent, wxWindowID id, int val,
-             int min, int max, int width=50)
-        : wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
-                      wxDefaultPosition, wxSize(width, -1),
-                      wxSP_ARROW_KEYS, min, max, val)
-    {}
-};
+#ifdef __WXGTK3__
+    width += 30;
+#endif
+    return new wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
+                           wxDefaultPosition, wxSize(width, -1),
+                           wxSP_ARROW_KEYS, min, max, val);
+}
 
 /// wxTextCtrl which sends wxEVT_COMMAND_TEXT_ENTER when loses the focus
 class KFTextCtrl : public wxTextCtrl

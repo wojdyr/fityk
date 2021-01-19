@@ -1520,8 +1520,8 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
 
     gsizer->Add(new wxStaticText(this, -1, wxT("colors for datasets")), cr);
     wxBoxSizer *data_col_sizer = new wxBoxSizer(wxHORIZONTAL);
-    data_colors_sc_ = new SpinCtrl(this, -1, mp_->data_colors_.size(),
-                                   2, MainPlot::kMaxDataColors, /*width=*/60);
+    data_colors_sc_ = make_wxspinctrl(this, -1, mp_->data_colors_.size(),
+                                      2, MainPlot::kMaxDataColors, /*width*/60);
     data_col_sizer->Add(data_colors_sc_, cl);
     data_color_combo_ = new MultiColorCombo(this, &mp_->get_bg_color(),
                                             mp_->data_colors_);
@@ -1540,7 +1540,7 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
     model_cp_ = new wxColourPickerCtrl(this, -1, mp_->modelCol);
     model_sizer->Add(model_cp_, cl.Border(wxRIGHT));
     model_sizer->Add(new wxStaticText(this, -1, wxT("width:")), cl);
-    model_width_sc_ = new SpinCtrl(this, -1, mp_->model_line_width_, 1, 5);
+    model_width_sc_ = make_wxspinctrl(this, -1, mp_->model_line_width_, 1, 5);
     model_sizer->Add(model_width_sc_, cl);
     gsizer->Add(model_sizer, cl);
 
@@ -1632,13 +1632,13 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
     wxBoxSizer *xmt_sizer = new wxBoxSizer(wxHORIZONTAL);
     xmt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")),
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    x_max_tics_sc_ = new SpinCtrl(this, -1, mp_->x_max_tics, 1, 30);
+    x_max_tics_sc_ = make_wxspinctrl(this, -1, mp_->x_max_tics, 1, 30);
     xmt_sizer->Add(x_max_tics_sc_, 0, wxALL, 5);
     xsizer_t->Add(xmt_sizer);
     wxBoxSizer *xts_sizer = new wxBoxSizer(wxHORIZONTAL);
     xts_sizer->Add(new wxStaticText(this, -1, wxT("length of tics")),
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    x_tic_size_sc_ = new SpinCtrl(this, -1, mp_->x_tic_size, -10, 20);
+    x_tic_size_sc_ = make_wxspinctrl(this, -1, mp_->x_tic_size, -10, 20);
     xts_sizer->Add(x_tic_size_sc_, 0, wxALL, 5);
     xsizer_t->Add(xts_sizer);
     xsizer->Add(xsizer_t, 0, wxLEFT, 15);
@@ -1668,13 +1668,13 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
     wxBoxSizer *ymt_sizer = new wxBoxSizer(wxHORIZONTAL);
     ymt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")),
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    y_max_tics_sc_ = new SpinCtrl(this, -1, mp_->y_max_tics, 1, 30);
+    y_max_tics_sc_ = make_wxspinctrl(this, -1, mp_->y_max_tics, 1, 30);
     ymt_sizer->Add(y_max_tics_sc_, 0, wxALL, 5);
     ysizer_t->Add(ymt_sizer);
     wxBoxSizer *yts_sizer = new wxBoxSizer(wxHORIZONTAL);
     yts_sizer->Add(new wxStaticText(this, -1, wxT("length of tics")),
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    y_tic_size_sc_ = new SpinCtrl(this, -1, mp_->y_tic_size, -10, 20);
+    y_tic_size_sc_ = make_wxspinctrl(this, -1, mp_->y_tic_size, -10, 20);
     yts_sizer->Add(y_tic_size_sc_, 0, wxALL, 5);
     ysizer_t->Add(yts_sizer);
     ysizer->Add(ysizer_t, 0, wxLEFT, 15);

@@ -12,7 +12,7 @@
 #include "parpan.h"
 #include "listptxt.h"
 #include "gradient.h"
-#include "cmn.h" //SpinCtrl, ProportionalSplitter, change_color_dlg, ...
+#include "cmn.h" // ProportionalSplitter, change_color_dlg, ...
 #include "frame.h" //frame
 #include "plotpane.h"
 #include "mplot.h"
@@ -177,7 +177,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     data_spin_sizer->Add(new wxStaticBitmap(data_page, -1,
                                             wxBitmap(dpsize_xpm)),
                          0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-    dpsize_sc = new SpinCtrl(data_page, ID_DP_PSIZE, 1, 1, 9, 40);
+    dpsize_sc = make_wxspinctrl(data_page, ID_DP_PSIZE, 1, 1, 9, 40);
     dpsize_sc->SetToolTip(wxT("data point size"));
     data_spin_sizer->Add(dpsize_sc, 0);
     // line between points
@@ -193,7 +193,7 @@ SideBar::SideBar(wxWindow *parent, wxWindowID id)
     data_spin_sizer->Add(new wxStaticBitmap(data_page, -1,
                                             wxBitmap(shiftup_xpm)),
                          0, wxALIGN_CENTER_VERTICAL|wxLEFT, 5);
-    shiftup_sc = new SpinCtrl(data_page, ID_DP_SHIFTUP, 0, 0, 80, 50);
+    shiftup_sc = make_wxspinctrl(data_page, ID_DP_SHIFTUP, 0, 0, 80, 50);
     shiftup_sc->SetToolTip(wxT("shift up (in % of plot height)"));
     data_spin_sizer->Add(shiftup_sc, 0);
     data_sizer->Add(data_spin_sizer, 0, wxEXPAND);

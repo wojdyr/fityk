@@ -6,8 +6,8 @@
 #include <wx/imaglist.h>
 
 #include "listptxt.h"
-#include "cmn.h" //SpinCtrl, ProportionalSplitter
-#include "sidebar.h" //SideBar::delete_selected_items()
+#include "cmn.h" // ProportionalSplitter
+#include "sidebar.h" // SideBar::delete_selected_items()
 #include "frame.h" // frame->focus_input() and used in update_data_list()
 #include "mplot.h" // used in update_data_list()
 #include "fityk/common.h" // s2wx

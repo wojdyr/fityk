@@ -2021,11 +2021,11 @@ public:
         c.Border(wxBOTTOM);
 #endif
         sizer->Add(new wxStaticText(this, -1, "width:"), c);
-        w_spin = new SpinCtrl(this, -1, size.x, 0, 9999, 70);
+        w_spin = make_wxspinctrl(this, -1, size.x, 0, 9999, 70);
         sizer->Add(w_spin, c);
         sizer->AddSpacer(10);
         sizer->Add(new wxStaticText(this, -1, "height:"), c);
-        h_spin = new SpinCtrl(this, -1, size.y, 0, 9999, 70);
+        h_spin = make_wxspinctrl(this, -1, size.y, 0, 9999, 70);
         sizer->Add(h_spin, c);
         sizer->AddSpacer(10);
         aux_cb = new wxCheckBox(this, -1, "with auxiliary plots");
