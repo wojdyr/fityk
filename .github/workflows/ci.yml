@@ -1,0 +1,51 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  ubuntu2004:
+    name: "Ubuntu 20.04"
+    runs-on: ubuntu-20.04
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    steps:
+    - uses: actions/checkout@v2
+    - name: dependencies
+      run: |
+        sudo apt-get install g++ libz-dev libboost-dev libwxgtk3.0-gtk3-dev swig libxy-dev liblua5.3-dev
+        curl -LsS -o tests/catch.hpp https://github.com/philsquared/Catch/releases/download/v1.10.0/catch.hpp
+    - name: build
+      run: |
+        g++ --version
+        autoreconf -i
+        ./configure LUA=/usr/bin/lua5.3 LUA_INCLUDE=-I/usr/include/lua5.3 LUA_LIB=-llua5.3
+        make -j2
+        sudo make install
+    - name: test
+      run: |
+        make -j2 check
+        export LD_LIBRARY_PATH=/usr/local/lib
+        cfityk --version
+
+  clang35:
+    name: "Ubuntu 16.04, Clang 3.5"
+    runs-on: ubuntu-16.04
+    if: "!contains(github.event.head_commit.message, '[skip ci]')"
+    env:
+      CC: clang-3.5
+      CXX: clang++-3.5
+    steps:
+    - uses: actions/checkout@v2
+    - name: dependencies
+      run: |
+        sudo apt-get install clang-3.5 cmake libz-dev libxy-dev libboost-dev liblua5.2-dev
+    - name: build
+      run: |
+        $CXX --version
+        cmake --version
+        cmake .
+        make -j2
+        sudo make install
+    - name: test
+      run: |
+        export LD_LIBRARY_PATH=/usr/local/lib
+        cfityk --version
