@@ -1527,7 +1527,7 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
                                             mp_->data_colors_);
     data_color_combo_->SetSelection(0);
     data_col_sizer->Add(data_color_combo_, cl);
-    gsizer->Add(data_col_sizer, cr);
+    gsizer->Add(data_col_sizer, cl);
 
     gsizer->Add(new wxStaticText(this, -1, wxT("inactive data")), cr);
     inactive_cp_ = new wxColourPickerCtrl(this, -1, mp_->inactiveDataCol);
@@ -1550,18 +1550,39 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
     func_cp_ = new wxColourPickerCtrl(this, -1, mp_->peakCol[0]);
     gsizer->Add(func_cp_, cl);
 
+    gsizer->Add(new wxStaticText(this, -1, wxT("axes and tics")), cr);
+    wxBoxSizer *tics_sizer = new wxBoxSizer(wxHORIZONTAL);
+    axis_cp_ = new wxColourPickerCtrl(this, -1, mp_->xAxisCol);
+    tics_fp_ = new wxFontPickerCtrl(this, -1, mp_->ticsFont);
+    tics_sizer->Add(axis_cp_, cl);
+    tics_sizer->Add(tics_fp_, cl);
+    gsizer->Add(tics_sizer, cl);
+
+
+    desc_cb_ = new wxCheckBox(this, -1, wxT("plot description"));
+    desc_cb_->SetValue(mp_->desc_visible_);
+    gsizer->Add(desc_cb_, cr);
+
+    wxArrayString desc_choices;
+    desc_choices.Add("title");
+    desc_choices.Add("filename");
+    desc_choices.Add("fit");
+    desc_choices.Add("filename,fit");
+    desc_combo_ = new wxComboBox(this, -1, s2wx(mp_->desc_format_),
+                                 wxDefaultPosition, wxDefaultSize,
+                                 desc_choices);
+    desc_combo_->SetToolTip("Description (in the right top corner)\n"
+                            "is an output of the info command.\n"
+                            "You can give any info arguments here.");
+    gsizer->Add(desc_combo_, cl);
+
+    gsizer->AddSpacer(10);
+    gsizer->AddSpacer(10);
     labels_cb_ = new wxCheckBox(this, -1, wxT("function labels"));
     labels_cb_->SetValue(mp_->plabels_visible_);
-    gsizer->Add(labels_cb_, cr);
     label_fp_ = new wxFontPickerCtrl(this, -1, mp_->plabelFont);
-    gsizer->Add(label_fp_, cl);
-
-    gsizer->Add(new wxStaticText(this, -1, wxEmptyString), cr);
     vertical_labels_cb_ = new wxCheckBox(this, -1, wxT("vertical"));
     vertical_labels_cb_->SetValue(mp_->vertical_plabels_);
-    gsizer->Add(vertical_labels_cb_, cl);
-
-    gsizer->Add(new wxStaticText(this, -1, wxEmptyString), cr);
     wxArrayString label_choices;
     label_choices.Add(wxT("<area>"));
     label_choices.Add(wxT("<height>"));
@@ -1582,32 +1603,14 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
                              wxT("<ib>     integral breadth (area/FWHM)\n")
                              wxT("<name>   function's name\n")
                              wxT("<br>     line break\n"));
+
+    gsizer->Add(labels_cb_, cr);
     gsizer->Add(label_combo_, cl);
-
-    desc_cb_ = new wxCheckBox(this, -1, wxT("plot description"));
-    desc_cb_->SetValue(mp_->desc_visible_);
-    gsizer->Add(desc_cb_, cr);
-
-    wxArrayString desc_choices;
-    desc_choices.Add("title");
-    desc_choices.Add("filename");
-    desc_choices.Add("fit");
-    desc_choices.Add("filename,fit");
-    desc_combo_ = new wxComboBox(this, -1, s2wx(mp_->desc_format_),
-                                 wxDefaultPosition, wxDefaultSize,
-                                 desc_choices);
-    desc_combo_->SetToolTip("Description (in the right top corner)\n"
-                            "is an output of the info command.\n"
-                            "You can give any info arguments here.");
-    gsizer->Add(desc_combo_, cl);
-
-    gsizer->Add(new wxStaticText(this, -1, wxT("axis & tics color")), cr);
-    axis_cp_ = new wxColourPickerCtrl(this, -1, mp_->xAxisCol);
-    gsizer->Add(axis_cp_, cl);
-
-    gsizer->Add(new wxStaticText(this, -1, wxT("tic label font")), cr);
-    tics_fp_ = new wxFontPickerCtrl(this, -1, mp_->ticsFont);
-    gsizer->Add(tics_fp_, cl);
+    gsizer->AddSpacer(0);
+    wxBoxSizer* flabels_sizer = new wxBoxSizer(wxHORIZONTAL);
+    flabels_sizer->Add(label_fp_, cl);
+    flabels_sizer->Add(vertical_labels_cb_, cl);
+    gsizer->Add(flabels_sizer, cl);
 
     hor_sizer->Add(gsizer, wxSizerFlags().Border());
 
@@ -1629,19 +1632,13 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
     wxBoxSizer *xmt_sizer = new wxBoxSizer(wxHORIZONTAL);
     xmt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")),
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    x_max_tics_sc_ = new wxSpinCtrl(this, -1, wxT("7"),
-                                    wxDefaultPosition, wxSize(50, -1),
-                                    wxSP_ARROW_KEYS, 1, 30, 7);
-    x_max_tics_sc_->SetValue(mp_->x_max_tics);
+    x_max_tics_sc_ = new SpinCtrl(this, -1, mp_->x_max_tics, 1, 30);
     xmt_sizer->Add(x_max_tics_sc_, 0, wxALL, 5);
     xsizer_t->Add(xmt_sizer);
     wxBoxSizer *xts_sizer = new wxBoxSizer(wxHORIZONTAL);
     xts_sizer->Add(new wxStaticText(this, -1, wxT("length of tics")),
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    x_tic_size_sc_ = new wxSpinCtrl(this, -1, wxT("4"),
-                                    wxDefaultPosition, wxSize(50, -1),
-                                    wxSP_ARROW_KEYS, -10, 20, 4);
-    x_tic_size_sc_->SetValue(mp_->x_tic_size);
+    x_tic_size_sc_ = new SpinCtrl(this, -1, mp_->x_tic_size, -10, 20);
     xts_sizer->Add(x_tic_size_sc_, 0, wxALL, 5);
     xsizer_t->Add(xts_sizer);
     xsizer->Add(xsizer_t, 0, wxLEFT, 15);
@@ -1671,19 +1668,13 @@ MainPlotConfDlg::MainPlotConfDlg(MainPlot* mp)
     wxBoxSizer *ymt_sizer = new wxBoxSizer(wxHORIZONTAL);
     ymt_sizer->Add(new wxStaticText(this, -1, wxT("max. number of tics")),
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    y_max_tics_sc_ = new wxSpinCtrl(this, -1, wxT("7"),
-                                    wxDefaultPosition, wxSize(50, -1),
-                                    wxSP_ARROW_KEYS, 1, 30, 7);
-    y_max_tics_sc_->SetValue(mp_->y_max_tics);
+    y_max_tics_sc_ = new SpinCtrl(this, -1, mp_->y_max_tics, 1, 30);
     ymt_sizer->Add(y_max_tics_sc_, 0, wxALL, 5);
     ysizer_t->Add(ymt_sizer);
     wxBoxSizer *yts_sizer = new wxBoxSizer(wxHORIZONTAL);
     yts_sizer->Add(new wxStaticText(this, -1, wxT("length of tics")),
                   0, wxALL|wxALIGN_CENTRE_VERTICAL, 5);
-    y_tic_size_sc_ = new wxSpinCtrl(this, -1, wxT("4"),
-                                     wxDefaultPosition, wxSize(50, -1),
-                                     wxSP_ARROW_KEYS, 1, 20, 4);
-    y_tic_size_sc_->SetValue(mp_->y_tic_size);
+    y_tic_size_sc_ = new SpinCtrl(this, -1, mp_->y_tic_size, -10, 20);
     yts_sizer->Add(y_tic_size_sc_, 0, wxALL, 5);
     ysizer_t->Add(yts_sizer);
     ysizer->Add(ysizer_t, 0, wxLEFT, 15);
