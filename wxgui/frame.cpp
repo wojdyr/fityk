@@ -2473,7 +2473,7 @@ void FToolBar::OnToolEnter(wxCommandEvent& event)
     }
 }
 
-void FToolBar::OnLogYToggle(wxCommandEvent& event)
+void FToolBar::OnLogYToggle(wxCommandEvent&)
 {
     const bool log_x = frame->get_main_plot()->get_x_scale().logarithm;
     const bool log_y = frame->get_main_plot()->get_y_scale().logarithm;
