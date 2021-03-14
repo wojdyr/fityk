@@ -32,30 +32,34 @@ InputLine::InputLine(wxWindow *parent, wxWindowID id,
     : wxPanel(parent, id), m_hpos(0), m_observer(observer),
       hist_file(hist_file_)
 {
+    wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     m_text = new wxTextCtrl(this, wxID_ANY, wxT(""),
                        wxDefaultPosition, wxDefaultSize,
                        wxWANTS_CHARS|wxTE_PROCESS_ENTER /*|wxTE_PROCESS_TAB*/);
+    sizer->Add(m_text, 1, wxEXPAND);
+    // wxGTK3 has [+][-] instead of the up/down spin buttons.
+    // Better to not have it at all.
+#ifndef __WXGTK3__
     m_button = new wxSpinButton(this, wxID_ANY,
                                 wxDefaultPosition, wxDefaultSize,
                                 wxSP_VERTICAL|wxSP_ARROW_KEYS|wxNO_BORDER);
     m_button->SetRange(0, 0);
     m_button->SetValue(0);
-    wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-    sizer->Add(m_text, 1, wxEXPAND);
     sizer->Add(m_button, 0, wxEXPAND);
-    SetSizer(sizer);
-    SetMinSize(wxSize(-1, m_text->GetBestSize().y));
 #if !wxCHECK_VERSION(2, 9, 0)
 # define wxEVT_SPIN wxEVT_SCROLL_THUMBTRACK
 #endif
     m_button->Connect(wxEVT_SPIN, wxSpinEventHandler(InputLine::OnSpinButton),
                       NULL, this);
-    m_text->Connect(wxEVT_KEY_DOWN,
-                    wxKeyEventHandler(InputLine::OnKeyDownAtText),
-                    NULL, this);
     m_button->Connect(wxEVT_KEY_DOWN,
                       wxKeyEventHandler(InputLine::OnKeyDownAtSpinButton),
                       NULL, this);
+#endif // not __WXGTK3__
+    m_text->Connect(wxEVT_KEY_DOWN,
+                    wxKeyEventHandler(InputLine::OnKeyDownAtText),
+                    NULL, this);
+    SetSizer(sizer);
+    SetMinSize(wxSize(-1, m_text->GetBestSize().y));
     // read history
     if (!hist_file.IsEmpty()) {
         FFile f(hist_file, "r");
@@ -110,7 +114,9 @@ void InputLine::HistoryMove(int n, bool relative)
 
     m_hpos = new_pos;
     m_text->SetValue(m_history[new_pos]);
+#ifndef __WXGTK3__
     m_button->SetValue(m_history.GetCount() - 1 - new_pos);
+#endif // not __WXGTK3__
     m_text->SetFocus();
     m_text->SetInsertionPointEnd();
 }
@@ -135,8 +141,10 @@ void InputLine::GoToHistoryEnd()
     if (m_history.GetCount() > hist_size + hist_chunk)
         m_history.RemoveAt(0, m_history.GetCount() - hist_size);
     m_hpos = m_history.GetCount() - 1;
+#ifndef __WXGTK3__
     m_button->SetRange(0, m_hpos);
     m_button->SetValue(0);
+#endif // not __WXGTK3__
 }
 
 void InputLine::OnKeyDownAtText (wxKeyEvent& event)

@@ -27,7 +27,9 @@ public:
     void SetValue(const wxString& value) { m_text->SetValue(value); }
 protected:
     wxTextCtrl *m_text;
+#ifndef __WXGTK3__
     wxSpinButton *m_button;
+#endif
     wxArrayString m_history;
     int m_hpos; // current item in m_history
     InputLineObserver* m_observer;
