@@ -135,7 +135,7 @@ inline wxSpinCtrl* make_wxspinctrl(wxWindow* parent, wxWindowID id, int val,
                                    int min, int max, int width=50)
 {
 #ifdef __WXGTK3__
-    width += 30;
+    width = std::max(width, 50) + 30;
 #endif
     return new wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
                            wxDefaultPosition, wxSize(width, -1),

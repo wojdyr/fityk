@@ -43,7 +43,7 @@ jobs:
         $CXX --version
         cmake --version
         cmake . -DDOWNLOAD_XYLIB=OFF -DDOWNLOAD_LUA=OFF -DDOWNLOAD_ZLIB=OFF
-        make
+        make VERBOSE=1
         sudo make install
     - name: test
       run: |

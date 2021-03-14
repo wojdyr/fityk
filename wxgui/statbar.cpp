@@ -256,7 +256,7 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
 
     gsizer->Add(new wxStaticText(this, -1,wxT("precision")),
                 wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL|wxALIGN_RIGHT));
-    e_prec_sc = make_wxspinctrl(this, -1, sb->e_prec, 0, 9, 40);
+    e_prec_sc = make_wxspinctrl(this, -1, sb->e_prec, 0, 9);
     gsizer->Add(e_prec_sc, wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL));
 
     f_sizer->Add(gsizer, wxSizerFlags(1).Expand().Border());
