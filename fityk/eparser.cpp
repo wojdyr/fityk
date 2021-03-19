@@ -79,6 +79,7 @@ const char* function_name(int op)
         case OP_DT_SUM_SAME_X: return "sum_same_x";
         case OP_DT_AVG_SAME_X: return "avg_same_x";
         case OP_DT_SHIRLEY_BG: return "shirley_bg";
+        case OP_DT_SNIP_BG: return "snip_bg";
         // 2-args functions
         case OP_MOD: return "mod";
         case OP_MIN2: return "min2";
@@ -138,6 +139,8 @@ int get_function_narg(int op)
         case OP_RANDNORM:
         case OP_RANDU:
             return 2;
+        case OP_DT_SNIP_BG:
+            return 5;
         // Fityk functions
         case OP_FUNC:
         case OP_SUM_F:
@@ -819,6 +822,8 @@ void ExpressionParser::parse_expr(Lexer& lex, int default_ds,
                         put_function(OP_DT_AVG_SAME_X);
                     else if (mode == kDatasetTrMode && word == "shirley_bg")
                         put_function(OP_DT_SHIRLEY_BG);
+                    else if (mode == kDatasetTrMode && word == "snip_bg")
+                        put_function(OP_DT_SNIP_BG);
 
                     else
                         lex.throw_syntax_error("unknown function: " + word);

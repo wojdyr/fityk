@@ -6,6 +6,8 @@
 #include "transform.h"
 #include "logic.h"
 #include "data.h"
+#include "root/background.hpp"
+#include <stdio.h>
 
 using namespace std;
 
@@ -93,6 +95,94 @@ void shirley_bg(vector<Point> &pp)
     }
     for (int i = 0; i < n; ++i)
         pp[i].y = B[i];
+}
+
+template<class T>
+struct vector_slice {
+    typename vector<T>::iterator begin;
+    typename vector<T>::iterator end;
+};
+
+// Determines the first active slice of the data points.
+// It reads from the vector slice determined by the given
+// iterators.
+// It returns the iterators to the begin of the active
+// slice (first active datapoint) and to the end of the
+// slice (datapoint *after* the last active one).
+struct vector_slice<Point> first_active_slice(const vector<Point> &pp,
+                                              vector<Point>::iterator begin,
+                                              vector<Point>::iterator end)
+{
+    vector<Point>::iterator active_start = begin;
+
+    for (vector<Point>::iterator it = begin; it != end; it++) {
+        if (it->is_active) {
+            active_start = it;
+            break;
+        } else {
+            active_start += 1;
+        }
+    }
+
+    vector<Point>::iterator active_end = active_start;
+
+    for (vector<Point>::iterator it = active_start; it != end; it++) {
+        if (it->is_active) {
+            active_end = it + 1;
+        } else {
+            break;
+        }
+    }
+
+    return {active_start, active_end};
+}
+
+// Calculates the SNIP background iteratively in the
+// given slice of the vector of points.
+// The active points are modified in-place, inactive
+// points are left as they are, assuming that they
+// are already considered background.
+void snip_bg_slice(vector<Point> &pp,
+                   vector<Point>::iterator begin,
+                   vector<Point>::iterator end,
+                   int window_width,
+                   int direction,
+                   int filter_order,
+                   bool smoothing,
+                   bool smooth_window,
+                   bool estimate_compton)
+{
+    vector_slice<Point> slice = first_active_slice(pp, begin, end);
+        
+    if (slice.begin == slice.end) {
+        return;
+    } else {
+        vector<Point> bg_input(slice.begin, slice.end);
+
+        vector<Point> bg_output = ROOT::background(bg_input,
+                                                   window_width,
+                                                   direction,
+                                                   filter_order,
+                                                   smoothing,
+                                                   smooth_window,
+                                                   estimate_compton);
+
+        if (bg_output.size() == bg_input.size()) {
+            for (vector<Point>::iterator it = slice.begin; it != slice.end; it++) {
+                const unsigned int index = it - slice.begin;
+
+                it->y = bg_output[index].y;
+            }
+        }
+        
+        snip_bg_slice(pp, slice.end, pp.end(),
+                      window_width,
+                      direction,
+                      filter_order,
+                      smoothing,
+                      smooth_window,
+                      estimate_compton);
+    }
 }
 
 } // anonymous namespace
@@ -200,6 +290,31 @@ void run_data_transform(const DataKeeper& dk, const VMData& vm, Data* data_out)
                 if (stackPtr->is_num)
                     throw ExecuteError(op2str(*i) + " is defined only for @n");
                 shirley_bg(stackPtr->points);
+                break;
+
+            case OP_DT_SNIP_BG:
+                stackPtr -= 4;
+
+                if ((stackPtr)->is_num) {
+                    throw ExecuteError(op2str(*i) + " is defined only for @n");
+                } else {
+                    const int window_width = (stackPtr+1)->num;
+                    const int direction = (stackPtr+2)->num >= 0 ? ROOT::kBackIncreasingWindow : ROOT::kBackDecreasingWindow;
+                    const int filter_order = (stackPtr+3)->num;
+                    const bool smoothing = false;
+                    const int smooth_window = ROOT::kBackSmoothing3;
+                    const bool estimate_compton = (stackPtr+4)->num > 0 ? true : false;
+
+                    snip_bg_slice(stackPtr->points,
+                                  stackPtr->points.begin(),
+                                  stackPtr->points.end(),
+                                  window_width,
+                                  direction,
+                                  filter_order,
+                                  smoothing,
+                                  smooth_window,
+                                  estimate_compton);
+                }
                 break;
 
             case OP_AND:

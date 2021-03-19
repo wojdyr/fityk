@@ -109,7 +109,7 @@ string op2str(int op)
         OP_(FUNC) OP_(SUM_F) OP_(SUM_Z)
         OP_(NUMAREA) OP_(FINDX) OP_(FIND_EXTR)
         OP_(TILDE)
-        OP_(DATASET) OP_(DT_SUM_SAME_X) OP_(DT_AVG_SAME_X) OP_(DT_SHIRLEY_BG)
+        OP_(DATASET) OP_(DT_SUM_SAME_X) OP_(DT_AVG_SAME_X) OP_(DT_SHIRLEY_BG) OP_(DT_SNIP_BG)
         OP_(OPEN_ROUND)  OP_(OPEN_SQUARE)
     }
     return S(op); // unreachable (if all OPs are listed above)
