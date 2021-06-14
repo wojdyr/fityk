@@ -197,7 +197,7 @@ int Function::get_param_nr(const string& param) const
     return n;
 }
 
-realt Function::get_param_value(const string& param) const  throw(ExecuteError)
+realt Function::get_param_value(const string& param) const
 {
     realt a;
     if (!param.empty() && islower(param[0]))
