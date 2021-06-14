@@ -120,10 +120,8 @@ public:
 
     virtual const std::string& get_template_name() const = 0;
     virtual std::string get_param(int n) const = 0;
-    virtual const std::string& var_name(const std::string& param) const
-                                                    throw(ExecuteError) = 0;
-    virtual realt get_param_value(const std::string& param) const
-                                                    throw(ExecuteError) = 0;
+    virtual const std::string& var_name(const std::string& param) const = 0;
+    virtual realt get_param_value(const std::string& param) const = 0;
     virtual realt value_at(realt x) const = 0;
 protected:
     Func(const std::string name_) : name(name_) {}
@@ -179,26 +177,23 @@ public:
     // @{
 
     /// execute command; throws exception on error
-    void execute(std::string const& s) throw(SyntaxError, ExecuteError,
-                                             ExitRequestedException);
+    void execute(std::string const& s);
 
 
     /// load data from file (path should be ascii or utf8, col=0 is index)
-    void load(LoadSpec const& spec, int dataset=DEFAULT_DATASET)
-                  throw(ExecuteError);
+    void load(LoadSpec const& spec, int dataset=DEFAULT_DATASET);
     void load(std::string const& path, int dataset=DEFAULT_DATASET)
-      throw(ExecuteError) { load(LoadSpec(path), dataset); }
+      { load(LoadSpec(path), dataset); }
 
     /// load data from arrays
     void load_data(int dataset,
                    std::vector<realt> const& x,
                    std::vector<realt> const& y,
                    std::vector<realt> const& sigma,
-                   std::string const& title="")  throw(ExecuteError);
+                   std::string const& title="");
 
     /// add one data point to dataset
-    void add_point(realt x, realt y, realt sigma, int dataset=DEFAULT_DATASET)
-                                                     throw(ExecuteError);
+    void add_point(realt x, realt y, realt sigma, int dataset=DEFAULT_DATASET);
 
     // @}
 
@@ -222,14 +217,10 @@ public:
 
     /// @name settings
     // @{
-    void set_option_as_string(const std::string& opt, const std::string& val)
-                                                         throw(ExecuteError);
-    void set_option_as_number(const std::string& opt, double val)
-                                                         throw(ExecuteError);
-    std::string get_option_as_string(const std::string& opt) const
-                                                         throw(ExecuteError);
-    double get_option_as_number(const std::string& opt) const
-                                                         throw(ExecuteError);
+    void set_option_as_string(const std::string& opt, const std::string& val);
+    void set_option_as_number(const std::string& opt, double val);
+    std::string get_option_as_string(const std::string& opt) const;
+    double get_option_as_number(const std::string& opt) const;
     // @}
 
     /// @name input/output
@@ -255,12 +246,10 @@ public:
     // @{
 
     /// return output of the info command
-    std::string get_info(std::string const& s, int dataset=DEFAULT_DATASET)
-                                            throw(SyntaxError, ExecuteError);
+    std::string get_info(std::string const& s, int dataset=DEFAULT_DATASET);
 
     /// return expression value, similarly to the print command
-    realt calculate_expr(std::string const& s, int dataset=DEFAULT_DATASET)
-                                            throw(SyntaxError, ExecuteError);
+    realt calculate_expr(std::string const& s, int dataset=DEFAULT_DATASET);
 
     //(planned)
     /// returns dataset titles
@@ -275,8 +264,7 @@ public:
     int get_default_dataset() const;
 
     /// get data points
-    std::vector<Point> const& get_data(int dataset=DEFAULT_DATASET)
-                                                         throw(ExecuteError);
+    std::vector<Point> const& get_data(int dataset=DEFAULT_DATASET);
 
     /// returns number of simple-variables (parameters that can be fitted)
     int get_parameter_count() const;
@@ -288,7 +276,7 @@ public:
     std::vector<Var*> all_variables() const;
 
     /// returns variable $name
-    const Var* get_variable(std::string const& name) const throw(ExecuteError);
+    const Var* get_variable(std::string const& name) const;
 
     /// returns all %functions
     std::vector<Func*> all_functions() const;
@@ -297,17 +285,14 @@ public:
     const Func* get_function(const std::string& name) const;
 
     /// returns %functions used in dataset
-    std::vector<Func*> get_components(int dataset=DEFAULT_DATASET, char fz='F')
-                                                         throw(ExecuteError);
+    std::vector<Func*> get_components(int dataset=DEFAULT_DATASET, char fz='F');
 
     /// returns the value of the model for a given dataset at x
-    realt get_model_value(realt x, int dataset=DEFAULT_DATASET) const
-                                                         throw(ExecuteError);
+    realt get_model_value(realt x, int dataset=DEFAULT_DATASET) const;
 
     /// multiple point version of the get_model_value()
     std::vector<realt>
-    get_model_vector(std::vector<realt> const& x, int dataset=DEFAULT_DATASET)
-                                                         throw(ExecuteError);
+    get_model_vector(std::vector<realt> const& x, int dataset=DEFAULT_DATASET);
 
     /// get coordinates of rectangle set by the plot command
     /// side is one of L(eft), R(ight), T(op), B(ottom)
@@ -319,20 +304,20 @@ public:
     // @{
 
     /// get WSSR for given dataset or for all datasets
-    realt get_wssr(int dataset=ALL_DATASETS)  throw(ExecuteError);
+    realt get_wssr(int dataset=ALL_DATASETS);
 
     /// get SSR for given dataset or for all datasets
-    realt get_ssr(int dataset=ALL_DATASETS)  throw(ExecuteError);
+    realt get_ssr(int dataset=ALL_DATASETS);
 
     /// get R-squared for given dataset or for all datasets
-    realt get_rsquared(int dataset=ALL_DATASETS)  throw(ExecuteError);
+    realt get_rsquared(int dataset=ALL_DATASETS);
 
     /// get number of degrees-of-freedom for given dataset or for all datasets
-    int get_dof(int dataset=ALL_DATASETS)  throw(ExecuteError);
+    int get_dof(int dataset=ALL_DATASETS);
 
     /// get covariance matrix (for given dataset or for all datasets)
     std::vector<std::vector<realt> >
-    get_covariance_matrix(int dataset=ALL_DATASETS)  throw(ExecuteError);
+    get_covariance_matrix(int dataset=ALL_DATASETS);
     // @}
 
     /// UiApi contains functions used by CLI and may be used to implement

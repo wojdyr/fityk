@@ -89,8 +89,7 @@ public:
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wdeprecated"
 #endif
-    virtual realt get_param_value(const std::string& param) const
-                            throw(ExecuteError); // exc. spec. is used by SWIG
+    virtual realt get_param_value(const std::string& param) const;
 
     realt numarea(realt x1, realt x2, int nsteps) const;
 
@@ -104,7 +103,6 @@ public:
     // implementation of members of Func
     virtual const std::string& get_template_name() const { return tp_->name; }
     virtual const std::string& var_name(const std::string& param) const
-                        throw(ExecuteError) // exc. spec. is used by SWIG
                         { return used_vars_.get_name(get_param_nr(param)); }
 #if defined(__clang__)
 #pragma clang diagnostic pop
