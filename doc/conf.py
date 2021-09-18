@@ -39,8 +39,6 @@ html_theme_options = {
     'website': 'http://fityk.nieto.pl/',
     'wiki': 'https://github.com/wojdyr/fityk/wiki',
 }
-if os.getenv('BUILD_WEBSITE'):
-    html_theme_options['analytics_id'] = 'UA-20519098-2'
 html_sidebars = { 'index': [], 'screens': [], '**': ['side.html'] }
 html_title = 'Fityk %s manual' % version
 html_short_title = 'Manual'
