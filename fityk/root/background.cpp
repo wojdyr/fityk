@@ -15,6 +15,7 @@
 #include <cmath>
 #include <vector>
 
+#include "fityk.h"
 #include "background.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -441,7 +442,7 @@
 /// }
 /// ~~~
 
-std::vector<double> background::background(std::vector<double> spectrum,
+std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spectrum,
                                            int numberIterations,
                                            int direction,
                                            int filterOrder,
@@ -455,18 +456,21 @@ std::vector<double> background::background(std::vector<double> spectrum,
     const unsigned int ssize = spectrum.size();
 
     if (ssize <= 0)
-        throw "Wrong Parameters";
+        throw fityk::ExecuteError("Wrong vector size");
 
     if (numberIterations < 1)
-        throw "Width of Clipping Window Must Be Positive";
+        throw fityk::ExecuteError("Width of Clipping Window Must Be Positive");
 
     if (ssize < 2 * numberIterations + 1)
-        throw "Too Large Clipping Window";
+        throw fityk::ExecuteError("Too Large Clipping Window");
+
+    if (filterOrder != kBackOrder2 && filterOrder != kBackOrder4 && filterOrder != kBackOrder6 && filterOrder != kBackOrder8)
+        throw fityk::ExecuteError("Incorrect order of clipping filter, possible values are: 2, 4, 6 or 8");
 
     if (smoothing == true && smoothWindow != kBackSmoothing3 && smoothWindow != kBackSmoothing5 && smoothWindow != kBackSmoothing7 && smoothWindow != kBackSmoothing9 && smoothWindow != kBackSmoothing11 && smoothWindow != kBackSmoothing13 && smoothWindow != kBackSmoothing15)
-        throw "Incorrect width of smoothing window";
+        throw fityk::ExecuteError("Incorrect width of smoothing window");
 
-   std::vector<double> working_space(2 * ssize);
+   std::vector<fityk::Point> working_space(2 * ssize);
 
    for (i = 0; i < ssize; i++)
     {
@@ -485,20 +489,20 @@ std::vector<double> background::background(std::vector<double> spectrum,
       do{
          for (j = i; j < ssize - i; j++) {
             if (smoothing == false){
-               a = working_space[ssize + j];
-               b = (working_space[ssize + j - i] + working_space[ssize + j + i]) / 2.0;
+               a = working_space[ssize + j].y;
+               b = (working_space[ssize + j - i].y + working_space[ssize + j + i].y) / 2.0;
                if (b < a)
                   a = b;
-               working_space[j] = a;
+               working_space[j].y = a;
             }
 
             else if (smoothing == true){
-               a = working_space[ssize + j];
+               a = working_space[ssize + j].y;
                av = 0;
                men = 0;
                for (w = j - bw; w <= j + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     av += working_space[ssize + w];
+                     av += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -507,7 +511,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                men = 0;
                for (w = j - i - bw; w <= j - i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     b += working_space[ssize + w];
+                     b += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -516,7 +520,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                men = 0;
                for (w = j + i - bw; w <= j + i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     c += working_space[ssize + w];
+                     c += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -524,11 +528,11 @@ std::vector<double> background::background(std::vector<double> spectrum,
                b = (b + c) / 2;
                if (b < a)
                   av = b;
-               working_space[j]=av;
+               working_space[j].y=av;
             }
          }
          for (j = i; j < ssize - i; j++)
-            working_space[ssize + j] = working_space[j];
+            working_space[ssize + j].y = working_space[j].y;
          if (direction == kBackIncreasingWindow)
             i+=1;
          else if(direction == kBackDecreasingWindow)
@@ -540,28 +544,28 @@ std::vector<double> background::background(std::vector<double> spectrum,
       do{
          for (j = i; j < ssize - i; j++) {
             if (smoothing == false){
-               a = working_space[ssize + j];
-               b = (working_space[ssize + j - i] + working_space[ssize + j + i]) / 2.0;
+               a = working_space[ssize + j].y;
+               b = (working_space[ssize + j - i].y + working_space[ssize + j + i].y) / 2.0;
                c = 0;
                ai = i / 2;
-               c -= working_space[ssize + j - (int) (2 * ai)] / 6;
-               c += 4 * working_space[ssize + j - (int) ai] / 6;
-               c += 4 * working_space[ssize + j + (int) ai] / 6;
-               c -= working_space[ssize + j + (int) (2 * ai)] / 6;
+               c -= working_space[ssize + j - (int) (2 * ai)].y / 6;
+               c += 4 * working_space[ssize + j - (int) ai].y / 6;
+               c += 4 * working_space[ssize + j + (int) ai].y / 6;
+               c -= working_space[ssize + j + (int) (2 * ai)].y / 6;
                if (b < c)
                   b = c;
                if (b < a)
                   a = b;
-               working_space[j] = a;
+               working_space[j].y = a;
             }
 
             else if (smoothing == true){
-               a = working_space[ssize + j];
+               a = working_space[ssize + j].y;
                av = 0;
                men = 0;
                for (w = j - bw; w <= j + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     av += working_space[ssize + w];
+                     av += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -570,7 +574,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                men = 0;
                for (w = j - i - bw; w <= j - i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     b += working_space[ssize + w];
+                     b += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -579,7 +583,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                men = 0;
                for (w = j + i - bw; w <= j + i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     c += working_space[ssize + w];
+                     c += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -589,7 +593,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                b4 = 0, men = 0;
                for (w = j - (int)(2 * ai) - bw; w <= j - (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     b4 += working_space[ssize + w];
+                     b4 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -597,7 +601,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                c4 = 0, men = 0;
                for (w = j - (int)ai - bw; w <= j - (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     c4 += working_space[ssize + w];
+                     c4 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -605,7 +609,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                d4 = 0, men = 0;
                for (w = j + (int)ai - bw; w <= j + (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     d4 += working_space[ssize + w];
+                     d4 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -613,7 +617,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                e4 = 0, men = 0;
                for (w = j + (int)(2 * ai) - bw; w <= j + (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     e4 += working_space[ssize + w];
+                     e4 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -623,11 +627,11 @@ std::vector<double> background::background(std::vector<double> spectrum,
                   b = b4;
                if (b < a)
                   av = b;
-               working_space[j]=av;
+               working_space[j].y=av;
             }
          }
          for (j = i; j < ssize - i; j++)
-            working_space[ssize + j] = working_space[j];
+            working_space[ssize + j].y = working_space[j].y;
          if (direction == kBackIncreasingWindow)
             i+=1;
          else if(direction == kBackDecreasingWindow)
@@ -639,38 +643,38 @@ std::vector<double> background::background(std::vector<double> spectrum,
       do{
          for (j = i; j < ssize - i; j++) {
             if (smoothing == false){
-               a = working_space[ssize + j];
-               b = (working_space[ssize + j - i] + working_space[ssize + j + i]) / 2.0;
+               a = working_space[ssize + j].y;
+               b = (working_space[ssize + j - i].y + working_space[ssize + j + i].y) / 2.0;
                c = 0;
                ai = i / 2;
-               c -= working_space[ssize + j - (int) (2 * ai)] / 6;
-               c += 4 * working_space[ssize + j - (int) ai] / 6;
-               c += 4 * working_space[ssize + j + (int) ai] / 6;
-               c -= working_space[ssize + j + (int) (2 * ai)] / 6;
+               c -= working_space[ssize + j - (int) (2 * ai)].y / 6;
+               c += 4 * working_space[ssize + j - (int) ai].y / 6;
+               c += 4 * working_space[ssize + j + (int) ai].y / 6;
+               c -= working_space[ssize + j + (int) (2 * ai)].y / 6;
                d = 0;
                ai = i / 3;
-               d += working_space[ssize + j - (int) (3 * ai)] / 20;
-               d -= 6 * working_space[ssize + j - (int) (2 * ai)] / 20;
-               d += 15 * working_space[ssize + j - (int) ai] / 20;
-               d += 15 * working_space[ssize + j + (int) ai] / 20;
-               d -= 6 * working_space[ssize + j + (int) (2 * ai)] / 20;
-               d += working_space[ssize + j + (int) (3 * ai)] / 20;
+               d += working_space[ssize + j - (int) (3 * ai)].y / 20;
+               d -= 6 * working_space[ssize + j - (int) (2 * ai)].y / 20;
+               d += 15 * working_space[ssize + j - (int) ai].y / 20;
+               d += 15 * working_space[ssize + j + (int) ai].y / 20;
+               d -= 6 * working_space[ssize + j + (int) (2 * ai)].y / 20;
+               d += working_space[ssize + j + (int) (3 * ai)].y / 20;
                if (b < d)
                   b = d;
                if (b < c)
                   b = c;
                if (b < a)
                   a = b;
-               working_space[j] = a;
+               working_space[j].y = a;
             }
 
             else if (smoothing == true){
-               a = working_space[ssize + j];
+               a = working_space[ssize + j].y;
                av = 0;
                men = 0;
                for (w = j - bw; w <= j + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     av += working_space[ssize + w];
+                     av += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -679,7 +683,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                men = 0;
                for (w = j - i - bw; w <= j - i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     b += working_space[ssize + w];
+                     b += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -688,7 +692,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                men = 0;
                for (w = j + i - bw; w <= j + i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     c += working_space[ssize + w];
+                     c += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -698,7 +702,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                b4 = 0, men = 0;
                for (w = j - (int)(2 * ai) - bw; w <= j - (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     b4 += working_space[ssize + w];
+                     b4 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -706,7 +710,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                c4 = 0, men = 0;
                for (w = j - (int)ai - bw; w <= j - (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     c4 += working_space[ssize + w];
+                     c4 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -714,7 +718,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                d4 = 0, men = 0;
                for (w = j + (int)ai - bw; w <= j + (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     d4 += working_space[ssize + w];
+                     d4 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -722,7 +726,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                e4 = 0, men = 0;
                for (w = j + (int)(2 * ai) - bw; w <= j + (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     e4 += working_space[ssize + w];
+                     e4 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -732,7 +736,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                b6 = 0, men = 0;
                for (w = j - (int)(3 * ai) - bw; w <= j - (int)(3 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     b6 += working_space[ssize + w];
+                     b6 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -740,7 +744,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                c6 = 0, men = 0;
                for (w = j - (int)(2 * ai) - bw; w <= j - (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     c6 += working_space[ssize + w];
+                     c6 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -748,7 +752,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                d6 = 0, men = 0;
                for (w = j - (int)ai - bw; w <= j - (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     d6 += working_space[ssize + w];
+                     d6 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -756,7 +760,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                e6 = 0, men = 0;
                for (w = j + (int)ai - bw; w <= j + (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     e6 += working_space[ssize + w];
+                     e6 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -764,7 +768,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                f6 = 0, men = 0;
                for (w = j + (int)(2 * ai) - bw; w <= j + (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     f6 += working_space[ssize + w];
+                     f6 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -772,7 +776,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                g6 = 0, men = 0;
                for (w = j + (int)(3 * ai) - bw; w <= j + (int)(3 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     g6 += working_space[ssize + w];
+                     g6 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -784,11 +788,11 @@ std::vector<double> background::background(std::vector<double> spectrum,
                   b = b4;
                if (b < a)
                   av = b;
-               working_space[j]=av;
+               working_space[j].y=av;
             }
          }
          for (j = i; j < ssize - i; j++)
-            working_space[ssize + j] = working_space[j];
+            working_space[ssize + j].y = working_space[j].y;
          if (direction == kBackIncreasingWindow)
             i+=1;
          else if(direction == kBackDecreasingWindow)
@@ -800,32 +804,32 @@ std::vector<double> background::background(std::vector<double> spectrum,
       do{
          for (j = i; j < ssize - i; j++) {
             if (smoothing == false){
-               a = working_space[ssize + j];
-               b = (working_space[ssize + j - i] + working_space[ssize + j + i]) / 2.0;
+               a = working_space[ssize + j].y;
+               b = (working_space[ssize + j - i].y + working_space[ssize + j + i].y) / 2.0;
                c = 0;
                ai = i / 2;
-               c -= working_space[ssize + j - (int) (2 * ai)] / 6;
-               c += 4 * working_space[ssize + j - (int) ai] / 6;
-               c += 4 * working_space[ssize + j + (int) ai] / 6;
-               c -= working_space[ssize + j + (int) (2 * ai)] / 6;
+               c -= working_space[ssize + j - (int) (2 * ai)].y / 6;
+               c += 4 * working_space[ssize + j - (int) ai].y / 6;
+               c += 4 * working_space[ssize + j + (int) ai].y / 6;
+               c -= working_space[ssize + j + (int) (2 * ai)].y / 6;
                d = 0;
                ai = i / 3;
-               d += working_space[ssize + j - (int) (3 * ai)] / 20;
-               d -= 6 * working_space[ssize + j - (int) (2 * ai)] / 20;
-               d += 15 * working_space[ssize + j - (int) ai] / 20;
-               d += 15 * working_space[ssize + j + (int) ai] / 20;
-               d -= 6 * working_space[ssize + j + (int) (2 * ai)] / 20;
-               d += working_space[ssize + j + (int) (3 * ai)] / 20;
+               d += working_space[ssize + j - (int) (3 * ai)].y / 20;
+               d -= 6 * working_space[ssize + j - (int) (2 * ai)].y / 20;
+               d += 15 * working_space[ssize + j - (int) ai].y / 20;
+               d += 15 * working_space[ssize + j + (int) ai].y / 20;
+               d -= 6 * working_space[ssize + j + (int) (2 * ai)].y / 20;
+               d += working_space[ssize + j + (int) (3 * ai)].y / 20;
                e = 0;
                ai = i / 4;
-               e -= working_space[ssize + j - (int) (4 * ai)] / 70;
-               e += 8 * working_space[ssize + j - (int) (3 * ai)] / 70;
-               e -= 28 * working_space[ssize + j - (int) (2 * ai)] / 70;
-               e += 56 * working_space[ssize + j - (int) ai] / 70;
-               e += 56 * working_space[ssize + j + (int) ai] / 70;
-               e -= 28 * working_space[ssize + j + (int) (2 * ai)] / 70;
-               e += 8 * working_space[ssize + j + (int) (3 * ai)] / 70;
-               e -= working_space[ssize + j + (int) (4 * ai)] / 70;
+               e -= working_space[ssize + j - (int) (4 * ai)].y / 70;
+               e += 8 * working_space[ssize + j - (int) (3 * ai)].y / 70;
+               e -= 28 * working_space[ssize + j - (int) (2 * ai)].y / 70;
+               e += 56 * working_space[ssize + j - (int) ai].y / 70;
+               e += 56 * working_space[ssize + j + (int) ai].y / 70;
+               e -= 28 * working_space[ssize + j + (int) (2 * ai)].y / 70;
+               e += 8 * working_space[ssize + j + (int) (3 * ai)].y / 70;
+               e -= working_space[ssize + j + (int) (4 * ai)].y / 70;
                if (b < e)
                   b = e;
                if (b < d)
@@ -834,16 +838,16 @@ std::vector<double> background::background(std::vector<double> spectrum,
                   b = c;
                if (b < a)
                   a = b;
-               working_space[j] = a;
+               working_space[j].y = a;
             }
 
             else if (smoothing == true){
-               a = working_space[ssize + j];
+               a = working_space[ssize + j].y;
                av = 0;
                men = 0;
                for (w = j - bw; w <= j + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     av += working_space[ssize + w];
+                     av += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -852,7 +856,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                men = 0;
                for (w = j - i - bw; w <= j - i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     b += working_space[ssize + w];
+                     b += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -861,7 +865,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                men = 0;
                for (w = j + i - bw; w <= j + i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     c += working_space[ssize + w];
+                     c += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -871,7 +875,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                b4 = 0, men = 0;
                for (w = j - (int)(2 * ai) - bw; w <= j - (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     b4 += working_space[ssize + w];
+                     b4 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -879,7 +883,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                c4 = 0, men = 0;
                for (w = j - (int)ai - bw; w <= j - (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     c4 += working_space[ssize + w];
+                     c4 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -887,7 +891,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                d4 = 0, men = 0;
                for (w = j + (int)ai - bw; w <= j + (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     d4 += working_space[ssize + w];
+                     d4 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -895,7 +899,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                e4 = 0, men = 0;
                for (w = j + (int)(2 * ai) - bw; w <= j + (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     e4 += working_space[ssize + w];
+                     e4 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -905,7 +909,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                b6 = 0, men = 0;
                for (w = j - (int)(3 * ai) - bw; w <= j - (int)(3 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     b6 += working_space[ssize + w];
+                     b6 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -913,7 +917,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                c6 = 0, men = 0;
                for (w = j - (int)(2 * ai) - bw; w <= j - (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     c6 += working_space[ssize + w];
+                     c6 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -921,7 +925,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                d6 = 0, men = 0;
                for (w = j - (int)ai - bw; w <= j - (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     d6 += working_space[ssize + w];
+                     d6 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -929,7 +933,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                e6 = 0, men = 0;
                for (w = j + (int)ai - bw; w <= j + (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     e6 += working_space[ssize + w];
+                     e6 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -937,7 +941,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                f6 = 0, men = 0;
                for (w = j + (int)(2 * ai) - bw; w <= j + (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     f6 += working_space[ssize + w];
+                     f6 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -945,7 +949,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                g6 = 0, men = 0;
                for (w = j + (int)(3 * ai) - bw; w <= j + (int)(3 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     g6 += working_space[ssize + w];
+                     g6 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -955,7 +959,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                b8 = 0, men = 0;
                for (w = j - (int)(4 * ai) - bw; w <= j - (int)(4 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     b8 += working_space[ssize + w];
+                     b8 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -963,7 +967,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                c8 = 0, men = 0;
                for (w = j - (int)(3 * ai) - bw; w <= j - (int)(3 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     c8 += working_space[ssize + w];
+                     c8 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -971,7 +975,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                d8 = 0, men = 0;
                for (w = j - (int)(2 * ai) - bw; w <= j - (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     d8 += working_space[ssize + w];
+                     d8 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -979,7 +983,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                e8 = 0, men = 0;
                for (w = j - (int)ai - bw; w <= j - (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     e8 += working_space[ssize + w];
+                     e8 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -987,7 +991,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                f8 = 0, men = 0;
                for (w = j + (int)ai - bw; w <= j + (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     f8 += working_space[ssize + w];
+                     f8 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -995,7 +999,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                g8 = 0, men = 0;
                for (w = j + (int)(2 * ai) - bw; w <= j + (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     g8 += working_space[ssize + w];
+                     g8 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -1003,7 +1007,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                h8 = 0, men = 0;
                for (w = j + (int)(3 * ai) - bw; w <= j + (int)(3 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     h8 += working_space[ssize + w];
+                     h8 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -1011,7 +1015,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                i8 = 0, men = 0;
                for (w = j + (int)(4 * ai) - bw; w <= j + (int)(4 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     i8 += working_space[ssize + w];
+                     i8 += working_space[ssize + w].y;
                      men +=1;
                   }
                }
@@ -1025,11 +1029,11 @@ std::vector<double> background::background(std::vector<double> spectrum,
                   b = b4;
                if (b < a)
                   av = b;
-               working_space[j]=av;
+               working_space[j].y = av;
             }
          }
          for (j = i; j < ssize - i; j++)
-            working_space[ssize + j] = working_space[j];
+            working_space[ssize + j].y = working_space[j].y;
          if (direction == kBackIncreasingWindow)
             i += 1;
          else if(direction == kBackDecreasingWindow)
@@ -1040,15 +1044,15 @@ std::vector<double> background::background(std::vector<double> spectrum,
    if (compton == true) {
       for (i = 0, b2 = 0; i < ssize; i++){
          b1 = b2;
-         a = working_space[i], b = spectrum[i];
+         a = working_space[i].y, b = spectrum[i].y;
          j = i;
          if (fabs(a - b) >= 1) {
             b1 = i - 1;
             if (b1 < 0)
                b1 = 0;
-            yb1 = working_space[b1];
+            yb1 = working_space[b1].y;
             for (b2 = b1 + 1, c = 0, priz = 0; priz == 0 && b2 < ssize; b2++){
-               a = working_space[b2], b = spectrum[b2];
+               a = working_space[b2].y, b = spectrum[b2].y;
                c = c + b - yb1;
                if (fabs(a - b) < 1) {
                   priz = 1;
@@ -1057,35 +1061,35 @@ std::vector<double> background::background(std::vector<double> spectrum,
             }
             if (b2 == ssize)
                b2 -= 1;
-            yb2 = working_space[b2];
+            yb2 = working_space[b2].y;
             if (yb1 <= yb2){
                for (j = b1, c = 0; j <= b2; j++){
-                  b = spectrum[j];
+                  b = spectrum[j].y;
                   c = c + b - yb1;
                }
                if (c > 1){
                   c = (yb2 - yb1) / c;
                   for (j = b1, d = 0; j <= b2 && j < ssize; j++){
-                     b = spectrum[j];
+                     b = spectrum[j].y;
                      d = d + b - yb1;
                      a = c * d + yb1;
-                     working_space[ssize + j] = a;
+                     working_space[ssize + j].y = a;
                   }
                }
             }
 
             else{
                for (j = b2, c = 0; j >= b1; j--){
-                  b = spectrum[j];
+                  b = spectrum[j].y;
                   c = c + b - yb2;
                }
                if (c > 1){
                   c = (yb1 - yb2) / c;
                   for (j = b2, d = 0;j >= b1 && j >= 0; j--){
-                     b = spectrum[j];
+                     b = spectrum[j].y;
                      d = d + b - yb2;
                      a = c * d + yb2;
-                     working_space[ssize + j] = a;
+                     working_space[ssize + j].y = a;
                   }
                }
             }

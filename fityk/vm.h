@@ -101,6 +101,7 @@ enum Op
     OP_DT_SUM_SAME_X,
     OP_DT_AVG_SAME_X,
     OP_DT_SHIRLEY_BG,
+    OP_DT_SNIP_BG,
 
     // these two are not VM operators, but are handy to have here,
     // they and are used in implementation of shunting yard algorithm
