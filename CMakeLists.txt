@@ -205,7 +205,7 @@ fityk/data.cpp       fityk/lexer.cpp      fityk/runner.cpp     fityk/vm.cpp
 fityk/eparser.cpp    fityk/LMfit.cpp      fityk/settings.cpp   fityk/voigt.cpp
 fityk/f_fcjasym.cpp  fityk/logic.cpp      fityk/tplate.cpp
 fityk/fit.cpp        fityk/luabridge.cpp  fityk/transform.cpp
-fityk/cmpfit/mpfit.c
+fityk/cmpfit/mpfit.c fityk/root/background.cpp
 ${lua_runtime} ${lua_cxx})
 
 if (DOWNLOAD_XYLIB)

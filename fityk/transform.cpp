@@ -109,7 +109,7 @@ struct vector_slice {
 // It returns the iterators to the begin of the active
 // slice (first active datapoint) and to the end of the
 // slice (datapoint *after* the last active one).
-struct vector_slice<Point> first_active_slice(const vector<Point> &pp,
+struct vector_slice<Point> first_active_slice(const vector<Point> &/*pp*/,
                                               vector<Point>::iterator begin,
                                               vector<Point>::iterator end)
 {

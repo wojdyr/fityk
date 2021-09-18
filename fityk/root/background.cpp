@@ -453,7 +453,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
     int i, j, w, bw, b1, b2, priz;
     double a, b, c, d, e, yb1, yb2, ai, av, men, b4, c4, d4, e4, b6, c6, d6, e6, f6, g6, b8, c8, d8, e8, f8, g8, h8, i8;
 
-    const unsigned int ssize = spectrum.size();
+    const int ssize = (int) spectrum.size();
 
     if (ssize <= 0)
         throw fityk::ExecuteError("Wrong vector size");
