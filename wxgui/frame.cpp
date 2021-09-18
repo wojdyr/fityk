@@ -131,8 +131,8 @@ static const wxString website_url(
         wxT("http://fityk.nieto.pl/"));
 static const wxString wiki_url(
         wxT("https://github.com/wojdyr/fityk/wiki"));
-static const wxString feedback_url(
-        wxT("http://fityk.nieto.pl/feedback/") + pchar2wx(VERSION));
+static const wxString issues_url(
+        wxT("http://github.com/wojdyr/fityk/issues"));
 
 enum {
     // menu
@@ -140,7 +140,7 @@ enum {
     ID_H_WEBSITE               ,
     ID_H_WIKI                  ,
     ID_H_DISCUSSIONS           ,
-    ID_H_FEEDBACK              ,
+    ID_H_ISSUES                ,
     ID_H_EXAMPLE1              ,
     ID_H_EXAMPLE2              ,
     ID_H_EXAMPLE3              ,
@@ -384,7 +384,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_H_WEBSITE,     FFrame::OnOnline)
     EVT_MENU (ID_H_WIKI,        FFrame::OnOnline)
     EVT_MENU (ID_H_DISCUSSIONS, FFrame::OnOnline)
-    EVT_MENU (ID_H_FEEDBACK,    FFrame::OnOnline)
+    EVT_MENU (ID_H_ISSUES,      FFrame::OnOnline)
     EVT_MENU_RANGE (ID_H_EXAMPLE1, ID_H_EXAMPLE4, FFrame::OnExample)
     EVT_MENU (wxID_ABOUT,       FFrame::OnAbout)
     EVT_MENU (wxID_EXIT,        FFrame::OnQuit)
@@ -810,10 +810,8 @@ void FFrame::set_menubar()
               wiki_url);
     append_mi(help_menu, ID_H_DISCUSSIONS, GET_BMP(web16),
               wxT("&Visit Discussions"), discussions_url);
-    /*
-    append_mi(help_menu, ID_H_FEEDBACK, GET_BMP(web16),
-              wxT("&Anonymous Feedback"), feedback_url);
-    */
+    append_mi(help_menu, ID_H_ISSUES, GET_BMP(web16),
+              wxT("&Visit Issues"), issues_url);
     wxMenu* help_menu_examples = new wxMenu;
     help_menu_examples->Append(ID_H_EXAMPLE1, wxT("&Single Peak"),
                                wxT("nacl01.fit"));
@@ -912,8 +910,8 @@ void FFrame::OnOnline(wxCommandEvent& event)
         url = &wiki_url;
     else if (event.GetId() == ID_H_DISCUSSIONS)
         url = &discussions_url;
-    else //if (event.GetId() == ID_H_FEEDBACK)
-        url = &feedback_url;
+    else //if (event.GetId() == ID_H_ISSUES)
+        url = &issues_url;
     bool r = wxLaunchDefaultBrowser(*url);
     if (!r)
         wxMessageBox(wxT("Can not open URL in browser,")

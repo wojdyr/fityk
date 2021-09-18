@@ -111,8 +111,6 @@ The author is grateful to all people who supported Fityk with subscriptions.
 
 Version 1.3.1 was released on 2016-12-19
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
-New version `notifications <http://fityk-announce.nieto.pl/>`_
-are delivered via email and feeds.
 
 .. |ico-win| image:: img/ico-win.png
 .. |ico-tux| image:: img/ico-tux.png
