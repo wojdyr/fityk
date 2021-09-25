@@ -17,8 +17,6 @@
 
 #include <vector>
 
-#include "fityk.h"
-
 namespace ROOT {
 
     enum {
@@ -35,15 +33,15 @@ namespace ROOT {
         kBackSmoothing11 = 11,
         kBackSmoothing13 = 13,
         kBackSmoothing15 = 15
-   };
+    };
 
-    std::vector<fityk::Point> background(const std::vector<fityk::Point> spectrum,
-                                         int numberIterations,
-                                         int direction,
-                                         int filterOrder,
-                                         bool smoothing,
-                                         int smoothWindow,
-                                         bool compton);
+    std::vector<double> background(const std::vector<double>& spectrum,
+                                   int numberIterations,
+                                   int direction,
+                                   int filterOrder,
+                                   bool smoothing,
+                                   int smoothWindow,
+                                   bool compton);
 }
 
 #endif

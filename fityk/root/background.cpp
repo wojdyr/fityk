@@ -15,7 +15,7 @@
 #include <cmath>
 #include <vector>
 
-#include "fityk.h"
+#include "fityk.h"  // for ExecuteError
 #include "background.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -442,13 +442,13 @@
 /// }
 /// ~~~
 
-std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spectrum,
-                                           int numberIterations,
-                                           int direction,
-                                           int filterOrder,
-                                           bool smoothing,
-                                           int smoothWindow,
-                                           bool compton)
+std::vector<double> ROOT::background(const std::vector<double>& spectrum,
+                                     int numberIterations,
+                                     int direction,
+                                     int filterOrder,
+                                     bool smoothing,
+                                     int smoothWindow,
+                                     bool compton)
 {
     int i, j, w, bw, b1, b2, priz;
     double a, b, c, d, e, yb1, yb2, ai, av, men, b4, c4, d4, e4, b6, c6, d6, e6, f6, g6, b8, c8, d8, e8, f8, g8, h8, i8;
@@ -470,7 +470,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
     if (smoothing == true && smoothWindow != kBackSmoothing3 && smoothWindow != kBackSmoothing5 && smoothWindow != kBackSmoothing7 && smoothWindow != kBackSmoothing9 && smoothWindow != kBackSmoothing11 && smoothWindow != kBackSmoothing13 && smoothWindow != kBackSmoothing15)
         throw fityk::ExecuteError("Incorrect width of smoothing window");
 
-   std::vector<fityk::Point> working_space(2 * ssize);
+   std::vector<double> working_space(2 * ssize);
 
    for (i = 0; i < ssize; i++)
     {
@@ -489,20 +489,20 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
       do{
          for (j = i; j < ssize - i; j++) {
             if (smoothing == false){
-               a = working_space[ssize + j].y;
-               b = (working_space[ssize + j - i].y + working_space[ssize + j + i].y) / 2.0;
+               a = working_space[ssize + j];
+               b = (working_space[ssize + j - i] + working_space[ssize + j + i]) / 2.0;
                if (b < a)
                   a = b;
-               working_space[j].y = a;
+               working_space[j] = a;
             }
 
             else if (smoothing == true){
-               a = working_space[ssize + j].y;
+               a = working_space[ssize + j];
                av = 0;
                men = 0;
                for (w = j - bw; w <= j + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     av += working_space[ssize + w].y;
+                     av += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -511,7 +511,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                men = 0;
                for (w = j - i - bw; w <= j - i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     b += working_space[ssize + w].y;
+                     b += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -520,7 +520,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                men = 0;
                for (w = j + i - bw; w <= j + i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     c += working_space[ssize + w].y;
+                     c += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -528,11 +528,11 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                b = (b + c) / 2;
                if (b < a)
                   av = b;
-               working_space[j].y=av;
+               working_space[j]=av;
             }
          }
          for (j = i; j < ssize - i; j++)
-            working_space[ssize + j].y = working_space[j].y;
+            working_space[ssize + j] = working_space[j];
          if (direction == kBackIncreasingWindow)
             i+=1;
          else if(direction == kBackDecreasingWindow)
@@ -544,28 +544,28 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
       do{
          for (j = i; j < ssize - i; j++) {
             if (smoothing == false){
-               a = working_space[ssize + j].y;
-               b = (working_space[ssize + j - i].y + working_space[ssize + j + i].y) / 2.0;
+               a = working_space[ssize + j];
+               b = (working_space[ssize + j - i] + working_space[ssize + j + i]) / 2.0;
                c = 0;
                ai = i / 2;
-               c -= working_space[ssize + j - (int) (2 * ai)].y / 6;
-               c += 4 * working_space[ssize + j - (int) ai].y / 6;
-               c += 4 * working_space[ssize + j + (int) ai].y / 6;
-               c -= working_space[ssize + j + (int) (2 * ai)].y / 6;
+               c -= working_space[ssize + j - (int) (2 * ai)] / 6;
+               c += 4 * working_space[ssize + j - (int) ai] / 6;
+               c += 4 * working_space[ssize + j + (int) ai] / 6;
+               c -= working_space[ssize + j + (int) (2 * ai)] / 6;
                if (b < c)
                   b = c;
                if (b < a)
                   a = b;
-               working_space[j].y = a;
+               working_space[j] = a;
             }
 
             else if (smoothing == true){
-               a = working_space[ssize + j].y;
+               a = working_space[ssize + j];
                av = 0;
                men = 0;
                for (w = j - bw; w <= j + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     av += working_space[ssize + w].y;
+                     av += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -574,7 +574,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                men = 0;
                for (w = j - i - bw; w <= j - i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     b += working_space[ssize + w].y;
+                     b += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -583,7 +583,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                men = 0;
                for (w = j + i - bw; w <= j + i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     c += working_space[ssize + w].y;
+                     c += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -593,7 +593,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                b4 = 0, men = 0;
                for (w = j - (int)(2 * ai) - bw; w <= j - (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     b4 += working_space[ssize + w].y;
+                     b4 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -601,7 +601,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                c4 = 0, men = 0;
                for (w = j - (int)ai - bw; w <= j - (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     c4 += working_space[ssize + w].y;
+                     c4 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -609,7 +609,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                d4 = 0, men = 0;
                for (w = j + (int)ai - bw; w <= j + (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     d4 += working_space[ssize + w].y;
+                     d4 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -617,7 +617,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                e4 = 0, men = 0;
                for (w = j + (int)(2 * ai) - bw; w <= j + (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     e4 += working_space[ssize + w].y;
+                     e4 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -627,11 +627,11 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                   b = b4;
                if (b < a)
                   av = b;
-               working_space[j].y=av;
+               working_space[j]=av;
             }
          }
          for (j = i; j < ssize - i; j++)
-            working_space[ssize + j].y = working_space[j].y;
+            working_space[ssize + j] = working_space[j];
          if (direction == kBackIncreasingWindow)
             i+=1;
          else if(direction == kBackDecreasingWindow)
@@ -643,38 +643,38 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
       do{
          for (j = i; j < ssize - i; j++) {
             if (smoothing == false){
-               a = working_space[ssize + j].y;
-               b = (working_space[ssize + j - i].y + working_space[ssize + j + i].y) / 2.0;
+               a = working_space[ssize + j];
+               b = (working_space[ssize + j - i] + working_space[ssize + j + i]) / 2.0;
                c = 0;
                ai = i / 2;
-               c -= working_space[ssize + j - (int) (2 * ai)].y / 6;
-               c += 4 * working_space[ssize + j - (int) ai].y / 6;
-               c += 4 * working_space[ssize + j + (int) ai].y / 6;
-               c -= working_space[ssize + j + (int) (2 * ai)].y / 6;
+               c -= working_space[ssize + j - (int) (2 * ai)] / 6;
+               c += 4 * working_space[ssize + j - (int) ai] / 6;
+               c += 4 * working_space[ssize + j + (int) ai] / 6;
+               c -= working_space[ssize + j + (int) (2 * ai)] / 6;
                d = 0;
                ai = i / 3;
-               d += working_space[ssize + j - (int) (3 * ai)].y / 20;
-               d -= 6 * working_space[ssize + j - (int) (2 * ai)].y / 20;
-               d += 15 * working_space[ssize + j - (int) ai].y / 20;
-               d += 15 * working_space[ssize + j + (int) ai].y / 20;
-               d -= 6 * working_space[ssize + j + (int) (2 * ai)].y / 20;
-               d += working_space[ssize + j + (int) (3 * ai)].y / 20;
+               d += working_space[ssize + j - (int) (3 * ai)] / 20;
+               d -= 6 * working_space[ssize + j - (int) (2 * ai)] / 20;
+               d += 15 * working_space[ssize + j - (int) ai] / 20;
+               d += 15 * working_space[ssize + j + (int) ai] / 20;
+               d -= 6 * working_space[ssize + j + (int) (2 * ai)] / 20;
+               d += working_space[ssize + j + (int) (3 * ai)] / 20;
                if (b < d)
                   b = d;
                if (b < c)
                   b = c;
                if (b < a)
                   a = b;
-               working_space[j].y = a;
+               working_space[j] = a;
             }
 
             else if (smoothing == true){
-               a = working_space[ssize + j].y;
+               a = working_space[ssize + j];
                av = 0;
                men = 0;
                for (w = j - bw; w <= j + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     av += working_space[ssize + w].y;
+                     av += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -683,7 +683,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                men = 0;
                for (w = j - i - bw; w <= j - i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     b += working_space[ssize + w].y;
+                     b += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -692,7 +692,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                men = 0;
                for (w = j + i - bw; w <= j + i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     c += working_space[ssize + w].y;
+                     c += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -702,7 +702,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                b4 = 0, men = 0;
                for (w = j - (int)(2 * ai) - bw; w <= j - (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     b4 += working_space[ssize + w].y;
+                     b4 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -710,7 +710,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                c4 = 0, men = 0;
                for (w = j - (int)ai - bw; w <= j - (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     c4 += working_space[ssize + w].y;
+                     c4 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -718,7 +718,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                d4 = 0, men = 0;
                for (w = j + (int)ai - bw; w <= j + (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     d4 += working_space[ssize + w].y;
+                     d4 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -726,7 +726,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                e4 = 0, men = 0;
                for (w = j + (int)(2 * ai) - bw; w <= j + (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     e4 += working_space[ssize + w].y;
+                     e4 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -736,7 +736,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                b6 = 0, men = 0;
                for (w = j - (int)(3 * ai) - bw; w <= j - (int)(3 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     b6 += working_space[ssize + w].y;
+                     b6 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -744,7 +744,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                c6 = 0, men = 0;
                for (w = j - (int)(2 * ai) - bw; w <= j - (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     c6 += working_space[ssize + w].y;
+                     c6 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -752,7 +752,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                d6 = 0, men = 0;
                for (w = j - (int)ai - bw; w <= j - (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     d6 += working_space[ssize + w].y;
+                     d6 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -760,7 +760,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                e6 = 0, men = 0;
                for (w = j + (int)ai - bw; w <= j + (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     e6 += working_space[ssize + w].y;
+                     e6 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -768,7 +768,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                f6 = 0, men = 0;
                for (w = j + (int)(2 * ai) - bw; w <= j + (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     f6 += working_space[ssize + w].y;
+                     f6 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -776,7 +776,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                g6 = 0, men = 0;
                for (w = j + (int)(3 * ai) - bw; w <= j + (int)(3 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     g6 += working_space[ssize + w].y;
+                     g6 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -788,11 +788,11 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                   b = b4;
                if (b < a)
                   av = b;
-               working_space[j].y=av;
+               working_space[j]=av;
             }
          }
          for (j = i; j < ssize - i; j++)
-            working_space[ssize + j].y = working_space[j].y;
+            working_space[ssize + j] = working_space[j];
          if (direction == kBackIncreasingWindow)
             i+=1;
          else if(direction == kBackDecreasingWindow)
@@ -804,32 +804,32 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
       do{
          for (j = i; j < ssize - i; j++) {
             if (smoothing == false){
-               a = working_space[ssize + j].y;
-               b = (working_space[ssize + j - i].y + working_space[ssize + j + i].y) / 2.0;
+               a = working_space[ssize + j];
+               b = (working_space[ssize + j - i] + working_space[ssize + j + i]) / 2.0;
                c = 0;
                ai = i / 2;
-               c -= working_space[ssize + j - (int) (2 * ai)].y / 6;
-               c += 4 * working_space[ssize + j - (int) ai].y / 6;
-               c += 4 * working_space[ssize + j + (int) ai].y / 6;
-               c -= working_space[ssize + j + (int) (2 * ai)].y / 6;
+               c -= working_space[ssize + j - (int) (2 * ai)] / 6;
+               c += 4 * working_space[ssize + j - (int) ai] / 6;
+               c += 4 * working_space[ssize + j + (int) ai] / 6;
+               c -= working_space[ssize + j + (int) (2 * ai)] / 6;
                d = 0;
                ai = i / 3;
-               d += working_space[ssize + j - (int) (3 * ai)].y / 20;
-               d -= 6 * working_space[ssize + j - (int) (2 * ai)].y / 20;
-               d += 15 * working_space[ssize + j - (int) ai].y / 20;
-               d += 15 * working_space[ssize + j + (int) ai].y / 20;
-               d -= 6 * working_space[ssize + j + (int) (2 * ai)].y / 20;
-               d += working_space[ssize + j + (int) (3 * ai)].y / 20;
+               d += working_space[ssize + j - (int) (3 * ai)] / 20;
+               d -= 6 * working_space[ssize + j - (int) (2 * ai)] / 20;
+               d += 15 * working_space[ssize + j - (int) ai] / 20;
+               d += 15 * working_space[ssize + j + (int) ai] / 20;
+               d -= 6 * working_space[ssize + j + (int) (2 * ai)] / 20;
+               d += working_space[ssize + j + (int) (3 * ai)] / 20;
                e = 0;
                ai = i / 4;
-               e -= working_space[ssize + j - (int) (4 * ai)].y / 70;
-               e += 8 * working_space[ssize + j - (int) (3 * ai)].y / 70;
-               e -= 28 * working_space[ssize + j - (int) (2 * ai)].y / 70;
-               e += 56 * working_space[ssize + j - (int) ai].y / 70;
-               e += 56 * working_space[ssize + j + (int) ai].y / 70;
-               e -= 28 * working_space[ssize + j + (int) (2 * ai)].y / 70;
-               e += 8 * working_space[ssize + j + (int) (3 * ai)].y / 70;
-               e -= working_space[ssize + j + (int) (4 * ai)].y / 70;
+               e -= working_space[ssize + j - (int) (4 * ai)] / 70;
+               e += 8 * working_space[ssize + j - (int) (3 * ai)] / 70;
+               e -= 28 * working_space[ssize + j - (int) (2 * ai)] / 70;
+               e += 56 * working_space[ssize + j - (int) ai] / 70;
+               e += 56 * working_space[ssize + j + (int) ai] / 70;
+               e -= 28 * working_space[ssize + j + (int) (2 * ai)] / 70;
+               e += 8 * working_space[ssize + j + (int) (3 * ai)] / 70;
+               e -= working_space[ssize + j + (int) (4 * ai)] / 70;
                if (b < e)
                   b = e;
                if (b < d)
@@ -838,16 +838,16 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                   b = c;
                if (b < a)
                   a = b;
-               working_space[j].y = a;
+               working_space[j] = a;
             }
 
             else if (smoothing == true){
-               a = working_space[ssize + j].y;
+               a = working_space[ssize + j];
                av = 0;
                men = 0;
                for (w = j - bw; w <= j + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     av += working_space[ssize + w].y;
+                     av += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -856,7 +856,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                men = 0;
                for (w = j - i - bw; w <= j - i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     b += working_space[ssize + w].y;
+                     b += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -865,7 +865,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                men = 0;
                for (w = j + i - bw; w <= j + i + bw; w++){
                   if ( w >= 0 && w < ssize){
-                     c += working_space[ssize + w].y;
+                     c += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -875,7 +875,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                b4 = 0, men = 0;
                for (w = j - (int)(2 * ai) - bw; w <= j - (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     b4 += working_space[ssize + w].y;
+                     b4 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -883,7 +883,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                c4 = 0, men = 0;
                for (w = j - (int)ai - bw; w <= j - (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     c4 += working_space[ssize + w].y;
+                     c4 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -891,7 +891,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                d4 = 0, men = 0;
                for (w = j + (int)ai - bw; w <= j + (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     d4 += working_space[ssize + w].y;
+                     d4 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -899,7 +899,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                e4 = 0, men = 0;
                for (w = j + (int)(2 * ai) - bw; w <= j + (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     e4 += working_space[ssize + w].y;
+                     e4 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -909,7 +909,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                b6 = 0, men = 0;
                for (w = j - (int)(3 * ai) - bw; w <= j - (int)(3 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     b6 += working_space[ssize + w].y;
+                     b6 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -917,7 +917,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                c6 = 0, men = 0;
                for (w = j - (int)(2 * ai) - bw; w <= j - (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     c6 += working_space[ssize + w].y;
+                     c6 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -925,7 +925,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                d6 = 0, men = 0;
                for (w = j - (int)ai - bw; w <= j - (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     d6 += working_space[ssize + w].y;
+                     d6 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -933,7 +933,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                e6 = 0, men = 0;
                for (w = j + (int)ai - bw; w <= j + (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     e6 += working_space[ssize + w].y;
+                     e6 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -941,7 +941,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                f6 = 0, men = 0;
                for (w = j + (int)(2 * ai) - bw; w <= j + (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     f6 += working_space[ssize + w].y;
+                     f6 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -949,7 +949,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                g6 = 0, men = 0;
                for (w = j + (int)(3 * ai) - bw; w <= j + (int)(3 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     g6 += working_space[ssize + w].y;
+                     g6 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -959,7 +959,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                b8 = 0, men = 0;
                for (w = j - (int)(4 * ai) - bw; w <= j - (int)(4 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     b8 += working_space[ssize + w].y;
+                     b8 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -967,7 +967,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                c8 = 0, men = 0;
                for (w = j - (int)(3 * ai) - bw; w <= j - (int)(3 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     c8 += working_space[ssize + w].y;
+                     c8 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -975,7 +975,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                d8 = 0, men = 0;
                for (w = j - (int)(2 * ai) - bw; w <= j - (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     d8 += working_space[ssize + w].y;
+                     d8 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -983,7 +983,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                e8 = 0, men = 0;
                for (w = j - (int)ai - bw; w <= j - (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     e8 += working_space[ssize + w].y;
+                     e8 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -991,7 +991,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                f8 = 0, men = 0;
                for (w = j + (int)ai - bw; w <= j + (int)ai + bw; w++){
                   if (w >= 0 && w < ssize){
-                     f8 += working_space[ssize + w].y;
+                     f8 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -999,7 +999,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                g8 = 0, men = 0;
                for (w = j + (int)(2 * ai) - bw; w <= j + (int)(2 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     g8 += working_space[ssize + w].y;
+                     g8 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -1007,7 +1007,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                h8 = 0, men = 0;
                for (w = j + (int)(3 * ai) - bw; w <= j + (int)(3 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     h8 += working_space[ssize + w].y;
+                     h8 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -1015,7 +1015,7 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                i8 = 0, men = 0;
                for (w = j + (int)(4 * ai) - bw; w <= j + (int)(4 * ai) + bw; w++){
                   if (w >= 0 && w < ssize){
-                     i8 += working_space[ssize + w].y;
+                     i8 += working_space[ssize + w];
                      men +=1;
                   }
                }
@@ -1029,11 +1029,11 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
                   b = b4;
                if (b < a)
                   av = b;
-               working_space[j].y = av;
+               working_space[j] = av;
             }
          }
          for (j = i; j < ssize - i; j++)
-            working_space[ssize + j].y = working_space[j].y;
+            working_space[ssize + j] = working_space[j];
          if (direction == kBackIncreasingWindow)
             i += 1;
          else if(direction == kBackDecreasingWindow)
@@ -1044,15 +1044,15 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
    if (compton == true) {
       for (i = 0, b2 = 0; i < ssize; i++){
          b1 = b2;
-         a = working_space[i].y, b = spectrum[i].y;
+         a = working_space[i], b = spectrum[i];
          j = i;
          if (fabs(a - b) >= 1) {
             b1 = i - 1;
             if (b1 < 0)
                b1 = 0;
-            yb1 = working_space[b1].y;
+            yb1 = working_space[b1];
             for (b2 = b1 + 1, c = 0, priz = 0; priz == 0 && b2 < ssize; b2++){
-               a = working_space[b2].y, b = spectrum[b2].y;
+               a = working_space[b2], b = spectrum[b2];
                c = c + b - yb1;
                if (fabs(a - b) < 1) {
                   priz = 1;
@@ -1061,35 +1061,35 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
             }
             if (b2 == ssize)
                b2 -= 1;
-            yb2 = working_space[b2].y;
+            yb2 = working_space[b2];
             if (yb1 <= yb2){
                for (j = b1, c = 0; j <= b2; j++){
-                  b = spectrum[j].y;
+                  b = spectrum[j];
                   c = c + b - yb1;
                }
                if (c > 1){
                   c = (yb2 - yb1) / c;
                   for (j = b1, d = 0; j <= b2 && j < ssize; j++){
-                     b = spectrum[j].y;
+                     b = spectrum[j];
                      d = d + b - yb1;
                      a = c * d + yb1;
-                     working_space[ssize + j].y = a;
+                     working_space[ssize + j] = a;
                   }
                }
             }
 
             else{
                for (j = b2, c = 0; j >= b1; j--){
-                  b = spectrum[j].y;
+                  b = spectrum[j];
                   c = c + b - yb2;
                }
                if (c > 1){
                   c = (yb1 - yb2) / c;
                   for (j = b2, d = 0;j >= b1 && j >= 0; j--){
-                     b = spectrum[j].y;
+                     b = spectrum[j];
                      d = d + b - yb2;
                      a = c * d + yb2;
-                     working_space[ssize + j].y = a;
+                     working_space[ssize + j] = a;
                   }
                }
             }
@@ -1098,7 +1098,5 @@ std::vector<fityk::Point> ROOT::background(const std::vector<fityk::Point> spect
       }
    }
 
-    working_space.resize(ssize);
-
-    return working_space;
+    return std::vector<double>(working_space.begin() + ssize, working_space.end());
 }

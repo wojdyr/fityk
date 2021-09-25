@@ -121,20 +121,24 @@ vector<Point>::iterator snip_bg_slice(vector<Point>::iterator begin,
             end = it;
             break;
         }
+    if (end <= begin)  // just in case
+        return end;
 
-    vector<Point> bg_input(begin, end);
+    vector<double> bg_input(end - begin);
+    for (vector<Point>::iterator it = begin; it != end; it++)
+        bg_input[it - begin] = it->y;
 
-    vector<Point> bg_output = ROOT::background(bg_input,
-                                               window_width,
-                                               direction,
-                                               filter_order,
-                                               smoothing,
-                                               smooth_window,
-                                               estimate_compton);
+    vector<double> bg_output = ROOT::background(bg_input,
+                                                window_width,
+                                                direction,
+                                                filter_order,
+                                                smoothing,
+                                                smooth_window,
+                                                estimate_compton);
 
     if (bg_output.size() == bg_input.size()) {
         for (vector<Point>::iterator it = begin; it != end; it++)
-            it->y = bg_output[it - begin].y;
+            it->y = bg_output[it - begin];
     }
 
     return end;
