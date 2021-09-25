@@ -26,18 +26,18 @@ jobs:
         export LD_LIBRARY_PATH=/usr/local/lib
         cfityk --version
 
-  clang35:
-    name: "Ubuntu 16.04, Clang 3.5"
-    runs-on: ubuntu-16.04
+  clang39:
+    name: "Ubuntu 18.04, Clang 3.9"
+    runs-on: ubuntu-18.04
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     env:
-      CC: clang-3.5
-      CXX: clang++-3.5
+      CC: clang-3.9
+      CXX: clang++-3.9
     steps:
     - uses: actions/checkout@v2
     - name: dependencies
       run: |
-        sudo apt-get install clang-3.5 cmake libz-dev libxy-dev libboost-dev liblua5.2-dev lua5.2
+        sudo apt-get install clang-3.9 cmake libz-dev libxy-dev libboost-dev liblua5.2-dev lua5.2
     - name: build
       run: |
         $CXX --version
