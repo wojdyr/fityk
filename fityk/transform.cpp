@@ -146,11 +146,11 @@ void shirley_bg(vector<Point> &pp)
             double Ahigh = 0.0;
 
             /* calculate Areas A1 and A2 for each energy value */
-            for (unsigned long x = startXindex+1; x < EnergyIdx ;  x++){
+            for (unsigned long x = startXindex+1; x <= EnergyIdx ;  x++){
                 Alow = Alow +  ((pp[x].x-pp[x-1].x)*(pp[x].y+pp[x-1].y)/2.0) - BG[x];
             }
 
-            for (unsigned long x = EnergyIdx; x < endXindex ;  x++){
+            for (unsigned long x = EnergyIdx+1; x < endXindex ;  x++){
                 Ahigh = Ahigh + ((pp[x].x-pp[x-1].x)*(pp[x].y+pp[x-1].y)/2.0) - BG[x];
             }
 
