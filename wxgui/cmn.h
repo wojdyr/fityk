@@ -113,7 +113,7 @@ public:
                          wxWindowID id=-1,
                          float proportion=0.66, // 0. - 1.
                          const wxSize& size = wxDefaultSize,
-                         long style=wxSP_NOBORDER|wxSP_3DSASH);
+                         long style=wxSP_3DSASH|wxSP_LIVE_UPDATE);
     bool SplitHorizProp(wxWindow* win1, wxWindow* win2, float proportion=-1);
     bool SplitVertProp(wxWindow* win1, wxWindow* win2, float proportion=-1);
     float GetProportion() const { return m_proportion; }
@@ -131,16 +131,16 @@ private:
     void OnPaint(wxPaintEvent &event);
 };
 
-class SpinCtrl: public wxSpinCtrl
+inline wxSpinCtrl* make_wxspinctrl(wxWindow* parent, wxWindowID id, int val,
+                                   int min, int max, int width=50)
 {
-public:
-    SpinCtrl(wxWindow* parent, wxWindowID id, int val,
-             int min, int max, int width=50)
-        : wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
-                      wxDefaultPosition, wxSize(width, -1),
-                      wxSP_ARROW_KEYS, min, max, val)
-    {}
-};
+#ifdef __WXGTK3__
+    width = std::max(width, 50) + 30;
+#endif
+    return new wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
+                           wxDefaultPosition, wxSize(width, -1),
+                           wxSP_ARROW_KEYS, min, max, val);
+}
 
 /// wxTextCtrl which sends wxEVT_COMMAND_TEXT_ENTER when loses the focus
 class KFTextCtrl : public wxTextCtrl

@@ -84,6 +84,7 @@
 #include "img/zoom_right.xpm"
 #include "img/zoom_up.xpm"
 #include "img/zoom_vert.xpm"
+#include "img/log_y_toggle.xpm"
 
 #include "img/book16.h"
 #include "img/editor16.h"
@@ -130,8 +131,8 @@ static const wxString website_url(
         wxT("http://fityk.nieto.pl/"));
 static const wxString wiki_url(
         wxT("https://github.com/wojdyr/fityk/wiki"));
-static const wxString feedback_url(
-        wxT("http://fityk.nieto.pl/feedback/") + pchar2wx(VERSION));
+static const wxString issues_url(
+        wxT("http://github.com/wojdyr/fityk/issues"));
 
 enum {
     // menu
@@ -139,7 +140,7 @@ enum {
     ID_H_WEBSITE               ,
     ID_H_WIKI                  ,
     ID_H_DISCUSSIONS           ,
-    ID_H_FEEDBACK              ,
+    ID_H_ISSUES                ,
     ID_H_EXAMPLE1              ,
     ID_H_EXAMPLE2              ,
     ID_H_EXAMPLE3              ,
@@ -255,6 +256,7 @@ enum {
     ID_T_RUN                  ,
     ID_T_UNDO                 ,
     ID_T_AUTO                 ,
+    ID_T_LOGY                 ,
     //ID_T_BAR                  ,
     ID_T_CHOICE
 };
@@ -382,7 +384,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_H_WEBSITE,     FFrame::OnOnline)
     EVT_MENU (ID_H_WIKI,        FFrame::OnOnline)
     EVT_MENU (ID_H_DISCUSSIONS, FFrame::OnOnline)
-    EVT_MENU (ID_H_FEEDBACK,    FFrame::OnOnline)
+    EVT_MENU (ID_H_ISSUES,      FFrame::OnOnline)
     EVT_MENU_RANGE (ID_H_EXAMPLE1, ID_H_EXAMPLE4, FFrame::OnExample)
     EVT_MENU (wxID_ABOUT,       FFrame::OnAbout)
     EVT_MENU (wxID_EXIT,        FFrame::OnQuit)
@@ -408,8 +410,10 @@ FFrame::FFrame(wxWindow *parent, const wxWindowID id, const wxString& title,
 
     //sizer, splitters, etc.
     wxBoxSizer *sizer = new wxBoxSizer(wxVERTICAL);
-    v_splitter_ = new ProportionalSplitter(this);
-    main_pane_ = new ProportionalSplitter(v_splitter_);
+    v_splitter_ = new ProportionalSplitter(this, -1, 0.66, wxDefaultSize,
+                                           wxSP_3DSASH);
+    main_pane_ = new ProportionalSplitter(v_splitter_, -1, 0.66, wxDefaultSize,
+                                          wxSP_3DSASH);
     plot_pane_ = new PlotPane(main_pane_);
     text_pane_ = new TextPane(main_pane_);
     main_pane_->SplitHorizProp(plot_pane_, text_pane_);
@@ -806,10 +810,8 @@ void FFrame::set_menubar()
               wiki_url);
     append_mi(help_menu, ID_H_DISCUSSIONS, GET_BMP(web16),
               wxT("&Visit Discussions"), discussions_url);
-    /*
-    append_mi(help_menu, ID_H_FEEDBACK, GET_BMP(web16),
-              wxT("&Anonymous Feedback"), feedback_url);
-    */
+    append_mi(help_menu, ID_H_ISSUES, GET_BMP(web16),
+              wxT("&Visit Issues"), issues_url);
     wxMenu* help_menu_examples = new wxMenu;
     help_menu_examples->Append(ID_H_EXAMPLE1, wxT("&Single Peak"),
                                wxT("nacl01.fit"));
@@ -908,8 +910,8 @@ void FFrame::OnOnline(wxCommandEvent& event)
         url = &wiki_url;
     else if (event.GetId() == ID_H_DISCUSSIONS)
         url = &discussions_url;
-    else //if (event.GetId() == ID_H_FEEDBACK)
-        url = &feedback_url;
+    else //if (event.GetId() == ID_H_ISSUES)
+        url = &issues_url;
     bool r = wxLaunchDefaultBrowser(*url);
     if (!r)
         wxMessageBox(wxT("Can not open URL in browser,")
@@ -2017,11 +2019,11 @@ public:
         c.Border(wxBOTTOM);
 #endif
         sizer->Add(new wxStaticText(this, -1, "width:"), c);
-        w_spin = new SpinCtrl(this, -1, size.x, 0, 9999, 70);
+        w_spin = make_wxspinctrl(this, -1, size.x, 0, 9999, 70);
         sizer->Add(w_spin, c);
         sizer->AddSpacer(10);
         sizer->Add(new wxStaticText(this, -1, "height:"), c);
-        h_spin = new SpinCtrl(this, -1, size.y, 0, 9999, 70);
+        h_spin = make_wxspinctrl(this, -1, size.y, 0, 9999, 70);
         sizer->Add(h_spin, c);
         sizer->AddSpacer(10);
         aux_cb = new wxCheckBox(this, -1, "with auxiliary plots");
@@ -2291,6 +2293,7 @@ BEGIN_EVENT_TABLE (FToolBar, wxToolBar)
     //EVT_TOOL (ID_T_BAR, FToolBar::OnSwitchSideBar)
     EVT_CHOICE (ID_T_CHOICE, FToolBar::OnPeakChoice)
     EVT_TOOL_ENTER (-1, FToolBar::OnToolEnter)
+    EVT_TOOL (ID_T_LOGY, FToolBar::OnLogYToggle)
 END_EVENT_TABLE()
 
 FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
@@ -2341,6 +2344,10 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
     AddTool(ID_T_PZ, wxT("Back"), wxBitmap(zoom_prev_xpm), wxNullBitmap,
             wxITEM_NORMAL, wxT("Previous view"),
             wxT("Go to the previous view"));
+    AddSeparator();
+    AddTool(ID_T_LOGY, wxT("Log y"), wxBitmap(log_y_toggle_xpm), wxNullBitmap,
+            wxITEM_NORMAL, wxT("Toggle y log"),
+            wxT("Toggle y scale between logarithmic and linear"));
     AddSeparator();
     //file
     AddTool(ID_SESSION_INCLUDE, wxT("Execute"),
@@ -2462,6 +2469,18 @@ void FToolBar::OnToolEnter(wxCommandEvent& event)
     if (event.GetSelection() == ID_T_AUTO) {
         on_addpeak_hover();
     }
+}
+
+void FToolBar::OnLogYToggle(wxCommandEvent&)
+{
+    const bool log_x = frame->get_main_plot()->get_x_scale().logarithm;
+    const bool log_y = frame->get_main_plot()->get_y_scale().logarithm;
+
+    frame->get_main_plot()->get_x_scale().logarithm = log_x;
+    frame->get_main_plot()->get_y_scale().logarithm = !log_y;
+    ftk->view.set_log_scale(log_x, !log_y);
+
+    frame->plot_pane()->refresh_plots(false, kMainPlot);
 }
 
 void FToolBar::on_addpeak_hover()

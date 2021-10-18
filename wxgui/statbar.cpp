@@ -28,7 +28,8 @@ FStatusBar::FStatusBar(wxWindow *parent)
         : wxPanel(parent, -1), extra_parser(NULL), last_x(0), last_y(0)
 {
     wxBoxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
-    split = new wxSplitterWindow(this, -1, wxDefaultPosition, wxDefaultSize, 0);
+    split = new wxSplitterWindow(this, -1, wxDefaultPosition, wxDefaultSize,
+                                 wxSP_LIVE_UPDATE|wxSP_THIN_SASH);
     wxPanel *panel_text = new wxPanel(split, -1);
     wxPanel *panel_coords = new wxPanel(split, -1);
     text = new wxStaticText(panel_text, -1, wxT(""));
@@ -82,7 +83,7 @@ FStatusBar::FStatusBar(wxWindow *parent)
     lmouse_sizer->SetMinSize(rmouse_hint->GetClientSize());
     wxBoxSizer *hint_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *vhint_sizer = new wxBoxSizer(wxHORIZONTAL);
-    vhint_sizer->Add(lmouse_sizer, wxSizerFlags(1).Expand().FixedMinSize());
+    vhint_sizer->Add(lmouse_sizer, wxSizerFlags(1).Centre().FixedMinSize());
     vhint_sizer->Add(mousebmp, wxSizerFlags().Centre().Border(wxRIGHT, 3));
     vhint_sizer->Add(rmouse_hint, wxSizerFlags().Centre().FixedMinSize());
     hint_sizer->Add(new wxStaticLine(this), wxSizerFlags().Expand());
@@ -255,7 +256,7 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
 
     gsizer->Add(new wxStaticText(this, -1,wxT("precision")),
                 wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL|wxALIGN_RIGHT));
-    e_prec_sc = new SpinCtrl(this, -1, sb->e_prec, 0, 9, 40);
+    e_prec_sc = make_wxspinctrl(this, -1, sb->e_prec, 0, 9);
     gsizer->Add(e_prec_sc, wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL));
 
     f_sizer->Add(gsizer, wxSizerFlags(1).Expand().Border());

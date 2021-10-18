@@ -8,7 +8,7 @@
 #include <wx/print.h>
 
 class PlotPane;
-class SpinCtrl;
+class wxSpinCtrl;
 
 // it can be confusing how the code is split into classes here,
 // but let's leave it as it is
@@ -39,8 +39,8 @@ private:
     PrintManager *pm;
     wxRadioBox *orientation_rb, *colors_rb;
     wxCheckBox *plot_aux_cb[2], *plot_borders_cb;
-    SpinCtrl *left_margin_sc, *right_margin_sc,
-             *top_margin_sc, *bottom_margin_sc;
+    wxSpinCtrl *left_margin_sc, *right_margin_sc,
+               *top_margin_sc, *bottom_margin_sc;
     DECLARE_EVENT_TABLE()
 };
 

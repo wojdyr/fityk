@@ -20,6 +20,6 @@ website:
 	BUILD_WEBSITE=1 $(SPHINX) -b html -Awebsite=1 . web
 	cp screenshots/fityk-1.0.1-osx-so.png web/_images/
 	rm -f web/objects.inv web/.buildinfo
-	sed -i 's/&mdash; Fityk ..... manual//' web/index.html web/screens.html
+	sed -i 's/&#8212; Fityk ..... manual//' web/index.html web/screens.html
 
 .PHONY: pdf website

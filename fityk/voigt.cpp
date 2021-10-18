@@ -27,7 +27,7 @@ void humdev(const float x, const float y,
                                 2.2795071f,      3.020637f,        3.8897249f };
 
     static const float rrtpi = 0.56418958f; // 1/SQRT(pi)
-    static const double drtpi = 0.5641895835477563f; // 1/SQRT(pi)
+    static const double drtpi = 0.5641895835477563; // 1/SQRT(pi)
 
     static float a0, b1, c0, c2, d0, d1, d2, e0, e2, e4, f1, f3, f5,
                  g0, g2, g4, g6, h0, h2, h4, h6, p0, p2, p4, p6, p8,
@@ -42,7 +42,9 @@ void humdev(const float x, const float y,
 
     if (y != old_y) {
         old_y = y;
-        rgb = true, rgc = true, rgd = true;
+        rgb = true;
+        rgc = true;
+        rgd = true;
         yq = y * y;
         xlima = 146.7f - y;
         xlimb = 24.f - y;
@@ -259,14 +261,16 @@ float humlik(const float x, const float y)
         old_y = y;
         yq = y * y;
         yrrtpi = y * rrtpi;
-        rg1 = true, rg2 = true, rg3 = true;
-        if (y < 70.55) {
+        rg1 = true;
+        rg2 = true;
+        rg3 = true;
+        if (y < 70.55f) {
             xlim0 = sqrt(y * (40.f - y * 3.6f) + 15100.f);
-            xlim1 = (y >= 8.425 ?  0.f : sqrt(164.f - y * (y * 1.8f + 4.3f)));
+            xlim1 = (y >= 8.425f ?  0.f : sqrt(164.f - y * (y * 1.8f + 4.3f)));
             xlim2 = 6.8f - y;
             xlim3 = y * 2.4f;
             xlim4 = y * 18.1f + 1.65f;
-            if (y <= 1e-6)
+            if (y <= 1e-6f)
                 xlim2 = xlim1 = xlim0;
         }
     }
@@ -274,7 +278,7 @@ float humlik(const float x, const float y)
     float abx = fabs(x);
     float xq = abx * abx;
 
-    if (abx >= xlim0 || y >= 70.55)         // Region 0 algorithm
+    if (abx >= xlim0 || y >= 70.55f)         // Region 0 algorithm
         return yrrtpi / (xq + yq);
 
     else if (abx >= xlim1) {            //  Humlicek W4 Region 1

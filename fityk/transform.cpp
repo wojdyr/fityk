@@ -6,6 +6,8 @@
 #include "transform.h"
 #include "logic.h"
 #include "data.h"
+#include "root/background.hpp"
+#include <stdio.h>
 
 using namespace std;
 
@@ -66,7 +68,6 @@ void merge_same_x(vector<Point> &pp, bool avg)
         }
     }
 }
-
 
 void shirley_bg(vector<Point> &pp)
 {
@@ -166,6 +167,8 @@ void shirley_bg(vector<Point> &pp)
     }
 }
 
+
+
 // Calculates the SNIP background iteratively in the
 // given slice of the vector of points.
 // The active points are modified in-place, inactive
@@ -212,7 +215,6 @@ vector<Point>::iterator snip_bg_slice(vector<Point>::iterator begin,
 
     return end;
 }
-
 
 } // anonymous namespace
 
@@ -321,6 +323,33 @@ void run_data_transform(const DataKeeper& dk, const VMData& vm, Data* data_out)
                 shirley_bg(stackPtr->points);
                 break;
 
+            case OP_DT_SNIP_BG: {
+                stackPtr -= 4;
+
+                if ((stackPtr)->is_num)
+                    throw ExecuteError(op2str(*i) + " is defined only for @n");
+                int window_width = (stackPtr+1)->num;
+                int direction = (stackPtr+2)->num >= 0
+                                ? ROOT::kBackIncreasingWindow
+                                : ROOT::kBackDecreasingWindow;
+                int filter_order = (stackPtr+3)->num;
+                bool smoothing = false;
+                int smooth_window = ROOT::kBackSmoothing3;
+                bool estimate_compton = (stackPtr+4)->num > 0 ? true : false;
+
+                vector<Point>::iterator start = stackPtr->points.begin();
+                while (start != stackPtr->points.end())
+                    start = snip_bg_slice(start,
+                                          stackPtr->points.end(),
+                                          window_width,
+                                          direction,
+                                          filter_order,
+                                          smoothing,
+                                          smooth_window,
+                                          estimate_compton);
+                break;
+            }
+
             case OP_AND:
                 // do nothing
                 break;
@@ -353,3 +382,4 @@ void run_data_transform(const DataKeeper& dk, const VMData& vm, Data* data_out)
 }
 
 } // namespace fityk
+ 

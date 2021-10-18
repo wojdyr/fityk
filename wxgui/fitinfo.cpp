@@ -9,7 +9,7 @@
 
 #include "fitinfo.h"
 #include "frame.h" //frame
-#include "cmn.h" //ProportionalSplitter
+#include "cmn.h" // make_wxspinctrl, ProportionalSplitter
 #include "fityk/logic.h"
 #include "fityk/fit.h"
 #include "fityk/data.h"
@@ -24,7 +24,7 @@ NumericFormatPanel::NumericFormatPanel(wxWindow* parent)
     wxSizer *sizer = new wxBoxSizer(wxHORIZONTAL);
     sizer->Add(new wxStaticText(this, -1, wxT("precision:")),
                wxSizerFlags().Center());
-    prec_sc = new SpinCtrl(this, -1, 6, 0, 30);
+    prec_sc = make_wxspinctrl(this, -1, 6, 0, 30);
     sizer->Add(prec_sc, wxSizerFlags().Center());
     wxArrayString fmt_choices;
     fmt_choices.Add(wxT("g"));

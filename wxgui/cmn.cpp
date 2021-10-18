@@ -124,7 +124,7 @@ ProportionalSplitter::ProportionalSplitter(wxWindow* parent, wxWindowID id,
 bool ProportionalSplitter::SplitHorizProp(wxWindow* win1, wxWindow* win2,
                                           float proportion)
 {
-    if (proportion >= 0. && proportion <= 1.)
+    if (proportion >= 0.f && proportion <= 1.f)
         m_proportion = proportion;
     int height = GetClientSize().GetHeight();
     int h = iround(height * m_proportion);
@@ -137,7 +137,7 @@ bool ProportionalSplitter::SplitHorizProp(wxWindow* win1, wxWindow* win2,
 bool ProportionalSplitter::SplitVertProp(wxWindow* win1, wxWindow* win2,
                                          float proportion)
 {
-    if (proportion >= 0. && proportion <= 1.)
+    if (proportion >= 0.f && proportion <= 1.f)
         m_proportion = proportion;
     int width = GetClientSize().GetWidth();
     int w = iround(width * m_proportion);
@@ -185,7 +185,7 @@ void ProportionalSplitter::OnSashChanged(wxSplitterEvent &event)
     const wxSize& s = GetSize();
     int t = GetSplitMode() == wxSPLIT_HORIZONTAL ? s.GetHeight() : s.GetWidth();
     float prop = float(event.GetSashPosition()) / t;
-    if (prop > 0. && prop < 1.)
+    if (prop > 0.f && prop < 1.f)
         m_proportion = prop;
     event.Skip();
 }

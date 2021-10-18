@@ -57,8 +57,8 @@ SumHistoryDlg::SumHistoryDlg (wxWindow* parent, wxWindowID id)
     buttons_sizer->Add (new wxStaticText(this, -1, wxT("View parameters:")),
                         0, wxALL|wxALIGN_CENTER, 5);
     for (int i = 0; i < 4; i++)
-        buttons_sizer->Add (new SpinCtrl(this, ID_SHIST_V + i, view[i],
-                                         0, view_max, 40),
+        buttons_sizer->Add(make_wxspinctrl(this, ID_SHIST_V + i, view[i],
+                                           0, view_max, 40),
                             0, wxALL, 5);
     buttons_sizer->Add (10, 10, 1);
     buttons_sizer->Add (new wxButton (this, wxID_CLOSE, wxT("&Close")),

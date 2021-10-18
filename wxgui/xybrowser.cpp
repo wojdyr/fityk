@@ -33,16 +33,16 @@ inline std::string S(int n) { return format1<int, 16>("%d", n); }
 inline std::string S(double d) { return format1<double, 16>("%g", d); }
 
 // copied from cmn.h
-class SpinCtrl: public wxSpinCtrl
+inline wxSpinCtrl* make_wxspinctrl(wxWindow* parent, wxWindowID id, int val,
+                                   int min, int max, int width=50)
 {
-public:
-    SpinCtrl(wxWindow* parent, wxWindowID id, int val,
-             int min, int max, int width=50)
-        : wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
-                      wxDefaultPosition, wxSize(width, -1),
-                      wxSP_ARROW_KEYS, min, max, val)
-    {}
-};
+#ifdef __WXGTK3__
+    width += 30;
+#endif
+    return new wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
+                           wxDefaultPosition, wxSize(width, -1),
+                           wxSP_ARROW_KEYS, min, max, val);
+}
 
 #endif // XYCONVERT
 
@@ -95,7 +95,7 @@ void PreviewPlot::load_dataset(string const& filename,
 
 XyFileBrowser::XyFileBrowser(wxWindow* parent)
     : wxSplitterWindow(parent, wxID_ANY, wxDefaultPosition, wxDefaultSize,
-                       wxSP_NOBORDER),
+                       wxSP_LIVE_UPDATE),
       auto_plot_cb(NULL)
 {
     // +----------------------------+
@@ -110,7 +110,7 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
     wxBoxSizer *left_sizer = new wxBoxSizer(wxVERTICAL);
     wxSplitterWindow *right_splitter = new wxSplitterWindow(this, -1,
                                              wxDefaultPosition, wxDefaultSize,
-                                             wxSP_NOBORDER);
+                                             wxSP_LIVE_UPDATE);
     right_splitter->SetSashGravity(0.5);
     right_splitter->SetMinimumPaneSize(20);
     wxPanel *rupper_panel = new wxPanel(right_splitter, -1);
@@ -130,12 +130,14 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
     wxBoxSizer *block_sizer = new wxBoxSizer(wxHORIZONTAL);
     block_sizer->Add(new wxStaticText(left_panel, -1, "file format:"),
                      wxSizerFlags().Border(wxLEFT|wxRIGHT).Center());
-    format_ch = new wxChoice(left_panel, -1, wxDefaultPosition, wxSize(140,-1));
+    format_ch = new wxChoice(left_panel, -1);
     format_ch->Append(wxString("<automatic>"));
     const xylibFormat *format;
     for (int i = 0; (format = xylib_get_format(i)) != NULL; ++i)
         format_ch->Append(format->desc);
     format_ch->SetSelection(0);
+    if (format_ch->GetBestSize().GetWidth() < 140)
+        format_ch->SetMinSize(wxSize(140, -1));
     block_sizer->Add(format_ch, wxSizerFlags(0).Border(wxRIGHT));
     block_sizer->Add(new wxStaticText(left_panel, -1, "block:"),
                      wxSizerFlags().Border(wxLEFT|wxRIGHT).Center());
@@ -153,11 +155,11 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
                     columns_panel, wxT("Select columns (0 for point index):"));
     h2a_sizer->Add (new wxStaticText (columns_panel, -1, wxT("x")),
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    x_column = new SpinCtrl(columns_panel, wxID_ANY, 1, 0, 999, 50);
+    x_column = make_wxspinctrl(columns_panel, wxID_ANY, 1, 0, 999, 50);
     h2a_sizer->Add (x_column, 0, wxALL|wxALIGN_LEFT, 5);
     h2a_sizer->Add (new wxStaticText (columns_panel, -1, wxT("y")),
                     0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL, 5);
-    y_column = new SpinCtrl(columns_panel, wxID_ANY, 2, 0, 999, 50);
+    y_column = make_wxspinctrl(columns_panel, wxID_ANY, 2, 0, 999, 50);
     h2a_sizer->Add (y_column, 0, wxALL|wxALIGN_LEFT, 5);
 #ifdef XYCONVERT
     std_dev_b = new wxCheckBox(columns_panel, -1, wxT("\u03C3"));
@@ -166,7 +168,7 @@ XyFileBrowser::XyFileBrowser(wxWindow* parent)
 #endif
     std_dev_b->SetValue(false);
     h2a_sizer->Add(std_dev_b, 0, wxALL|wxALIGN_LEFT|wxALIGN_CENTER_VERTICAL,5);
-    s_column = new SpinCtrl(columns_panel, wxID_ANY, 3, 1, 999, 50);
+    s_column = make_wxspinctrl(columns_panel, wxID_ANY, 3, 1, 999, 50);
     h2a_sizer->Add(s_column, 0, wxALL|wxALIGN_LEFT, 5);
 #ifndef XYCONVERT
     h2a_sizer->Add(new wxStaticText(columns_panel, wxID_ANY, "or"),

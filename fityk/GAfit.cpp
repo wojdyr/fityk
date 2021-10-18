@@ -205,7 +205,7 @@ void GAfit::arithmetic_crossover1 (vector<Individual>::iterator c1,
     realt a = rand_0_1();
     for (int j = 0; j < na_; ++j) {
         c1->g[j] = a * c1->g[j] + (1 - a) * c2->g[j];
-        c2->g[j] = (1 - a) * c1->g[j] + a * c2->g[j]; ;
+        c2->g[j] = (1 - a) * c1->g[j] + a * c2->g[j];
     }
 }
 
@@ -215,7 +215,7 @@ void GAfit::arithmetic_crossover2 (vector<Individual>::iterator c1,
     for (int j = 0; j < na_; ++j) {
         realt a = rand_0_1();
         c1->g[j] = a * c1->g[j] + (1 - a) * c2->g[j];
-        c2->g[j] = (1 - a) * c1->g[j] + a * c2->g[j]; ;
+        c2->g[j] = (1 - a) * c1->g[j] + a * c2->g[j];
     }
 }
 

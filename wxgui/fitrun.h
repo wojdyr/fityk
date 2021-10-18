@@ -7,8 +7,6 @@
 #include <vector>
 #include <wx/spinctrl.h>
 
-#include "cmn.h"
-
 class FitRunDlg : public wxDialog
 {
 public:
@@ -18,7 +16,7 @@ private:
     wxRadioBox* data_rb;
     wxChoice* method_c;
     wxCheckBox *separately_cb, *autoplot_cb;
-    SpinCtrl *maxiter_sc, *maxeval_sc;
+    wxSpinCtrl *maxiter_sc, *maxeval_sc;
     wxStaticText *nomaxeval_st, *nomaxiter_st;
 
     void OnSpinEvent(wxSpinEvent &) { update_unlimited(); }

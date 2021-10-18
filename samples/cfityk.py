@@ -14,6 +14,7 @@ from optparse import OptionParser
 import subprocess
 import bisect
 import functools
+from math import isnan
 
 import fityk
 
@@ -21,10 +22,6 @@ _PROMPT = "=-> "
 _PROMPT2 = "... "
 
 _gnuplot = None
-
-# Python 3.2 has math.isfinite()
-def finite(x):
-    return x == x
 
 def read_line():
     try:
@@ -121,7 +118,7 @@ def main():
             while True:
                 line = read_line()
                 ui.exec_and_log(line)
-            print("")
+                print("")
     except fityk.ExitRequestedException:
         sys.stderr.write("\nbye...\n")
 
@@ -161,7 +158,7 @@ def plot_in_gnuplot(f, mode):
     # data
     if has_points:
         for p in points[begin:end]:
-            if p.is_active and finite(p.x) and finite(p.y):
+            if p.is_active and not isnan(p.x) and not isnan(p.y):
                 _gnuplot.stdin.write("%f  %f\n" % (p.x, p.y))
     else:
         _gnuplot.stdin.write("0.0  0.0\n")
@@ -170,9 +167,9 @@ def plot_in_gnuplot(f, mode):
     # model
     if has_points:
         for p in points[begin:end]:
-            if p.is_active and finite(p.x):
+            if p.is_active and not isnan(p.x):
                 y = f.get_model_value(p.x, dm_number)
-                if finite(y):
+                if not isnan(y):
                     _gnuplot.stdin.write("%f  %f\n" % (p.x, y))
     else:
         _gnuplot.stdin.write("0.0  0.0\n")

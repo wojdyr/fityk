@@ -226,7 +226,7 @@ string info_func_props(const Full* F, const string& name)
         s += "\n" + f->get_param(i) + " = " + get_variable_info(F, v);
     }
     realt a;
-    const vector<string>& fargs = f->tp()->fargs;;
+    const vector<string>& fargs = f->tp()->fargs;
     if (f->get_center(&a) && !contains_element(fargs, string("center")))
         s += "\nCenter: " + S(a);
     if (f->get_height(&a) && !contains_element(fargs, string("height")))

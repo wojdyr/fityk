@@ -105,6 +105,7 @@ img/zoom_prev.xpm \
 img/zoom_right.xpm \
 img/zoom_up.xpm \
 img/zoom_vert.xpm \
+img/log_y_toggle.xpm \
 img/zshift.xpm \
 \
 img/eq_fwhm.h \

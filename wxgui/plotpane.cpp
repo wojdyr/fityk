@@ -33,10 +33,11 @@ void ZoomHistory::set_pos(size_t p)
 }
 
 PlotPane::PlotPane(wxWindow *parent, wxWindowID id)
-    : ProportionalSplitter(parent, id)
+    : ProportionalSplitter(parent, id, 0.66, wxDefaultSize, wxSP_3DSASH)
 {
     plot_ = new MainPlot(this);
-    aux_split_ = new ProportionalSplitter(this, -1, 0.5);
+    aux_split_ = new ProportionalSplitter(this, -1, 0.5, wxDefaultSize,
+                                          wxSP_3DSASH);
     SplitHorizProp(plot_, aux_split_);
 
     aux_plot_[0] = new AuxPlot(aux_split_, plot_, wxT("0"));

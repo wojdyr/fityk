@@ -36,6 +36,7 @@ public:
     void OnSwitchSideBar (wxCommandEvent& event);
     void OnClickTool (wxCommandEvent& event);
     void OnToolEnter(wxCommandEvent& event);
+    void OnLogYToggle (wxCommandEvent& event);
 
 private:
     wxChoice *peak_choice;

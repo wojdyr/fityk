@@ -63,14 +63,14 @@ FitRunDlg::FitRunDlg(wxWindow* parent, wxWindowID id)
     wxFlexGridSizer *max_sizer = new wxFlexGridSizer(2, 3, 0, 0);
     max_sizer->Add(new wxStaticText(this, -1, wxT("max. iterations")),
                    0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT, 5);
-    maxiter_sc = new SpinCtrl(this, -1, 0, 0, 999999, 70);
+    maxiter_sc = make_wxspinctrl(this, -1, 0, 0, 999999, 70);
     max_sizer->Add(maxiter_sc, 0, wxALL, 5);
     nomaxiter_st = new wxStaticText(this, -1, wxT("(unlimited)"));
     max_sizer->Add(nomaxiter_st, 0, wxRIGHT|wxALIGN_CENTER_VERTICAL, 5);
     max_sizer->Add(new wxStaticText(this, -1, wxT("max. WSSR evaluations")),
                    0, wxALL|wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT, 5);
     int default_max_eval = ftk->get_settings()->max_wssr_evaluations;
-    maxeval_sc = new SpinCtrl(this, -1, default_max_eval, 0, 999999, 70);
+    maxeval_sc = make_wxspinctrl(this, -1, default_max_eval, 0, 999999, 70);
     max_sizer->Add(maxeval_sc, 0, wxALL, 5);
     nomaxeval_st = new wxStaticText(this, -1, wxT("(unlimited)"));
     max_sizer->Add(nomaxeval_st, 0, wxALIGN_CENTER_VERTICAL, 0);

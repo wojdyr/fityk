@@ -46,6 +46,8 @@ public:
     void change_view(const RealRange& hor_r, const RealRange& ver_r,
                      const std::vector<int>& datasets);
     void set_log_scale(bool log_x, bool log_y) { log_x_=log_x; log_y_=log_y; }
+    bool get_log_scale_x() const { return log_x_; }
+    bool get_log_scale_y() const { return log_y_; }
     double y0_factor() const { return y0_factor_; }
     void set_y0_factor(double f) { y0_factor_ = f; }
 private:

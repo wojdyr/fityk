@@ -164,7 +164,8 @@ if (DOWNLOAD_XYLIB)
   set(XY_LIBRARY "${THIRDPARTY_INSTALL}/lib/${LIB_PREFIX}xy${LIB_SUFFIX}")
   set(XY_INCLUDE_DIR "${THIRDPARTY_INSTALL}/include")
 else()
-  set(XY_LIBRARY xy)
+  find_path(XY_INCLUDE_DIR xylib/xylib.h HINTS ${CMAKE_INSTALL_PREFIX}/include)
+  find_library(XY_LIBRARY NAMES xy HINTS ${LIB_INSTALL_DIR})
 endif()
 include_directories("${XY_INCLUDE_DIR}")
 
@@ -204,7 +205,7 @@ fityk/data.cpp       fityk/lexer.cpp      fityk/runner.cpp     fityk/vm.cpp
 fityk/eparser.cpp    fityk/LMfit.cpp      fityk/settings.cpp   fityk/voigt.cpp
 fityk/f_fcjasym.cpp  fityk/logic.cpp      fityk/tplate.cpp
 fityk/fit.cpp        fityk/luabridge.cpp  fityk/transform.cpp
-fityk/cmpfit/mpfit.c
+fityk/cmpfit/mpfit.c fityk/root/background.cpp
 ${lua_runtime} ${lua_cxx})
 
 if (DOWNLOAD_XYLIB)

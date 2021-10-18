@@ -47,7 +47,7 @@ def role_ftype(name, rawtext, text, lineno, inliner, options={}, content=[]):
     return [node], []
 
 def setup(app):
-    app.add_lexer('fityk', FitykLexer());
+    app.add_lexer('fityk', FitykLexer);
     app.connect('doctree-read', doctree_read)
     app.add_role('ftype', role_ftype)
 

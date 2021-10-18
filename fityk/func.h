@@ -82,9 +82,12 @@ public:
     int get_param_nr(const std::string& param) const;
 // C++ exception specifications are used by SWIG bindings.
 // They are deprecated (in this form) in C++-11.
-#ifdef __clang__
+#if defined(__clang__)
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wdeprecated"
+#elif defined(__GNUC__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wdeprecated"
 #endif
     virtual realt get_param_value(const std::string& param) const
                             throw(ExecuteError); // exc. spec. is used by SWIG
@@ -103,15 +106,18 @@ public:
     virtual const std::string& var_name(const std::string& param) const
                         throw(ExecuteError) // exc. spec. is used by SWIG
                         { return used_vars_.get_name(get_param_nr(param)); }
-#ifdef __clang__
+#if defined(__clang__)
 #pragma clang diagnostic pop
+#elif defined(__GNUC__)
+#pragma GCC diagnostic pop
 #endif
 
     virtual realt value_at(realt x) const { return calculate_value(x); }
     int max_param_pos() const;
 
     realt calculate_value_and_deriv(realt x, std::vector<realt> &dy_da) const {
-        bufx_[0] = x, bufy_[0] = 0.;
+        bufx_[0] = x;
+        bufy_[0] = 0.;
         calculate_value_deriv_in_range(bufx_, bufy_, dy_da, false, 0, 1);
         return bufy_[0];
     }

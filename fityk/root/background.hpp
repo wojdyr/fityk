@@ -15,25 +15,27 @@
 #ifndef __BACKGROUND_HPP__
 #define __BACKGROUND_HPP__
 
-namespace background {
+#include <vector>
+
+namespace ROOT {
 
     enum {
-        kBackIncreasingWindow =0,
-        kBackDecreasingWindow =1,
-        kBackOrder2 =2,
-        kBackOrder4 =4,
-        kBackOrder6 =6,
-        kBackOrder8 =8,
-        kBackSmoothing3 =3,
-        kBackSmoothing5 =5,
-        kBackSmoothing7 =7,
-        kBackSmoothing9 =9,
-        kBackSmoothing11 =11,
-        kBackSmoothing13 =13,
-        kBackSmoothing15 =15
-   };
+        kBackIncreasingWindow = 1,
+        kBackDecreasingWindow = -1,
+        kBackOrder2 = 2,
+        kBackOrder4 = 4,
+        kBackOrder6 = 6,
+        kBackOrder8 = 8,
+        kBackSmoothing3 = 3,
+        kBackSmoothing5 = 5,
+        kBackSmoothing7 = 7,
+        kBackSmoothing9 = 9,
+        kBackSmoothing11 = 11,
+        kBackSmoothing13 = 13,
+        kBackSmoothing15 = 15
+    };
 
-    std::vector<double> background(std::vector<double> spectrum,
+    std::vector<double> background(const std::vector<double>& spectrum,
                                    int numberIterations,
                                    int direction,
                                    int filterOrder,

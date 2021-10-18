@@ -8,8 +8,8 @@
 #include <string>
 #include <wx/config.h>
 
-#include "cmn.h" //SpinCtrl
 #include "fityk/common.h" //realt
+class wxSpinCtrl;
 
 /// Control for changing numeric precision and format.
 /// Sends wxEVT_COMMAND_CHOICE_SELECTED when the precision changes.

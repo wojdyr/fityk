@@ -15,6 +15,7 @@
 #include <cmath>
 #include <vector>
 
+#include "fityk.h"  // for ExecuteError
 #include "background.hpp"
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -441,30 +442,33 @@
 /// }
 /// ~~~
 
-std::vector<double> background::background(std::vector<double> spectrum,
-                                           int numberIterations,
-                                           int direction,
-                                           int filterOrder,
-                                           bool smoothing,
-                                           int smoothWindow,
-                                           bool compton)
+std::vector<double> ROOT::background(const std::vector<double>& spectrum,
+                                     int numberIterations,
+                                     int direction,
+                                     int filterOrder,
+                                     bool smoothing,
+                                     int smoothWindow,
+                                     bool compton)
 {
     int i, j, w, bw, b1, b2, priz;
     double a, b, c, d, e, yb1, yb2, ai, av, men, b4, c4, d4, e4, b6, c6, d6, e6, f6, g6, b8, c8, d8, e8, f8, g8, h8, i8;
 
-    const unsigned int ssize = spectrum.size();
+    const int ssize = (int) spectrum.size();
 
     if (ssize <= 0)
-        throw "Wrong Parameters";
+        throw fityk::ExecuteError("Wrong vector size");
 
     if (numberIterations < 1)
-        throw "Width of Clipping Window Must Be Positive";
+        throw fityk::ExecuteError("Width of Clipping Window Must Be Positive");
 
     if (ssize < 2 * numberIterations + 1)
-        throw "Too Large Clipping Window";
+        throw fityk::ExecuteError("Too Large Clipping Window");
+
+    if (filterOrder != kBackOrder2 && filterOrder != kBackOrder4 && filterOrder != kBackOrder6 && filterOrder != kBackOrder8)
+        throw fityk::ExecuteError("Incorrect order of clipping filter, possible values are: 2, 4, 6 or 8");
 
     if (smoothing == true && smoothWindow != kBackSmoothing3 && smoothWindow != kBackSmoothing5 && smoothWindow != kBackSmoothing7 && smoothWindow != kBackSmoothing9 && smoothWindow != kBackSmoothing11 && smoothWindow != kBackSmoothing13 && smoothWindow != kBackSmoothing15)
-        throw "Incorrect width of smoothing window";
+        throw fityk::ExecuteError("Incorrect width of smoothing window");
 
    std::vector<double> working_space(2 * ssize);
 
@@ -1025,7 +1029,7 @@ std::vector<double> background::background(std::vector<double> spectrum,
                   b = b4;
                if (b < a)
                   av = b;
-               working_space[j]=av;
+               working_space[j] = av;
             }
          }
          for (j = i; j < ssize - i; j++)
@@ -1094,7 +1098,5 @@ std::vector<double> background::background(std::vector<double> spectrum,
       }
    }
 
-    working_space.resize(ssize);
-
-    return working_space;
+    return std::vector<double>(working_space.begin() + ssize, working_space.end());
 }

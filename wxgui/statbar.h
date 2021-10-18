@@ -8,7 +8,7 @@
 #include <string>
 #include <wx/config.h>
 
-#include "cmn.h" //SpinCtrl
+#include "cmn.h" // PlotTypeEnum
 #include "fityk/eparser.h" // ExpressionParser
 
 // used by MainPlot to set hints on FStatusBar

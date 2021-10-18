@@ -574,8 +574,8 @@ AuxPlotConfDlg::AuxPlotConfDlg(AuxPlot* ap)
     zoom_sizer->AddSpacer(10);
     zoom_sizer->Add(new wxStaticText(this, -1, wxT("y zoom")),
                     0, wxALL|wxALIGN_CENTER_VERTICAL, 5);
-    zoom_sc_ = new SpinCtrl(this, -1, iround(ap_->y_zoom_ * 100),
-                            0, 999999, 70);
+    zoom_sc_ = make_wxspinctrl(this, -1, iround(ap_->y_zoom_ * 100),
+                               0, 999999, 70);
     zoom_sc_->Enable(!ap_->auto_zoom_y_);
     zoom_sizer->Add(zoom_sc_, 0, wxALL, 5);
     zoom_sizer->Add(new wxStaticText(this, -1, wxT("%")),

@@ -8,11 +8,6 @@
 #include <wx/filesys.h>
 #include <wx/tooltip.h>
 
-#ifdef __WXGTK3__
-#error "Not everything is working with wxGTK3. Use default wxGTK instead, " \
-       "based on GTK+2. If you want to test it, just remove this #error."
-#endif
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <vector>
@@ -43,7 +38,7 @@ using fityk::range_vector;
 // We don't pass HELP_DIR directly to wxString as a workaround for a problem
 // with Conda builds. wxString uses the system wchar_t by default
 // and Conda overlooks wide strings when replacing prefixes.
-const char* kHelpDir = HELP_DIR;
+static const char* kHelpDir = HELP_DIR;
 #endif
 
 IMPLEMENT_APP(FApp)

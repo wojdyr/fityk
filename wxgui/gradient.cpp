@@ -6,7 +6,7 @@
 #include <wx/spinctrl.h>
 
 #include "gradient.h"
-#include "cmn.h" //SpinCtrl, change_color_dlg, add_apply_close_buttons
+#include "cmn.h" // change_color_dlg, add_apply_close_buttons
 #include "fityk/common.h" //iround()
 
 using namespace std;
@@ -28,7 +28,7 @@ public:
         wxSize size = GetClientSize();
         wxPen pen;
         for (int i = 0; i < size.GetWidth(); ++i) {
-            float d = i / (size.GetWidth() - 1.0);
+            double d = i / (size.GetWidth() - 1.0);
             pen.SetColour(gradient_dlg_->get_value(d));
             dc.SetPen(pen);
             dc.DrawLine(i, 0, i, size.GetHeight());
@@ -108,10 +108,10 @@ static wxColour hsv2wxColour(unsigned char h, unsigned char s, unsigned char v)
     if (s == 0)
         return wxColour(v, v, v);
 
-    float hx = h / 42.501;      // 0 <= hx <= 5.
+    double hx = h / 42.501;      // 0 <= hx <= 5.
     int i = (int) floor(hx);
-    float f = hx - i;
-    float sx = s / 255.;
+    double f = hx - i;
+    double sx = s / 255.;
     unsigned char p = iround(v * (1 - sx));
     unsigned char q = iround(v * (1 - sx * f));
     unsigned char t = iround(v * (1 - sx * (1 - f)));
@@ -134,7 +134,7 @@ static wxColour hsv2wxColour(unsigned char h, unsigned char s, unsigned char v)
 }
 
 
-wxColour GradientDlg::get_value(float x)
+wxColour GradientDlg::get_value(double x)
 {
     wxColour c;
     if (x < 0)
