@@ -72,7 +72,7 @@ void shirley_bg(vector<Point> &pp)
 {
     /* Set criteria to stop itertions */
     const int max_iter = 50; 
-    const double max_rdiff = 1e-6;  // impement: check for differences
+    const double max_rdiff = 1e-6;  // implement: check for differences
     const unsigned long n = pp.size();
 
     /* The user has to set an appropriate region around the peak since the outcome is sensitive to that */
@@ -97,11 +97,11 @@ void shirley_bg(vector<Point> &pp)
 
     /* To set ymin and ymax, we assume that we are in BE representation and Alow belongs to smaller BE and Ahigh to higher BE */
 
-    /* Straight forward determination of ymin and ymax, but this can result to poor results when SNR is high. */
+    /* Straight forward determination of ymin and ymax, but this can result in poor results when the SNR is high. */
     //double ymin = pp[startXindex].y;
     //double ymax = pp[endXindex].y;
 
-    /* To improve behaviour for bad SNR we average up to 5 y values around the x-index*/
+    /* To improve the behaviour for bad SNR we average up to 5 y values around the x-index*/
     double ymin = 0.00001;
     double ymax = 0.00001;
 
@@ -154,7 +154,7 @@ void shirley_bg(vector<Point> &pp)
                 Ahigh = Ahigh + ((pp[x].x-pp[x-1].x)*(pp[x].y+pp[x-1].y)/2.0) - BG[x];
             }
 
-            /* The formula is implemented  as given in the CasaXPS manual (2006) "Peak fitting in XPS" chapter */
+            /* The formula is implemented as given in the CasaXPS manual (2006) "Peak fitting in XPS" chapter */
             BG[EnergyIdx] = ymin + (ymax-ymin) * (Alow / (Ahigh+Alow));
 
         }
