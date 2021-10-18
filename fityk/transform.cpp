@@ -166,6 +166,52 @@ void shirley_bg(vector<Point> &pp)
     }
 }
 
+// Calculates the SNIP background iteratively in the
+// given slice of the vector of points.
+// The active points are modified in-place, inactive
+// points are left as they are, assuming that they
+// are already considered background.
+vector<Point>::iterator snip_bg_slice(vector<Point>::iterator begin,
+                                      vector<Point>::iterator end,
+                                      int window_width,
+                                      int direction,
+                                      int filter_order,
+                                      bool smoothing,
+                                      bool smooth_window,
+                                      bool estimate_compton)
+{
+    // Determine the first active slice of the data points.
+    while (begin != end && !begin->is_active)
+        ++begin;
+    if (begin == end)
+        return end;
+    for (vector<Point>::iterator it = begin + 1; it != end; ++it)
+        if (!it->is_active) {
+            end = it;
+            break;
+        }
+    if (end <= begin)  // just in case
+        return end;
+
+    vector<double> bg_input(end - begin);
+    for (vector<Point>::iterator it = begin; it != end; it++)
+        bg_input[it - begin] = it->y;
+
+    vector<double> bg_output = ROOT::background(bg_input,
+                                                window_width,
+                                                direction,
+                                                filter_order,
+                                                smoothing,
+                                                smooth_window,
+                                                estimate_compton);
+
+    if (bg_output.size() == bg_input.size()) {
+        for (vector<Point>::iterator it = begin; it != end; it++)
+            it->y = bg_output[it - begin];
+    }
+
+    return end;
+}
 
 
 } // anonymous namespace
