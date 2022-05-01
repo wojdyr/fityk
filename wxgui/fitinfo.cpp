@@ -115,7 +115,7 @@ bool FitInfoDlg::Initialize()
                    wxSizerFlags().Border());
     btn_sizer->AddStretchSpacer();
     btn_sizer->Add(new wxButton(this, wxID_CLOSE),
-                   wxSizerFlags().Right().Border());
+                   wxSizerFlags().Border());
     top_sizer->Add(btn_sizer, wxSizerFlags().Expand());
     SetSizerAndFit(top_sizer);
     SetSize(wxSize(640, 440));

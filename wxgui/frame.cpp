@@ -1753,17 +1753,17 @@ void FFrame::OnConfigureDirectories(wxCommandEvent&)
     wxDirPickerCtrl *dp = new wxDirPickerCtrl(&dlg, -1, data_dir_,
                 wxDirSelectorPromptStr, wxDefaultPosition, wxDefaultSize,
                 wxDIRP_USE_TEXTCTRL);
-    gsizer->Add(dp, wxSizerFlags().Center().Expand());
+    gsizer->Add(dp, wxSizerFlags().Expand());
     gsizer->Add(new wxStaticText(&dlg, -1, "Script Directory"), sf);
     wxDirPickerCtrl *sp = new wxDirPickerCtrl(&dlg, -1, script_dir_,
                 wxDirSelectorPromptStr, wxDefaultPosition, wxDefaultSize,
                 wxDIRP_USE_TEXTCTRL);
-    gsizer->Add(sp, wxSizerFlags().Center().Expand());
+    gsizer->Add(sp, wxSizerFlags().Expand());
     gsizer->Add(new wxStaticText(&dlg, -1, "Export Directory"), sf);
     wxDirPickerCtrl *ep = new wxDirPickerCtrl(&dlg, -1, export_dir_,
                 wxDirSelectorPromptStr, wxDefaultPosition, wxDefaultSize,
                 wxDIRP_USE_TEXTCTRL);
-    gsizer->Add(ep, wxSizerFlags().Center().Expand());
+    gsizer->Add(ep, wxSizerFlags().Expand());
     top_sizer->Add(gsizer, wxSizerFlags().Border().Expand());
 
     wxBoxSizer *button_sizer = new wxBoxSizer(wxHORIZONTAL);

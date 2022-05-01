@@ -55,9 +55,9 @@ PageSetupDialog::PageSetupDialog(wxWindow *parent, PrintManager *print_mgr)
     m2sizer->Add(left_margin_sc, 0, wxLEFT, 5);
     m2sizer->AddStretchSpacer();
     m2sizer->Add(new wxStaticText(this, -1, "Right"),
-                 0, wxALIGN_CENTER_VERTICAL|wxALIGN_RIGHT);
+                 0, wxALIGN_CENTER_VERTICAL);
     right_margin_sc = make_wxspinctrl(this, -1, 0, -100, 500);
-    m2sizer->Add(right_margin_sc, 0, wxLEFT|wxRIGHT|wxALIGN_RIGHT, 5);
+    m2sizer->Add(right_margin_sc, 0, wxLEFT|wxRIGHT, 5);
     hsizer->Add(m2sizer, 0, wxEXPAND);
     wxBoxSizer *m3sizer = new wxBoxSizer(wxHORIZONTAL);
     m3sizer->Add(new wxStaticText(this, -1, "Bottom"),

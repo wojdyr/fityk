@@ -260,7 +260,7 @@ void EditTransDlg::init()
     bb_sizer->Add(todefault_btn, wxSizerFlags().Border());
     bb_sizer->AddStretchSpacer();
     bb_sizer->Add(new wxButton(this, wxID_CLOSE, wxT("&Close")),
-                  wxSizerFlags().Border().Right());
+                  wxSizerFlags().Border());
     top_sizer->Add(bb_sizer, wxSizerFlags().Expand());
     SetSizerAndFit(top_sizer);
     SetEscapeId(wxID_CLOSE);

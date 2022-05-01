@@ -338,9 +338,9 @@ void ParameterPanel::append_row()
                                  .Border(wxLEFT, 2)
 #endif
                                    );
-    grid_sizer_->Add(data.text, wxSizerFlags().Expand().Center()
+    grid_sizer_->Add(data.text, wxSizerFlags().Expand()
                                          .Border(wxLEFT|wxTOP|wxBOTTOM, 2));
-    grid_sizer_->Add(data.rsizer, wxSizerFlags().Expand().Center());
+    grid_sizer_->Add(data.rsizer, wxSizerFlags().Expand());
 
     data.label2->Show(false);
 
