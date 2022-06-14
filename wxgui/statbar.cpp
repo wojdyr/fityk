@@ -59,7 +59,7 @@ FStatusBar::FStatusBar(wxWindow *parent)
         (this, -1, GET_BMP(sbprefs));
 #endif
     prefbtn->SetToolTip(wxT("configure status bar"));
-    sizer->Add(prefbtn, wxSizerFlags().Expand().Centre());
+    sizer->Add(prefbtn, wxSizerFlags().Expand());
 
     // wxALIGN_RIGHT flag for wxStaticText doesn't work on wxGTK 2.9
     // (wx bug #10716), so we must align the text in a different way
@@ -79,7 +79,7 @@ FStatusBar::FStatusBar(wxWindow *parent)
     mousebmp = new wxStaticBitmap(this, -1, GET_BMP(mouse16));
     wxBoxSizer *lmouse_sizer = new wxBoxSizer(wxHORIZONTAL);
     lmouse_sizer->AddStretchSpacer();
-    lmouse_sizer->Add(lmouse_hint, wxSizerFlags().Right());
+    lmouse_sizer->Add(lmouse_hint);
     lmouse_sizer->SetMinSize(rmouse_hint->GetClientSize());
     wxBoxSizer *hint_sizer = new wxBoxSizer(wxVERTICAL);
     wxBoxSizer *vhint_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -246,7 +246,7 @@ ConfStatBarDlg::ConfStatBarDlg(wxWindow* parent, wxWindowID id, FStatusBar* sb_)
     gsizer->Add(new wxStaticText(this, -1, wxT("formula")),
                 wxSizerFlags().Align(wxALIGN_CENTRE_VERTICAL|wxALIGN_RIGHT));
     extra_tc = new wxTextCtrl(this, -1, sb->extra_value);
-    gsizer->Add(extra_tc, wxSizerFlags().Expand().Center());
+    gsizer->Add(extra_tc, wxSizerFlags().Expand());
     okbmp = new wxStaticBitmap(this, -1, GET_BMP(ok24));
     gsizer->Add(okbmp, wxSizerFlags().Center()
 #if wxCHECK_VERSION(2, 8, 8)

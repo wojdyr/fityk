@@ -36,6 +36,7 @@
 #   Copyright (c) 2008 Rafael Laboissiere <rafael@laboissiere.net>
 #   Copyright (c) 2008 Andrew Collier
 #   Copyright (c) 2011 Murray Cumming <murrayc@openismus.com>
+#   Copyright (c) 2021 Vincent Danjean <Vincent.Danjean@ens-lyon.org>
 #
 #   This program is free software; you can redistribute it and/or modify it
 #   under the terms of the GNU General Public License as published by the
@@ -63,14 +64,16 @@
 #   modified version of the Autoconf Macro, you may extend this special
 #   exception to the GPL to apply to your modified version as well.
 
-#serial 13
+#serial 14
 
 AC_DEFUN([AX_PKG_SWIG],[
         # Find path to the "swig" executable.
         AC_PATH_PROGS([SWIG],[swig swig3.0 swig2.0])
         if test -z "$SWIG" ; then
                 m4_ifval([$3],[$3],[:])
-        elif test -n "$1" ; then
+        elif test -z "$1" ; then
+                m4_ifval([$2],[$2],[:])
+	else
                 AC_MSG_CHECKING([SWIG version])
                 [swig_version=`$SWIG -version 2>&1 | grep 'SWIG Version' | sed 's/.*\([0-9][0-9]*\.[0-9][0-9]*\.[0-9][0-9]*\).*/\1/g'`]
                 AC_MSG_RESULT([$swig_version])
@@ -81,12 +84,12 @@ AC_DEFUN([AX_PKG_SWIG],[
                         if test -z "$required_major" ; then
                                 [required_major=0]
                         fi
-                        [required=`echo $required | sed 's/[0-9]*[^0-9]//'`]
+                        [required=`echo $required. | sed 's/[0-9]*[^0-9]//'`]
                         [required_minor=`echo $required | sed 's/[^0-9].*//'`]
                         if test -z "$required_minor" ; then
                                 [required_minor=0]
                         fi
-                        [required=`echo $required | sed 's/[0-9]*[^0-9]//'`]
+                        [required=`echo $required. | sed 's/[0-9]*[^0-9]//'`]
                         [required_patch=`echo $required | sed 's/[^0-9].*//'`]
                         if test -z "$required_patch" ; then
                                 [required_patch=0]

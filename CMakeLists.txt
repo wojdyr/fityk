@@ -12,7 +12,7 @@
 # When using Microsoft Visual C++ Compiler for Python 2.7 add cmake option
 # -D CMAKE_BUILD_TYPE=Release (I haven't investigated why it was needed).
 
-cmake_minimum_required(VERSION 2.8)
+cmake_minimum_required(VERSION 2.8.12)
 project(fityk C CXX)
 
 option(DOWNLOAD_LUA "Fetch Lua from its website" ON)
@@ -36,10 +36,6 @@ if(NOT DEFINED LIB_INSTALL_DIR)
 endif()
 
 include(ExternalProject)
-
-if (POLICY CMP0042)
-  cmake_policy(SET CMP0042 OLD)
-endif()
 
 if (MSVC)
   # C4244: '=' : conversion from 'double' to 'float', possible loss of data
@@ -122,8 +118,8 @@ endif()
 
 if (DOWNLOAD_ZLIB)
   ExternalProject_Add(zlib
-    URL "http://zlib.net/zlib-1.2.11.tar.gz"
-    URL_HASH SHA256=c3e5e9fdd5004dcb542feda5ee4f0ff0744628baf8ed2dd5d66f8ca1197cb1a1
+    URL "http://zlib.net/zlib-1.2.12.tar.gz"
+    URL_HASH SHA256=91844808532e5ce316b3c010929493c0244f3d37593afd6de04f71821d5136d9
     DOWNLOAD_DIR ${thirdparty_dir}
     SOURCE_DIR ${thirdparty_dir}/zlib
     BINARY_DIR ${CMAKE_BINARY_DIR}/zlib
