@@ -72,7 +72,7 @@ void merge_same_x(vector<Point> &pp, bool avg)
 void shirley_bg(vector<Point> &pp)
 {
     /* Set criteria to stop itertions */
-    const int max_iter = 50; 
+    const int max_iter = 100; 
     const double max_rdiff = 1e-6;  // implement: check for differences
     const unsigned long n = pp.size();
 
@@ -123,9 +123,10 @@ void shirley_bg(vector<Point> &pp)
         }
     }
     /* divide by number of summations */
-    ymin=ymin/double(count_start);
-    ymax=ymax/double(count_end);
-
+    if(count_start>0 && count_end>0){
+        ymin=ymin/double(count_start);
+        ymax=ymax/double(count_end);
+    }
 
     /* Determine minimum element from data to obtain a reasonable starting value for the fit */
     double yminElement = ymin;
@@ -137,26 +138,54 @@ void shirley_bg(vector<Point> &pp)
     /* create starting background */
     std::vector<double> BG(n, yminElement);
 
+    /* set initial BG values by assuming a linear background of the form  y = a* x + y0*/
+    double divisor =  1.0; 
+    if( (endXindex - startXindex) > 0){
+        divisor = (double)(endXindex - startXindex);
+    }
+
+    double initial_slope = (pp[endXindex].y - pp[startXindex].y) / divisor;
+    
+    for (unsigned long EnergyIdx = 0; EnergyIdx < n ;  EnergyIdx++){
+      
+        if (EnergyIdx < startXindex){
+            BG[EnergyIdx] = pp[startXindex].y;
+        }   
+
+        if (EnergyIdx >= startXindex && EnergyIdx <= endXindex){
+            BG[EnergyIdx] = initial_slope * (EnergyIdx-startXindex) + pp[startXindex].y;
+        }
+
+        if (EnergyIdx > endXindex){
+            BG[EnergyIdx] = pp[endXindex].y;
+        }     
+
+    } 
+
     /* recursive determination of the shirley background */
     for (int iter = 0; iter < max_iter; iter++) {
 
-        /* Determine all background BG(Energy) values in dependence of the Energy */
+        /* Determine all background BG(Energy) values in dependence of the binding energy */
         for (unsigned long EnergyIdx = 0; EnergyIdx < n ;  EnergyIdx++){
 
             double Alow = 0.0;
             double Ahigh = 0.0;
 
             /* calculate Areas A1 and A2 for each energy value */
-            for (unsigned long x = startXindex+1; x <= EnergyIdx ;  x++){
-                Alow = Alow +  ((pp[x].x-pp[x-1].x)*(pp[x].y+pp[x-1].y)/2.0) - BG[x];
+            for (unsigned long x = startXindex+1; x <= EnergyIdx; x++){
+
+                Alow = Alow + ((pp[x].x-pp[x-1].x)*(pp[x].y+pp[x-1].y)/2.0) - BG[x]*(pp[x].x-pp[x-1].x);
+
             }
 
-            for (unsigned long x = EnergyIdx+1; x < endXindex ;  x++){
-                Ahigh = Ahigh + ((pp[x].x-pp[x-1].x)*(pp[x].y+pp[x-1].y)/2.0) - BG[x];
+            for (unsigned long x = EnergyIdx+1; x < endXindex; x++){
+
+                Ahigh = Ahigh + ((pp[x].x-pp[x-1].x)*(pp[x].y+pp[x-1].y)/2.0) - BG[x]*(pp[x].x-pp[x-1].x);
+
             }
 
             /* The formula is implemented as given in the CasaXPS manual (2006) "Peak fitting in XPS" chapter */
-            BG[EnergyIdx] = ymin + (ymax-ymin) * (Alow / (Ahigh+Alow));
+            BG[EnergyIdx] = ymin + (ymax-ymin) * (Alow/(Ahigh+Alow));
 
         }
     }
