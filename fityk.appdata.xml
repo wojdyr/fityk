@@ -21,6 +21,8 @@
 		<category>DataVisualization</category>
 		<category>NumericalAnalysis</category>
 	</categories>
+	
+	<content_rating type="oars-1.1" />
 
 	<launchable type="desktop-id">fityk.desktop</launchable>
 
