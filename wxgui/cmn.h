@@ -135,7 +135,9 @@ inline wxSpinCtrl* make_wxspinctrl(wxWindow* parent, wxWindowID id, int val,
                                    int min, int max, int width=50)
 {
 #ifdef __WXGTK3__
-    width = std::max(width, 50) + 30;
+    // GTK3 control has +/- instead of spin buttons and takes much more size,
+    // use its default width.
+    width = -1;
 #endif
     return new wxSpinCtrl (parent, id, wxString::Format(wxT("%i"), val),
                            wxDefaultPosition, wxSize(width, -1),
