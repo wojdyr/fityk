@@ -221,9 +221,9 @@ set_target_properties(fityk PROPERTIES SOVERSION 4 VERSION 4.0.0)
 add_executable(cfityk cli/gnuplot.cpp cli/main.cpp)
 target_link_libraries(cfityk fityk)
 
-#add_definitions(-DVERSION="1.3.1")
+#add_definitions(-DVERSION="1.3.2")
 set_target_properties (fityk cfityk PROPERTIES
-                       COMPILE_DEFINITIONS VERSION="1.3.1")
+                       COMPILE_DEFINITIONS VERSION="1.3.2")
 
 
 if(MSVC90) # compiling with VS2008? It's most likely for Python 2.7.

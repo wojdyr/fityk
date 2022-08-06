@@ -1,6 +1,6 @@
 #!/bin/bash 
 
-version=1.3.1
+version=1.3.2
 
 MINGW_DIR=mingw-build
 
