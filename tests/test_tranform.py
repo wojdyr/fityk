@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # run tests with: python -m unittest test_tranform
 #                 python -m unittest discover
@@ -30,8 +30,8 @@ class TestTransform(unittest.TestCase):
         self.assertEqual(xx, self.x)
         self.assertEqual(yy, self.y)
         self.assertEqual(ss, self.sigma)
-        #print self.x
-        #print self.y
+        #print(self.x)
+        #print(self.y)
 
     def assert_expr(self, expr, val, places=None):
         expr_val = self.ftk.calculate_expr(expr)

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # run tests with: python -m unittest test_info
 #             or  python -m unittest discover

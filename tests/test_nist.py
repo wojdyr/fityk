@@ -1,11 +1,11 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 # run tests with: python -m unittest discover
 
 import os
 import sys
 import re
-import urllib2
+from urllib.request import urlopen
 import unittest
 import fityk
 
@@ -40,14 +40,17 @@ def open_nist_data(name):
     name_ext = name + ".dat"
     local_file = os.path.join(CACHE_DIR, name_ext)
     if os.path.exists(local_file):
-        text = open(local_file).read()
+        with open(local_file, 'rb') as f:
+            text = f.read()
     else:
         sys.stderr.write("Local data copy not found. Trying itl.nist.gov...\n")
-        text = urllib2.urlopen(DATA_URL_BASE + name_ext).read()
+        text = urlopen(DATA_URL_BASE + name_ext).read()
         if not os.path.isdir(CACHE_DIR):
             os.mkdir(CACHE_DIR)
-        open(local_file, "wb").write(text)
-    return text
+        with open(local_file, "wb") as f:
+            sys.stderr.write("Writing " + local_file + ' ...\n')
+            f.write(text)
+    return text.decode()
 
 
 def read_reference_data(name):
@@ -100,12 +103,13 @@ def run(data_name, fit_method, easy=True):
             tolerance["err"] = 5e-5
     #if fit_method in ("mpfit", "levenberg_marquardt"):
     if VERBOSE > 0:
-        print "Testing %s (start%s) on %-10s" % (fit_method, easy+1, data_name),
+        print("Testing %s (start%s) on %-10s" % (fit_method, easy+1, data_name),
+              end='')
     if VERBOSE > 1:
-        print
+        print()
     ref = read_reference_data(data_name)
     if VERBOSE > 2:
-        print ref.model
+        print(ref.model)
     ftk = fityk.Fityk()
     if VERBOSE < 3:
         ftk.execute("set verbosity=-1")
@@ -134,7 +138,7 @@ def run(data_name, fit_method, easy=True):
         #ftk.execute("set fitting_method=levenberg_marquardt")
         #ftk.execute("fit")
     except fityk.ExecuteError as e:
-        print "fityk.ExecuteError: %s" % e
+        print("fityk.ExecuteError: %s" % e)
         return False
     ssr = ftk.get_ssr()
     ssr_diff = (ssr - ref.ssr) / ref.ssr
@@ -147,10 +151,10 @@ def run(data_name, fit_method, easy=True):
 
     ok = (abs(ssr_diff) < tolerance["wssr"])
     if ref.ssr > 1e-10 and ssr_diff < -1e-10:
-        print "Eureka! %.10E < %.10E" % (ssr, ref.ssr)
+        print("Eureka! %.10E < %.10E" % (ssr, ref.ssr))
     fmt =  " %8s  %13E %13E  %+.1E"
     if VERBOSE > 2 or (VERBOSE == 2 and not ok):
-        print fmt % ("SSR", ssr, ref.ssr, ssr_diff)
+        print(fmt % ("SSR", ssr, ref.ssr, ssr_diff))
     our_func = ftk.all_functions()[0]
     for par in ref.parameters:
         calc_value = our_func.get_param_value(par.name)
@@ -163,9 +167,9 @@ def run(data_name, fit_method, easy=True):
             err_diff = (calc_err - par.stddev) / par.stddev
             err_ok = (abs(err_diff) < tolerance["err"])
         if VERBOSE > 2 or (VERBOSE == 2 and (not param_ok or not err_ok)):
-            print fmt % (par.name, calc_value, par.value, val_diff)
+            print(fmt % (par.name, calc_value, par.value, val_diff))
             if "err" in tolerance:
-                print fmt % ("+/-", calc_err, par.stddev, err_diff)
+                print(fmt % ("+/-", calc_err, par.stddev, err_diff))
         ok = (ok and param_ok and err_ok)
     if VERBOSE == 1:
         print("OK" if ok else "FAILED")
@@ -255,7 +259,7 @@ def try_method(method):
             if ok:
                 ok_count += 1
             sys.stdout.flush()
-    print "OK: %2d / %2d" % (ok_count, all_count)
+    print("OK: %2d / %2d" % (ok_count, all_count))
 
 
 if __name__ == '__main__':

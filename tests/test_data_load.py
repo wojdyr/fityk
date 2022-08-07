@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
 # run tests with: python -m unittest test_data_load
@@ -22,7 +22,7 @@ class FileLoadBase(unittest.TestCase):
         f = tempfile.NamedTemporaryFile(prefix=prefix, delete=False)
         self.data = self.generate_data()
         for d in self.data:
-            f.write(self.line_format(d))
+            f.write(self.line_format(d).encode())
         f.close()
         self.data.sort()
         self.filename = f.name
@@ -32,7 +32,7 @@ class FileLoadBase(unittest.TestCase):
                 for _ in range(30)]
 
     def tearDown(self):
-        #print "remove " + self.filename
+        #print("remove " + self.filename)
         os.unlink(self.filename)
 
     def compare(self, out, ndigits):
@@ -110,7 +110,7 @@ class Test5ColsFile(FileLoadBase):
     def test_load_with_index(self):
         self.ftk.execute("@0 < '%s:0:2::'" % self.filename)
         out = self.ftk.get_data()
-        self.assertEqual([i.x for i in out], range(len(out)))
+        self.assertEqual([i.x for i in out], list(range(len(out))))
     def test_load_with_sigma(self):
         self.ftk.execute("@0 < '%s:1:2:3:'" % self.filename)
         out = self.ftk.get_data()
@@ -133,7 +133,7 @@ class TestSimpleScript(unittest.TestCase):
         self.ftk = fityk.Fityk()
         self.ftk.set_option_as_number("verbosity", -1)
         f = tempfile.NamedTemporaryFile(delete=False)
-        f.write("M=1\n X[0]=1.1, Y[0]=-5, S[0]=0.8")
+        f.write(b"M=1\n X[0]=1.1, Y[0]=-5, S[0]=0.8")
         f.close()
         self.filename = f.name
 
@@ -154,8 +154,8 @@ class TestGzippedScript(unittest.TestCase):
         self.ftk.set_option_as_number("verbosity", -1)
         f = tempfile.NamedTemporaryFile(suffix='.gz', delete=False)
         self.filename = f.name
-        gf = gzip.GzipFile(fileobj=f)
-        gf.write("M=1\n X[0]=1.1, Y[0]=-5, S[0]=0.8")
+        gf = gzip.GzipFile(fileobj=f, mode='wb')
+        gf.write(b"M=1\n X[0]=1.1, Y[0]=-5, S[0]=0.8")
         gf.close()
 
     def tearDown(self):
