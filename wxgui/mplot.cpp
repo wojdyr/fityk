@@ -7,7 +7,7 @@
 #include <wx/fontpicker.h>
 #include <wx/dcgraph.h>
 #include <algorithm>
-#include <boost/scoped_ptr.hpp>
+#include <memory>  // for unique_ptr
 
 #include "mplot.h"
 #include "plotpane.h"
@@ -1427,7 +1427,7 @@ void calculate_values(const vector<realt>& xx, vector<realt>& yy,
     vector<string> varnames(len);
     for (int i = 0; i != len; ++i)
         varnames[i] = "v" + S(i);
-    boost::scoped_ptr<Function> f(
+    unique_ptr<Function> f(
                 (*tp->create)(ftk->get_settings(), "tmp", tp, varnames));
     f->init();
 

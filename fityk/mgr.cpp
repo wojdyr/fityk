@@ -277,7 +277,7 @@ void ModelManager::remove_unreferred()
 /// puts Variable into `variables_' vector, checking dependencies
 int ModelManager::add_variable(Variable* new_var, bool old_domain)
 {
-    auto_ptr<Variable> var(new_var);
+    unique_ptr<Variable> var(new_var);
     var->set_var_idx(variables_);
     int pos = find_variable_nr(var->name);
     if (pos == -1) {

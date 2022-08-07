@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include <boost/scoped_ptr.hpp>
+#include <memory>  // for unique_ptr
 #include "fityk/logic.h"
 #include "fityk/data.h"
 #include "fityk/fit.h"
@@ -41,7 +41,7 @@ static double boxbetts_f(const double *a, double *grad)
 
 static double boxbetts_in_fityk(const double *a, double *grad)
 {
-    boost::scoped_ptr<Fityk> ftk(new Fityk);
+    unique_ptr<Fityk> ftk(new Fityk);
     Full* priv = ftk->priv();
     ftk->set_option_as_number("verbosity", -1);
     for (int i = 1; i <= 10; ++i)
@@ -87,7 +87,7 @@ TEST_CASE("gradient", "test Fit::compute_wssr_gradient()") {
 //----------- + some unrelated random tests
 
 TEST_CASE("set-throws", "test Fityk::set_throws()") {
-    boost::scoped_ptr<Fityk> fik(new Fityk);
+    unique_ptr<Fityk> fik(new Fityk);
     REQUIRE(fik->get_throws() == true);
     REQUIRE_THROWS_AS(fik->execute("hi"), SyntaxError);
     REQUIRE_THROWS_AS(fik->execute("fit"), ExecuteError);
@@ -102,7 +102,7 @@ TEST_CASE("set-throws", "test Fityk::set_throws()") {
 
 
 TEST_CASE("set-get-option", "test Fityk::[gs]et_option_as_*()") {
-    boost::scoped_ptr<Fityk> fik(new Fityk);
+    unique_ptr<Fityk> fik(new Fityk);
 
     REQUIRE(fik->get_option_as_string("numeric_format") == "%g"); // string
     REQUIRE(fik->get_option_as_string("on_error") == "stop"); // enum

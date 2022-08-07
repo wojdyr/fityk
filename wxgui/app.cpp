@@ -12,7 +12,7 @@
 #include <stdlib.h>
 #include <vector>
 #include <string>
-#include <boost/scoped_ptr.hpp>
+#include <memory>  // for unique_ptr
 
 #ifndef _WIN32
 # include <signal.h>
@@ -254,7 +254,7 @@ bool FApp::OnInit(void)
     if (!wxDirExists(config_dir)) {
         wxMkdir(config_dir);
         // create white-background config
-        boost::scoped_ptr<wxFileConfig> w(new wxFileConfig("", "",
+        unique_ptr<wxFileConfig> w(new wxFileConfig("", "",
                                                            config_dir+"white"));
         write_white_config(w.get());
     }

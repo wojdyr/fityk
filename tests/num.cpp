@@ -1,5 +1,4 @@
 
-#include <boost/scoped_ptr.hpp>
 #include "fityk/numfuncs.h"
 #include "catch.hpp"
 

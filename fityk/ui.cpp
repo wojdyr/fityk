@@ -7,8 +7,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <memory>  // for unique_ptr
 #include <zlib.h>
-#include <boost/scoped_ptr.hpp>
 #ifdef _WIN32
 # include <windows.h>
 #else
@@ -255,7 +255,7 @@ void UserInterface::exec_fityk_script(const string& filename)
 {
     user_interrupt = 0;
 
-    boost::scoped_ptr<FileOpener> opener;
+    unique_ptr<FileOpener> opener;
     if (endswith(filename, ".gz"))
         opener.reset(new GzipFileOpener);
     else

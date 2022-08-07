@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
+#include <memory>  // for unique_ptr
 
 #include "common.h"
 #include "data.h"
@@ -221,7 +222,7 @@ void DataKeeper::do_import_dataset(bool new_dataset, int slot,
                                    BasicContext* ctx, ModelManager &mgr)
 {
     Data *d;
-    auto_ptr<Data> auto_d;
+    unique_ptr<Data> auto_d;
     if (!new_dataset)
         d = data(slot);
     else if (count() == 1 && data(0)->completely_empty()) // reusable slot 0
@@ -231,7 +232,7 @@ void DataKeeper::do_import_dataset(bool new_dataset, int slot,
         d = auto_d.get();
     }
     d->load_file(spec);
-    if (auto_d.get())
+    if (auto_d)
         append(auto_d.release());
 }
 

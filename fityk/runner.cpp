@@ -4,7 +4,7 @@
 #define BUILDING_LIBFITYK
 #include "runner.h"
 
-#include <boost/scoped_ptr.hpp>
+#include <memory>  // for unique_ptr
 
 #include "cparser.h"
 #include "eparser.h"
@@ -310,7 +310,7 @@ void Runner::command_dataset_tr(const vector<Token>& args)
                    ExpressionParser::kDatasetTrMode);
 
     if (n == Lexer::kNew) {
-        auto_ptr<Data> data_out(new Data(F_, F_->mgr.create_model()));
+        unique_ptr<Data> data_out(new Data(F_, F_->mgr.create_model()));
         run_data_transform(F_->dk, ep_.vm(), data_out.get());
         F_->dk.append(data_out.release());
     } else
@@ -851,7 +851,7 @@ void Runner::recalculate_command(Command& c, int ds, Statement& st)
 // Throws ExecuteError, ExitRequestedException.
 void Runner::execute_statement(Statement& st)
 {
-    boost::scoped_ptr<Settings> s_orig;
+    unique_ptr<Settings> s_orig;
     vdlist_ = &st.vdlist;
     try {
         if (!st.with_args.empty()) {
