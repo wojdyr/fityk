@@ -46,17 +46,17 @@ void Function::do_precomputations(const vector<Variable*> &variables)
     for (int i = 0; i < used_vars_.get_count(); ++i) {
         const Variable *v = variables[used_vars_.get_idx(i)];
         av_[i] = v->value();
-        v_foreach (Variable::ParMult, j, v->recursive_derivatives())
-            multi_.push_back(Multi(i, *j));
+        for (const Variable::ParMult& pm : v->recursive_derivatives())
+            multi_.push_back(Multi(i, pm));
     }
     this->more_precomputations();
 }
 
 void Function::erased_parameter(int k)
 {
-    vm_foreach (Multi, i, multi_)
-        if (i->p > k)
-            -- i->p;
+    for (Multi& m : multi_)
+        if (m.p > k)
+            -- m.p;
 }
 
 
@@ -98,8 +98,8 @@ void Function::calculate_value_deriv(const vector<realt> &x,
 int Function::max_param_pos() const
 {
     int n = 0;
-    v_foreach (Multi, j, multi_)
-        n = max(j->p + 1, n);
+    for (const Multi& m : multi_)
+        n = max(m.p + 1, n);
     return n;
 }
 
@@ -126,8 +126,12 @@ bool Function::get_ibreadth(realt* a) const
 string Function::get_basic_assignment() const
 {
     string r = "%" + name + " = " + tp_->name + "(";
-    v_foreach (string, i, used_vars_.names())
-        r += (i == used_vars_.names().begin() ? "$" : ", $") + *i;
+    bool first = true;
+    for (const string& name : used_vars_.names()) {
+        r += (first ? "$" : ", $");
+        r += name;
+        first = false;
+    }
     r += ")";
     return r;
 }

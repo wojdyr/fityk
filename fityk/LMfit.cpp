@@ -142,8 +142,8 @@ vector<double> LMfit::get_covariance_matrix(const vector<Data*>& datas)
 
     invert_matrix(alpha, na_);
 
-    v_foreach (int, i, undef)
-        alpha[(*i)*na_ + (*i)] = 0.;
+    for (int i : undef)
+        alpha[i*na_ + i] = 0.;
 
 #if USE_LONG_DOUBLE
     return vector<double>(alpha.begin(), alpha.end());

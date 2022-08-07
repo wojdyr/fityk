@@ -77,38 +77,38 @@ void Runner::command_ui(const vector<Token>& args)
 
 void Runner::command_undefine(const vector<Token>& args)
 {
-    v_foreach (Token, i, args)
-        F_->get_tpm()->undefine(i->as_string());
+    for (const Token& arg : args)
+        F_->get_tpm()->undefine(arg.as_string());
 }
 
 void Runner::command_delete(const vector<Token>& args)
 {
     vector<int> dd;
     vector<string> vars, funcs, files;
-    v_foreach (Token, i, args) {
-        if (i->type == kTokenDataset)
-            dd.push_back(i->value.i);
-        else if (i->type == kTokenFuncname)
-            funcs.push_back(Lexer::get_string(*i));
-        else if (i->type == kTokenVarname)
-            vars.push_back(Lexer::get_string(*i));
-        else if (i->type == kTokenWord || i->type == kTokenString)
-            files.push_back(Lexer::get_string(*i));
+    for (const Token& arg : args) {
+        if (arg.type == kTokenDataset)
+            dd.push_back(arg.value.i);
+        else if (arg.type == kTokenFuncname)
+            funcs.push_back(Lexer::get_string(arg));
+        else if (arg.type == kTokenVarname)
+            vars.push_back(Lexer::get_string(arg));
+        else if (arg.type == kTokenWord || arg.type == kTokenString)
+            files.push_back(Lexer::get_string(arg));
         else
             assert(0);
     }
     if (!dd.empty()) {
         std::sort(dd.rbegin(), dd.rend());
-        v_foreach (int, j, dd)
-            F_->dk.remove(*j);
+        for (int j : dd)
+            F_->dk.remove(j);
     }
     F_->mgr.delete_funcs(funcs);
     F_->mgr.delete_variables(vars);
-    v_foreach (string, f, files) {
+    for (const string& f : files) {
         // stdio.h remove() should be portable, it is in C89
-        int r = remove(f->c_str());
+        int r = remove(f.c_str());
         if (r != 0 && F_->get_verbosity() >= 1)
-            F_->ui()->mesg("Cannot remove file: " + *f);
+            F_->ui()->mesg("Cannot remove file: " + f);
     }
     if (!dd.empty() || !funcs.empty())
         F_->outdated_plot();
@@ -166,8 +166,8 @@ void Runner::command_fit(const vector<Token>& args, int ds)
         F_->outdated_plot();
     } else if (args[0].type == kTokenDataset) {
         vector<Data*> datas;
-        v_foreach(Token, i, args)
-            token_to_data(F_, *i, datas);
+        for (const Token& arg : args)
+            token_to_data(F_, arg, datas);
         F_->get_fit()->fit(-1, datas);
         F_->outdated_plot();
     } else if (args[0].type == kTokenNumber) {
@@ -467,19 +467,19 @@ void Runner::command_assign_all(const vector<Token>& args, int ds)
     if (args[1].type == kTokenUletter) {
         char c = *args[1].str;
         const FunctionSum& fz = F_->dk.get_model(ds)->get_fz(c);
-        v_foreach (string, i, fz.names) {
-            const Function *func = F_->mgr.find_function(*i);
+        for (const string& name : fz.names) {
+            const Function *func = F_->mgr.find_function(name);
             if (contains_element(func->tp()->fargs, param)) {
-                F_->mgr.substitute_func_param(*i, param, vd);
+                F_->mgr.substitute_func_param(name, param, vd);
                 cnt++;
             }
         }
     } else {
         string funcname = args[2].as_string().substr(1);
-        v_foreach (Function*, i, F_->mgr.functions()) {
-            if (match_glob((*i)->name.c_str(), funcname.c_str()) &&
-                    contains_element((*i)->tp()->fargs, param)) {
-                F_->mgr.substitute_func_param((*i)->name, param, vd);
+        for (const Function* f : F_->mgr.functions()) {
+            if (match_glob(f->name.c_str(), funcname.c_str()) &&
+                    contains_element(f->tp()->fargs, param)) {
+                F_->mgr.substitute_func_param(f->name, param, vd);
                 cnt++;
             }
         }
@@ -546,13 +546,13 @@ static
 void add_functions_to(const Full* F, vector<string> const &names,
                       FunctionSum& sum)
 {
-    v_foreach (string, i, names) {
-        int n = F->mgr.find_function_nr(*i);
+    for (const string& name : names) {
+        int n = F->mgr.find_function_nr(name);
         if (n == -1)
-            throw ExecuteError("undefined function: %" + *i);
-        if (contains_element(sum.names, *i))
-            throw ExecuteError("%" + *i + " added twice");
-        sum.names.push_back(*i);
+            throw ExecuteError("undefined function: %" + name);
+        if (contains_element(sum.names, name))
+            throw ExecuteError("%" + name + " added twice");
+        sum.names.push_back(name);
         sum.idx.push_back(n);
     }
 }
@@ -585,11 +585,11 @@ void Runner::command_change_model(const vector<Token>& args, int ds)
         }
         // "copy" ...
         else if (args[i].type == kTokenLname && args[i].as_string() == "copy") {
-            vector<string> v;
-            int n_tok = get_fz_or_func(F_, ds, args.begin()+i+1, v);
-            v_foreach (string, j, v) {
+            vector<string> vec;
+            int n_tok = get_fz_or_func(F_, ds, args.begin()+i+1, vec);
+            for (const string& j : vec) {
                 string name = F_->mgr.next_func_name();
-                F_->mgr.assign_func_copy(name, *j);
+                F_->mgr.assign_func_copy(name, j);
                 new_names.push_back(name);
             }
             i += n_tok;
@@ -834,17 +834,17 @@ void Runner::recalculate_command(Command& c, int ds, Statement& st)
         return;
 
     const vector<Point>& points = F_->dk.data(ds)->points();
-    vm_foreach (Token, t, c.args)
-        if (t->type == kTokenExpr) {
-            Lexer lex(t->str);
+    for (Token& t : c.args)
+        if (t.type == kTokenExpr) {
+            Lexer lex(t.str);
             ep_.clear_vm();
             ep_.parse_expr(lex, ds);
-            t->value.d = ep_.calculate(/*n=*/0, points);
-        } else if (t->type == kTokenEVar) {
-            Lexer lex(t->str);
+            t.value.d = ep_.calculate(/*n=*/0, points);
+        } else if (t.type == kTokenEVar) {
+            Lexer lex(t.str);
             ep_.clear_vm();
             ep_.parse_expr(lex, ds, NULL, NULL, ExpressionParser::kAstMode);
-            st.vdlist[t->value.i] = ep_.vm();
+            st.vdlist[t.value.i] = ep_.vm();
         }
 }
 
@@ -859,24 +859,25 @@ void Runner::execute_statement(Statement& st)
             s_orig.reset(new Settings(*F_->get_settings()));
             command_set(st.with_args);
         }
-        v_foreach (int, i, st.datasets) {
-            vm_foreach (Command, c, st.commands) {
+        bool first = true;
+        for (int ds : st.datasets) {
+            for (Command& c : st.commands) {
                 // The values of expression were calculated when parsing
                 // in the context of the first dataset.
                 // We need to re-evaluate it for all but the first dataset,
                 // and also if it is preceded by other command or by "with"
                 // (e.g. epsilon can change the result)
-                if (i != st.datasets.begin() || c != st.commands.begin() ||
-                        !st.with_args.empty())
-                    recalculate_command(*c, *i, st);
+                if (!first || !st.with_args.empty())
+                    recalculate_command(c, ds, st);
+                first = false;
 
-                if (c->type == kCmdExec || c->type == kCmdLua) {
+                if (c.type == kCmdExec || c.type == kCmdLua) {
                     // this command contains nested commands that use the same
                     // Parser/Runner.
-                    assert(c->args.size() == 1 || (c->args.size() == 2 &&
-                                             c->args[0].type == kTokenAssign));
-                    bool eq = (c->args[0].type == kTokenAssign);
-                    const Token& t = c->args.back();
+                    assert(c.args.size() == 1 || (c.args.size() == 2 &&
+                                             c.args[0].type == kTokenAssign));
+                    bool eq = (c.args[0].type == kTokenAssign);
+                    const Token& t = c.args.back();
                     TokenType tt = t.type;
                     string str = Lexer::get_string(t);
                     Statement backup;
@@ -886,24 +887,25 @@ void Runner::execute_statement(Statement& st)
                     st.with_args.swap(backup.with_args);
                     st.commands.swap(backup.commands);
                     int old_default_idx = F_->dk.default_idx();
-                    F_->dk.set_default_idx(*i);
+                    F_->dk.set_default_idx(ds);
                     if (eq) {
-                        if (c->type == kCmdExec)
+                        if (c.type == kCmdExec)
                             F_->lua_bridge()->exec_lua_output(str);
-                        else // if (c->type == kCmdLua)
+                        else // if (c.type == kCmdLua)
                             F_->lua_bridge()->exec_lua_string("return " + str);
                     } else {
-                        if (c->type == kCmdExec)
+                        if (c.type == kCmdExec)
                             command_exec(tt, str);
-                        else // if (c->type == kCmdLua)
+                        else // if (c.type == kCmdLua)
                             F_->lua_bridge()->exec_lua_string(str);
                     }
                     F_->dk.set_default_idx(old_default_idx);
                     st.datasets.swap(backup.datasets);
                     st.with_args.swap(backup.with_args);
                     st.commands.swap(backup.commands);
-                } else
-                    execute_command(*c, *i);
+                } else {
+                    execute_command(c, ds);
+                }
             }
         }
     }

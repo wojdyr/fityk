@@ -96,7 +96,8 @@ Variable* make_compound_variable(const string &name, VMData* vd,
 
     // re-index variables
     vector<string> used_vars;
-    vm_foreach (int, i, vd->get_mutable_code()) {
+    std::vector<int>& code = vd->get_mutable_code();
+    for (auto i = code.begin(); i != code.end(); ++i) {
         if (*i == OP_SYMBOL) {
             ++i;
             const string& vname = all_variables[*i]->name;
@@ -106,8 +107,9 @@ Variable* make_compound_variable(const string &name, VMData* vd,
                 used_vars.push_back(vname);
             }
             *i = idx;
-        } else if (VMData::has_idx(*i))
+        } else if (VMData::has_idx(*i)) {
             ++i;
+        }
     }
 
     vector<OpTree*> op_trees = prepare_ast_with_der(*vd, used_vars.size());
@@ -219,26 +221,23 @@ ModelManager::get_variable_references(const string &name) const
 {
     int idx = find_variable_nr(name);
     vector<string> refs;
-    v_foreach (Variable*, i, variables_)
-        if ((*i)->used_vars().has_idx(idx))
-            refs.push_back("$" + (*i)->name);
-    v_foreach (Function*, i, functions_)
-        for (int j = 0; j < (*i)->used_vars().get_count(); ++j)
-            if ((*i)->used_vars().get_idx(j) == idx)
-                refs.push_back("%" + (*i)->name + "." + (*i)->get_param(j));
+    for (const Variable* var : variables_)
+        if (var->used_vars().has_idx(idx))
+            refs.push_back("$" + var->name);
+    for (const Function* func : functions_)
+        for (int j = 0; j < func->used_vars().get_count(); ++j)
+            if (func->used_vars().get_idx(j) == idx)
+                refs.push_back("%" + func->name + "." + func->get_param(j));
     return refs;
 }
 
 // set indices corresponding to variable names in all functions and variables
 void ModelManager::reindex_all()
 {
-    for (vector<Variable*>::iterator i = variables_.begin();
-            i != variables_.end(); ++i)
-        (*i)->set_var_idx(variables_);
-    for (vector<Function*>::iterator i = functions_.begin();
-            i != functions_.end(); ++i) {
-        (*i)->update_var_indices(variables_);
-    }
+    for (Variable* var : variables_)
+        var->set_var_idx(variables_);
+    for (Function* func : functions_)
+        func->update_var_indices(variables_);
 }
 
 void ModelManager::remove_unreferred()
@@ -264,12 +263,10 @@ void ModelManager::remove_unreferred()
         if (del) {
             parameters_.erase(parameters_.begin() + i);
             // take care about parameter indices in variables and functions
-            for (vector<Variable*>::iterator j = variables_.begin();
-                    j != variables_.end(); ++j)
-                (*j)->erased_parameter(i);
-            for (vector<Function*>::iterator j = functions_.begin();
-                    j != functions_.end(); ++j)
-                (*j)->erased_parameter(i);
+            for (Variable* var : variables_)
+                var->erased_parameter(i);
+            for (Function* func : functions_)
+                func->erased_parameter(i);
         }
     }
 }
@@ -320,8 +317,8 @@ int ModelManager::copy_and_add_variable(const string& newname,
             vars.push_back(varmap.find(v_idx)->second);
         }
         vector<OpTree*> new_op_trees;
-        v_foreach (OpTree*, i, orig->get_op_trees())
-            new_op_trees.push_back((*i)->clone());
+        for (const OpTree* tree : orig->get_op_trees())
+            new_op_trees.push_back(tree->clone());
         var = new Variable(newname, vars, new_op_trees);
     }
     var->domain = orig->domain;
@@ -353,15 +350,15 @@ void ModelManager::delete_variables(const vector<string> &names)
 
     set<int> nn;
     // find indices of variables_, expanding wildcards
-    v_foreach (string, i, names) {
-        if (i->find('*') == string::npos) {
-            int k = find_variable_nr(*i);
+    for (const string& name : names) {
+        if (name.find('*') == string::npos) {
+            int k = find_variable_nr(name);
             if (k == -1)
-                throw ExecuteError("undefined variable: $" + *i);
+                throw ExecuteError("undefined variable: $" + name);
             nn.insert(k);
         } else
             for (size_t j = 0; j != variables_.size(); ++j)
-                if (match_glob(variables_[j]->name.c_str(), i->c_str()))
+                if (match_glob(variables_[j]->name.c_str(), name.c_str()))
                     nn.insert(j);
     }
 
@@ -393,16 +390,17 @@ void ModelManager::delete_funcs(const vector<string>& names)
 
     set<int> nn;
     // find indices of functions, expanding wildcards
-    v_foreach (string, i, names) {
-        if (i->find('*') == string::npos) {
-            int k = find_function_nr(*i);
+    for (const string& name : names) {
+        if (name.find('*') == string::npos) {
+            int k = find_function_nr(name);
             if (k == -1)
-                throw ExecuteError("undefined function: %" + *i);
+                throw ExecuteError("undefined function: %" + name);
             nn.insert(k);
-        } else
+        } else {
             for (size_t j = 0; j != functions_.size(); ++j)
-                if (match_glob(functions_[j]->name.c_str(), i->c_str()))
+                if (match_glob(functions_[j]->name.c_str(), name.c_str()))
                     nn.insert(j);
+        }
     }
 
     // Delete functions. The descending index order is needed by .erase().
@@ -418,9 +416,9 @@ void ModelManager::delete_funcs(const vector<string>& names)
 
 bool ModelManager::is_function_referred(int n) const
 {
-    v_foreach (Model*, i, models_) {
-        if (contains_element((*i)->get_ff().idx, n)
-                || contains_element((*i)->get_zz().idx, n))
+    for (const Model* model : models_) {
+        if (contains_element(model->get_ff().idx, n)
+                || contains_element(model->get_zz().idx, n))
             return true;
     }
     return false;
@@ -489,10 +487,10 @@ void ModelManager::use_parameters()
 
 void ModelManager::use_external_parameters(const vector<realt> &ext_param)
 {
-    vm_foreach (Variable*, i, variables_)
-        (*i)->recalculate(variables_, ext_param);
-    vm_foreach (Function*, i, functions_)
-        (*i)->do_precomputations(variables_);
+    for (Variable* var : variables_)
+        var->recalculate(variables_, ext_param);
+    for (Function* func : functions_)
+        func->do_precomputations(variables_);
 }
 
 void ModelManager::put_new_parameters(const vector<realt> &aa)
@@ -512,9 +510,9 @@ int ModelManager::assign_func(const string &name, Tplate::Ptr tp,
 {
     assert(tp);
     vector<string> varnames;
-    vm_foreach (VMData*, j, args) {
-        int idx = (*j)->single_symbol() ? (*j)->code()[1]
-                                        : make_variable(next_var_name(), *j);
+    for (VMData* vm : args) {
+        int idx = vm->single_symbol() ? vm->code()[1]
+                                      : make_variable(next_var_name(), vm);
         varnames.push_back(variables_[idx]->name);
     }
     Function *func = (*tp->create)(ctx_->get_settings(), name, tp, varnames);
@@ -676,10 +674,10 @@ vector<string> ModelManager::share_par_cmd(const string& par, bool share)
     int nr = find_variable_nr(varname);
     if (share) {
         vector<double> values;
-        v_foreach (Function*, i, functions_) {
-            int idx = index_of_element((*i)->tp()->fargs, par);
+        for (const Function* func : functions_) {
+            int idx = index_of_element(func->tp()->fargs, par);
             if (idx != -1)
-                values.push_back((*i)->av()[idx]);
+                values.push_back(func->av()[idx]);
         }
         if (values.empty())
             return cmds;

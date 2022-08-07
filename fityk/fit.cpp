@@ -45,8 +45,8 @@ namespace fityk {
 int count_points(const vector<Data*>& datas)
 {
     int n = 0;
-    v_foreach (Data*, i, datas)
-        n += (*i)->get_n();
+    for (const Data* data : datas)
+        n += data->get_n();
     return n;
 }
 
@@ -93,7 +93,7 @@ vector<double> Fit::get_standard_errors(const vector<Data*>& datas)
 vector<double> Fit::get_confidence_limits(const vector<Data*>& datas,
                                           double level_percent)
 {
-    vector<double> v = get_standard_errors(datas);
+    vector<double> stderrors = get_standard_errors(datas);
     int dof = get_dof(datas);
     double level = 1. - level_percent / 100.;
     // If Fityk run under valgrind gives
@@ -101,9 +101,9 @@ vector<double> Fit::get_confidence_limits(const vector<Data*>& datas,
     // see VALGRIND_WORKAROUND above.
     boost::math::students_t dist(dof);
     double t = boost::math::quantile(boost::math::complement(dist, level/2));
-    vm_foreach (double, i, v)
-        *i *= t;
-    return v;
+    for (double& x : stderrors)
+        x *= t;
+    return stderrors;
 }
 
 string Fit::get_cov_info(const vector<Data*>& datas)
@@ -132,8 +132,8 @@ int Fit::compute_deviates(const vector<realt> &A, double *deviates)
     ++evaluations_;
     F_->mgr.use_external_parameters(A); //that's the only side-effect
     int ntot = 0;
-    v_foreach (Data*, i, fitted_datas_)
-        ntot += compute_deviates_for_data(*i, deviates + ntot);
+    for (const Data* data : fitted_datas_)
+        ntot += compute_deviates_for_data(data, deviates + ntot);
     return ntot;
 }
 
@@ -156,8 +156,8 @@ realt Fit::compute_wssr(const vector<realt> &A,
 {
     realt wssr = 0;
     F_->mgr.use_external_parameters(A); //that's the only side-effect
-    v_foreach (Data*, i, datas) {
-        wssr += compute_wssr_for_data(*i, weigthed);
+    for (const Data* data : datas) {
+        wssr += compute_wssr_for_data(data, weigthed);
     }
     ++evaluations_;
     return wssr;
@@ -189,8 +189,8 @@ realt Fit::compute_r_squared(const vector<realt> &A,
 {
     realt sum_err = 0, sum_tot = 0, se = 0, st = 0;
     F_->mgr.use_external_parameters(A);
-    v_foreach (Data*, i, datas) {
-        compute_r_squared_for_data(*i, &se, &st);
+    for (const Data* data : datas) {
+        compute_r_squared_for_data(data, &se, &st);
         sum_err += se;
         sum_tot += st;
     }
@@ -240,8 +240,8 @@ void Fit::compute_derivatives(const vector<realt> &A,
     fill(beta.begin(), beta.end(), 0.0);
 
     F_->mgr.use_external_parameters(A);
-    v_foreach (Data*, i, datas) {
-        compute_derivatives_for(*i, alpha, beta);
+    for (const Data* data : datas) {
+        compute_derivatives_for(data, alpha, beta);
     }
     // filling second half of alpha[]
     for (int j = 1; j < na_; j++)
@@ -297,8 +297,8 @@ void Fit::compute_derivatives_mp(const vector<realt> &A,
     ++evaluations_;
     F_->mgr.use_external_parameters(A);
     int ntot = 0;
-    v_foreach (Data*, i, datas) {
-        ntot += compute_derivatives_mp_for(*i, ntot, derivs, deviates);
+    for (const Data* data : datas) {
+        ntot += compute_derivatives_mp_for(data, ntot, derivs, deviates);
     }
 }
 
@@ -330,8 +330,8 @@ realt Fit::compute_wssr_gradient(const vector<realt> &A,
     F_->mgr.use_external_parameters(A);
     realt wssr = 0.;
     fill(grad, grad+na_, 0.0);
-    v_foreach (Data*, i, datas)
-        wssr += compute_wssr_gradient_for(*i, grad);
+    for (const Data* data : datas)
+        wssr += compute_wssr_gradient_for(data, grad);
     return wssr;
 }
 
@@ -448,8 +448,8 @@ void Fit::update_par_usage(const vector<Data*>& datas)
     par_usage_ = vector<bool>(na_, false);
     for (int idx = 0; idx < na_; ++idx) {
         int var_idx = F_->mgr.gpos_to_vpos(idx);
-        v_foreach (Data*, i, datas) {
-            if ((*i)->model()->is_dependent_on_var(var_idx)) {
+        for (const Data* data : datas) {
+            if (data->model()->is_dependent_on_var(var_idx)) {
                 par_usage_[idx] = true;
                 break; //go to next idx
             }
@@ -499,9 +499,10 @@ void Fit::output_tried_parameters(const vector<realt>& a)
 {
     const SettingsMgr *sm = F_->settings_mgr();
     string s = "Trying ( ";
-    s.reserve(s.size() + a.size() * 12); // rough guess
-    v_foreach (realt, j, a)
-        s += sm->format_double(*j) + (j+1 == a.end() ? " )" : ", ");
+    for (const realt& j : a) {
+        s += sm->format_double(j);
+        s += &j != &a.back() ? ", " : " )";
+    }
     F_->ui()->mesg(s);
 }
 
@@ -587,9 +588,9 @@ FitManager::~FitManager()
 
 Fit* FitManager::get_method(const string& name) const
 {
-    v_foreach(Fit*, i, methods_)
-        if ((*i)->name == name)
-            return *i;
+    for(Fit* method : methods_)
+        if (method->name == name)
+            return method;
     throw ExecuteError("fitting method `" + name + "' not available.");
     return NULL; // avoid compiler warning
 }
