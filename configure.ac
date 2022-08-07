@@ -72,9 +72,6 @@ AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
 AC_CHECK_HEADER([boost/math/special_functions/gamma.hpp], [], [AC_MSG_ERROR(
  [Boost::Math headers not found. Make sure you have Boost installed.])])
 
-AC_CHECK_HEADER([boost/array.hpp], [], [AC_MSG_ERROR(
- [Boost::Array headers not found.  Make sure you have Boost installed.])])
-
 AC_LANG_POP([C++])
 
 AC_CHECK_HEADER([zlib.h], [], [AC_MSG_ERROR(
