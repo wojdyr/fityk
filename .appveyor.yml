@@ -1,0 +1,21 @@
+version: '{branch}-{build}'
+configuration: Release
+clone_depth: 1
+environment:
+  matrix:
+  - CMAKE_GEN: Visual Studio 17 2022 Win64
+  - CMAKE_GEN: Visual Studio 12 2013
+cache:
+- C:\ProgramData\chocolatey\bin
+- C:\ProgramData\chocolatey\lib
+build_script:
+- cmd: >-
+    IF NOT EXIST C:\ProgramData\chocolatey\bin\swig.exe cinst -y --allow-empty-checksums swig
+    cmake -D BOOST_ROOT=C:\Libraries\boost_1_63_0 -G "%CMAKE_GEN%" .
+    cmake --build . --config Release --target install
+test_script:
+- cmd: >-
+    set path=%cd%\inst\bin;%path%
+    ctest -C Release -V
+artifacts:
+- path: inst
