@@ -93,11 +93,11 @@ AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
 
 AC_COMPILE_IFELSE(
   [AC_LANG_PROGRAM([@%:@include <xylib/xylib.h>], [
-#if XYLIB_VERSION < 10600 || XYLIB_VERSION >= 10700
-# error "xylib 1.6 is required"
+#if XYLIB_VERSION < 10600
+# error "xylib >= 1.6 is required"
 #endif
   ])],
-  [], [AC_MSG_ERROR([xylib != 1.6 is not installed])])
+  [], [AC_MSG_ERROR([xylib >= 1.6 is not installed])])
 
 AS_IF([test x"$LUA52_FROM_SOURCE" = xyes], [
     LUA_INCLUDE='-I$(top_srcdir)/fityk/lua52/src'
