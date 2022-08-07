@@ -3,9 +3,9 @@ name: CI
 on: [push, pull_request]
 
 jobs:
-  ubuntu2004:
-    name: "Ubuntu 20.04"
-    runs-on: ubuntu-20.04
+  ubuntu2204:
+    name: "Ubuntu 22.04"
+    runs-on: ubuntu-22.04
     if: "!contains(github.event.head_commit.message, '[skip ci]')"
     steps:
     - uses: actions/checkout@v2
@@ -37,12 +37,12 @@ jobs:
     - uses: actions/checkout@v2
     - name: dependencies
       run: |
-        sudo apt-get install clang-3.9 cmake libz-dev libxy-dev libboost-dev liblua5.2-dev lua5.2
+        sudo apt-get install clang-3.9 cmake libz-dev libboost-dev liblua5.2-dev lua5.2
     - name: build
       run: |
         $CXX --version
         cmake --version
-        cmake . -DDOWNLOAD_XYLIB=OFF -DDOWNLOAD_LUA=OFF -DDOWNLOAD_ZLIB=OFF
+        cmake . -DDOWNLOAD_XYLIB=ON -DDOWNLOAD_LUA=OFF -DDOWNLOAD_ZLIB=OFF -DCMAKE_CXX_STANDARD=11
         make VERBOSE=1
         sudo make install
     - name: test
