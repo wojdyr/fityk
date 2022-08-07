@@ -8,6 +8,7 @@
 
 #include <cstring>
 #include <cmath>
+#include <algorithm>  // for nth_element
 
 #include "lexer.h"
 #include "common.h"

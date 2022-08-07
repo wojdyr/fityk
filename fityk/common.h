@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 #include <cmath>
+#include <algorithm>  // for find
 
 #include "fityk.h" //ExecuteError
 
@@ -91,7 +92,7 @@ std::vector<std::string> split_string(std::string const &s, T delim) {
 template<typename T, typename T2>
 bool contains_element(T const& vec, T2 const& t)
 {
-    return (find(vec.begin(), vec.end(), t) != vec.end());
+    return std::find(vec.begin(), vec.end(), t) != vec.end();
 }
 
 /// check if string (first arg) contains given substring (second arg)

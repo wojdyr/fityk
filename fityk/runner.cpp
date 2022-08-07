@@ -4,6 +4,7 @@
 #define BUILDING_LIBFITYK
 #include "runner.h"
 
+#include <algorithm>  // for sort
 #include <memory>  // for unique_ptr
 
 #include "cparser.h"
@@ -97,7 +98,7 @@ void Runner::command_delete(const vector<Token>& args)
             assert(0);
     }
     if (!dd.empty()) {
-        sort(dd.rbegin(), dd.rend());
+        std::sort(dd.rbegin(), dd.rend());
         v_foreach (int, j, dd)
             F_->dk.remove(*j);
     }

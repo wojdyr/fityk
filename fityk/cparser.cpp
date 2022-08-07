@@ -366,7 +366,7 @@ void Parser::parse_define_rhs(Lexer& lex, Tplate *tp)
 // Tplate
 Tplate::Ptr Parser::parse_define_args(Lexer& lex)
 {
-    boost::shared_ptr<Tplate> tp(new Tplate);
+    std::shared_ptr<Tplate> tp(new Tplate);
     // FuncType
     tp->name = lex.get_expected_token(kTokenCname).as_string();
     tp->docs_fragment = NULL;

@@ -3,6 +3,7 @@
 
 #define BUILDING_LIBFITYK
 #include "view.h"
+#include <assert.h>
 #include "common.h"
 #include "data.h"
 #include "model.h"

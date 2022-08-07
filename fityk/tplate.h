@@ -6,7 +6,7 @@
 
 #include <vector>
 #include <string>
-#include <boost/shared_ptr.hpp>
+#include <memory>  // for shared_ptr
 
 #include "common.h" // DISALLOW_COPY_AND_ASSIGN
 #include "vm.h" // VMData
@@ -23,7 +23,7 @@ struct OpTree;
 /// parameters.
 struct FITYK_API Tplate
 {
-    typedef boost::shared_ptr<const Tplate> Ptr;
+    typedef std::shared_ptr<const Tplate> Ptr;
     typedef Function* (*create_type)(const Settings*, const std::string&,
                                      Ptr, const std::vector<std::string>&);
 
