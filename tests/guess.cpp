@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include <boost/scoped_ptr.hpp>
+#include <memory>  // for unique_ptr
 #include "fityk/logic.h"
 #include "fityk/guess.h"
 #include "fityk/data.h"
@@ -66,7 +66,7 @@ bool is_vector_sorted(const vector<T>& v)
 }
 
 TEST_CASE("linear-guess", "test Guess::estimate_linear_parameters()") {
-    boost::scoped_ptr<Full> ftk(new Full);
+    unique_ptr<Full> ftk(new Full);
     Data *data = ftk->dk.data(0);
     //ftk->settings_mgr()->set_as_number("verbosity", -1);
     int n = sizeof(norris::yx) / sizeof(norris::yx[0]);

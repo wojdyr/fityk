@@ -74,8 +74,8 @@ It uses a few open source projects:
 * Lua_ interpreter is embedded for scripting
 
 * and a few popular libraries and tools that make programming much easier:
-  wxWidgets (GUI), Boost (misc), zlib (compression), readline (CLI),
-  SWIG (bindings), Catch (testing).
+  wxWidgets (GUI), Boost.Math (special functions), zlib (compression),
+  readline (CLI), SWIG (bindings), Catch (testing).
 
 .. _NLopt: http://ab-initio.mit.edu/wiki/index.php/NLopt
 .. _MPFIT: http://www.physics.wisc.edu/~craigm/idl/cmpfit.html

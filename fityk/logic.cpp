@@ -8,6 +8,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <locale.h>
+#include <memory>  // for unique_ptr
+#include <algorithm>  // for count
 
 #include "common.h"
 #include "data.h"
@@ -155,7 +157,7 @@ void DataKeeper::import_dataset(int slot, const string& data_path,
     const bool new_dataset = (slot == Lexer::kNew);
     // split "data_path" (e.g. "foo.dat:1:2,3::") into filename
     // and colon-separated indices
-    int count_colons = ::count(data_path.begin(), data_path.end(), ':');
+    int count_colons = std::count(data_path.begin(), data_path.end(), ':');
     LoadSpec spec;
     vector<int> indices[3];
     if (count_colons >= 4) {
@@ -221,7 +223,7 @@ void DataKeeper::do_import_dataset(bool new_dataset, int slot,
                                    BasicContext* ctx, ModelManager &mgr)
 {
     Data *d;
-    auto_ptr<Data> auto_d;
+    unique_ptr<Data> auto_d;
     if (!new_dataset)
         d = data(slot);
     else if (count() == 1 && data(0)->completely_empty()) // reusable slot 0
@@ -231,7 +233,7 @@ void DataKeeper::do_import_dataset(bool new_dataset, int slot,
         d = auto_d.get();
     }
     d->load_file(spec);
-    if (auto_d.get())
+    if (auto_d)
         append(auto_d.release());
 }
 

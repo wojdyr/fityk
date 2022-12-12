@@ -96,7 +96,7 @@ check-cfityk:
 
 check-python:
 	PYTHONPATH=fityk/swig/.libs:$(srcdir)/fityk/swig/ \
-	   python -m unittest discover -s $(srcdir)/tests/
+	   $(PYTHON) -m unittest discover -s $(srcdir)/tests/
 
 check-help:
 	echo '$$ fityk -h'   > $(srcdir)/doc/help-message.txt

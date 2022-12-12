@@ -5,6 +5,7 @@
 #include "settings.h"
 
 #include <algorithm>
+#include <assert.h>
 #include <stdlib.h>
 #include <ctime> //time()
 #ifdef _WIN32

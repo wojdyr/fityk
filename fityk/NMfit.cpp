@@ -4,6 +4,7 @@
 #define BUILDING_LIBFITYK
 #include "NMfit.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <time.h>
 #include <cmath>

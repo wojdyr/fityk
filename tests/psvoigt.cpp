@@ -1,6 +1,6 @@
 
 #include <stdio.h>
-#include <boost/scoped_ptr.hpp>
+#include <memory>  // for unique_ptr
 #include "fityk/fityk.h"
 // derivatives need private API
 #include "fityk/logic.h"
@@ -23,7 +23,7 @@ static const char* PV4 = "define PV4(height, center, hwhm, shape) = "
  "SplitPseudoVoigt(height, center, hwhm, hwhm, shape, shape)";
 
 TEST_CASE("pseudo-voigt", "") {
-    boost::scoped_ptr<fityk::Fityk> fik(new fityk::Fityk);
+    unique_ptr<fityk::Fityk> fik(new fityk::Fityk);
     fik->set_option_as_number("verbosity", -1);
     fik->execute(PV2);
     fik->execute(PV3);
@@ -74,7 +74,7 @@ TEST_CASE("pseudo-voigt", "") {
 // test Function::get_nonzero_range() implementations
 
 static double nonzero_left(double level, const string& func) {
-    boost::scoped_ptr<fityk::Fityk> fik(new fityk::Fityk);
+    unique_ptr<fityk::Fityk> fik(new fityk::Fityk);
     fik->set_option_as_number("verbosity", -1);
     fik->execute("%f = " + func);
     const fityk::Func *f = fik->get_function("f");

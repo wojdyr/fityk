@@ -1,5 +1,5 @@
 
-#include <boost/scoped_ptr.hpp>
+#include <memory>  // for unique_ptr
 #include <string>
 #include "fityk/fityk.h"
 #include "fityk/logic.h"
@@ -7,7 +7,7 @@
 #include "catch.hpp"
 
 TEST_CASE("formatted F:execute", "") {
-    boost::scoped_ptr<fityk::Fityk> fik(new fityk::Fityk);
+    std::unique_ptr<fityk::Fityk> fik(new fityk::Fityk);
     fityk::Full* priv = fik->priv();
     std::string str = "a=123.456; F:execute('$v = %g' % a)";
     priv->lua_bridge()->exec_lua_string(str);

@@ -1,6 +1,6 @@
 # Process this file with autoconf to produce a configure script.
 
-AC_INIT([fityk],[1.3.1])
+AC_INIT([fityk],[1.3.2])
 LIBRARY_VERSION_FLAG="-version-info 4:0:0"
 
 AC_CONFIG_SRCDIR([fityk/voigt.h])
@@ -72,12 +72,6 @@ AC_CHECK_HEADER(sstream, [], [AC_MSG_ERROR(
 AC_CHECK_HEADER([boost/math/special_functions/gamma.hpp], [], [AC_MSG_ERROR(
  [Boost::Math headers not found. Make sure you have Boost installed.])])
 
-AC_CHECK_HEADER([boost/array.hpp], [], [AC_MSG_ERROR(
- [Boost::Array headers not found.  Make sure you have Boost installed.])])
-
-AC_CHECK_HEADER([boost/scoped_ptr.hpp], [], [AC_MSG_ERROR(
- [Boost Smart Pointers not found.  Make sure you have Boost installed.])])
-
 AC_LANG_POP([C++])
 
 AC_CHECK_HEADER([zlib.h], [], [AC_MSG_ERROR(
@@ -99,11 +93,11 @@ AC_CHECK_HEADER([xylib/xylib.h], [], [AC_MSG_ERROR(
 
 AC_COMPILE_IFELSE(
   [AC_LANG_PROGRAM([@%:@include <xylib/xylib.h>], [
-#if XYLIB_VERSION < 10000
-# error "xylib >= 1.0 is required"
+#if XYLIB_VERSION < 10600
+# error "xylib >= 1.6 is required"
 #endif
   ])],
-  [], [AC_MSG_ERROR([xylib >= 1.0 is not installed])])
+  [], [AC_MSG_ERROR([xylib >= 1.6 is not installed])])
 
 AS_IF([test x"$LUA52_FROM_SOURCE" = xyes], [
     LUA_INCLUDE='-I$(top_srcdir)/fityk/lua52/src'

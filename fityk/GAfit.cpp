@@ -4,6 +4,7 @@
 #define BUILDING_LIBFITYK
 #include "GAfit.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <algorithm>
 #include <numeric>

@@ -13,10 +13,6 @@
 
 #include "uplot.h"
 
-#if XYLIB_VERSION < 10500
-typedef shared_ptr<const xylib::DataSet> dataset_shared_ptr;
-#endif
-
 class PreviewPlot : public PlotWithTics
 {
 public:

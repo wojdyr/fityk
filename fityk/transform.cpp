@@ -8,6 +8,7 @@
 #include "data.h"
 #include "root/background.hpp"
 #include <stdio.h>
+#include <assert.h>
 
 using namespace std;
 
@@ -32,7 +33,7 @@ realt find_extrapolated_y(vector<Point> const& pp, realt x)
         return pp.back().y;
     vector<Point>::const_iterator i = lower_bound(pp.begin(), pp.end(),
                                                   Point(x, 0));
-    assert (i > pp.begin() && i < pp.end());
+    assert(i > pp.begin() && i < pp.end());
     if (is_eq(x, i->x))
         return i->y;
     else
