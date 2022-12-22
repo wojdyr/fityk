@@ -612,7 +612,7 @@ Model info
       print(func)                   -- <Func %_6>
       vname = func:var_name("hwhm")
       print(vname)                  -- _21
-      v = get_variable(vname)
+      v = F:get_variable(vname)
       print(v, v:value())           -- <Var $_21>       0.1406587
 
 .. method:: Fityk.get_model_value(x [, d])
