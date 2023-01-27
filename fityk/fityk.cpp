@@ -129,8 +129,7 @@ Fityk::~Fityk()
     delete p_;
 }
 
-void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
-                                            ExitRequestedException)
+void Fityk::execute(string const& s)
 {
     try {
         priv_->parse_and_execute_line(s);
@@ -139,8 +138,7 @@ void Fityk::execute(string const& s)  throw(SyntaxError, ExecuteError,
     CATCH_EXECUTE_ERROR
 }
 
-string Fityk::get_info(string const& s, int dataset)  throw(SyntaxError,
-                                                            ExecuteError)
+string Fityk::get_info(string const& s, int dataset)
 {
     try {
         string result;
@@ -152,8 +150,7 @@ string Fityk::get_info(string const& s, int dataset)  throw(SyntaxError,
     return "";
 }
 
-realt Fityk::calculate_expr(string const& s, int dataset)  throw(SyntaxError,
-                                                                  ExecuteError)
+realt Fityk::calculate_expr(string const& s, int dataset)
 {
     try {
         Lexer lex(s.c_str());
@@ -209,7 +206,7 @@ const Func* Fityk::get_function(const std::string& name) const
     return priv_->mgr.functions()[n];
 }
 
-vector<Func*> Fityk::get_components(int dataset, char fz)  throw(ExecuteError)
+vector<Func*> Fityk::get_components(int dataset, char fz)
 {
     const Model *model = priv_->dk.get_model(hd(priv_, dataset));
     const vector<int>& indexes = model->get_fz(fz).idx;
@@ -220,7 +217,7 @@ vector<Func*> Fityk::get_components(int dataset, char fz)  throw(ExecuteError)
     return ret;
 }
 
-realt Fityk::get_model_value(realt x, int dataset) const  throw(ExecuteError)
+realt Fityk::get_model_value(realt x, int dataset) const
 {
     try {
         return priv_->dk.get_model(hd(priv_, dataset))->value(x);
@@ -230,7 +227,6 @@ realt Fityk::get_model_value(realt x, int dataset) const  throw(ExecuteError)
 }
 
 vector<realt> Fityk::get_model_vector(vector<realt> const& x, int dataset)
-                                                          throw(ExecuteError)
 {
     vector<realt> xx(x);
     vector<realt> yy(x.size(), 0.);
@@ -241,7 +237,7 @@ vector<realt> Fityk::get_model_vector(vector<realt> const& x, int dataset)
     return yy;
 }
 
-const Var* Fityk::get_variable(string const& name) const  throw(ExecuteError)
+const Var* Fityk::get_variable(string const& name) const
 {
     try {
         string vname;
@@ -274,7 +270,6 @@ double Fityk::get_view_boundary(char side)
 }
 
 void Fityk::load(LoadSpec const& spec, int dataset)
-                     throw(ExecuteError)
 {
     if (dataset == DEFAULT_DATASET)
         dataset = priv_->dk.default_idx();
@@ -290,7 +285,7 @@ void Fityk::load_data(int dataset,
                       vector<realt> const& x,
                       vector<realt> const& y,
                       vector<realt> const& sigma,
-                      string const& title)     throw(ExecuteError)
+                      string const& title)
 {
     try {
         priv_->dk.data(dataset)->load_arrays(x, y, sigma, title);
@@ -299,7 +294,6 @@ void Fityk::load_data(int dataset,
 }
 
 void Fityk::add_point(realt x, realt y, realt sigma, int dataset)
-                                                          throw(ExecuteError)
 {
     try {
         priv_->dk.data(hd(priv_, dataset))->add_one_point(x, y, sigma);
@@ -307,7 +301,7 @@ void Fityk::add_point(realt x, realt y, realt sigma, int dataset)
     CATCH_EXECUTE_ERROR
 }
 
-vector<Point> const& Fityk::get_data(int dataset)  throw(ExecuteError)
+vector<Point> const& Fityk::get_data(int dataset)
 {
     static const vector<Point> empty;
     try {
@@ -335,23 +329,21 @@ void Fityk::redir_messages(FILE *stream)
 }
 
 void Fityk::set_option_as_string(const string& opt, const string& val)
-                                                            throw(ExecuteError)
 {
     priv_->mutable_settings_mgr()->set_as_string(opt, val);
 }
 
 void Fityk::set_option_as_number(const string& opt, double val)
-                                                            throw(ExecuteError)
 {
     priv_->mutable_settings_mgr()->set_as_number(opt, val);
 }
 
-string Fityk::get_option_as_string(const string& opt) const  throw(ExecuteError)
+string Fityk::get_option_as_string(const string& opt) const
 {
     return priv_->settings_mgr()->get_as_string(opt, /*quote_str=*/false);
 }
 
-double Fityk::get_option_as_number(const string& opt) const  throw(ExecuteError)
+double Fityk::get_option_as_number(const string& opt) const
 {
     return priv_->settings_mgr()->get_as_number(opt);
 }
@@ -366,7 +358,7 @@ string Fityk::input(string const& prompt)
     return priv_->ui()->get_input_from_user(prompt);
 }
 
-realt Fityk::get_wssr(int dataset)  throw(ExecuteError)
+realt Fityk::get_wssr(int dataset)
 {
     try {
         return get_wssr_or_ssr(priv_, dataset, true);
@@ -375,7 +367,7 @@ realt Fityk::get_wssr(int dataset)  throw(ExecuteError)
     return 0.;
 }
 
-realt Fityk::get_ssr(int dataset)  throw(ExecuteError)
+realt Fityk::get_ssr(int dataset)
 {
     try {
         return get_wssr_or_ssr(priv_, dataset, false);
@@ -384,7 +376,7 @@ realt Fityk::get_ssr(int dataset)  throw(ExecuteError)
     return 0.;
 }
 
-realt Fityk::get_rsquared(int dataset)  throw(ExecuteError)
+realt Fityk::get_rsquared(int dataset)
 {
     try {
         if (dataset == ALL_DATASETS) {
@@ -402,7 +394,7 @@ realt Fityk::get_rsquared(int dataset)  throw(ExecuteError)
     return 0.;
 }
 
-int Fityk::get_dof(int dataset)  throw(ExecuteError)
+int Fityk::get_dof(int dataset)
 {
     try {
         return priv_->get_fit()->get_dof(get_datasets_(priv_, dataset));
@@ -412,7 +404,6 @@ int Fityk::get_dof(int dataset)  throw(ExecuteError)
 }
 
 vector<vector<realt> > Fityk::get_covariance_matrix(int dataset)
-                                                           throw(ExecuteError)
 {
     try {
         vector<Data*> dss = get_datasets_(priv_, dataset);
