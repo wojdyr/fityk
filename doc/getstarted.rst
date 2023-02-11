@@ -39,10 +39,10 @@ On the main plot, the meaning of the left and right mouse button depends
 on the current **mouse mode**. Mouse modes are switched using toolbar
 buttons:
 
-* |mode-zoom-icon| *normal mode* -- the left button zooms in and
+* |mode-zoom-icon| *normal mode* -- the left button (drag) zooms in and
   the right button shows pop-up menu,
 
-* |mode-range-icon| *data-range mode* -- for activating and de-activating data,
+* |mode-range-icon| *data-range mode* -- for activating (left button drag) and de-activating (right button drag) data,
   i.e. for selecting regions of interest,
 
 * |mode-bg-icon| *baseline mode* -- manual baseline subtraction
@@ -66,7 +66,7 @@ buttons:
    :alt: Add-Peak Mode
    :class: icon
 
-The status bar shows a hint of what the mouse does in the current mode.
+The status bar shows a hint of what the mouse does in the current mode. Hovering the pointer in the right-hand side of it shows a tooltip with more details.
 
 Finally, the **input field** and the **output window** provide alternative,
 console-like way of interacting with the program.
