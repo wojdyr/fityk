@@ -87,11 +87,7 @@ About this manual
 
 This manual is written in ReStructuredText.
 All corrections and improvements are welcome.
-Use the ``Show Source`` link to get the source of the page, edit it
-and send me either the modified version or a patch.
-
-Alternatively, go to
-`GitHub <https://github.com/wojdyr/fityk/tree/master/doc>`_,
+Go to `GitHub <https://github.com/wojdyr/fityk/tree/master/doc>`_,
 open corresponding rst file,
 press *Fork and edit this file* button, do edits in your web browser
 and click *Propose file change*.
