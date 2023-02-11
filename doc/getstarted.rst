@@ -91,7 +91,7 @@ can be found in the :file:`samples` directory.
 
 .. role:: cli-title
 
-Textual commands that correspond to performed operations are shown
+Textual commands that you could enter as an alternative to the performed GUI operations are shown
 in this section in :cli-title:`CLI` boxes.
 
 First load data from the :file:`nacl01.dat` file.
