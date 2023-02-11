@@ -25,7 +25,7 @@ It can also show weighted or cumulative difference, and a couple of other things
 The helper plot is also handy for zooming -- with left and middle
 mouse buttons. Selecting a horizontal span with the left button
 zooms into this span. The middle button goes back to the whole dataset
-(the same as |zoom-all-icon| in the toolbar).
+(the same as |zoom-all-icon| in the toolbar or Ctrol-A).
 
 .. |zoom-all-icon| image:: img/zoom_all.png
    :alt: Zoom All
