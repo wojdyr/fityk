@@ -87,7 +87,7 @@ calculating the pressure under which the sample was measured, but this
 later detail in the processing is irrelevant for the time being.
 
 The data file used in this example is distributed with the program and
-can be found in the :file:`samples` directory.
+can be found in the :file:`samples` directory of the Fityk's installation directory.
 
 .. role:: cli-title
 
@@ -95,7 +95,7 @@ Textual commands that you could enter as an alternative to the performed GUI ope
 in this section in :cli-title:`CLI` boxes.
 
 First load data from the :file:`nacl01.dat` file.
-Select :menuselection:`Data --> Load File`
+Select :menuselection:`Data --> Quick Load File`
 from the menu (or |load-data-icon| from the toolbar) and choose the file.
 
 .. |load-data-icon| image:: img/load_data_icon.png
@@ -107,14 +107,14 @@ from the menu (or |load-data-icon| from the toolbar) and choose the file.
    @0 < nacl01.dat 
 
 
-You can zoom-in to the biggest peak using the left mouse
-button on the residual (helper) plot.
-To zoom out, press |zoom-all-icon| on the toolbar.
+You can zoom-in to the biggest peak by dragging with the left mouse
+button on the residual (helper) plot, on the region of the biggest peak.
+To zoom out, press |zoom-all-icon| on the toolbar (or Ctrl-A).
 
 Now all data points are active. Only the biggest peak is of
 our interest, so we want to deactivate the remaining points.
 Change to the *range mode* (toolbar: |mode-range-icon|)
-and deactivate not needed points with the right mouse button.
+and deactivate not needed points by dragging, in the main plot, with the right mouse button to the left and right of the peak region.
 
 .. admonition:: CLI
 
@@ -153,7 +153,7 @@ or by dragging that little circle handle attached to each function
 If the peaks/functions are not named explicitely (like in this example),
 they get automatic names ``%_1``, ``%_2``, etc.
 
-Now let us fit the function.
+So far, it has only been a guess; now let us actually fit the function.
 Select :menuselection:`Fit --> Run` from the menu or press |fit-icon|.
 
 .. |fit-icon| image:: img/fit_icon.png
