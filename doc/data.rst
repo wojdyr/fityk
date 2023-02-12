@@ -55,7 +55,7 @@ A few examples should clarify it::
     @0 < foo.csv:1:4::  # x,y - 1st and 4th columns
     @0 < foo.csv:1:2:3:  # read std. dev. of y from 3rd column
     @0 < foo.csv:0:1::  # x - index (0,1,2,...), y - first column
-    @0 < foo.raw::::0,1  # load two first blocks of data (as one dataset)
+    @0 < foo.raw::::0,1  # load first two blocks of data (as one dataset)
 
 You may also specify multiple *y* columns.
 It will load each *x*/*y* pair as a separate dataset.
@@ -186,7 +186,7 @@ can be used to change the state of points.
 
 .. admonition:: In the GUI
 
-   data points can be activated and disactivated with mouse
+   data points can be activated and disactivated by dragging with the left/right mouse buttons
    in the data-range mode (toolbar: |mode-range-icon|).
 
 .. |mode-range-icon| image:: img/mode_range_icon.png
@@ -201,13 +201,13 @@ Standard Deviation (or Weight)
 
 When fitting data, we assume that only the *y* coordinate is subject to
 statistical errors in measurement. This is a common assumption.
-To see how the *y*'s standard deviation, *σ*, influences fitting
+To see how the :math: `y_i`'s standard deviation, :math: `\sigma_i`, influences fitting
 (optimization), look at the weighted sum of squared residuals formula
 in :ref:`nonlinear`.
 We can also think about weights of points -- every point has a weight
-assigned, that is equal :math:`w_i=1/\sigma_i^2`.
+assigned, that is equal :math: `w_i=1/\sigma_i^2`.
 
-Standard deviation of points can be
+Standard deviation of individual points can be
 :ref:`read from file <dataload>` together with the *x* and *y*
 coordinates. Otherwise, it is set either to max(*y*:sup:`1/2`, 1)
 or to 1, depending on the :option:`default_sigma` option.
