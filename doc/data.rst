@@ -269,6 +269,8 @@ The index ``[n]`` could be omitted (``Y = y + y[n-1]``).
 The value of undefined points, like ``y[-1]`` and ``Y[-1]``,
 is explained later in this section.
 
+.. note:: Points are kept sorted according to their *x* coordinate. The sorting is performed after each transformation.  Thus changing the *x* coordinate may change the order and indices of points.
+
 Expressions can contain:
 
 - real numbers in normal or scientific format (e.g. ``1.23e5``),
@@ -346,11 +348,6 @@ For example, the following commands::
 
 create 500 points and generate a sinusoid.
 
-Points are kept sorted according to their *x* coordinate.
-The sorting is performed after each transformation.
-
-.. note:: Changing the *x* coordinate may change the order
-          and indices of points.
 
 Indices, like all other values, are computed in the real number domain.
 If the index is not integer (it is compared using *ε* to the rounded value):
