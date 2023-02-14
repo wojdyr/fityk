@@ -827,3 +827,4 @@ The complete list of ``info`` arguments can be found in :ref:`info`.
 
   most of the above commands has clickable equivalents.
 
+Now you may want to go back to :ref:`funcindt` if you have skipped it to read this chapter first.
