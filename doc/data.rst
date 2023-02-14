@@ -61,9 +61,9 @@ You may also specify multiple *y* columns.
 It will load each *x*/*y* pair as a separate dataset.
 In this case you need to use ``@+ < ...`` (``@+`` denotes new dataslot)::
 
-    @+ < foo.csv:1:3,4:: # load two dataset (with y in columns 3,4)
-    @+ < foo.csv:1:3..5:: # load three dataset (with y in columns 3,4,5)
-    @+ < foo.csv:1:4..6,2:: # load four dataset (y: 4,5,6,2)
+    @+ < foo.csv:1:3,4:: # load two datasets (with y in columns 3,4)
+    @+ < foo.csv:1:3..5:: # load three datasets (with y in columns 3,4,5)
+    @+ < foo.csv:1:4..6,2:: # load four datasets (y: 4,5,6,2)
     @+ < foo.csv:1:2..:: # load 2nd and all the next columns as y
 
 Information about loaded data can be obtained with::
@@ -238,7 +238,7 @@ On the left side of the equality sign you can have one of symbols ``X``, ``Y``,
 ``S``, ``A``, possibly with the index in brackets. The symbols on the left
 side are case insensitive.
 
-The right hand side is a mathematical expression that can have special
+The right hand side is a mathematical **expression** that can have special
 variables:
 
 * lower case letters ``x``, ``y``, ``s``, ``a`` represent properties of data
@@ -272,9 +272,17 @@ then it is replaced with 0 or M-1, respectively.
 
 The value at non-integer indices is explained later in this section.
 
-.. note:: Points are kept sorted according to their *x* coordinate. The sorting is performed after each transformation.  Thus changing the *x* coordinate may change the order and indices of points.
 
-Expressions can contain:
+Transformations separated by commas (``,``) form a *sequence of transformations*.
+During the sequence, the vectors ``x``, ``y``, ``s`` and ``a`` that contain
+old values are not changed. This makes possible to swap the axes::
+
+   X=y, Y=x
+   
+.. note:: Points are kept sorted according to their *x* coordinate. The sorting is performed after each (sequence of) transformation(s).  Thus changing the *x* coordinate may change the order and indices of points.
+
+
+**Expressions** can contain:
 
 - real numbers in normal or scientific format (e.g. ``1.23e5``),
 
@@ -311,7 +319,7 @@ Expressions can contain:
 - two argument functions:
 
   * ``mod`` (modulo)
-  * ``min2``
+  * ``min2`` (not to confuse with the aggregate ``min`` function described later)
   * ``max2`` (``max2(3,5)`` gives 5),
   * ``randuniform(a, b)`` (random number from interval (a, b)),
   * ``randnormal(mu, sigma)`` (random number from normal distribution),
@@ -360,11 +368,6 @@ If the index is not integer (it is compared using *ε* to the rounded value):
   
 * For ``X``, ``Y``, ``S``, ``A`` the index is rounded to integer.
 
-Transformations separated by commas (``,``) form a sequance of transformations.
-During the sequance, the vectors ``x``, ``y``, ``s`` and ``a`` that contain
-old values are not changed. This makes possible to swap the axes::
-
-   X=y, Y=x
 
 The special ``index(arg)`` function returns the index of point that has
 *x* equal *arg*, or, if there is no such point, the linear interpolation
@@ -395,6 +398,12 @@ The precision of printed numbers is governed by the
     print M # the number of points
     print y[index(20)] # value of y for x=20
 
+To print expression(s) from more than one point, use
+::
+   print all: <expression>,...
+   print if <condition>: <expression>,...
+   
+as shown in the :ref:`dexport` section.
 
 Aggregate Functions
 -------------------
@@ -422,7 +431,7 @@ The following aggregate functions are recognized:
 
 * ``sum()`` --- the sum,
 
-* ``count()`` --- the number of points for which the expression is true,
+* ``count()`` --- the number of points for which the expression is true (in addition to the condition, if specified)
 
 * ``avg()`` --- the arithmetic mean,
 
@@ -548,7 +557,7 @@ A few examples::
 Working with Multiple Datasets
 ------------------------------
 
-Let us call a set of data that usually comes from one file --
+Let us call a set of data grouping X, Y, S and A vectors for a list of points --
 a :dfn:`dataset`. It is possible to work simultaneously with multiple datasets.
 Datasets have numbers and are referenced by ``@`` with the number,
 (e.g. ``@3``).
@@ -570,7 +579,7 @@ To load dataset from file, use one of the commands::
    @+ < filename:xcol:ycol:scol:block filetype options...
 
 The first one uses existing data slot and the second one creates
-a new slot.  Using ``@+`` increases the number of datasets,
+a new slot.  Using ``@+`` (as part of a command as above) increases the number of datasets,
 and the command ``delete @n`` decreases it.
 
 The dataset can be duplicated (``@+ = @n``) or transformed,
