@@ -357,9 +357,7 @@ If the index is not integer (it is compared using *ε* to the rounded value):
 
 * ``x``, ``y``, ``s``, ``a`` are interpolated linearly.
   For example, ``y[2.5]`` is equal to ``(y[2]+[3])/2``.
-  If the index is less than 0 or larger than M-1, the value for the first
-  or the last point, respectively, is returned.
-
+  
 * For ``X``, ``Y``, ``S``, ``A`` the index is rounded to integer.
 
 Transformations separated by commas (``,``) form a sequance of transformations.
