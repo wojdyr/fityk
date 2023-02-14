@@ -266,8 +266,11 @@ differ. The first one adds to each point the value of the previous point.
 The second one adds the value of the previous point *after* transformation,
 so effectively it adds the sum of all previous points.
 The index ``[n]`` could be omitted (``Y = y + y[n-1]``).
-The value of undefined points, like ``y[-1]`` and ``Y[-1]``,
-is explained later in this section.
+
+If the index is an integer less than 0 or larger than M-1, 
+then it is replaced with 0 or M-1, respectively.
+
+The value at non-integer indices is explained later in this section.
 
 .. note:: Points are kept sorted according to their *x* coordinate. The sorting is performed after each transformation.  Thus changing the *x* coordinate may change the order and indices of points.
 
@@ -358,7 +361,6 @@ If the index is not integer (it is compared using *ε* to the rounded value):
   or the last point, respectively, is returned.
 
 * For ``X``, ``Y``, ``S``, ``A`` the index is rounded to integer.
-  If the index is less than 0 or larger than M-1, 0 is returned.
 
 Transformations separated by commas (``,``) form a sequance of transformations.
 During the sequance, the vectors ``x``, ``y``, ``s`` and ``a`` that contain
