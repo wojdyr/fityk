@@ -73,24 +73,23 @@ and are created by assigning a value::
    $bar=5*sin($foo)    # compound-variable
    $c=3.1              # constant (the simplest compound-variable)
 
-The numbers prefixed with the tilde (~) are adjustable when the model
-is fitted to the data.
-Variable created by assigning ``~``\ *number*
-(like ``$foo`` in the example above)
-will be called a :dfn:`simple-variable`.
+Prefixing the number with the tilde (~) means that the variable will be adjusted/fitted when the model
+is fitted to the data. Otherwise it is constant/frozen.
+Variable created by assigning ``~`` followed by *number* or *{expression}* 
+(like ``$foo`` in the example above) will be called a :dfn:`simple-variable`.
 
 All other variables are called :dfn:`compound-variables`.
-Compound variables either depend on other variables (``$bar`` above)
+Compound variables either depend on other simple variables (``$bar`` above)
 or are constant (``$c``).
 
 .. important::
 
   Unlike in popular programming languages, variable can store either a single
-  numeric (floating-point) value or a mathematical expression. Nothing else.
-  In case of expression, if we define ``$b=2*$a``
+  numeric (floating-point) value or a variable expression (dependency). Nothing else.
+  In case of variable expression, if we define ``$b=2*$a``
   the value of ``$b`` will be recalculated every time ``$a`` changes.
 
-To assign a value (constant) of another variable, use:
+To assign a value (constant) of another simple variable, use:
 ``$b={$a}``. Braces return the current value of the enclosed expression.
 The left brace can be preceded by the tilde (``~``).
 The assignment ``$b=~{$a}`` creates a simple variable.
@@ -146,14 +145,15 @@ changing while fitting::
    :alt: lock
 
 
-If the assigned expression contains tildes::
+If the assigned expression contains tildes but is not just ``~number``::
 
   $bleh=~9.1*exp(~2)
 
 it automatically creates simple-variables corresponding
-to the tilde-prefixed numbers.
-In the example above two simple-variables (with values 9.1 and 2) are created.
+to the tilde-prefixed numbers and defines the left-hand-side as a compound variable as depending on them.
 Automatically created variables are named ``$_1``, ``$_2``, ``$_3``, and so on.
+In the example above two simple-variables (with values 9.1 and 2) are created and, if the names ``$_1``, ``$_2`` are not already taken, it defines ``$bleh=$_1*exp($_2)``.
+
 
 Variables can be deleted using the command::
 
@@ -186,7 +186,7 @@ The syntax is as follows::
     $a = ~12.3 [0:]   # only lower bound
     $a = ~12.3 [:20]  # only upper bound
     $a = ~15.0        # domain stays the same
-    $a = ~15.0 []     # no domain
+    $a = ~15.0 []     # remove the domain
     $a = ~{$a} [0:20] # domain is set again
 
 If the domain is not specified but it is required (for the latter use)
