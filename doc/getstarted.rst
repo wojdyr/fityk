@@ -146,6 +146,8 @@ Either with the mouse in the *add-peak mode*, or with a command.
 
    F += Gaussian(~60000, ~24.6, ~0.2)
 
+The ``~`` in front of parameter values as above means that those values are not constant but will be adjusted by the fitting to be done soon.  
+
 Parameters of an existing function can be changed in the sidebar,
 or by dragging that little circle handle attached to each function
 (you should see a handle at the top of your Gaussian).
@@ -153,7 +155,7 @@ or by dragging that little circle handle attached to each function
 If the peaks/functions are not named explicitely (like in this example),
 they get automatic names ``%_1``, ``%_2``, etc.
 
-So far, it has only been a guess; now let us actually fit the function.
+Now let us actually fit the function.
 Select :menuselection:`Fit --> Run` from the menu or press |fit-icon|.
 
 .. |fit-icon| image:: img/fit_icon.png
