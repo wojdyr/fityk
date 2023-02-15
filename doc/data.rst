@@ -609,7 +609,8 @@ Dataset Transformations
 -----------------------
 
 There are a few transformations defined for a whole dataset
-or for two datasets. The syntax is ``@n = ...`` or ``@+ = ...``.
+or for two datasets. The syntax is ``@n = ...`` or ``@+ = ...``, 
+for editing an existing or creating a new dataset, respectively.
 The the right hand side expression supports the following operations:
 
 ``-@n``
@@ -672,7 +673,7 @@ Exporting Data
 
 Command::
 
-   print all: expression, ... > file.tsv
+   print all: expression, ... > 'file.tsv'
 
 can export data to an ASCII TSV (tab separated values) file.
 
@@ -682,11 +683,11 @@ can export data to an ASCII TSV (tab separated values) file.
 
 To export data in a 3-column (x, y and standard deviation) format, use::
 
-   print all: x, y, s > file.tsv
+   print all: x, y, s > 'file.tsv'
 
 Any expressions can be printed out::
 
-   p all: n+1, x, y, F(x), y-F(x), %foo(x), sin(pi*x)+y^2 > file.tsv
+   p all: n+1, x, y, F(x), y-F(x), %foo(x), sin(pi*x)+y^2 > 'file.tsv'
 
 It is possible to select which points are to be printed by replacing ``all``
 with ``if`` followed by a condition::
