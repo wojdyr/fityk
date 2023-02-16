@@ -219,7 +219,8 @@ If the names of function's parameters are given (like for ``%f3`` above),
 the variables (or their values) can be given in any order.
 
 Function types can can have specified default values for
-some parameters. The variables for such parameters can be omitted,
+some parameters. The variables for such parameters can be omitted; 
+but if so, the non-omitted variables must specify their parameter names
 e.g.::
 
    =-> i Pearson7
@@ -259,10 +260,10 @@ Functions can be deleted using the command::
 
 .. _flist:
 
-Built-In Functions
-------------------
+Built-In Function Types
+-----------------------
 
-The list of all functions can be obtained using ``i types``.
+The list of all types of functions can be obtained using ``i types``.
 Some formulae here have long parameter names
 (like "height", "center" and "hwhm") replaced with :math:`a_i`
 
@@ -445,8 +446,8 @@ Axial asymmetry peak shape in the Finger, Cox and Jephcoat model, see
 and `J. Appl. Cryst. (2013) 46, 1219
 <http://dx.doi.org/10.1107/S0021889813016233>`_.
 
-Variadic Functions
-------------------
+Variadic Function Types
+-----------------------
 
 *Variadic* function types have variable number of parameters.
 Two variadic function types are defined::
@@ -475,11 +476,11 @@ non-linear fitting algorithms are not optimal for this task.
 
 .. _udf:
 
-User-Defined Functions (UDF)
-----------------------------
+User-Defined Function Types (UDFT)
+----------------------------------
 
 User-defined function types can be added using command ``define``,
-and then used in the same way as built-in functions.
+and then used in the same way as built-in function types. They are added to the GUI as well.
 
 Example::
 
@@ -488,7 +489,7 @@ Example::
 - The name of new type must start with an upper-case letter,
   contain only letters and digits and have at least two characters.
 
-- The name of the type is followed by parameters in brackets.
+- The name of the type is followed by parameter names in brackets.
 
 - Parameter name must start with lowercase letter and,
   contain only lowercase letters, digits and the underscore ('_').
@@ -512,11 +513,11 @@ Example::
   the other names are self-explaining.
 
 - Each parameter may have a default value (see the examples below).
-  The default value can be either a number or an expression that depends
+  The default value can be either a number, or an expression that depends
   on the parameters listed above (e.g. ``0.8*hwhm``).
   The default value always binds a simple-variable to the parameter.
 
-UDFs can be defined in a few ways:
+UDFTs can be defined in a few ways:
 
 - by giving a full formula, like in the example above,
 
