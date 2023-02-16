@@ -508,8 +508,8 @@ Example::
   * if the function is more like linear:
     ``slope``, ``intercept``, ``avgy``.
 
-  The initial values of these parameters can be guessed (command ``guess``)
-  from the data.  ``hwhm`` means half width at half maximum,
+  The initial values of these parameters can be guessed from data (see command ``info guess`` for what values they get).
+  ``hwhm`` means half width at half maximum,
   the other names are self-explaining.
 
 - Each parameter may have a default value (see the examples below).
@@ -658,7 +658,7 @@ we type one of the two commands::
     @1.F = @0.F        # shallow copy
     @1.F = copy(@0.F)  # deep copy
 
-The former command uses the same functions in both models: if you shift
+The former command uses the same functions and variables in both models: if you shift
 a peak in ``@1``, it will be also shifted in ``@0``. The latter command
 (deep copy) duplicates all functions and variables and makes an independent
 model.
@@ -673,7 +673,7 @@ model.
 
 It is often required to keep the width or shape of peaks constant
 for all peaks in the dataset. To change the variables bound to parameters
-with a given name for all functions in F, use the command::
+with a given name *param* for all functions in F, use the command::
 
    F[*].param = variable
 
@@ -790,7 +790,7 @@ the model.
     (e.g. ``info Pearson7``) shows the formula (definition).
 
 ``info guess [range]``
-    shows where the ``guess`` command would locate a peak.
+    shows the values of the special parameters that Fityk can guess, in particular where the ``guess`` command would locate a peak.
 
 ``info functions``
     lists all defined functions.
@@ -799,10 +799,10 @@ the model.
     lists all defined variables.
 
 ``info F``
-    lists components of *F*.
+    lists components in *F*.
 
 ``info Z``
-    lists components of *Z*.
+    lists components in *Z*.
 
 ``info formula``
     shows the full mathematical formula of the fitted model.
@@ -826,7 +826,7 @@ the model.
 ``info models``
     a script that reconstructs all variables, functions and models.
 
-The last two commands are often redirected to a file
+The last commands are often redirected to a file
 (``info peaks > filename``).
 
 The complete list of ``info`` arguments can be found in :ref:`info`.
