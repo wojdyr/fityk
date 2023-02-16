@@ -53,7 +53,7 @@ The final formula for the model is:
     F(x; \boldsymbol{a}) = \sum_i f_i(x+Z(x; \boldsymbol{a}); \boldsymbol{a})
 
 where :math:`Z(x; \boldsymbol{a}) = \sum_i z_i(x; \boldsymbol{a})`
-is the *x*-correction. *Z* is constructed as a list of components,
+is the *x*-correction. *Z* is constructed as a sum of components,
 analogously to *F*, although in practice it has rarely more than
 one component.
 
@@ -609,25 +609,25 @@ Model, F and Z
 As already discussed, each dataset has a separate model
 that can be fitted to the data.
 As can be seen from the :ref:`formula <model_formula>` at the beginning
-of this chapter, the model is defined as a set functions :math:`f_i`
+of this chapter, the model is determined by a set functions :math:`f_i`
 and a set of functions :math:`z_i`.
-These sets are named *F* and *Z* respectively.
-The model is constructed by specifying names of functions in these two sets.
+The sum of them are named *F* and *Z* respectively.
+The model is constructed by specifying names of functions in those two sets.
 
 In many cases :dfn:`x-correction` Z is not used.
-The fitted curve is thus the sum of all functions in F.
+The fitted curve is thus F.
 
 Command::
 
    F += %function
 
-adds  *%function* to F, and
+adds  *%function* to the sum F, and
 
 ::
 
    Z += %function
 
-adds *%function* to Z.
+adds *%function* to the sum Z.
 
 A few examples::
 
@@ -641,7 +641,7 @@ A few examples::
     # clear F
     F = 0
 
-    # clear F and put three functions in it
+    # clear F and add three functions in it
     F = %a + %b + %c
 
     # show info about the first and the last function in F
