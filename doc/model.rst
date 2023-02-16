@@ -21,18 +21,18 @@ chapter 15.0:
 This chapter shows how to construct the model.
 
 Complex models are often a sum of many functions. That is why in Fityk
-the model *F* is constructed as a list of component functions
-and is computed as :math:`F = \sum_i f_i`.
+the model *F* is constructed by summing a list of component functions: 
+:math:`F = \sum_i f_i`.
 
-Each component function :math:`f_i` is one of predefined functions,
+Each component function :math:`f_i` is of a predefined type,
 such as Gaussian or polynomial.
-This is not a limitation, because the user can add any function
-to the predefined functions.
+This is not a limitation, because the user can define new function type and add it 
+to the predefined types.
 
 To avoid confusion, the name *function* will be used only when referring
 to a component function, not when when referring to the sum (model),
-which mathematically is also a function. The predefined functions
-will be sometimes called *function types*.
+which mathematically is also a function. 
+The *function types* will sometimes be called "predefined functions".
 
 Function :math:`f_i=f_i(x; \boldsymbol{a})` is a function of *x*,
 and depends on a vector of parameters :math:`\boldsymbol{a}`.
@@ -57,8 +57,10 @@ is the *x*-correction. *Z* is constructed as a list of components,
 analogously to *F*, although in practice it has rarely more than
 one component.
 
-Each component function is created by specifying a function type
-and binding *variables* to type's parameters. The next section explains
+Each component function is created by specifying a *function type*
+and binding *variables* to type's parameters. 
+
+The next section explains
 what are *variables* in Fityk, and then we get back to functions.
 
 .. _variables:
@@ -79,7 +81,7 @@ Variable created by assigning ``~`` followed by *number* or *{expression}*
 (like ``$foo`` in the example above) will be called a :dfn:`simple-variable`.
 
 All other variables are called :dfn:`compound-variables`.
-Compound variables either depend on other simple variables (``$bar`` above)
+Compound variables either depend on other variables (``$bar`` above)
 or are constant (``$c``).
 
 .. important::
@@ -201,20 +203,20 @@ Function types have names that start with upper case letter
 
 Functions have names prefixed with the percent symbol (``%func``).
 Every function has a type and variables bound to its parameters.
-One way to create a function is to specify both type and variables::
+One way to create a function is to specify both function type, and the variables or their values::
 
    %f1 = Gaussian(~66254., ~24.7, ~0.264)
    %f2 = Gaussian(~6e4, $ctr, $b+$c)
-   %f3 = Gaussian(height=~66254., hwhm=~0.264, center=~24.7)
+   %f3 = Gaussian(height=~66254., hwhm=~0.264, center=$h)
 
 Every expression which is valid on the right-hand side of a variable
-assignment can be used as a variable.
-If it is not just a name of a variable, an automatic variable is created.
+assignment can be used as the value of a parameter-bound variable.
+If the expression is not just a name of a variable, an automatic variable is created.
 In the above examples, two variables were implicitely created for ``%f2``:
-first for value ``6e4`` and the second for ``$b+$c``).
+first for value ``6e4`` and the second for ``$b+$c``. Another 2 for %f3.
 
 If the names of function's parameters are given (like for ``%f3`` above),
-the variables can be given in any order.
+the variables (or their values) can be given in any order.
 
 Function types can can have specified default values for
 some parameters. The variables for such parameters can be omitted,
@@ -230,19 +232,24 @@ Functions can be copied. The following command creates a deep copy
 
    %bar = copy(%foo)
 
-Functions can be also created with the command ``guess``,
+Functions can be also created (and also added to the model F) with the command ``guess``, 
 as described in :ref:`guess`.
 
-Variables bound to the function parameters can be changed at any time::
+Variables bound to the function parameters can be replaced at any time::
 
-    =-> %f = Pearson7(height=~66254., center=~24.7, fwhm=~0.264)
+    =-> %f = Pearson7(height=~66254., center=~24.7, hwhm=~0.264)
     New function %f was created.
+    =-> info %f
+    %f = Pearson7($_1, $_2, $_3, $_4)
     =-> %f.center=~24.8
     =-> $h = ~66254
     =-> %f.height=$h
     =-> info %f
     %f = Pearson7($h, $_5, $_3, $_4)
-    =-> $h = ~60000 # variables are kept by name, so this also changes %f
+    =-> info $_1
+    Error: undefined variable: $_1   # it's been automatically deleted
+    =-> $h = ~60000 # variables are kept by name, so this change affects %f
+    
     =-> %p1.center = %p2.center + 3 # keep fixed distance between %p1 and %p2
 
 Functions can be deleted using the command::
