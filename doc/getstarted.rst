@@ -259,7 +259,8 @@ etc::
   =-> @2 @3: fit # fit the third dataset (@2) and then the fourth one (@3)
   =-> @*: fit # fit all datasets, one by one
 
-Settings in the program are changed with the command ``set``::
+Settings in the program, such as those accessible in *menu/Session/Settings*, are changed with the command ``set`` 
+(which is only used for settings) ::
 
   set key = value
 
@@ -274,13 +275,15 @@ numbers *a* and *b* for equality (it is well known that due to rounding
 errors the equality test for two numbers should have some tolerance,
 and the tolerance should be tailored to the application): \|\ *a−b*\ | < *ε*.
 
-To run a single command with different settings, add ``with key=value`` before
+To run a single command with different options, add ``with key=value`` before
 the command::
 
   =-> print pi == 3.14  # default epsilon = 10^-12
   0
   =-> with epsilon = 0.1 print pi == 3.14  # abusing epsilon
   1
+  
+The different option will also apply if on the same line there are further commands separated with ";". 
 
 .. highlight:: none
 
