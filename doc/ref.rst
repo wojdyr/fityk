@@ -96,7 +96,7 @@ nm_*
 .. _numeric_format:
 
 numeric_format
-    Format of numbers printed by the ``info`` command. It takes as a value
+    Format of numbers printed by the ``info`` and ``print`` commands. It takes as a value
     a format string, the same as ``sprintf()`` in the C language.
     For example ``set numeric_format='%.3f'`` changes the precision
     of numbers to 3 digits after the decimal point. Default value: ``%g``.
@@ -135,7 +135,7 @@ Data View
 
 The command ``plot`` controls the region of the graph that is displayed::
 
-   plot [[xrange] yrange] [@n, ...]
+   plot [xrange [yrange]] [@n, ...]
 
 *xrange* and *yrange* has syntax ``[min:max]``. If the boundaries
 are skipped, they are automatically determined using the given datasets.
