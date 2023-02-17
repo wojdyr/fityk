@@ -25,7 +25,7 @@ It can also show weighted or cumulative difference, and a couple of other things
 The helper plot is also handy for zooming -- with left and middle
 mouse buttons. Selecting a horizontal span with the left button
 zooms into this span. The middle button goes back to the whole dataset
-(the same as |zoom-all-icon| in the toolbar).
+(the same as |zoom-all-icon| in the toolbar or Ctrl-A).
 
 .. |zoom-all-icon| image:: img/zoom_all.png
    :alt: Zoom All
@@ -39,10 +39,10 @@ On the main plot, the meaning of the left and right mouse button depends
 on the current **mouse mode**. Mouse modes are switched using toolbar
 buttons:
 
-* |mode-zoom-icon| *normal mode* -- the left button zooms in and
+* |mode-zoom-icon| *normal mode* -- the left button (drag) zooms in and
   the right button shows pop-up menu,
 
-* |mode-range-icon| *data-range mode* -- for activating and de-activating data,
+* |mode-range-icon| *data-range mode* -- for activating (left button drag) and de-activating (right button drag) data,
   i.e. for selecting regions of interest,
 
 * |mode-bg-icon| *baseline mode* -- manual baseline subtraction
@@ -66,7 +66,7 @@ buttons:
    :alt: Add-Peak Mode
    :class: icon
 
-The status bar shows a hint of what the mouse does in the current mode.
+The status bar shows a hint of what the mouse does in the current mode. Hovering the pointer in the right-hand side of it shows a tooltip with more details.
 
 Finally, the **input field** and the **output window** provide alternative,
 console-like way of interacting with the program.
@@ -87,15 +87,15 @@ calculating the pressure under which the sample was measured, but this
 later detail in the processing is irrelevant for the time being.
 
 The data file used in this example is distributed with the program and
-can be found in the :file:`samples` directory.
+can be found in the :file:`samples` directory of the Fityk's installation directory.
 
 .. role:: cli-title
 
-Textual commands that correspond to performed operations are shown
+Textual commands that you could enter as an alternative to the performed GUI operations are shown
 in this section in :cli-title:`CLI` boxes.
 
 First load data from the :file:`nacl01.dat` file.
-Select :menuselection:`Data --> Load File`
+Select :menuselection:`Data --> Quick Load File`
 from the menu (or |load-data-icon| from the toolbar) and choose the file.
 
 .. |load-data-icon| image:: img/load_data_icon.png
@@ -107,14 +107,14 @@ from the menu (or |load-data-icon| from the toolbar) and choose the file.
    @0 < nacl01.dat 
 
 
-You can zoom-in to the biggest peak using the left mouse
-button on the residual (helper) plot.
-To zoom out, press |zoom-all-icon| on the toolbar.
+You can zoom-in to the biggest peak by dragging with the left mouse
+button on the residual (helper) plot, on the region of the biggest peak.
+To zoom out, press |zoom-all-icon| on the toolbar (or Ctrl-A).
 
 Now all data points are active. Only the biggest peak is of
 our interest, so we want to deactivate the remaining points.
 Change to the *range mode* (toolbar: |mode-range-icon|)
-and deactivate not needed points with the right mouse button.
+and deactivate not needed points by dragging, in the main plot, with the right mouse button to the left and right of the peak region.
 
 .. admonition:: CLI
 
@@ -146,6 +146,8 @@ Either with the mouse in the *add-peak mode*, or with a command.
 
    F += Gaussian(~60000, ~24.6, ~0.2)
 
+The ``~`` in front of parameter values as above means that those values are not constant but will be adjusted by the fitting to be done soon.  
+
 Parameters of an existing function can be changed in the sidebar,
 or by dragging that little circle handle attached to each function
 (you should see a handle at the top of your Gaussian).
@@ -153,7 +155,7 @@ or by dragging that little circle handle attached to each function
 If the peaks/functions are not named explicitely (like in this example),
 they get automatic names ``%_1``, ``%_2``, etc.
 
-Now let us fit the function.
+Now let us actually fit the function.
 Select :menuselection:`Fit --> Run` from the menu or press |fit-icon|.
 
 .. |fit-icon| image:: img/fit_icon.png
@@ -257,7 +259,8 @@ etc::
   =-> @2 @3: fit # fit the third dataset (@2) and then the fourth one (@3)
   =-> @*: fit # fit all datasets, one by one
 
-Settings in the program are changed with the command ``set``::
+Settings in the program, such as those accessible in *menu/Session/Settings*, are changed with the command ``set`` 
+(which is only used for settings) ::
 
   set key = value
 
@@ -272,13 +275,15 @@ numbers *a* and *b* for equality (it is well known that due to rounding
 errors the equality test for two numbers should have some tolerance,
 and the tolerance should be tailored to the application): \|\ *a−b*\ | < *ε*.
 
-To run a single command with different settings, add ``with key=value`` before
+To run a single command with different options, add ``with key=value`` before
 the command::
 
   =-> print pi == 3.14  # default epsilon = 10^-12
   0
   =-> with epsilon = 0.1 print pi == 3.14  # abusing epsilon
   1
+  
+The different option will also apply if on the same line there are further commands separated with ";". 
 
 .. highlight:: none
 

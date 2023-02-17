@@ -21,18 +21,18 @@ chapter 15.0:
 This chapter shows how to construct the model.
 
 Complex models are often a sum of many functions. That is why in Fityk
-the model *F* is constructed as a list of component functions
-and is computed as :math:`F = \sum_i f_i`.
+the model *F* is constructed by summing a list of component functions: 
+:math:`F = \sum_i f_i`.
 
-Each component function :math:`f_i` is one of predefined functions,
+Each component function :math:`f_i` is of a predefined type,
 such as Gaussian or polynomial.
-This is not a limitation, because the user can add any function
-to the predefined functions.
+This is not a limitation, because the user can define new function type and add it 
+to the predefined types.
 
 To avoid confusion, the name *function* will be used only when referring
 to a component function, not when when referring to the sum (model),
-which mathematically is also a function. The predefined functions
-will be sometimes called *function types*.
+which mathematically is also a function. 
+The *function types* will sometimes be called "predefined functions".
 
 Function :math:`f_i=f_i(x; \boldsymbol{a})` is a function of *x*,
 and depends on a vector of parameters :math:`\boldsymbol{a}`.
@@ -53,12 +53,14 @@ The final formula for the model is:
     F(x; \boldsymbol{a}) = \sum_i f_i(x+Z(x; \boldsymbol{a}); \boldsymbol{a})
 
 where :math:`Z(x; \boldsymbol{a}) = \sum_i z_i(x; \boldsymbol{a})`
-is the *x*-correction. *Z* is constructed as a list of components,
+is the *x*-correction. *Z* is constructed as a sum of components,
 analogously to *F*, although in practice it has rarely more than
 one component.
 
-Each component function is created by specifying a function type
-and binding *variables* to type's parameters. The next section explains
+Each component function is created by specifying a *function type*
+and binding *variables* to type's parameters. 
+
+The next section explains
 what are *variables* in Fityk, and then we get back to functions.
 
 .. _variables:
@@ -73,11 +75,10 @@ and are created by assigning a value::
    $bar=5*sin($foo)    # compound-variable
    $c=3.1              # constant (the simplest compound-variable)
 
-The numbers prefixed with the tilde (~) are adjustable when the model
-is fitted to the data.
-Variable created by assigning ``~``\ *number*
-(like ``$foo`` in the example above)
-will be called a :dfn:`simple-variable`.
+Prefixing the number with the tilde (~) means that the variable will be adjusted/fitted when the model
+is fitted to the data. Otherwise it is constant/frozen.
+Variable created by assigning ``~`` followed by *number* or *{expression}* 
+(like ``$foo`` in the example above) will be called a :dfn:`simple-variable`.
 
 All other variables are called :dfn:`compound-variables`.
 Compound variables either depend on other variables (``$bar`` above)
@@ -86,11 +87,11 @@ or are constant (``$c``).
 .. important::
 
   Unlike in popular programming languages, variable can store either a single
-  numeric (floating-point) value or a mathematical expression. Nothing else.
-  In case of expression, if we define ``$b=2*$a``
+  numeric (floating-point) value or a variable expression (dependency). Nothing else.
+  In case of variable expression, if we define ``$b=2*$a``
   the value of ``$b`` will be recalculated every time ``$a`` changes.
 
-To assign a value (constant) of another variable, use:
+To assign a value (constant) of another simple variable, use:
 ``$b={$a}``. Braces return the current value of the enclosed expression.
 The left brace can be preceded by the tilde (``~``).
 The assignment ``$b=~{$a}`` creates a simple variable.
@@ -146,14 +147,15 @@ changing while fitting::
    :alt: lock
 
 
-If the assigned expression contains tildes::
+If the assigned expression contains tildes but is not just ``~number``::
 
   $bleh=~9.1*exp(~2)
 
 it automatically creates simple-variables corresponding
-to the tilde-prefixed numbers.
-In the example above two simple-variables (with values 9.1 and 2) are created.
+to the tilde-prefixed numbers and defines the left-hand-side as a compound variable as depending on them.
 Automatically created variables are named ``$_1``, ``$_2``, ``$_3``, and so on.
+In the example above two simple-variables (with values 9.1 and 2) are created and, if the names ``$_1``, ``$_2`` are not already taken, it defines ``$bleh=$_1*exp($_2)``.
+
 
 Variables can be deleted using the command::
 
@@ -186,7 +188,7 @@ The syntax is as follows::
     $a = ~12.3 [0:]   # only lower bound
     $a = ~12.3 [:20]  # only upper bound
     $a = ~15.0        # domain stays the same
-    $a = ~15.0 []     # no domain
+    $a = ~15.0 []     # remove the domain
     $a = ~{$a} [0:20] # domain is set again
 
 If the domain is not specified but it is required (for the latter use)
@@ -201,23 +203,24 @@ Function types have names that start with upper case letter
 
 Functions have names prefixed with the percent symbol (``%func``).
 Every function has a type and variables bound to its parameters.
-One way to create a function is to specify both type and variables::
+One way to create a function is to specify both function type, and the variables or their values::
 
    %f1 = Gaussian(~66254., ~24.7, ~0.264)
    %f2 = Gaussian(~6e4, $ctr, $b+$c)
-   %f3 = Gaussian(height=~66254., hwhm=~0.264, center=~24.7)
+   %f3 = Gaussian(height=~66254., hwhm=~0.264, center=$h)
 
 Every expression which is valid on the right-hand side of a variable
-assignment can be used as a variable.
-If it is not just a name of a variable, an automatic variable is created.
+assignment can be used as the value of a parameter-bound variable.
+If the expression is not just a name of a variable, an automatic variable is created.
 In the above examples, two variables were implicitely created for ``%f2``:
-first for value ``6e4`` and the second for ``$b+$c``).
+first for value ``6e4`` and the second for ``$b+$c``. Another 2 for %f3.
 
 If the names of function's parameters are given (like for ``%f3`` above),
-the variables can be given in any order.
+the variables (or their values) can be given in any order.
 
 Function types can can have specified default values for
-some parameters. The variables for such parameters can be omitted,
+some parameters. The variables for such parameters can be omitted; 
+but if so, the non-omitted variables must specify their parameter names
 e.g.::
 
    =-> i Pearson7
@@ -230,19 +233,24 @@ Functions can be copied. The following command creates a deep copy
 
    %bar = copy(%foo)
 
-Functions can be also created with the command ``guess``,
+Functions can be also created (and also added to the model F) with the command ``guess``, 
 as described in :ref:`guess`.
 
-Variables bound to the function parameters can be changed at any time::
+Variables bound to the function parameters can be replaced at any time::
 
-    =-> %f = Pearson7(height=~66254., center=~24.7, fwhm=~0.264)
+    =-> %f = Pearson7(height=~66254., center=~24.7, hwhm=~0.264)
     New function %f was created.
+    =-> info %f
+    %f = Pearson7($_1, $_2, $_3, $_4)
     =-> %f.center=~24.8
     =-> $h = ~66254
     =-> %f.height=$h
     =-> info %f
     %f = Pearson7($h, $_5, $_3, $_4)
-    =-> $h = ~60000 # variables are kept by name, so this also changes %f
+    =-> info $_1
+    Error: undefined variable: $_1   # it's been automatically deleted
+    =-> $h = ~60000 # variables are kept by name, so this change affects %f
+    
     =-> %p1.center = %p2.center + 3 # keep fixed distance between %p1 and %p2
 
 Functions can be deleted using the command::
@@ -252,10 +260,10 @@ Functions can be deleted using the command::
 
 .. _flist:
 
-Built-In Functions
-------------------
+Built-In Function Types
+-----------------------
 
-The list of all functions can be obtained using ``i types``.
+The list of all types of functions can be obtained using ``i types``.
 Some formulae here have long parameter names
 (like "height", "center" and "hwhm") replaced with :math:`a_i`
 
@@ -438,8 +446,8 @@ Axial asymmetry peak shape in the Finger, Cox and Jephcoat model, see
 and `J. Appl. Cryst. (2013) 46, 1219
 <http://dx.doi.org/10.1107/S0021889813016233>`_.
 
-Variadic Functions
-------------------
+Variadic Function Types
+-----------------------
 
 *Variadic* function types have variable number of parameters.
 Two variadic function types are defined::
@@ -468,11 +476,11 @@ non-linear fitting algorithms are not optimal for this task.
 
 .. _udf:
 
-User-Defined Functions (UDF)
-----------------------------
+User-Defined Function Types (UDFT)
+----------------------------------
 
 User-defined function types can be added using command ``define``,
-and then used in the same way as built-in functions.
+and then used in the same way as built-in function types. They are added to the GUI as well.
 
 Example::
 
@@ -481,7 +489,7 @@ Example::
 - The name of new type must start with an upper-case letter,
   contain only letters and digits and have at least two characters.
 
-- The name of the type is followed by parameters in brackets.
+- The name of the type is followed by parameter names in brackets.
 
 - Parameter name must start with lowercase letter and,
   contain only lowercase letters, digits and the underscore ('_').
@@ -500,16 +508,16 @@ Example::
   * if the function is more like linear:
     ``slope``, ``intercept``, ``avgy``.
 
-  The initial values of these parameters can be guessed (command ``guess``)
-  from the data.  ``hwhm`` means half width at half maximum,
+  The initial values of these parameters can be guessed from data (see command ``info guess`` for what values they get).
+  ``hwhm`` means half width at half maximum,
   the other names are self-explaining.
 
 - Each parameter may have a default value (see the examples below).
-  The default value can be either a number or an expression that depends
+  The default value can be either a number, or an expression that depends
   on the parameters listed above (e.g. ``0.8*hwhm``).
   The default value always binds a simple-variable to the parameter.
 
-UDFs can be defined in a few ways:
+UDFTs can be defined in a few ways:
 
 - by giving a full formula, like in the example above,
 
@@ -601,25 +609,25 @@ Model, F and Z
 As already discussed, each dataset has a separate model
 that can be fitted to the data.
 As can be seen from the :ref:`formula <model_formula>` at the beginning
-of this chapter, the model is defined as a set functions :math:`f_i`
+of this chapter, the model is determined by a set functions :math:`f_i`
 and a set of functions :math:`z_i`.
-These sets are named *F* and *Z* respectively.
-The model is constructed by specifying names of functions in these two sets.
+The sum of them are named *F* and *Z* respectively.
+The model is constructed by specifying names of functions in those two sets.
 
 In many cases :dfn:`x-correction` Z is not used.
-The fitted curve is thus the sum of all functions in F.
+The fitted curve is thus F.
 
 Command::
 
    F += %function
 
-adds  *%function* to F, and
+adds  *%function* to the sum F, and
 
 ::
 
    Z += %function
 
-adds *%function* to Z.
+adds *%function* to the sum Z.
 
 A few examples::
 
@@ -633,7 +641,7 @@ A few examples::
     # clear F
     F = 0
 
-    # clear F and put three functions in it
+    # clear F and add three functions in it
     F = %a + %b + %c
 
     # show info about the first and the last function in F
@@ -650,7 +658,7 @@ we type one of the two commands::
     @1.F = @0.F        # shallow copy
     @1.F = copy(@0.F)  # deep copy
 
-The former command uses the same functions in both models: if you shift
+The former command uses the same functions and variables in both models: if you shift
 a peak in ``@1``, it will be also shifted in ``@0``. The latter command
 (deep copy) duplicates all functions and variables and makes an independent
 model.
@@ -665,7 +673,7 @@ model.
 
 It is often required to keep the width or shape of peaks constant
 for all peaks in the dataset. To change the variables bound to parameters
-with a given name for all functions in F, use the command::
+with a given name *param* for all functions in F, use the command::
 
    F[*].param = variable
 
@@ -782,7 +790,7 @@ the model.
     (e.g. ``info Pearson7``) shows the formula (definition).
 
 ``info guess [range]``
-    shows where the ``guess`` command would locate a peak.
+    shows the values of the special parameters that Fityk can guess, in particular where the ``guess`` command would locate a peak.
 
 ``info functions``
     lists all defined functions.
@@ -791,10 +799,10 @@ the model.
     lists all defined variables.
 
 ``info F``
-    lists components of *F*.
+    lists components in *F*.
 
 ``info Z``
-    lists components of *Z*.
+    lists components in *Z*.
 
 ``info formula``
     shows the full mathematical formula of the fitted model.
@@ -818,7 +826,7 @@ the model.
 ``info models``
     a script that reconstructs all variables, functions and models.
 
-The last two commands are often redirected to a file
+The last commands are often redirected to a file
 (``info peaks > filename``).
 
 The complete list of ``info`` arguments can be found in :ref:`info`.
@@ -827,3 +835,4 @@ The complete list of ``info`` arguments can be found in :ref:`info`.
 
   most of the above commands has clickable equivalents.
 
+Now you may want to go back to :ref:`funcindt` if you have skipped it to read this chapter first.

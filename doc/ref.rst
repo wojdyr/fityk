@@ -96,7 +96,7 @@ nm_*
 .. _numeric_format:
 
 numeric_format
-    Format of numbers printed by the ``info`` command. It takes as a value
+    Format of numbers printed by the ``info`` and ``print`` commands. It takes as a value
     a format string, the same as ``sprintf()`` in the C language.
     For example ``set numeric_format='%.3f'`` changes the precision
     of numbers to 3 digits after the decimal point. Default value: ``%g``.
@@ -135,7 +135,7 @@ Data View
 
 The command ``plot`` controls the region of the graph that is displayed::
 
-   plot [[xrange] yrange] [@n, ...]
+   plot [xrange [yrange]] [@n, ...]
 
 *xrange* and *yrange* has syntax ``[min:max]``. If the boundaries
 are skipped, they are automatically determined using the given datasets.
@@ -185,7 +185,7 @@ There are three commands that print explicitely requested information:
 
 The output of ``info`` and ``print`` can be redirected to a file::
 
-  info args > filename    # truncate the file
+  info args > filename    # overwrite the file
   info args >> filename   # append to the file
   info args > 'filename'  # the filename can (and sometimes must) be in quotes
 
@@ -229,7 +229,7 @@ The following ``info`` arguments are recognized:
 * ``set`` *option* -- the current value of the option
 * ``simplified_formula`` -- simplified formula
 * ``simplified_gnuplot_formula`` -- simplified formula, gnuplot style
-* ``state`` -- generates a script that can reproduce the current state
+* ``state`` -- generates a script that can reproduce the current state (the session)
   of the program. The scripts embeds all datasets.
 * ``title`` -- dataset title
 * ``types`` -- the list of function types
@@ -238,12 +238,12 @@ The following ``info`` arguments are recognized:
 * ``view`` -- boundaries of the visualized rectangle
 
 Both ``info state`` and ``info history`` can be used to restore the current
-session.
+session, with the exception that the former also includes changes done through the *init* file (if any). 
 
 .. admonition:: In the GUI
 
-    :menuselection:`Session --> Save State` and
-    :menuselection:`Session --> Save History`.
+    :menuselection:`Session --> Save Session...` and
+    :menuselection:`Session --> Save History...`.
 
 print
 -----

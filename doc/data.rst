@@ -55,15 +55,15 @@ A few examples should clarify it::
     @0 < foo.csv:1:4::  # x,y - 1st and 4th columns
     @0 < foo.csv:1:2:3:  # read std. dev. of y from 3rd column
     @0 < foo.csv:0:1::  # x - index (0,1,2,...), y - first column
-    @0 < foo.raw::::0,1  # load two first blocks of data (as one dataset)
+    @0 < foo.raw::::0,1  # load first two blocks of data (as one dataset)
 
 You may also specify multiple *y* columns.
 It will load each *x*/*y* pair as a separate dataset.
 In this case you need to use ``@+ < ...`` (``@+`` denotes new dataslot)::
 
-    @+ < foo.csv:1:3,4:: # load two dataset (with y in columns 3,4)
-    @+ < foo.csv:1:3..5:: # load three dataset (with y in columns 3,4,5)
-    @+ < foo.csv:1:4..6,2:: # load four dataset (y: 4,5,6,2)
+    @+ < foo.csv:1:3,4:: # load two datasets (with y in columns 3,4)
+    @+ < foo.csv:1:3..5:: # load three datasets (with y in columns 3,4,5)
+    @+ < foo.csv:1:4..6,2:: # load four datasets (y: 4,5,6,2)
     @+ < foo.csv:1:2..:: # load 2nd and all the next columns as y
 
 Information about loaded data can be obtained with::
@@ -186,7 +186,7 @@ can be used to change the state of points.
 
 .. admonition:: In the GUI
 
-   data points can be activated and disactivated with mouse
+   data points can be activated and disactivated by dragging with the left/right mouse buttons
    in the data-range mode (toolbar: |mode-range-icon|).
 
 .. |mode-range-icon| image:: img/mode_range_icon.png
@@ -201,13 +201,13 @@ Standard Deviation (or Weight)
 
 When fitting data, we assume that only the *y* coordinate is subject to
 statistical errors in measurement. This is a common assumption.
-To see how the *y*'s standard deviation, *σ*, influences fitting
+To see how the :math: `y_i`'s standard deviation, :math: `\sigma_i`, influences fitting
 (optimization), look at the weighted sum of squared residuals formula
 in :ref:`nonlinear`.
 We can also think about weights of points -- every point has a weight
-assigned, that is equal :math:`w_i=1/\sigma_i^2`.
+assigned, that is equal :math: `w_i=1/\sigma_i^2`.
 
-Standard deviation of points can be
+Standard deviation of individual points can be
 :ref:`read from file <dataload>` together with the *x* and *y*
 coordinates. Otherwise, it is set either to max(*y*:sup:`1/2`, 1)
 or to 1, depending on the :option:`default_sigma` option.
@@ -238,7 +238,7 @@ On the left side of the equality sign you can have one of symbols ``X``, ``Y``,
 ``S``, ``A``, possibly with the index in brackets. The symbols on the left
 side are case insensitive.
 
-The right hand side is a mathematical expression that can have special
+The right hand side is a mathematical **expression** that can have special
 variables:
 
 * lower case letters ``x``, ``y``, ``s``, ``a`` represent properties of data
@@ -266,10 +266,23 @@ differ. The first one adds to each point the value of the previous point.
 The second one adds the value of the previous point *after* transformation,
 so effectively it adds the sum of all previous points.
 The index ``[n]`` could be omitted (``Y = y + y[n-1]``).
-The value of undefined points, like ``y[-1]`` and ``Y[-1]``,
-is explained later in this section.
 
-Expressions can contain:
+If the index is an integer less than 0 or larger than M-1, 
+then it is replaced with 0 or M-1, respectively.
+
+The value at non-integer indices is explained later in this section.
+
+
+Transformations separated by commas (``,``) form a *sequence of transformations*.
+During the sequence, the vectors ``x``, ``y``, ``s`` and ``a`` that contain
+old values are not changed. This makes possible to swap the axes::
+
+   X=y, Y=x
+   
+.. note:: Points are kept sorted according to their *x* coordinate. The sorting is performed after each (sequence of) transformation(s).  Thus changing the *x* coordinate may change the order and indices of points.
+
+
+**Expressions** can contain:
 
 - real numbers in normal or scientific format (e.g. ``1.23e5``),
 
@@ -306,7 +319,7 @@ Expressions can contain:
 - two argument functions:
 
   * ``mod`` (modulo)
-  * ``min2``
+  * ``min2`` (not to confuse with the aggregate ``min`` function described later)
   * ``max2`` (``max2(3,5)`` gives 5),
   * ``randuniform(a, b)`` (random number from interval (a, b)),
   * ``randnormal(mu, sigma)`` (random number from normal distribution),
@@ -346,28 +359,15 @@ For example, the following commands::
 
 create 500 points and generate a sinusoid.
 
-Points are kept sorted according to their *x* coordinate.
-The sorting is performed after each transformation.
-
-.. note:: Changing the *x* coordinate may change the order
-          and indices of points.
 
 Indices, like all other values, are computed in the real number domain.
 If the index is not integer (it is compared using *ε* to the rounded value):
 
 * ``x``, ``y``, ``s``, ``a`` are interpolated linearly.
   For example, ``y[2.5]`` is equal to ``(y[2]+[3])/2``.
-  If the index is less than 0 or larger than M-1, the value for the first
-  or the last point, respectively, is returned.
-
+  
 * For ``X``, ``Y``, ``S``, ``A`` the index is rounded to integer.
-  If the index is less than 0 or larger than M-1, 0 is returned.
 
-Transformations separated by commas (``,``) form a sequance of transformations.
-During the sequance, the vectors ``x``, ``y``, ``s`` and ``a`` that contain
-old values are not changed. This makes possible to swap the axes::
-
-   X=y, Y=x
 
 The special ``index(arg)`` function returns the index of point that has
 *x* equal *arg*, or, if there is no such point, the linear interpolation
@@ -398,6 +398,12 @@ The precision of printed numbers is governed by the
     print M # the number of points
     print y[index(20)] # value of y for x=20
 
+To print expression(s) from more than one point, use
+::
+   print all: <expression>,...
+   print if <condition>: <expression>,...
+   
+as shown in the :ref:`dexport` section.
 
 Aggregate Functions
 -------------------
@@ -425,7 +431,7 @@ The following aggregate functions are recognized:
 
 * ``sum()`` --- the sum,
 
-* ``count()`` --- the number of points for which the expression is true,
+* ``count()`` --- the number of points for which the expression is true (in addition to the condition, if specified)
 
 * ``avg()`` --- the arithmetic mean,
 
@@ -551,7 +557,7 @@ A few examples::
 Working with Multiple Datasets
 ------------------------------
 
-Let us call a set of data that usually comes from one file --
+Let us call a set of data grouping X, Y, S and A vectors for a list of points --
 a :dfn:`dataset`. It is possible to work simultaneously with multiple datasets.
 Datasets have numbers and are referenced by ``@`` with the number,
 (e.g. ``@3``).
@@ -573,7 +579,7 @@ To load dataset from file, use one of the commands::
    @+ < filename:xcol:ycol:scol:block filetype options...
 
 The first one uses existing data slot and the second one creates
-a new slot.  Using ``@+`` increases the number of datasets,
+a new slot.  Using ``@+`` (as part of a command as above) increases the number of datasets,
 and the command ``delete @n`` decreases it.
 
 The dataset can be duplicated (``@+ = @n``) or transformed,
@@ -603,7 +609,8 @@ Dataset Transformations
 -----------------------
 
 There are a few transformations defined for a whole dataset
-or for two datasets. The syntax is ``@n = ...`` or ``@+ = ...``.
+or for two datasets. The syntax is ``@n = ...`` or ``@+ = ...``, 
+for editing an existing or creating a new dataset, respectively.
 The the right hand side expression supports the following operations:
 
 ``-@n``
@@ -666,7 +673,7 @@ Exporting Data
 
 Command::
 
-   print all: expression, ... > file.tsv
+   print all: expression, ... > 'file.tsv'
 
 can export data to an ASCII TSV (tab separated values) file.
 
@@ -676,11 +683,11 @@ can export data to an ASCII TSV (tab separated values) file.
 
 To export data in a 3-column (x, y and standard deviation) format, use::
 
-   print all: x, y, s > file.tsv
+   print all: x, y, s > 'file.tsv'
 
 Any expressions can be printed out::
 
-   p all: n+1, x, y, F(x), y-F(x), %foo(x), sin(pi*x)+y^2 > file.tsv
+   p all: n+1, x, y, F(x), y-F(x), %foo(x), sin(pi*x)+y^2 > 'file.tsv'
 
 It is possible to select which points are to be printed by replacing ``all``
 with ``if`` followed by a condition::
