@@ -8,7 +8,7 @@ Working with Scripts
 
 Fityk can run two kinds of scripts:
 
-- Fityk scripts composed of the commands described in previous sections,
+- Fityk scripts (extension ``.fit``) composed of the commands described in previous sections,
 - and Lua scripts (extension ``.lua``), in the Lua language.
 
 Scripts are executed using the `exec` command::
@@ -30,12 +30,20 @@ One-liners can be run with command ``lua``::
     Lua 5.1
     =-> lua print(os.date("Today is %A."))
     Today is Thursday.
+    
+(The Lua ``print`` function in fityk is redefined to show the output
+in the GUI instead of writing to ``stdout``).
+
+The embedded Lua interpreter interacts with the rest of the program
+through the global object ``F``::
+
+    =-> lua print(F:get_info("version"))
+    Fityk 1.2.1
     =-> lua for n,f in F:all_functions() do print(n, f, f:get_template_name()) end
     0       %_1     Constant
     1       %_2     Cycle
 
-(The Lua ``print`` function in fityk is redefined to show the output
-in the GUI instead of writing to ``stdout``).
+All methods of ``F`` are documented in the section :ref:`api`.
 
 Like in the Lua interpreter, ``=`` at the beginning of line can be used
 to save some typing::
@@ -51,14 +59,6 @@ as a fityk command::
     fit @4
     =-> exec= string.format("fit @%d", math.random(0,5))
     # fitting random dataset (useless example)
-
-The embedded Lua interpreter interacts with the rest of the program
-through the global object ``F``::
-
-    =-> = F:get_info("version")
-    Fityk 1.2.1
-
-All methods of ``F`` are documented in the section :ref:`api`.
 
 A few more examples.
 
