@@ -138,7 +138,7 @@ Here is a silly example::
    2
    3
 
-Command that follows the colon is run for each specified dataset
+Commands that follow the colon on the same line are run for each specified dataset
 in the context of that dataset. This is to say that::
 
    =-> @2 @4: guess Voigt
@@ -150,7 +150,7 @@ is equivalent to::
    =-> use @4
    =-> guess Voigt
 
-(except that the latter sets permenently default dataset to ``@4``.
+(except that the latter sets permenently the default dataset to ``@4``.
 
 ``@*`` stands for all datasets, from ``@0`` to the last one.
 
@@ -372,8 +372,8 @@ To call the methods listed below use ``F:method()``, for example
     the `ui_api.h`_ header. These functions are used in command line
     versions of fityk (``cfityk`` or its equivalent -- ``samples/cfityk.py``).
 
-    Examples of scripts in all the listed languages and in the `samples`_
-    directory.
+    Examples of scripts in all the listed languages are in the `samples`_
+    directory of the project.
 
 .. _fityk.h: https://github.com/wojdyr/fityk/blob/master/src/fityk.h
 .. _ui_api.h: https://github.com/wojdyr/fityk/blob/master/src/ui_api.h
