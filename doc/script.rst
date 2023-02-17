@@ -19,9 +19,9 @@ Scripts are executed using the `exec` command::
 
 .. note::
 
-    Fityk can save its state to a script (``info state > file.fit``).
+    Fityk can save its state (session) to a script (``info state > file.fit``).
     It can also save all commands executed (directly or via GUI) in the session
-    to a script (``info history > file.fit``).
+    to a script (``info history > file.fit``). These are the equivalents of GUI Session menu's "Save Session..." and "Save History..." items. 
 
 Embedded Lua interpreter can execute any program in Lua 5.2.
 One-liners can be run with command ``lua``::
