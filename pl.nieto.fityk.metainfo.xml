@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!-- Copyright 2023 Marcin Wojdyr -->
 <component type="desktop-application">
 	<id>pl.nieto.fityk</id>
 	<metadata_license>CC0-1.0</metadata_license>
@@ -8,9 +9,8 @@
 
 	<description>
 		<p>Fityk [fi:tik] is a program for data processing and nonlinear curve fitting of analytical functions to data (usually experimental data). It is primarily peak fitting software, but can handle other types of functions as well.</p>
-		<p>Apart from the actual fitting, the program helps with data processing and provides an ergonomic graphical interface and also a command line interface and a scripting API</p>
+		<p>Apart from the actual fitting, the program helps with data processing and provides an ergonomic graphical interface and also a command line interface and a scripting API.</p>
 		<p>Fityk offers various nonlinear fitting methods (such as Gaussian, Voigt, sigmoid, polynomial and dozens of others), simple background subtraction and other manipulations to the dataset, easy placement of peaks and changing of peak parameters, support for analysis of series of datasets, automation of common tasks with scripts, and much more.</p>
-		<p>But the program can also handle quite complex scenarios. You can define your own function types. You can specify sophisticated dependencies between parameters of the functions (say, peak widths given as a function of peak positions). You can fit multiple datasets together using common set of parameters. You can model zero-shift in your instrument or do more complicated refinement of the X scale. And you can automate all this work.</p>
 		<p>Fityk is reportedly used in crystallography, chromatography, photoluminescence and photoelectron spectroscopy, infrared and Raman spectroscopy, to name but a few.</p>
 	</description>
 
@@ -56,7 +56,7 @@
 			<image>https://alexpl.fedorapeople.org/AppData/fityk/screens/Screen05.png</image>
 		</screenshot>
 		<screenshot>
-			<caption>Fitting functions can be edited and custom ones added</caption>
+			<caption>Fitting functions can be created/edited</caption>
 			<image>https://alexpl.fedorapeople.org/AppData/fityk/screens/Screen06.png</image>
 		</screenshot>
 	</screenshots>
