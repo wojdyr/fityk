@@ -7,13 +7,11 @@
 	<summary>Non-linear curve fitting and data analysis</summary>
 
 	<description>
-		<p>Fityk [fi:tik] is a program for data processing and nonlinear curve fitting.</p>
-		<p>Primarily used:</p>
-		<ul>
-			<li>by scientists who analyse data from powder diffraction, chromatography, photoluminescence and photoelectron spectroscopy, infrared and Raman spectroscopy, and other experimental techniques,</li>
-			<li>to fit peaks – bell-shaped functions (Gaussian, Lorentzian, Voigt, Pearson VII, bifurcated Gaussian, EMG, Doniach-Sunjic, etc.),</li>
-		</ul>
-		<p>but it is suitable for fitting any curve to 2D (x,y) data.</p>
+		<p>Fityk [fi:tik] is a program for data processing and nonlinear curve fitting of analytical functions to data (usually experimental data). It is primarily peak fitting software, but can handle other types of functions as well.</p>
+		<p>Apart from the actual fitting, the program helps with data processing and provides an ergonomic graphical interface and also a command line interface and a scripting API</p>
+		<p>Fityk offers various nonlinear fitting methods (such as Gaussian, Voigt, sigmoid, polynomial and dozens of others), simple background subtraction and other manipulations to the dataset, easy placement of peaks and changing of peak parameters, support for analysis of series of datasets, automation of common tasks with scripts, and much more.</p>
+		<p>But the program can also handle quite complex scenarios. You can define your own function types. You can specify sophisticated dependencies between parameters of the functions (say, peak widths given as a function of peak positions). You can fit multiple datasets together using common set of parameters. You can model zero-shift in your instrument or do more complicated refinement of the X scale. And you can automate all this work.</p>
+		<p>Fityk is reportedly used in crystallography, chromatography, photoluminescence and photoelectron spectroscopy, infrared and Raman spectroscopy, to name but a few.</p>
 	</description>
 
 	<categories>
@@ -25,6 +23,12 @@
 	<content_rating type="oars-1.1" />
 
 	<launchable type="desktop-id">fityk.desktop</launchable>
+
+	<keywords>
+		<keyword>curve fitting</keyword>
+		<keyword>XPS</keyword>
+		<keyword>crystallography</keyword>
+	</keywords>
 
 	<screenshots>
 		<screenshot type="default">
@@ -75,7 +79,7 @@
 		</release>
 	</releases>
 
-	<url type="homepage">http://fityk.nieto.pl/</url>
+	<url type="homepage">https://fityk.nieto.pl/</url>
 
 	<provides>
 		<binary>fityk</binary>
