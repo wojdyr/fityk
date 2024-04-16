@@ -3,6 +3,7 @@
 	<id>pl.nieto.fityk</id>
 	<metadata_license>CC0-1.0</metadata_license>
 	<project_license>GPL-2.0-or-later</project_license>
+	<developer_name>Marcin Wojdyr</developer_name>
 	<name>Fityk</name>
 	<summary>Non-linear curve fitting and data analysis</summary>
 
