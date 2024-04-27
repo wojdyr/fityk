@@ -14,6 +14,7 @@ Prerequisites
 Installation
 ============
 
+$ ./autogen.sh
 $ ./configure (optionally followed by options, see: Configuration Options)
 $ make
 # make install

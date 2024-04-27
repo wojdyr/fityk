@@ -72,31 +72,132 @@ void merge_same_x(vector<Point> &pp, bool avg)
 
 void shirley_bg(vector<Point> &pp)
 {
-    const int max_iter = 50;
-    const double max_rdiff = 1e-6;
-    const int n = pp.size();
-    double ya = pp[0].y; // lowest bg
-    double yb = pp[n-1].y; // highest bg
-    double dy = yb - ya;
-    vector<double> B(n, ya);
-    vector<double> PA(n, 0.);
-    double old_A = 0;
-    for (int iter = 0; iter < max_iter; ++iter) {
-        vector<double> Y(n);
-        for (int i = 0; i < n; ++i)
-            Y[i] = pp[i].y - B[i];
-        for (int i = 1; i < n; ++i)
-            PA[i] = PA[i-1] + (Y[i] + Y[i-1]) / 2 * (pp[i].x - pp[i-1].x);
-        double rel_diff = old_A != 0. ? fabs(PA[n-1] - old_A) / old_A : 1.;
-        if (rel_diff < max_rdiff)
+    /* Set criteria to stop itertions */
+    const int max_iter = 100; 
+    const double max_rdiff = 1e-6;  // implement: check for differences
+    const unsigned long n = pp.size();
+
+    /* The user has to set an appropriate region around the peak since the outcome is sensitive to that */
+    /* Determine the range for the shirley background calculation from the active range in the dataset
+     * the shirley BG will be calculated between the first and last active datapoint */
+    unsigned long startXindex = 0;
+    unsigned long endXindex = n-1;
+
+    for (unsigned long i = 0; i < n; i++) {
+        if( pp[i].is_active==true){
+            startXindex = i;
             break;
-        old_A = PA[n-1];
-        for (int i = 0; i < n; ++i)
-            B[i] = ya + dy / PA[n-1] * PA[i];
+        }
     }
-    for (int i = 0; i < n; ++i)
-        pp[i].y = B[i];
+
+    for (unsigned long i = endXindex; i > 0; i--) {
+        if( pp[i].is_active==true){
+            endXindex = i;
+            break;
+        }
+    }
+
+    /* To set ymin and ymax, we assume that we are in BE representation and Alow belongs to smaller BE and Ahigh to higher BE */
+
+    /* Straight forward determination of ymin and ymax, but this can result in poor results when the SNR is high. */
+    //double ymin = pp[startXindex].y;
+    //double ymax = pp[endXindex].y;
+
+    /* To improve the behaviour for bad SNR we average up to 5 y values around the x-index*/
+    double ymin = 0.00001;
+    double ymax = 0.00001;
+
+    int count_start = 0;
+    int count_end = 0;
+
+    for(unsigned long i=0; i<5; i++){
+        /* check if argument is within the range of the array indices */
+        if( (int(startXindex+i)-2 >= 0) && ( startXindex+i-2 < n) ){
+            ymin = ymin + pp[startXindex+i-2].y;
+            count_start++;
+        }
+
+        /* check if argument is within the range of the array indices */
+        if( (int(endXindex+i)-2 >= 0) && ( endXindex+i-2 < n) ){
+            ymax = ymax + pp[endXindex+i-2].y;
+            count_end++;
+        }
+    }
+    /* divide by number of summations */
+    if(count_start>0 && count_end>0){
+        ymin=ymin/double(count_start);
+        ymax=ymax/double(count_end);
+    }
+
+    /* Determine minimum element from data to obtain a reasonable starting value for the fit */
+    double yminElement = ymin;
+    for (unsigned long i = 0; i < n; i++) {
+        if( pp[i].y < yminElement){
+            yminElement =  pp[i].y;
+        }
+    }
+    /* create starting background */
+    std::vector<double> BG(n, yminElement);
+
+    /* set initial BG values by assuming a linear background of the form  y = a* x + y0*/
+    double divisor =  1.0; 
+    if( (endXindex - startXindex) > 0){
+        divisor = (double)(endXindex - startXindex);
+    }
+
+    double initial_slope = (pp[endXindex].y - pp[startXindex].y) / divisor;
+    
+    for (unsigned long EnergyIdx = 0; EnergyIdx < n ;  EnergyIdx++){
+      
+        if (EnergyIdx < startXindex){
+            BG[EnergyIdx] = pp[startXindex].y;
+        }   
+
+        if (EnergyIdx >= startXindex && EnergyIdx <= endXindex){
+            BG[EnergyIdx] = initial_slope * (EnergyIdx-startXindex) + pp[startXindex].y;
+        }
+
+        if (EnergyIdx > endXindex){
+            BG[EnergyIdx] = pp[endXindex].y;
+        }     
+
+    } 
+
+    /* recursive determination of the shirley background */
+    for (int iter = 0; iter < max_iter; iter++) {
+
+        /* Determine all background BG(Energy) values in dependence of the binding energy */
+        for (unsigned long EnergyIdx = 0; EnergyIdx < n ;  EnergyIdx++){
+
+            double Alow = 0.0;
+            double Ahigh = 0.0;
+
+            /* calculate Areas A1 and A2 for each energy value */
+            for (unsigned long x = startXindex+1; x <= EnergyIdx; x++){
+
+                Alow = Alow + ((pp[x].x-pp[x-1].x)*(pp[x].y+pp[x-1].y)/2.0) - BG[x]*(pp[x].x-pp[x-1].x);
+
+            }
+
+            for (unsigned long x = EnergyIdx+1; x < endXindex; x++){
+
+                Ahigh = Ahigh + ((pp[x].x-pp[x-1].x)*(pp[x].y+pp[x-1].y)/2.0) - BG[x]*(pp[x].x-pp[x-1].x);
+
+            }
+
+            /* The formula is implemented as given in the CasaXPS manual (2006) "Peak fitting in XPS" chapter */
+            BG[EnergyIdx] = ymin + (ymax-ymin) * (Alow/(Ahigh+Alow));
+
+        }
+    }
+
+    /* copy the resulting background */
+    for (unsigned long i = 0; i < n; i++){
+        pp[i].y = BG[i];
+    }
 }
+
+
 
 // Calculates the SNIP background iteratively in the
 // given slice of the vector of points.
@@ -311,3 +412,4 @@ void run_data_transform(const DataKeeper& dk, const VMData& vm, Data* data_out)
 }
 
 } // namespace fityk
+ 
