@@ -94,23 +94,18 @@ Download
 
 |ico-osx| Mac OS X (10.6 or later): :github_download:`-osx.zip`
 
-|ico-tux| Linux: binary
-`RPM and deb packages <https://software.opensuse.org/download?project=home:wojdyr&package=fityk>`_
-(`files <https://download.opensuse.org/repositories/home://wojdyr/>`_)
-:smallfont:`for about 10 distros (incl. Ubuntu, Fedora, Suse), 32- and 64-bit.`
+|ico-tux| Linux: binary packages are available
+`in many distros <https://repology.org/project/fityk/versions>`_
+and on `Flathub <https://flathub.org/apps/pl.nieto.fityk>`_.
 
 Source code: `GitHub <https://github.com/wojdyr/fityk>`_
 (`releases <https://github.com/wojdyr/fityk/releases>`_)
 
-Installers for ver. 1.0+ used to be available to paid subscribers only.
-This made `version 0.9.8 <https://github.com/wojdyr/fityk/downloads>`_
-more popular than more recent releases.
-To change this situation the latest binaries are no longer
-`paywalled </subscribers>`_.
-The author is grateful to all people who supported Fityk with subscriptions.
-
 Version 1.3.1 was released on 2016-12-19
 (`changelog <https://github.com/wojdyr/fityk/raw/master/NEWS>`_).
+
+Version 1.3.2, with minor changes, was released on 2022-08-06,
+but binaries haven't been updated.
 
 .. |ico-win| image:: img/ico-win.png
 .. |ico-tux| image:: img/ico-tux.png

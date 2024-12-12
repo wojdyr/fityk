@@ -8,12 +8,13 @@ environment:
     BOOST: C:\Libraries\boost_1_77_0
   - CMAKE_GEN: Visual Studio 12 2013
     BOOST: C:\Libraries\boost_1_63_0
-cache:
-- C:\ProgramData\chocolatey\bin
-- C:\ProgramData\chocolatey\lib
+#cache:
+#- C:\ProgramData\chocolatey\bin
+#- C:\ProgramData\chocolatey\lib
 build_script:
 - cmd: >-
-    IF NOT EXIST C:\ProgramData\chocolatey\bin\swig.exe choco install --version 4.0.1 swig -y --limit-output
+    choco install swig -y --limit-output
+
     cmake -D BOOST_ROOT=%BOOST% -G "%CMAKE_GEN%" .
     cmake --build . --config Release --target install
 test_script:
