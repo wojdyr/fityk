@@ -1,0 +1,10 @@
+cff-version: 1.2.0
+message: "If you use fityk to analyze your data, please cite it as below."
+authors:
+- family-names: "Wojdyr"
+  given-names: "Marcin"
+  orcid: "https://orcid.org/0000-0003-3980-4092"
+title: "Fityk: a general-purpose peak fitting program"
+doi: 10.1107/S0021889810030499
+date-released: 2010-09-24
+url: "https://fityk.nieto.pl/"
