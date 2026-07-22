@@ -366,7 +366,7 @@ void MainPlot::draw(wxDC &dc, bool monochrome)
 bool MainPlot::visible_peaktops(MouseModeEnum mode)
 {
     return (mode == mmd_zoom || mode == mmd_add || mode == mmd_peak
-            || mode == mmd_activate);
+            || mode == mmd_activate || mode == mmd_move_peaks_only);
 }
 
 void MainPlot::draw_x_axis (wxDC& dc, bool set_pen)

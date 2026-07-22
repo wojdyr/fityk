@@ -19,7 +19,8 @@ enum MouseModeEnum {
     mmd_add,        // add-peak mode
     mmd_activate,   // data-range mode
     mmd_peak,       // mouse-over-peak-top mode
-    mmd_readonly    // read-only mode, used for saving the plot as image
+    mmd_readonly,    // read-only mode, used for saving the plot as image
+    mmd_move_peaks_only // move peaks only mode
 };
 
 // plot types, e.g. to tell where is mouse
