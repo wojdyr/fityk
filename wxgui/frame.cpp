@@ -80,6 +80,7 @@
 #include "img/zoom_all.xpm"
 #include "img/zoom_left.xpm"
 #include "img/zoom_mode.xpm"
+#include "img/move_mode.xpm"
 #include "img/zoom_prev.xpm"
 #include "img/zoom_right.xpm"
 #include "img/zoom_up.xpm"
@@ -194,6 +195,7 @@ enum {
     ID_SESSION_EI              ,
     ID_G_MODE                  ,
     ID_G_M_ZOOM                ,
+    ID_G_M_MOVE                ,
     ID_G_M_RANGE               ,
     ID_G_M_BG                  ,
     ID_G_M_ADD                 ,
@@ -244,6 +246,7 @@ enum {
 
     // toolbar
     ID_T_ZOOM                 ,
+    ID_T_MOVE                 ,
     ID_T_RANGE                ,
     ID_T_BG                   ,
     ID_T_ADD                  ,
@@ -336,6 +339,7 @@ BEGIN_EVENT_TABLE(FFrame, wxFrame)
     EVT_MENU (ID_T_KEBE,        FFrame::OnXpsKEBE)
 
     EVT_MENU (ID_G_M_ZOOM,      FFrame::OnChangeMouseMode)
+    EVT_MENU (ID_G_M_MOVE,      FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_RANGE,     FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_BG,        FFrame::OnChangeMouseMode)
     EVT_MENU (ID_G_M_ADD,       FFrame::OnChangeMouseMode)
@@ -696,6 +700,8 @@ void FFrame::set_menubar()
                                 wxT("Use mouse for subtracting background"));
     gui_menu_mode->AppendRadioItem (ID_G_M_ADD, wxT("&Peak-Add\tF4"),
                                     wxT("Use mouse for adding new peaks"));
+    gui_menu_mode->AppendRadioItem (ID_G_M_MOVE, wxT("&Move\tF5"),
+                              wxT("Use mouse for moving peaks"));
     gui_menu->Append(ID_G_MODE, wxT("&Mode"), gui_menu_mode);
     wxMenu* baseline_menu = new wxMenu;
     baseline_menu->Append (ID_G_BG_STRIP, wxT("&Subtract Baseline"),
@@ -1530,13 +1536,37 @@ void FFrame::OnEditInit (wxCommandEvent&)
 
 void FFrame::change_mouse_mode(MouseModeEnum mode)
 {
-    //enum MouseModeEnum { mmd_zoom=0, mmd_bg, mmd_add, mmd_activate, ...
-    int menu_ids[] = { ID_G_M_ZOOM, ID_G_M_BG, ID_G_M_ADD, ID_G_M_RANGE };
-    int tool_ids[] = { ID_T_ZOOM, ID_T_BG, ID_T_ADD, ID_T_RANGE };
-    int idx = mode;
-    GetMenuBar()->Check(menu_ids[idx], true);
+    int menu_id = -1;
+    int tool_id = -1;
+
+    switch (mode) {
+        case mmd_zoom:
+            menu_id = ID_G_M_ZOOM;
+            tool_id = ID_T_ZOOM;
+            break;
+        case mmd_bg:
+            menu_id = ID_G_M_BG;
+            tool_id = ID_T_BG;
+            break;
+        case mmd_add:
+            menu_id = ID_G_M_ADD;
+            tool_id = ID_T_ADD;
+            break;
+        case mmd_activate:
+            menu_id = ID_G_M_RANGE;
+            tool_id = ID_T_RANGE;
+            break;
+        case mmd_move_peaks_only:
+            menu_id = ID_G_M_MOVE;
+            tool_id = ID_T_MOVE;
+            break;
+        default:
+            return;
+    }
+
+    GetMenuBar()->Check(menu_id, true);
     if (toolbar_) {
-        toolbar_->ToggleTool(tool_ids[idx], true);
+        toolbar_->ToggleTool(tool_id, true);
         toolbar_->EnableTool(ID_T_STRIP, (mode == mmd_bg));
     }
     get_main_plot()->switch_to_mode(mode);
@@ -1560,6 +1590,10 @@ void FFrame::OnChangeMouseMode (wxCommandEvent& event)
         case ID_G_M_ADD:
         case ID_T_ADD:
             change_mouse_mode(mmd_add);
+            break;
+        case ID_G_M_MOVE:
+        case ID_T_MOVE:
+            change_mouse_mode(mmd_move_peaks_only);
             break;
         default: assert(0);
     }
@@ -2285,6 +2319,7 @@ void FFrame::DoGiveHelp(const wxString& help, bool show)
 
 BEGIN_EVENT_TABLE (FToolBar, wxToolBar)
     EVT_TOOL_RANGE (ID_T_ZOOM, ID_T_ADD, FToolBar::OnChangeMouseMode)
+    EVT_TOOL(ID_T_MOVE, FToolBar::OnChangeMouseMode)
     EVT_TOOL_RANGE (ID_T_PZ, ID_T_AUTO, FToolBar::OnClickTool)
     //EVT_TOOL (ID_T_BAR, FToolBar::OnSwitchSideBar)
     EVT_CHOICE (ID_T_CHOICE, FToolBar::OnPeakChoice)
@@ -2320,6 +2355,11 @@ FToolBar::FToolBar (wxFrame *parent, wxWindowID id)
                  wxT("Add-Peak Mode [F4]"),
                  wxT("Use mouse for adding new peaks"));
     ToggleTool(ID_T_ADD, m == mmd_add);
+    AddRadioTool(ID_T_MOVE, wxT("Move"),
+                 wxBitmap(move_mode_xpm), wxNullBitmap,
+                 wxT("Move Mode [F5]"),
+                 wxT("Use mouse for moving peaks"));
+    ToggleTool(ID_T_MOVE, m == mmd_move_peaks_only);
     AddSeparator();
     // view
     AddTool (ID_G_V_ALL, wxT("Whole"), wxBitmap(zoom_all_xpm), wxNullBitmap,
