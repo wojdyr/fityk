@@ -2,6 +2,8 @@
 *.bak
 *.pyc
 *.o
+*.Po
+*.Plo
 cscope.out
 tags
 Makefile.in
@@ -34,3 +36,9 @@ fityk/cmpfit/*.patch
 *-build-*/
 fityk-?.?.?-setup.exe
 fityk-?.?.?.tar.bz2
+fityk.iss
+libtool
+stamp-h1
+config.h
+config.log
+config.status
