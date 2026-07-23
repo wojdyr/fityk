@@ -4,6 +4,8 @@
 *.o
 *.Po
 *.Plo
+*.lo
+*.la
 cscope.out
 tags
 Makefile.in
@@ -42,3 +44,12 @@ stamp-h1
 config.h
 config.log
 config.status
+.dirstamp
+cfityk
+fityk/.libs/libfityk.lai
+fityk/.libs/libfityk.so
+fityk/.libs/libfityk.so.4
+fityk/.libs/libfityk.so.4.0.0
+wxgui/fityk
+wxgui/libceria.a
+wxgui/.libs/fityk
